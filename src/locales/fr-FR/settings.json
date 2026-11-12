@@ -1,0 +1,41 @@
+{
+  "page": {
+    "title": "Paramètres",
+    "subtitle": "Apparence, langue et comportement de la station de travail."
+  },
+  "sections": {
+    "appearance": "Apparence et langue",
+    "agent": "Agent IA",
+    "startup": "Démarrage",
+    "about": "À propos"
+  },
+  "appearance": {
+    "languageLabel": "Langue de l'interface",
+    "languageHint": "S'applique immédiatement à l'ensemble de l'application. Votre choix est conservé après redémarrage.",
+    "languageChanged": "Langue changée en {{language}}",
+    "coverageNote": "Toutes les langues fournies sont entièrement relues pour cette version.",
+    "themeLabel": "Thème",
+    "themeHint": "Suivre Windows applique en temps réel le réglage clair ou sombre du système.",
+    "motionLabel": "Réduire les animations",
+    "motionHint": "Réduit au minimum les animations et les transitions dans toute la station de travail.",
+    "agentReplyLabel": "Langue de réponse de l'agent",
+    "agentReplyHint": "N'affecte que le texte explicatif rédigé par l'agent. Le code, les commandes et les chemins de fichiers ne sont jamais modifiés.",
+    "agentReplyUi": "Suivre la langue de l'interface",
+    "agentReplyInput": "Suivre la langue de ma requête",
+    "agentReplyFixed": "Toujours utiliser :"
+  },
+  "startup": {
+    "autoStartLabel": "Démarrer avec Windows",
+    "autoStartDetail": "Lance NEXUS après votre connexion. Ce réglage ne change qu'après votre confirmation."
+  },
+  "about": {
+    "version": "Version",
+    "platform": "Plateforme",
+    "dataPath": "Données utilisateur",
+    "logsPath": "Journaux",
+    "cachePath": "Cache",
+    "settingsFile": "Fichier de paramètres",
+    "systemLocale": "Langue du système",
+    "openLogs": "Ouvrir le dossier des journaux"
+  }
+}

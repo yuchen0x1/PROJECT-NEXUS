@@ -1,0 +1,80 @@
+{
+  "center": {
+    "eyebrow": "版本控制",
+    "title": "发布中心",
+    "subtitle": "创建草稿、检查发布资产，并让发布始终需要管理员显式确认。",
+    "refresh": "刷新发布",
+    "loading": "正在读取 GitHub Releases",
+    "chooseRepositoryFirst": "请先选择一个仓库",
+    "draftQueued": "发布草稿已加入队列",
+    "draftFailed": "发布草稿创建失败",
+    "publishQueued": "发布操作已加入队列",
+    "loadFailed": "无法加载发布"
+  },
+  "form": {
+    "kicker": "创建发布草稿",
+    "title": "准备一个版本",
+    "repository": "仓库",
+    "tag": "标签",
+    "tagPlaceholder": "v1.2.3",
+    "name": "名称",
+    "namePlaceholder": "发布名称",
+    "notes": "发布说明",
+    "notesPlaceholder": "发布说明可在发布前编辑。",
+    "create": "创建草稿"
+  },
+  "policy": {
+    "kicker": "发布策略",
+    "title": "审批门禁",
+    "semverTitle": "要求语义化版本",
+    "semverDetail": "创建草稿前会检查已有标签。",
+    "digestTitle": "资产可校验摘要",
+    "digestDetail": "上传的资产会在审计记录中登记 SHA-256。",
+    "adminTitle": "发布需要管理员权限",
+    "adminDetail": "正式发布需要 confirm=true 以及管理员角色。"
+  },
+  "list": {
+    "emptyBannerTitle": "发布数据为空",
+    "emptyBannerDetail": "请先同步仓库。配置 Token 后，发布内容从 GitHub 获取。",
+    "unpublishedDraft": "未发布的草稿",
+    "stateDraft": "草稿",
+    "statePrerelease": "预发布",
+    "statePublished": "已发布",
+    "emptyTitle": "没有返回任何发布",
+    "emptyDetail": "这是实时读取。空白结果表示 GitHub 未为当前仓库集返回任何发布。"
+  },
+  "autoUpdate": {
+    "eyebrow": "跨平台更新",
+    "title": "自动更新",
+    "subtitle": "检查仓库集中真实的项目文件、清单、更新通道、摘要和签名证据。",
+    "checkAll": "检查所有项目",
+    "summary": {
+      "checked": "已检查项目",
+      "ready": "就绪",
+      "blocked": "已阻断",
+      "lastCheck": "上次检查"
+    },
+    "versionUnknown": "版本未知",
+    "evidence_one": "{{count}} 个证据文件 · {{samples}}",
+    "evidence_other": "{{count}} 个证据文件 · {{samples}}",
+    "noEvidence": "未找到受支持的更新证据",
+    "recheck": "重新检查项目",
+    "recheckToast": "已将 {{project}} 的更新检查加入队列",
+    "loading": "正在读取更新证据",
+    "checkQueued": "更新检查已加入队列",
+    "checkFailed": "无法将更新检查加入队列",
+    "loadFailed": "无法加载更新检查",
+    "emptyTitle": "尚无更新检查",
+    "emptyDetail": "运行一次检查，从真实仓库文件查看 Electron、Tauri、Python、.NET、Java 和 Web 的更新信号。",
+    "runFirst": "运行首次检查",
+    "semantics": {
+      "kicker": "安全语义",
+      "title": "各项检查的含义",
+      "sha": "内容完整性",
+      "signatureLabel": "签名",
+      "signature": "发布者真实性",
+      "https": "传输保护",
+      "blocked": "缺少必需证据"
+    }
+  }
+}

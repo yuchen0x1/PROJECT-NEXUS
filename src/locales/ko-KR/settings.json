@@ -1,0 +1,41 @@
+{
+  "page": {
+    "title": "설정",
+    "subtitle": "모양, 언어 및 워크스테이션 동작."
+  },
+  "sections": {
+    "appearance": "모양 및 언어",
+    "agent": "AI 에이전트",
+    "startup": "시작",
+    "about": "정보"
+  },
+  "appearance": {
+    "languageLabel": "인터페이스 언어",
+    "languageHint": "애플리케이션 전체에 즉시 적용됩니다. 선택한 내용은 다시 시작한 후에도 유지됩니다.",
+    "languageChanged": "언어가 {{language}}(으)로 변경되었습니다",
+    "coverageNote": "포함된 모든 언어는 이 릴리스를 위해 완전히 검토되었습니다.",
+    "themeLabel": "테마",
+    "themeHint": "Windows 따르기는 시스템의 라이트 또는 다크 설정을 실시간으로 따릅니다.",
+    "motionLabel": "움직임 줄이기",
+    "motionHint": "워크스테이션 전체의 애니메이션과 전환 효과를 최소화합니다.",
+    "agentReplyLabel": "에이전트 답변 언어",
+    "agentReplyHint": "에이전트가 작성하는 설명 텍스트에만 영향을 줍니다. 코드, 명령, 파일 경로는 절대 변경되지 않습니다.",
+    "agentReplyUi": "인터페이스 언어 따르기",
+    "agentReplyInput": "요청 언어 따르기",
+    "agentReplyFixed": "항상 사용:"
+  },
+  "startup": {
+    "autoStartLabel": "Windows 시작 시 실행",
+    "autoStartDetail": "로그인 후 NEXUS를 시작합니다. 이 설정은 확인 후에만 변경됩니다."
+  },
+  "about": {
+    "version": "버전",
+    "platform": "플랫폼",
+    "dataPath": "사용자 데이터",
+    "logsPath": "로그",
+    "cachePath": "캐시",
+    "settingsFile": "설정 파일",
+    "systemLocale": "시스템 언어",
+    "openLogs": "로그 폴더 열기"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "eyebrow": "GitHub Actions",
+  "title": "Centro de compilación",
+  "subtitle": "Inspecciona flujos de trabajo, envía compilaciones y sigue las ejecuciones desde una superficie consciente del proyecto.",
+  "picker": {
+    "kicker": "Repositorio de destino",
+    "title": "Elige un proyecto",
+    "emptyTitle": "No hay repositorios de destino",
+    "emptyDetail": "Sincroniza repositorios antes de abrir un contexto de compilación."
+  },
+  "workflows": {
+    "kicker": "Catálogo de flujos de trabajo",
+    "selectRepository": "Selecciona un repositorio",
+    "runAction": "Ejecutar flujo de trabajo",
+    "dispatched": "Envío de compilación en cola",
+    "dispatchFailed": "Error en el envío de la compilación",
+    "loadFailed": "No se pudieron cargar los flujos de trabajo",
+    "emptyTitle": "No se han encontrado flujos de trabajo",
+    "emptyDetail": "GitHub no ha devuelto flujos de trabajo de Actions para este repositorio.",
+    "waitingTitle": "El contexto de compilación está en espera",
+    "waitingDetail": "Selecciona un repositorio para cargar sus flujos de trabajo reales de GitHub Actions."
+  },
+  "runs": {
+    "kicker": "Historial de ejecuciones",
+    "title": "Ejecuciones recientes",
+    "emptyTitle": "No hay historial de ejecuciones cargado",
+    "emptyDetail": "Elige un repositorio con acceso a Actions para ver las ejecuciones recientes."
+  }
+}

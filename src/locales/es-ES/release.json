@@ -1,0 +1,80 @@
+{
+  "center": {
+    "eyebrow": "Control de versiones",
+    "title": "Centro de publicaciones",
+    "subtitle": "Crea borradores, inspecciona los artefactos de publicación y mantén la publicación tras una confirmación explícita del administrador.",
+    "refresh": "Actualizar publicaciones",
+    "loading": "Leyendo GitHub Releases",
+    "chooseRepositoryFirst": "Elige primero un repositorio",
+    "draftQueued": "Borrador de publicación en cola",
+    "draftFailed": "Error en el borrador de publicación",
+    "publishQueued": "Publicación en cola",
+    "loadFailed": "No se pudieron cargar las publicaciones"
+  },
+  "form": {
+    "kicker": "Crear borrador de publicación",
+    "title": "Preparar una versión",
+    "repository": "Repositorio",
+    "tag": "Etiqueta",
+    "tagPlaceholder": "v1.2.3",
+    "name": "Nombre",
+    "namePlaceholder": "Nombre de la publicación",
+    "notes": "Notas",
+    "notesPlaceholder": "Las notas de la publicación se pueden editar antes de publicar.",
+    "create": "Crear borrador"
+  },
+  "policy": {
+    "kicker": "Política de publicación",
+    "title": "Controles de aprobación",
+    "semverTitle": "Se requiere versión semántica",
+    "semverDetail": "Las etiquetas existentes se comprueban antes de crear un borrador.",
+    "digestTitle": "Artefactos con resumen",
+    "digestDetail": "Los artefactos subidos reciben un registro SHA-256 en el rastro de auditoría.",
+    "adminTitle": "Publicar requiere Administrador",
+    "adminDetail": "La publicación de una versión de producción necesita confirm=true y un rol de administrador."
+  },
+  "list": {
+    "emptyBannerTitle": "Los datos de publicaciones están vacíos",
+    "emptyBannerDetail": "Sincroniza primero los repositorios. Las publicaciones se obtienen de GitHub cuando hay un token configurado.",
+    "unpublishedDraft": "Borrador sin publicar",
+    "stateDraft": "Borrador",
+    "statePrerelease": "Versión preliminar",
+    "statePublished": "Publicado",
+    "emptyTitle": "No se han recibido publicaciones",
+    "emptyDetail": "Esta es una lectura en vivo. Un resultado vacío significa que GitHub no devolvió publicaciones para el conjunto de repositorios actual."
+  },
+  "autoUpdate": {
+    "eyebrow": "Actualizaciones multiplataforma",
+    "title": "Actualización automática",
+    "subtitle": "Inspecciona archivos reales de proyectos, manifiestos, canales, resúmenes y evidencia de firma en todo el conjunto de repositorios.",
+    "checkAll": "Comprobar todos los proyectos",
+    "summary": {
+      "checked": "Proyectos comprobados",
+      "ready": "Listos",
+      "blocked": "Bloqueados",
+      "lastCheck": "Última comprobación"
+    },
+    "versionUnknown": "versión desconocida",
+    "evidence_one": "{{count}} archivo de evidencia · {{samples}}",
+    "evidence_other": "{{count}} archivos de evidencia · {{samples}}",
+    "noEvidence": "No se ha encontrado evidencia de actualización compatible",
+    "recheck": "Comprobar de nuevo el proyecto",
+    "recheckToast": "Comprobación de actualización en cola para {{project}}",
+    "loading": "Leyendo evidencia de actualización",
+    "checkQueued": "Comprobaciones de actualización en cola",
+    "checkFailed": "No se pudieron poner en cola las comprobaciones de actualización",
+    "loadFailed": "No se pudieron cargar las comprobaciones de actualización",
+    "emptyTitle": "Aún no hay comprobaciones de actualización",
+    "emptyDetail": "Ejecuta una comprobación para inspeccionar las señales de actualización de Electron, Tauri, Python, .NET, Java y web a partir de archivos reales del repositorio.",
+    "runFirst": "Ejecutar primera comprobación",
+    "semantics": {
+      "kicker": "Semántica de seguridad",
+      "title": "Qué significan las comprobaciones",
+      "sha": "Integridad del contenido",
+      "signatureLabel": "Firma",
+      "signature": "Autenticidad del editor",
+      "https": "Protección del transporte",
+      "blocked": "Falta evidencia requerida"
+    }
+  }
+}

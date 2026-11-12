@@ -1,6 +1,6 @@
 {
   "name": "project-nexus",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "Windows AI development and project operations workstation",
   "author": {
     "name": "PROJECT NEXUS"
@@ -16,6 +16,11 @@
     "desktop:package:win": "npm run build && electron-builder --win nsis --x64 --publish never",
     "test:desktop": "npm run build && node tests/desktop.smoke.mjs",
     "test:desktop:agent": "npm run build && node tests/local-agent-desktop-ui.mjs",
+    "test:desktop:i18n": "npm run build && node tests/desktop-i18n.mjs",
+    "test:desktop:quality": "npm run build && node tests/desktop-quality.mjs",
+    "test:desktop:perf": "npm run build && node tests/desktop-perf.mjs",
+    "i18n:audit": "node scripts/i18n-deep-audit.mjs",
+    "i18n:coverage": "node scripts/i18n-coverage.mjs",
     "start": "node server/index.mjs",
     "test": "vitest run",
     "test:ui": "node tests/smoke.mjs",
@@ -25,9 +30,11 @@
     "@vitejs/plugin-react": "latest",
     "cors": "latest",
     "express": "latest",
+    "i18next": "^25.10.10",
     "lucide-react": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "react-i18next": "^16.6.6",
     "vite": "latest"
   },
   "devDependencies": {

@@ -75,6 +75,8 @@ try {
   await fs.mkdir(path.join(projectPath, 'src'), { recursive: true })
   await fs.mkdir(profilePath, { recursive: true })
   await fs.mkdir(dataRoot, { recursive: true })
+  // Pin the UI language so the Playwright selectors below stay deterministic.
+  await fs.writeFile(path.join(dataRoot, 'desktop-settings.json'), JSON.stringify({ language: 'en-US' }, null, 2), 'utf8')
   await fs.writeFile(path.join(projectPath, '.gitignore'), 'ignored.txt\n', 'utf8')
   await fs.writeFile(path.join(projectPath, 'ignored.txt'), 'fixture-only ignored source\n', 'utf8')
   await fs.writeFile(path.join(projectPath, '.env'), 'API_KEY=fixture-secret-must-not-leave-this-machine\n', 'utf8')
@@ -159,7 +161,7 @@ try {
   assert.ok(context, 'The launched Electron app should expose a Chromium context.')
   const page = context.pages()[0] || await context.waitForEvent('page', { timeout: 15_000 })
   await page.waitForLoadState('domcontentloaded', { timeout: 20_000 })
-  await page.getByRole('heading', { name: 'Workstation', exact: true }).waitFor({ timeout: 20_000 })
+  await page.getByRole('heading', { name: 'Workbench', exact: true }).waitFor({ timeout: 20_000 })
   await page.getByRole('button', { name: 'AI Agent', exact: true }).click()
   await page.getByRole('heading', { name: 'Describe a code change', exact: true }).waitFor({ timeout: 10_000 })
   await page.getByText('Provider ready', { exact: true }).waitFor({ timeout: 10_000 })

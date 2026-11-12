@@ -1,0 +1,29 @@
+{
+  "eyebrow": "GitHub Actions",
+  "title": "构建中心",
+  "subtitle": "在一个面向项目的界面上检查工作流、派发构建并跟踪运行。",
+  "picker": {
+    "kicker": "目标仓库",
+    "title": "选择一个项目",
+    "emptyTitle": "没有目标仓库",
+    "emptyDetail": "请先同步仓库，再打开构建上下文。"
+  },
+  "workflows": {
+    "kicker": "工作流目录",
+    "selectRepository": "选择一个仓库",
+    "runAction": "运行工作流",
+    "dispatched": "构建派发已加入队列",
+    "dispatchFailed": "构建派发失败",
+    "loadFailed": "无法加载工作流",
+    "emptyTitle": "未发现工作流",
+    "emptyDetail": "GitHub 未返回此仓库的 Actions 工作流。",
+    "waitingTitle": "构建上下文等待中",
+    "waitingDetail": "选择一个仓库以加载其真实的 GitHub Actions 工作流。"
+  },
+  "runs": {
+    "kicker": "执行历史",
+    "title": "最近运行",
+    "emptyTitle": "尚无运行历史",
+    "emptyDetail": "选择一个具有 Actions 访问权限的仓库以查看最近的运行。"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "generic": "出现问题，请重试。",
+  "loadFailed": "无法加载所请求的数据。",
+  "environmentCheck": "环境检测失败。",
+  "addProject": "无法添加该文件夹。",
+  "scanProject": "项目扫描失败。",
+  "removeProject": "无法移除项目引用。",
+  "autoStart": "无法更改 Windows 启动设置。",
+  "agentConfig": "无法加载本地智能体状态。",
+  "agentTaskDetail": "无法加载智能体任务详情。",
+  "agentTaskRefresh": "无法刷新智能体任务状态。",
+  "agentTaskStart": "无法启动本地智能体任务。",
+  "agentTaskCancel": "无法取消智能体任务。",
+  "agentTaskRetry": "无法重试智能体任务。",
+  "workstationData": "无法加载本地工作站数据。",
+  "serviceUnavailable": "本地服务没有响应。请重启 PROJECT NEXUS 后重试。"
+}

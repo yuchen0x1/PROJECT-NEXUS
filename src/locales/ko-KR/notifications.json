@@ -1,0 +1,71 @@
+{
+  "activity": {
+    "workstationReady": {
+      "label": "워크스테이션 준비 완료",
+      "detail_one": "로컬 프로젝트 {{count}}개가 등록되었습니다.",
+      "detail_other": "로컬 프로젝트 {{count}}개가 등록되었습니다."
+    },
+    "environmentCheckFinished": {
+      "label": "환경 확인 완료",
+      "detail": "개발 도구 {{total}}개 중 {{available}}개를 사용할 수 있습니다."
+    },
+    "environmentCheckFailed": {
+      "label": "환경 확인 실패"
+    },
+    "projectAdded": {
+      "label": "로컬 프로젝트 추가됨"
+    },
+    "projectAlreadyRegistered": {
+      "label": "이미 등록된 프로젝트입니다"
+    },
+    "projectRemoved": {
+      "label": "NEXUS에서 프로젝트가 제거되었습니다",
+      "detail": "폴더와 그 파일은 변경되지 않았습니다."
+    },
+    "projectAddFailed": {
+      "label": "프로젝트를 추가할 수 없습니다"
+    },
+    "scanComplete": {
+      "label": "읽기 전용 스캔 완료",
+      "detail": "{{name}}: {{stack}}, {{count}}개 항목 확인했습니다."
+    },
+    "scanFailed": {
+      "label": "프로젝트 스캔 실패"
+    },
+    "agentTaskQueued": {
+      "label": "로컬 에이전트 작업이 대기열에 추가되었습니다",
+      "detail": "{{project}}: {{label}}"
+    },
+    "agentTaskFailed": {
+      "label": "로컬 에이전트 작업 실패"
+    },
+    "agentTaskStartError": {
+      "label": "로컬 에이전트 작업을 시작할 수 없습니다"
+    },
+    "agentCancellationRequested": {
+      "label": "로컬 에이전트 취소가 요청되었습니다"
+    },
+    "agentRetryQueued": {
+      "label": "로컬 에이전트 재시도가 대기열에 추가되었습니다"
+    },
+    "agentTaskCompleted": {
+      "label": "에이전트 작업 완료",
+      "detail": "{{project}}: {{label}}"
+    },
+    "autoStartEnabled": {
+      "label": "Windows 시작 시 실행이 활성화되었습니다",
+      "detail": "이 설정은 확인 후에만 변경됩니다."
+    },
+    "autoStartDisabled": {
+      "label": "Windows 시작 시 실행이 비활성화되었습니다",
+      "detail": "이 설정은 확인 후에만 변경됩니다."
+    }
+  },
+  "toast": {
+    "languageChanged": "언어가 업데이트되었습니다",
+    "themeChanged": "테마가 업데이트되었습니다",
+    "settingsSaved": "설정이 저장되었습니다",
+    "projectAdded": "프로젝트가 추가되었습니다",
+    "scanQueued": "스캔이 대기열에 추가되었습니다"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "title": "Painel de trabalho",
+  "subtitle": "Uma visão local desta máquina Windows e de suas pastas de projeto aprovadas.",
+  "overline": "ESTAÇÃO DE TRABALHO DE DESENVOLVIMENTO WINDOWS",
+  "sections": {
+    "workbench": "Painel de trabalho",
+    "projects": "Projetos locais",
+    "environment": "Ambiente de desenvolvimento",
+    "agent": "Agente de IA",
+    "remote": "Console remoto"
+  },
+  "sectionSubtitle": {
+    "projects": "Escolha as pastas explicitamente. A primeira verificação lê apenas nomes e marcadores de projeto.",
+    "environment": "Caminhos executáveis e versões detectados nesta conta de usuário do Windows.",
+    "agent": "Gera alterações de código revisáveis em uma cópia isolada de um projeto registrado.",
+    "remote": "Fluxos de trabalho existentes do GitHub e de release, mantidos separados das permissões de execução locais."
+  },
+  "readiness": {
+    "title": "Esta máquina está pronta para a configuração de projetos locais",
+    "detail": "A verificação é somente leitura. Edição de arquivos, builds, gravações no Git e publicação não estão habilitados nesta fase."
+  },
+  "summary": {
+    "projects": "Projetos locais",
+    "projectsDetail": "pastas registradas",
+    "tools": "Ferramentas detectadas",
+    "toolsDetail": "caminhos e sondas seguras de versão concluídos",
+    "toolsChecking": "verificando o ambiente",
+    "scans": "Verificações de projetos",
+    "scansDetail": "relatórios somente leitura salvos localmente",
+    "startup": "Inicialização do Windows",
+    "startupDetail": "preferência controlada pelo usuário"
+  },
+  "recentProjects": {
+    "title": "Projetos recentes",
+    "detail": "Somente as pastas que você adicionar ficam visíveis para a estação de trabalho."
+  },
+  "environmentPreview": {
+    "title": "Ambiente de desenvolvimento",
+    "recheck": "Reverificar as ferramentas de desenvolvimento",
+    "checking": "Verificando as ferramentas instaladas…",
+    "openReport": "Abrir o relatório completo do ambiente"
+  },
+  "boundary": {
+    "title": "Limite de execução",
+    "inForce": "EM VIGOR",
+    "folderDialog": "Os projetos são escolhidos por meio do diálogo de pastas do Windows",
+    "scanLimits": "As verificações ignoram links simbólicos e permanecem dentro dos limites de tamanho",
+    "changesDisabled": "Alterações e comandos permanecem desabilitados até que os controles de aprovação sejam lançados"
+  },
+  "agentPanel": {
+    "title": "Atividade do Agente de IA",
+    "empty": "Nenhuma tarefa do agente está em execução.",
+    "start": "Abra a página do Agente de IA para iniciar uma tarefa.",
+    "activeTask": "Tarefa ativa",
+    "noActiveTask": "Nenhuma tarefa ativa"
+  }
+}

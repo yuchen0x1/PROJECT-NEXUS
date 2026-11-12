@@ -1,0 +1,17 @@
+{
+  "generic": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+  "loadFailed": "Die angeforderten Daten konnten nicht geladen werden.",
+  "environmentCheck": "Die Umgebungsprüfung ist fehlgeschlagen.",
+  "addProject": "Dieser Ordner konnte nicht hinzugefügt werden.",
+  "scanProject": "Der Projekt-Scan ist fehlgeschlagen.",
+  "removeProject": "Der Projektverweis konnte nicht entfernt werden.",
+  "autoStart": "Die Windows-Starteinstellung konnte nicht geändert werden.",
+  "agentConfig": "Der Status des lokalen Agenten konnte nicht geladen werden.",
+  "agentTaskDetail": "Die Details der Agent-Aufgabe konnten nicht geladen werden.",
+  "agentTaskRefresh": "Der Status der Agent-Aufgabe konnte nicht aktualisiert werden.",
+  "agentTaskStart": "Die lokale Agent-Aufgabe konnte nicht gestartet werden.",
+  "agentTaskCancel": "Die Agent-Aufgabe konnte nicht abgebrochen werden.",
+  "agentTaskRetry": "Die Agent-Aufgabe konnte nicht erneut ausgeführt werden.",
+  "workstationData": "Lokale Arbeitsplatzdaten konnten nicht geladen werden.",
+  "serviceUnavailable": "Der lokale Dienst antwortet nicht. Starten Sie PROJECT NEXUS neu und versuchen Sie es erneut."
+}

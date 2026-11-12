@@ -1,0 +1,17 @@
+{
+  "generic": "發生問題，請再試一次。",
+  "loadFailed": "無法載入所要求的資料。",
+  "environmentCheck": "環境偵測失敗。",
+  "addProject": "無法新增該資料夾。",
+  "scanProject": "專案掃描失敗。",
+  "removeProject": "無法移除專案參照。",
+  "autoStart": "無法變更 Windows 啟動設定。",
+  "agentConfig": "無法載入本機代理狀態。",
+  "agentTaskDetail": "無法載入代理任務詳細資料。",
+  "agentTaskRefresh": "無法重新整理代理任務狀態。",
+  "agentTaskStart": "無法啟動本機代理任務。",
+  "agentTaskCancel": "無法取消代理任務。",
+  "agentTaskRetry": "無法重試代理任務。",
+  "workstationData": "無法載入本機工作站資料。",
+  "serviceUnavailable": "本機服務沒有回應。請重新啟動 PROJECT NEXUS 後再試一次。"
+}

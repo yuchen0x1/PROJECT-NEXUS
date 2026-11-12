@@ -1,0 +1,80 @@
+{
+  "center": {
+    "eyebrow": "Versionskontrolle",
+    "title": "Release-Center",
+    "subtitle": "Entwürfe erstellen, Release-Artefakte einsehen und die Veröffentlichung hinter einer expliziten Administratorbestätigung halten.",
+    "refresh": "Releases aktualisieren",
+    "loading": "GitHub Releases werden gelesen",
+    "chooseRepositoryFirst": "Wählen Sie zuerst ein Repository",
+    "draftQueued": "Release-Entwurf in Warteschlange gestellt",
+    "draftFailed": "Release-Entwurf fehlgeschlagen",
+    "publishQueued": "Release-Veröffentlichung in Warteschlange gestellt",
+    "loadFailed": "Releases konnten nicht geladen werden"
+  },
+  "form": {
+    "kicker": "Release-Entwurf erstellen",
+    "title": "Version vorbereiten",
+    "repository": "Repository",
+    "tag": "Tag",
+    "tagPlaceholder": "v1.2.3",
+    "name": "Name",
+    "namePlaceholder": "Release-Name",
+    "notes": "Anmerkungen",
+    "notesPlaceholder": "Release-Anmerkungen können vor der Veröffentlichung bearbeitet werden.",
+    "create": "Entwurf erstellen"
+  },
+  "policy": {
+    "kicker": "Veröffentlichungsrichtlinie",
+    "title": "Freigabekontrollen",
+    "semverTitle": "Semantische Version erforderlich",
+    "semverDetail": "Vorhandene Tags werden geprüft, bevor ein Entwurf erstellt wird.",
+    "digestTitle": "Artefakte sind Prüfsummen-fähig",
+    "digestDetail": "Hochgeladene Artefakte erhalten einen SHA-256-Eintrag im Audit-Protokoll.",
+    "adminTitle": "Veröffentlichung erfordert Administrator",
+    "adminDetail": "Die Veröffentlichung einer Produktions-Release erfordert confirm=true und eine Administratorrolle."
+  },
+  "list": {
+    "emptyBannerTitle": "Release-Daten sind leer",
+    "emptyBannerDetail": "Synchronisieren Sie zuerst die Repositories. Releases werden von GitHub abgerufen, sobald ein Token konfiguriert ist.",
+    "unpublishedDraft": "Unveröffentlichter Entwurf",
+    "stateDraft": "Entwurf",
+    "statePrerelease": "Vorabversion",
+    "statePublished": "Veröffentlicht",
+    "emptyTitle": "Keine Releases zurückgegeben",
+    "emptyDetail": "Dies ist eine Live-Lesung. Ein leeres Ergebnis bedeutet, dass GitHub für die aktuelle Repository-Auswahl keine Releases zurückgegeben hat."
+  },
+  "autoUpdate": {
+    "eyebrow": "Plattformübergreifende Updates",
+    "title": "Auto-Update",
+    "subtitle": "Echte Projektdateien, Manifeste, Kanäle, Prüfsummen und Signaturbelege über die Repository-Auswahl hinweg einsehen.",
+    "checkAll": "Alle Projekte prüfen",
+    "summary": {
+      "checked": "Geprüfte Projekte",
+      "ready": "Bereit",
+      "blocked": "Blockiert",
+      "lastCheck": "Letzte Prüfung"
+    },
+    "versionUnknown": "Version unbekannt",
+    "evidence_one": "{{count}} Belegdatei · {{samples}}",
+    "evidence_other": "{{count}} Belegdateien · {{samples}}",
+    "noEvidence": "Keine unterstützten Update-Belege gefunden",
+    "recheck": "Projekt neu prüfen",
+    "recheckToast": "Update-Prüfung für {{project}} in Warteschlange gestellt",
+    "loading": "Update-Belege werden gelesen",
+    "checkQueued": "Update-Prüfungen in Warteschlange gestellt",
+    "checkFailed": "Update-Prüfungen konnten nicht in die Warteschlange gestellt werden",
+    "loadFailed": "Update-Prüfungen konnten nicht geladen werden",
+    "emptyTitle": "Noch keine Update-Prüfungen",
+    "emptyDetail": "Führen Sie eine Prüfung aus, um Electron-, Tauri-, Python-, .NET-, Java- und Web-Update-Signale aus echten Repository-Dateien einzusehen.",
+    "runFirst": "Erste Prüfung ausführen",
+    "semantics": {
+      "kicker": "Sicherheitssemantik",
+      "title": "Was die Prüfungen bedeuten",
+      "sha": "Inhaltsintegrität",
+      "signatureLabel": "Signatur",
+      "signature": "Herausgeber-Authentizität",
+      "https": "Transportschutz",
+      "blocked": "Erforderlicher Beleg fehlt"
+    }
+  }
+}

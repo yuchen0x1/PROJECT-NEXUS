@@ -1,0 +1,57 @@
+{
+  "title": "Übersicht",
+  "subtitle": "Eine lokale-zuerst-Ansicht dieses Windows-Rechners und seiner freigegebenen Projektordner.",
+  "overline": "WINDOWS-ENTWICKLUNGSARBEITSPLATZ",
+  "sections": {
+    "workbench": "Übersicht",
+    "projects": "Lokale Projekte",
+    "environment": "Entwicklungsumgebung",
+    "agent": "KI-Agent",
+    "remote": "Remote-Konsole"
+  },
+  "sectionSubtitle": {
+    "projects": "Wählen Sie Ordner explizit aus. Der erste Scan liest nur Namen und Projektmarker.",
+    "environment": "Erkannte ausführbare Pfade und Versionen dieses Windows-Benutzerkontos.",
+    "agent": "Überprüfbare Codeänderungen in einer isolierten Kopie eines registrierten Projekts erzeugen.",
+    "remote": "Bestehende GitHub- und Release-Workflows, getrennt von den lokalen Ausführungsberechtigungen gehalten."
+  },
+  "readiness": {
+    "title": "Dieser Rechner ist bereit für die Einrichtung lokaler Projekte",
+    "detail": "Scannen erfolgt im Nur-Lese-Modus. Dateibearbeitungen, Builds, Git-Schreibvorgänge und Veröffentlichungen sind in dieser Phase nicht aktiviert."
+  },
+  "summary": {
+    "projects": "Lokale Projekte",
+    "projectsDetail": "registrierte Ordner",
+    "tools": "Erkannte Tools",
+    "toolsDetail": "Pfade und sichere Versionsabrufe abgeschlossen",
+    "toolsChecking": "Umgebung wird geprüft",
+    "scans": "Projekt-Scans",
+    "scansDetail": "Nur-Lese-Berichte lokal gespeichert",
+    "startup": "Windows-Start",
+    "startupDetail": "benutzergesteuerte Einstellung"
+  },
+  "recentProjects": {
+    "title": "Aktuelle Projekte",
+    "detail": "Nur Ordner, die Sie hinzufügen, sind für den Arbeitsplatz sichtbar."
+  },
+  "environmentPreview": {
+    "title": "Entwicklungsumgebung",
+    "recheck": "Entwicklungstools neu prüfen",
+    "checking": "Installierte Tools werden geprüft…",
+    "openReport": "Vollständigen Umgebungsbericht öffnen"
+  },
+  "boundary": {
+    "title": "Ausführungsgrenze",
+    "inForce": "AKTIV",
+    "folderDialog": "Projekte werden über den Windows-Ordnerdialog ausgewählt",
+    "scanLimits": "Scans überspringen symbolische Links und halten sich an Größenlimits",
+    "changesDisabled": "Änderungen und Befehle bleiben deaktiviert, bis die Freigabekontrollen ausgeliefert sind"
+  },
+  "agentPanel": {
+    "title": "KI-Agent-Aktivität",
+    "empty": "Es laufen keine Agent-Aufgaben.",
+    "start": "Öffnen Sie die KI-Agent-Seite, um eine Aufgabe zu starten.",
+    "activeTask": "Aktive Aufgabe",
+    "noActiveTask": "Keine aktive Aufgabe"
+  }
+}

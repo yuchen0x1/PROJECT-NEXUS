@@ -1,0 +1,57 @@
+{
+  "title": "워크벤치",
+  "subtitle": "이 Windows 머신과 승인된 프로젝트 폴더를 로컬 우선 관점에서 보여줍니다.",
+  "overline": "WINDOWS 개발 워크스테이션",
+  "sections": {
+    "workbench": "워크벤치",
+    "projects": "로컬 프로젝트",
+    "environment": "개발 환경",
+    "agent": "AI 에이전트",
+    "remote": "원격 콘솔"
+  },
+  "sectionSubtitle": {
+    "projects": "폴더는 직접 선택합니다. 첫 스캔에서는 이름과 프로젝트 마커만 읽어 들입니다.",
+    "environment": "이 Windows 사용자 계정에서 감지된 실행 파일 경로와 버전입니다.",
+    "agent": "등록된 프로젝트의 격리된 복사본에서 검토 가능한 코드 변경을 생성합니다.",
+    "remote": "기존 GitHub 및 릴리스 워크플로를 로컬 실행 권한과 분리하여 유지합니다."
+  },
+  "readiness": {
+    "title": "이 머신은 로컬 프로젝트 설정을 진행할 준비가 되었습니다",
+    "detail": "스캔은 읽기 전용입니다. 이 단계에서는 파일 편집, 빌드, Git 쓰기, 게시가 활성화되지 않습니다."
+  },
+  "summary": {
+    "projects": "로컬 프로젝트",
+    "projectsDetail": "등록된 폴더",
+    "tools": "감지된 도구",
+    "toolsDetail": "경로 및 안전한 버전 확인 완료",
+    "toolsChecking": "환경 확인 중",
+    "scans": "프로젝트 스캔",
+    "scansDetail": "읽기 전용 보고서를 로컬에 저장",
+    "startup": "Windows 시작",
+    "startupDetail": "사용자가 제어하는 설정"
+  },
+  "recentProjects": {
+    "title": "최근 프로젝트",
+    "detail": "추가한 폴더만 워크스테이션에 표시됩니다."
+  },
+  "environmentPreview": {
+    "title": "개발 환경",
+    "recheck": "개발 도구 재확인",
+    "checking": "설치된 도구 확인 중…",
+    "openReport": "전체 환경 보고서 열기"
+  },
+  "boundary": {
+    "title": "실행 경계",
+    "inForce": "적용 중",
+    "folderDialog": "프로젝트는 Windows 폴더 대화상자를 통해 선택됩니다",
+    "scanLimits": "스캔은 심볼릭 링크를 건너뛰고 크기 제한 내에서 수행됩니다",
+    "changesDisabled": "승인 컨트롤이 제공될 때까지 변경과 명령은 비활성 상태로 유지됩니다"
+  },
+  "agentPanel": {
+    "title": "AI 에이전트 활동",
+    "empty": "실행 중인 에이전트 작업이 없습니다.",
+    "start": "AI 에이전트 페이지를 열어 작업을 시작하세요.",
+    "activeTask": "진행 중인 작업",
+    "noActiveTask": "진행 중인 작업 없음"
+  }
+}

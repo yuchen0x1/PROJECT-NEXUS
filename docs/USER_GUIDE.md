@@ -9,6 +9,16 @@
 7. Review the proposed diff in the task-private workspace. **Succeeded** means a proposal was generated in that workspace; it does not mean the selected source project changed or that the code passed tests.
 8. Use Cancel for a queued/running task. Retry creates a new task and requires fresh disclosure consent.
 
+## Appearance, language and settings (Phase 5)
+
+1. Open **Settings** (gear icon in the top bar, or the Settings entry in the activity bar). Settings are stored per Windows user in `%LOCALAPPDATA%\PROJECT NEXUS\desktop-settings.json` and survive upgrades.
+2. **Interface language**: pick one of the ten shipped languages (简体中文, 繁體中文, English, 日本語, 한국어, Français, Deutsch, Español, Português (Brasil), Русский). The entire application switches immediately — no restart. The first launch follows the Windows display language; a manual choice always wins afterwards.
+3. **Theme**: Dark, Light, or Match Windows. "Match Windows" follows the system setting in real time. The sun/moon button in the top bar toggles dark/light directly.
+4. **Reduce motion** minimizes animations across the workstation.
+5. **Agent reply language** (Settings → AI Agent): choose whether the Agent's explanatory text follows the interface language, follows the language of your request, or uses one fixed language. Code, commands, identifiers and file paths are never affected.
+6. **Start with Windows** can be toggled under Settings → Startup.
+7. Press `Ctrl+K` anywhere to open the **command palette**: search pages, projects, actions and languages, then run them with Enter. The bell icon opens the **notification center** with unread activity and Agent task results. The bottom **activity log** drawer can be expanded and resized by dragging its top edge. The activity bar collapses to icons with the button at its bottom.
+
 The current desktop Agent cannot apply the diff to the selected folder, run commands/builds/tests, use Docker for this local task, perform automatic repair, commit Git changes or publish. See [Phase 4 Agent engine status](PHASE4_AGENT_ENGINE.md) and [delivery gaps](PHASE4_DELIVERY_REPORT.md).
 
 ---

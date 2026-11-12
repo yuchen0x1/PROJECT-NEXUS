@@ -1,0 +1,202 @@
+{
+  "shell": {
+    "brand": "Central de controle do GitHub",
+    "sections": {
+      "workspace": "Espaço de trabalho"
+    },
+    "nav": {
+      "overview": "Visão geral",
+      "projects": "Projetos",
+      "buildCenter": "Central de build",
+      "releaseCenter": "Central de release",
+      "autoUpdate": "Atualização automática",
+      "repositoryScanner": "Verificador de repositórios",
+      "aiPipeline": "Pipeline de IA",
+      "adapterCenter": "Central de adaptadores",
+      "updateSecurity": "Segurança de atualizações",
+      "integrationHistory": "Histórico de integração",
+      "githubConnections": "Conexões do GitHub",
+      "monitoring": "Monitoramento",
+      "aiOperations": "Operações com IA",
+      "taskCenter": "Central de tarefas",
+      "securityCenter": "Central de segurança",
+      "serverSettings": "Configurações do servidor"
+    },
+    "connection": {
+      "connected": "GitHub conectado",
+      "notConnected": "GitHub não conectado",
+      "authenticated": "Conta autenticada",
+      "addToken": "Adicione um token para desbloquear dados em tempo real"
+    },
+    "foot": "Privilégio mínimo por padrão",
+    "topbar": {
+      "searchPlaceholder": "Pesquisar repositórios",
+      "refresh": "Atualizar"
+    },
+    "toast": {
+      "loadFailed": "Não foi possível carregar a central de controle",
+      "syncQueued": "Sincronização de repositórios enfileirada",
+      "syncFailed": "Falha na sincronização"
+    },
+    "embeddedRemote": "Console remoto"
+  },
+  "overview": {
+    "eyebrow": "Visão operacional",
+    "title": "Central de controle",
+    "subtitle": "Uma única superfície de operação para repositórios, builds, releases e integridade dos projetos.",
+    "syncGithub": "Sincronizar GitHub",
+    "connectTitle": "Conecte o GitHub para preencher este espaço de trabalho",
+    "connectDetail": "Defina GITHUB_TOKEN no .env, reinicie a API e sincronize os repositórios. A interface permanece vazia até ter dados reais.",
+    "openSetup": "Abrir configuração",
+    "metrics": {
+      "repositories": "Repositórios",
+      "managedProjects": "Projetos gerenciados",
+      "runningTasks": "Tarefas em execução",
+      "successfulBuilds": "Builds bem-sucedidos",
+      "failedBuilds": "Builds com falha",
+      "releases": "Releases recentes",
+      "autoUpdateProjects": "Prontos para atualização automática",
+      "alerts": "Alertas abertos"
+    },
+    "metricFoot": {
+      "needsReview": "Precisam de revisão",
+      "live": "Dados do espaço de trabalho em tempo real",
+      "waiting": "Aguardando conexão"
+    },
+    "projectsPanel": {
+      "kicker": "Superfície gerenciada",
+      "title": "Projetos",
+      "loading": "Carregando o espaço de trabalho"
+    },
+    "activityPanel": {
+      "kicker": "Fluxo de sinais",
+      "title": "Atividade recente",
+      "emptyTitle": "As atividades aparecerão aqui",
+      "emptyDetail": "As sincronizações de repositórios e as ações de build são registradas à medida que acontecem."
+    },
+    "taskPanel": {
+      "kicker": "Camada de execução",
+      "title": "Pulso de tarefas",
+      "liveState": "Estado em tempo real"
+    },
+    "empty": {
+      "projectsTitle": "Nenhum repositório neste espaço de trabalho",
+      "projectsDetail": "Sincronize os repositórios do GitHub autorizados para tornar esta superfície útil.",
+      "syncButton": "Sincronizar repositórios",
+      "tasksTitle": "Nenhuma tarefa ainda",
+      "tasksDetail": "Sincronizar repositórios e despachar builds criará registros de tarefas persistentes."
+    }
+  },
+  "projects": {
+    "eyebrow": "Registro de repositórios",
+    "title": "Projetos",
+    "subtitle": "Cada repositório mantém seu próprio contexto de branch, build, release e implantação.",
+    "sync": "Sincronizar repositórios",
+    "visible_one": "{{count}} repositório visível",
+    "visible_other": "{{count}} repositórios visíveis",
+    "matching": "correspondentes a “{{query}}”",
+    "all": "Todos",
+    "emptyTitle": "O registro de repositórios está vazio",
+    "emptyDetail": "Use Sincronizar repositórios após configurar um token do GitHub. O acesso público e privado segue o escopo do token.",
+    "startSync": "Iniciar sincronização",
+    "scanStack": "Verificar stack",
+    "scanToast": "Verificação enfileirada para {{repository}}",
+    "noDescription": "Nenhuma descrição de repositório fornecida."
+  },
+  "monitoring": {
+    "eyebrow": "Sinais de integridade",
+    "title": "Monitoramento",
+    "subtitle": "Uma visão compacta da atividade dos repositórios e dos sinais de execução que o NEXUS já conhece.",
+    "healthKicker": "Integridade dos repositórios",
+    "healthyByIssues": "íntegro pelo número de issues",
+    "noSynthetic": "Nenhum dado sintético de uptime é exibido.",
+    "signalsKicker": "Sinais atuais",
+    "signalsTitle": "Indicadores operacionais",
+    "signal": {
+      "tracked": "Repositórios monitorados",
+      "failures": "Falhas de build",
+      "alerts": "Alertas de tarefas abertos",
+      "lastTask": "Estado da última tarefa"
+    },
+    "noTasks": "Nenhuma tarefa",
+    "coverageKicker": "Cobertura",
+    "coverageTitle": "Verificações de projetos",
+    "lastUpdated": "última atualização {{time}}",
+    "issues_one": "{{count}} issue",
+    "issues_other": "{{count}} issues",
+    "emptyTitle": "O monitoramento começa com os projetos",
+    "emptyDetail": "Importe repositórios para criar registros de integridade reais."
+  },
+  "connections": {
+    "eyebrow": "Superfície de autorização",
+    "title": "Conexões do GitHub",
+    "subtitle": "Mantenha a compatibilidade com tokens legados enquanto migra o acesso a repositórios para instalações de GitHub App com escopo definido.",
+    "install": "Instalar GitHub App",
+    "installFailed": "A GitHub App não está configurada",
+    "appKicker": "GitHub App",
+    "appConfigured": "Configurada",
+    "appSetupRequired": "Configuração necessária",
+    "fields": {
+      "appId": "App ID",
+      "privateKey": "Chave privada",
+      "webhookSecret": "Segredo do webhook"
+    },
+    "legacyKicker": "Compatibilidade legada",
+    "legacyTitle": "Caminho de migração",
+    "legacyDetail": "O caminho atual de GITHUB_TOKEN permanece disponível para desenvolvimento local. As instalações de App adicionam acesso a repositórios com escopo definido e tokens de curta duração sem enviar uma chave privada ao navegador.",
+    "installationsKicker": "Instalações",
+    "installationsTitle": "Contas autorizadas",
+    "repositorySelection": "repositórios selecionados",
+    "tokenCached": "token em cache",
+    "tokenOnUse": "o token será renovado ao ser usado",
+    "noInstallationsTitle": "Nenhuma instalação de App",
+    "noInstallationsDetail": "Configure as credenciais da App, instale-a para uma conta e atualize esta página."
+  },
+  "security": {
+    "eyebrow": "Salvaguardas e evidência",
+    "title": "Central de segurança",
+    "subtitle": "Revise as operações que alteraram estado externo e a evidência registrada de cada uma.",
+    "refresh": "Atualizar auditoria",
+    "roleCard": {
+      "title": "Modelo de papéis",
+      "detail": "O visualizador lê. O operador enfileira builds, verificações e rascunhos. O administrador publica e altera a autorização."
+    },
+    "webhookCard": {
+      "title": "Evidência de webhooks",
+      "detail": "A verificação HMAC, os IDs de entrega e os registros do ciclo de vida de eventos evitam atualizações duplicadas ou não assinadas."
+    },
+    "releaseCard": {
+      "title": "Evidência de releases",
+      "detail": "Verificações de versão, resumos de artefatos e confirmação explícita são registrados antes da publicação."
+    },
+    "auditKicker": "Rastro do operador",
+    "auditTitle": "Log de auditoria",
+    "highRisk": "Alto risco",
+    "noAuditTitle": "Ainda não há entradas de auditoria",
+    "noAuditDetail": "As operações de alto impacto aparecerão aqui depois de executadas."
+  },
+  "serverSettings": {
+    "eyebrow": "Configuração do sistema",
+    "title": "Configurações do servidor",
+    "subtitle": "A configuração apoiada em ambiente mantém as credenciais fora do estado do navegador e dos registros de projetos.",
+    "githubKicker": "Conexão do GitHub",
+    "githubTitle": "Integração em tempo real",
+    "fields": {
+      "status": "Status",
+      "connected": "Conectado",
+      "owner": "Conta ou proprietário",
+      "notConfigured": "Não configurado",
+      "apiEndpoint": "Endpoint da API",
+      "grantedSurface": "Superfície concedida",
+      "noToken": "Nenhum token carregado"
+    },
+    "safetyKicker": "Padrões de segurança",
+    "safetyTitle": "Salvaguardas",
+    "credentialsTitle": "As credenciais permanecem no servidor",
+    "credentialsDetail": "Os tokens são lidos de variáveis de ambiente e nunca retornados ao navegador.",
+    "refTitle": "Os builds visam um ref explícito",
+    "refDetail": "As solicitações de despacho usam o branch padrão do repositório selecionado, a menos que seja substituído.",
+    "guardsTitle": "As ações de release e PR são protegidas",
+    "guardsDetail": "Gravações de GitHub de alto impacto exigem barreiras no nível de rota e confirmação explícita; as gravações remotas permanecem desabilitadas por padrão."
+  }
+}

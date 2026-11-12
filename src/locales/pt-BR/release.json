@@ -1,0 +1,80 @@
+{
+  "center": {
+    "eyebrow": "Controle de versões",
+    "title": "Central de release",
+    "subtitle": "Crie rascunhos, inspecione artefatos de release e mantenha a publicação atrás de uma confirmação explícita do administrador.",
+    "refresh": "Atualizar releases",
+    "loading": "Lendo GitHub Releases",
+    "chooseRepositoryFirst": "Escolha primeiro um repositório",
+    "draftQueued": "Rascunho de release enfileirado",
+    "draftFailed": "Falha no rascunho de release",
+    "publishQueued": "Publicação de release enfileirada",
+    "loadFailed": "Não foi possível carregar os releases"
+  },
+  "form": {
+    "kicker": "Criar rascunho de release",
+    "title": "Preparar uma versão",
+    "repository": "Repositório",
+    "tag": "Tag",
+    "tagPlaceholder": "v1.2.3",
+    "name": "Nome",
+    "namePlaceholder": "Nome do release",
+    "notes": "Notas",
+    "notesPlaceholder": "As notas do release podem ser editadas antes da publicação.",
+    "create": "Criar rascunho"
+  },
+  "policy": {
+    "kicker": "Política de publicação",
+    "title": "Barreiras de aprovação",
+    "semverTitle": "Versão semântica obrigatória",
+    "semverDetail": "As tags existentes são verificadas antes de criar um rascunho.",
+    "digestTitle": "Artefatos com resumo verificável",
+    "digestDetail": "Os artefatos enviados recebem um registro SHA-256 no rastro de auditoria.",
+    "adminTitle": "Publicar exige Administrador",
+    "adminDetail": "A publicação de release de produção precisa de confirm=true e de um papel de administrador."
+  },
+  "list": {
+    "emptyBannerTitle": "Os dados de release estão vazios",
+    "emptyBannerDetail": "Sincronize os repositórios primeiro. Os releases são buscados do GitHub quando um token está configurado.",
+    "unpublishedDraft": "Rascunho não publicado",
+    "stateDraft": "Rascunho",
+    "statePrerelease": "Pré-release",
+    "statePublished": "Publicado",
+    "emptyTitle": "Nenhum release retornado",
+    "emptyDetail": "Esta é uma leitura em tempo real. Um resultado vazio significa que o GitHub não retornou releases para o conjunto atual de repositórios."
+  },
+  "autoUpdate": {
+    "eyebrow": "Atualizações multiplataforma",
+    "title": "Atualização automática",
+    "subtitle": "Inspecione arquivos reais de projetos, manifestos, canais, resumos e evidência de assinatura em todo o conjunto de repositórios.",
+    "checkAll": "Verificar todos os projetos",
+    "summary": {
+      "checked": "Projetos verificados",
+      "ready": "Prontos",
+      "blocked": "Bloqueados",
+      "lastCheck": "Última verificação"
+    },
+    "versionUnknown": "versão desconhecida",
+    "evidence_one": "{{count}} arquivo de evidência · {{samples}}",
+    "evidence_other": "{{count}} arquivos de evidência · {{samples}}",
+    "noEvidence": "Nenhuma evidência de atualização compatível encontrada",
+    "recheck": "Reverificar projeto",
+    "recheckToast": "Verificação de atualização enfileirada para {{project}}",
+    "loading": "Lendo evidência de atualização",
+    "checkQueued": "Verificações de atualização enfileiradas",
+    "checkFailed": "Não foi possível enfileirar as verificações de atualização",
+    "loadFailed": "Não foi possível carregar as verificações de atualização",
+    "emptyTitle": "Nenhuma verificação de atualização ainda",
+    "emptyDetail": "Execute uma verificação para inspecionar os sinais de atualização de Electron, Tauri, Python, .NET, Java e web a partir de arquivos reais do repositório.",
+    "runFirst": "Executar primeira verificação",
+    "semantics": {
+      "kicker": "Semântica de segurança",
+      "title": "O que as verificações significam",
+      "sha": "Integridade do conteúdo",
+      "signatureLabel": "Assinatura",
+      "signature": "Autenticidade do editor",
+      "https": "Proteção do transporte",
+      "blocked": "Evidência obrigatória ausente"
+    }
+  }
+}

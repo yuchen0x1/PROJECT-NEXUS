@@ -1,0 +1,33 @@
+{
+  "page": {
+    "title": "开发环境",
+    "subtitle": "从当前 Windows 用户账户检测到的可执行文件路径和版本。"
+  },
+  "summary": {
+    "detected": "检测到 {{total}} 个工具中的 {{available}} 个",
+    "running": "环境检测正在进行",
+    "detail": "在安全的前提下对可执行文件进行有边界的版本检查。命令垫片（shim）和 Windows Terminal 仅通过路径识别而不会被调用；重复的 PATH 条目会被标记为冲突。"
+  },
+  "table": {
+    "title": "已安装的开发工具",
+    "scannedAt": "检测于 {{time}}",
+    "checking": "检测中",
+    "stillRunning": "首次环境检测仍在进行中。",
+    "columns": {
+      "tool": "工具",
+      "paths": "检测到的路径",
+      "version": "版本"
+    },
+    "noPath": "未在 PATH 中找到",
+    "pathConflict": "存在多个 PATH 条目"
+  },
+  "status": {
+    "AVAILABLE": "可用",
+    "SHIM_FOUND": "发现垫片 · 未查询版本",
+    "PATH_FOUND": "发现路径 · 未查询版本",
+    "MISSING": "未找到",
+    "TIMEOUT": "版本检查超时",
+    "VERSION_ERROR": "无法读取版本"
+  },
+  "note": "检测只对 PATH 中找到的二进制文件运行版本命令，不会修改 PATH、安装软件包或提升权限。"
+}

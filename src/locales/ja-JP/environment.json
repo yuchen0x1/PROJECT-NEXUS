@@ -1,0 +1,33 @@
+{
+  "page": {
+    "title": "開発環境",
+    "subtitle": "この Windows ユーザーアカウントから検出された実行可能ファイルのパスとバージョン。"
+  },
+  "summary": {
+    "detected": "{{total}} 個中 {{available}} 個のツールを検出",
+    "running": "環境検出が実行中です",
+    "detail": "実行可能ファイルは、安全が確認できる範囲でバージョン確認を行います。コマンドシムと Windows Terminal は実行せずパスによって検出され、複数の PATH エントリーは競合として警告されます。"
+  },
+  "table": {
+    "title": "インストール済みの開発ツール",
+    "scannedAt": "{{time}} に確認",
+    "checking": "確認中",
+    "stillRunning": "最初の環境チェックがまだ実行中です。",
+    "columns": {
+      "tool": "ツール",
+      "paths": "検出されたパス",
+      "version": "バージョン"
+    },
+    "noPath": "PATH 上に見つかりません",
+    "pathConflict": "複数の PATH エントリー"
+  },
+  "status": {
+    "AVAILABLE": "利用可能",
+    "SHIM_FOUND": "シムを検出 · バージョンは未確認",
+    "PATH_FOUND": "パスを検出 · バージョンは未確認",
+    "MISSING": "見つかりません",
+    "TIMEOUT": "バージョン確認がタイムアウトしました",
+    "VERSION_ERROR": "バージョンを読み取れませんでした"
+  },
+  "note": "検出は、PATH 上で見つかったバイナリーに対してのみバージョンコマンドを実行します。PATH の変更、パッケージのインストール、権限の昇格は行いません。"
+}

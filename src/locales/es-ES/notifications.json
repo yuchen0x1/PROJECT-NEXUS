@@ -1,0 +1,71 @@
+{
+  "activity": {
+    "workstationReady": {
+      "label": "Estación de trabajo lista",
+      "detail_one": "{{count}} proyecto local registrado.",
+      "detail_other": "{{count}} proyectos locales registrados."
+    },
+    "environmentCheckFinished": {
+      "label": "Comprobación del entorno finalizada",
+      "detail": "{{available}} de {{total}} herramientas de desarrollo disponibles."
+    },
+    "environmentCheckFailed": {
+      "label": "Error en la comprobación del entorno"
+    },
+    "projectAdded": {
+      "label": "Proyecto local añadido"
+    },
+    "projectAlreadyRegistered": {
+      "label": "El proyecto ya está registrado"
+    },
+    "projectRemoved": {
+      "label": "Proyecto quitado de NEXUS",
+      "detail": "La carpeta y sus archivos se dejaron sin cambios."
+    },
+    "projectAddFailed": {
+      "label": "No se pudo añadir el proyecto"
+    },
+    "scanComplete": {
+      "label": "Escaneo de solo lectura completado",
+      "detail": "{{name}}: {{stack}}; {{count}} entradas comprobadas."
+    },
+    "scanFailed": {
+      "label": "Error en el escaneo del proyecto"
+    },
+    "agentTaskQueued": {
+      "label": "Tarea local del agente en cola",
+      "detail": "{{project}}: {{label}}"
+    },
+    "agentTaskFailed": {
+      "label": "Error en la tarea local del agente"
+    },
+    "agentTaskStartError": {
+      "label": "La tarea local del agente no pudo iniciarse"
+    },
+    "agentCancellationRequested": {
+      "label": "Cancelación de la tarea local del agente solicitada"
+    },
+    "agentRetryQueued": {
+      "label": "Reintento de la tarea local del agente en cola"
+    },
+    "agentTaskCompleted": {
+      "label": "Tarea del agente completada",
+      "detail": "{{project}}: {{label}}"
+    },
+    "autoStartEnabled": {
+      "label": "Iniciar con Windows activado",
+      "detail": "Este ajuste solo cambia tras tu confirmación."
+    },
+    "autoStartDisabled": {
+      "label": "Iniciar con Windows desactivado",
+      "detail": "Este ajuste solo cambia tras tu confirmación."
+    }
+  },
+  "toast": {
+    "languageChanged": "Idioma actualizado",
+    "themeChanged": "Tema actualizado",
+    "settingsSaved": "Configuración guardada",
+    "projectAdded": "Proyecto añadido",
+    "scanQueued": "Escaneo en cola"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "page": {
+    "title": "設定",
+    "subtitle": "外観、言語、ワークステーションの動作。"
+  },
+  "sections": {
+    "appearance": "外観と言語",
+    "agent": "AI エージェント",
+    "startup": "スタートアップ",
+    "about": "情報"
+  },
+  "appearance": {
+    "languageLabel": "インターフェース言語",
+    "languageHint": "アプリケーション全体に即座に適用されます。選択内容は再起動後も保持されます。",
+    "languageChanged": "言語を {{language}} に変更しました",
+    "coverageNote": "同梱されているすべての言語は、このリリース向けに完全にレビュー済みです。",
+    "themeLabel": "テーマ",
+    "themeHint": "「Windows に合わせる」は、システムのライトまたはダークの設定にリアルタイムで従います。",
+    "motionLabel": "動きを減らす",
+    "motionHint": "ワークステーション全体のアニメーションとトランジションを最小化します。",
+    "agentReplyLabel": "エージェントの返信言語",
+    "agentReplyHint": "エージェントが書く説明文にのみ影響します。コード、コマンド、ファイルパスが変更されることはありません。",
+    "agentReplyUi": "インターフェース言語に合わせる",
+    "agentReplyInput": "リクエストの言語に合わせる",
+    "agentReplyFixed": "常に使用:"
+  },
+  "startup": {
+    "autoStartLabel": "Windows と共に開始",
+    "autoStartDetail": "サインイン後に NEXUS を起動します。この設定は確認後にのみ変更されます。"
+  },
+  "about": {
+    "version": "バージョン",
+    "platform": "プラットフォーム",
+    "dataPath": "ユーザーデータ",
+    "logsPath": "ログ",
+    "cachePath": "キャッシュ",
+    "settingsFile": "設定ファイル",
+    "systemLocale": "システム言語",
+    "openLogs": "ログフォルダーを開く"
+  }
+}

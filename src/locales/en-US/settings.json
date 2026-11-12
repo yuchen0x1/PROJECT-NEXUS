@@ -1,0 +1,41 @@
+{
+  "page": {
+    "title": "Settings",
+    "subtitle": "Appearance, language and workstation behavior."
+  },
+  "sections": {
+    "appearance": "Appearance & Language",
+    "agent": "AI Agent",
+    "startup": "Startup",
+    "about": "About"
+  },
+  "appearance": {
+    "languageLabel": "Interface language",
+    "languageHint": "Applies immediately to the entire application. Your choice is remembered across restarts.",
+    "languageChanged": "Language changed to {{language}}",
+    "coverageNote": "All shipped languages are fully reviewed for this release.",
+    "themeLabel": "Theme",
+    "themeHint": "Match Windows follows the system light or dark setting in real time.",
+    "motionLabel": "Reduce motion",
+    "motionHint": "Minimizes animations and transitions across the workstation.",
+    "agentReplyLabel": "Agent reply language",
+    "agentReplyHint": "Only affects explanatory text the Agent writes. Code, commands and file paths are never changed.",
+    "agentReplyUi": "Follow interface language",
+    "agentReplyInput": "Follow the language of my request",
+    "agentReplyFixed": "Always use:"
+  },
+  "startup": {
+    "autoStartLabel": "Start with Windows",
+    "autoStartDetail": "Launch NEXUS after you sign in. This setting changes only after your confirmation."
+  },
+  "about": {
+    "version": "Version",
+    "platform": "Platform",
+    "dataPath": "User data",
+    "logsPath": "Logs",
+    "cachePath": "Cache",
+    "settingsFile": "Settings file",
+    "systemLocale": "System language",
+    "openLogs": "Open logs folder"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "rail": {
+    "workspace": "Espace de travail",
+    "management": "Gestion",
+    "workbench": "Tableau de bord",
+    "projects": "Projets",
+    "environment": "Environnement de développement",
+    "agent": "Agent IA",
+    "remote": "Console distante",
+    "settings": "Paramètres",
+    "collapse": "Réduire la barre latérale",
+    "expand": "Développer la barre latérale",
+    "localBadge": "LOCAL"
+  },
+  "topbar": {
+    "machine": "Machine locale",
+    "agentActive": "Agent de bureau actif",
+    "searchPlaceholder": "Rechercher des commandes et des projets…",
+    "searchHint": "Ctrl+K",
+    "notifications": "Notifications",
+    "themeToggle": "Changer de thème",
+    "settings": "Ouvrir les paramètres"
+  },
+  "commandPalette": {
+    "title": "Palette de commandes",
+    "placeholder": "Saisir une commande ou un nom de projet…",
+    "empty": "Aucune commande correspondante",
+    "groups": {
+      "pages": "Pages",
+      "actions": "Actions",
+      "projects": "Projets",
+      "appearance": "Apparence",
+      "language": "Langue"
+    },
+    "actions": {
+      "addProject": "Ajouter un dossier de projet local",
+      "recheckEnvironment": "Revérifier l'environnement de développement",
+      "refreshProjects": "Actualiser la liste des projets",
+      "openRemote": "Ouvrir la console distante",
+      "openSettings": "Ouvrir les paramètres",
+      "openAgent": "Ouvrir la page Agent IA",
+      "toggleTheme": "Basculer entre le thème sombre et le thème clair",
+      "toggleMotion": "Activer ou désactiver la réduction des animations",
+      "scanProject": "Analyser le projet"
+    },
+    "hint": "Naviguez avec ↑ ↓, exécutez avec Entrée, fermez avec Échap"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "Vous êtes à jour",
+    "emptyDetail": "Les nouvelles activités et les résultats de tâches s'afficheront ici.",
+    "markAllRead": "Tout marquer comme lu",
+    "clear": "Tout effacer",
+    "open": "Ouvrir la page associée"
+  },
+  "bottomPanel": {
+    "label": "Journal d'activité",
+    "events_one": "{{count}} événement",
+    "events_other": "{{count}} événements",
+    "empty": "Les détails de l'analyse de l'environnement et des projets s'afficheront ici. Aucune commande de terminal n'a été exécutée.",
+    "resize": "Faites glisser pour redimensionner"
+  },
+  "shortcuts": {
+    "commandPalette": "Ouvrir la palette de commandes"
+  }
+}

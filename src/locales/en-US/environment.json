@@ -1,0 +1,33 @@
+{
+  "page": {
+    "title": "Development environment",
+    "subtitle": "Detected executable paths and versions from this Windows user account."
+  },
+  "summary": {
+    "detected": "{{available}} of {{total}} tools detected",
+    "running": "Environment detection is running",
+    "detail": "Executables receive bounded version checks where safe. Command shims and Windows Terminal are detected by path without being invoked; multiple PATH entries are flagged as conflicts."
+  },
+  "table": {
+    "title": "Installed development tools",
+    "scannedAt": "Checked {{time}}",
+    "checking": "CHECKING",
+    "stillRunning": "The first environment check is still running.",
+    "columns": {
+      "tool": "Tool",
+      "paths": "Detected paths",
+      "version": "Version"
+    },
+    "noPath": "Not found on PATH",
+    "pathConflict": "Multiple PATH entries"
+  },
+  "status": {
+    "AVAILABLE": "Available",
+    "SHIM_FOUND": "Shim found · version not queried",
+    "PATH_FOUND": "Path found · version not queried",
+    "MISSING": "Not found",
+    "TIMEOUT": "Version check timed out",
+    "VERSION_ERROR": "Could not read version"
+  },
+  "note": "Detection only runs version commands for binaries found on PATH. It does not change PATH, install packages or elevate permissions."
+}

@@ -1,0 +1,17 @@
+{
+  "generic": "Algo deu errado. Tente novamente.",
+  "loadFailed": "Não foi possível carregar os dados solicitados.",
+  "environmentCheck": "A verificação do ambiente falhou.",
+  "addProject": "Não foi possível adicionar essa pasta.",
+  "scanProject": "A verificação do projeto falhou.",
+  "removeProject": "Não foi possível remover a referência do projeto.",
+  "autoStart": "Não foi possível alterar a configuração de inicialização do Windows.",
+  "agentConfig": "Não foi possível carregar o status do agente local.",
+  "agentTaskDetail": "Não foi possível carregar os detalhes da tarefa do agente.",
+  "agentTaskRefresh": "Não foi possível atualizar o status da tarefa do agente.",
+  "agentTaskStart": "Não foi possível iniciar a tarefa local do agente.",
+  "agentTaskCancel": "Não foi possível cancelar a tarefa do agente.",
+  "agentTaskRetry": "Não foi possível tentar a tarefa do agente novamente.",
+  "workstationData": "Não foi possível carregar os dados locais da estação de trabalho.",
+  "serviceUnavailable": "O serviço local não está respondendo. Reinicie o PROJECT NEXUS e tente novamente."
+}

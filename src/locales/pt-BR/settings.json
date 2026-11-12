@@ -1,0 +1,41 @@
+{
+  "page": {
+    "title": "Configurações",
+    "subtitle": "Aparência, idioma e comportamento da estação de trabalho."
+  },
+  "sections": {
+    "appearance": "Aparência e idioma",
+    "agent": "Agente de IA",
+    "startup": "Inicialização",
+    "about": "Sobre"
+  },
+  "appearance": {
+    "languageLabel": "Idioma da interface",
+    "languageHint": "Aplica-se imediatamente a todo o aplicativo. Sua escolha é lembrada entre reinicializações.",
+    "languageChanged": "Idioma alterado para {{language}}",
+    "coverageNote": "Todos os idiomas incluídos estão totalmente revisados para esta versão.",
+    "themeLabel": "Tema",
+    "themeHint": "Seguir o Windows acompanha a configuração clara ou escura do sistema em tempo real.",
+    "motionLabel": "Reduzir movimento",
+    "motionHint": "Minimiza animações e transições em toda a estação de trabalho.",
+    "agentReplyLabel": "Idioma de resposta do agente",
+    "agentReplyHint": "Afeta apenas o texto explicativo que o agente escreve. Código, comandos e caminhos de arquivos nunca são alterados.",
+    "agentReplyUi": "Seguir o idioma da interface",
+    "agentReplyInput": "Seguir o idioma da minha solicitação",
+    "agentReplyFixed": "Usar sempre:"
+  },
+  "startup": {
+    "autoStartLabel": "Iniciar com o Windows",
+    "autoStartDetail": "Inicia o NEXUS depois do seu login. Esta configuração só é alterada após a sua confirmação."
+  },
+  "about": {
+    "version": "Versão",
+    "platform": "Plataforma",
+    "dataPath": "Dados do usuário",
+    "logsPath": "Logs",
+    "cachePath": "Cache",
+    "settingsFile": "Arquivo de configurações",
+    "systemLocale": "Idioma do sistema",
+    "openLogs": "Abrir pasta de logs"
+  }
+}

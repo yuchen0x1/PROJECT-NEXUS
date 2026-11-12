@@ -1,0 +1,17 @@
+{
+  "generic": "Algo salió mal. Inténtalo de nuevo.",
+  "loadFailed": "No se pudieron cargar los datos solicitados.",
+  "environmentCheck": "La comprobación del entorno falló.",
+  "addProject": "No se pudo añadir esa carpeta.",
+  "scanProject": "El escaneo del proyecto falló.",
+  "removeProject": "No se pudo quitar la referencia del proyecto.",
+  "autoStart": "No se pudo cambiar el ajuste de inicio de Windows.",
+  "agentConfig": "No se pudo cargar el estado del agente local.",
+  "agentTaskDetail": "No se pudieron cargar los detalles de la tarea del agente.",
+  "agentTaskRefresh": "No se pudo actualizar el estado de la tarea del agente.",
+  "agentTaskStart": "No se pudo iniciar la tarea local del agente.",
+  "agentTaskCancel": "No se pudo cancelar la tarea del agente.",
+  "agentTaskRetry": "No se pudo reintentar la tarea del agente.",
+  "workstationData": "No se pudieron cargar los datos locales de la estación de trabajo.",
+  "serviceUnavailable": "El servicio local no responde. Reinicia PROJECT NEXUS e inténtalo de nuevo."
+}

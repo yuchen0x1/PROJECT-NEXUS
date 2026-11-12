@@ -1,0 +1,17 @@
+{
+  "generic": "問題が発生しました。もう一度お試しください。",
+  "loadFailed": "要求されたデータを読み込めませんでした。",
+  "environmentCheck": "環境チェックに失敗しました。",
+  "addProject": "そのフォルダーを追加できませんでした。",
+  "scanProject": "プロジェクトスキャンに失敗しました。",
+  "removeProject": "プロジェクトの参照を削除できませんでした。",
+  "autoStart": "Windows スタートアップの設定を変更できませんでした。",
+  "agentConfig": "ローカルエージェントの状態を読み込めませんでした。",
+  "agentTaskDetail": "エージェントタスクの詳細を読み込めませんでした。",
+  "agentTaskRefresh": "エージェントタスクの状態を更新できませんでした。",
+  "agentTaskStart": "ローカルエージェントタスクを開始できませんでした。",
+  "agentTaskCancel": "エージェントタスクをキャンセルできませんでした。",
+  "agentTaskRetry": "エージェントタスクを再試行できませんでした。",
+  "workstationData": "ローカルワークステーションのデータを読み込めませんでした。",
+  "serviceUnavailable": "ローカルサービスが応答していません。PROJECT NEXUS を再起動して、もう一度お試しください。"
+}

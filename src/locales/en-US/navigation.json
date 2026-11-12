@@ -1,0 +1,66 @@
+{
+  "rail": {
+    "workspace": "Workspace",
+    "management": "Management",
+    "workbench": "Workbench",
+    "projects": "Projects",
+    "environment": "Environment",
+    "agent": "AI Agent",
+    "remote": "Remote console",
+    "settings": "Settings",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar",
+    "localBadge": "LOCAL"
+  },
+  "topbar": {
+    "machine": "Local machine",
+    "agentActive": "Desktop agent active",
+    "searchPlaceholder": "Search commands and projects…",
+    "searchHint": "Ctrl+K",
+    "notifications": "Notifications",
+    "themeToggle": "Toggle theme",
+    "settings": "Open settings"
+  },
+  "commandPalette": {
+    "title": "Command palette",
+    "placeholder": "Type a command or project name…",
+    "empty": "No matching commands",
+    "groups": {
+      "pages": "Pages",
+      "actions": "Actions",
+      "projects": "Projects",
+      "appearance": "Appearance",
+      "language": "Language"
+    },
+    "actions": {
+      "addProject": "Add a local project folder",
+      "recheckEnvironment": "Recheck development environment",
+      "refreshProjects": "Refresh project list",
+      "openRemote": "Open the remote console",
+      "openSettings": "Open settings",
+      "openAgent": "Open the AI Agent page",
+      "toggleTheme": "Switch between dark and light theme",
+      "toggleMotion": "Toggle reduced motion",
+      "scanProject": "Scan project"
+    },
+    "hint": "Navigate with ↑ ↓, run with Enter, close with Esc"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "You are all caught up",
+    "emptyDetail": "New activity and task results will appear here.",
+    "markAllRead": "Mark all as read",
+    "clear": "Clear all",
+    "open": "Open related page"
+  },
+  "bottomPanel": {
+    "label": "Activity log",
+    "events_one": "{{count}} event",
+    "events_other": "{{count}} events",
+    "empty": "Environment and project scan details will appear here. No terminal commands have been run.",
+    "resize": "Drag to resize"
+  },
+  "shortcuts": {
+    "commandPalette": "Open the command palette"
+  }
+}

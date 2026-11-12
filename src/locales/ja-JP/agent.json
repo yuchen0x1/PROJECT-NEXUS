@@ -1,0 +1,84 @@
+{
+  "page": {
+    "title": "AI エージェント",
+    "subtitle": "登録済みプロジェクトの分離されたコピー内で、レビュー可能なコード変更を生成します。"
+  },
+  "compose": {
+    "title": "コード変更を説明する",
+    "providerReady": "プロバイダー準備完了",
+    "providerRequired": "プロバイダーが必要です",
+    "projectLabel": "登録済みプロジェクト",
+    "projectPlaceholder": "プロジェクトを選択",
+    "providerLabel": "設定済みプロバイダー",
+    "providerPlaceholder": "プロバイダーを選択",
+    "noProjects": "エージェントタスクを開始する前に、上のボタンでローカルフォルダーを追加してください。",
+    "noProviders": "プロバイダーが設定されていません。ローカルサービス環境で AI プロバイダーの値を設定してください。API キーはレンダラーから切り離して管理されます。",
+    "promptLabel": "リクエスト",
+    "promptBytes": "{{used}} / {{limit}} バイト",
+    "promptPlaceholder": "意図する変更、制約、結果の構成方法を説明してください。",
+    "disclosureTitle": "ソースの開示",
+    "disclosureBody": "このタスクを開始すると、プロンプトと、制限付きの分離コピーから選択したプロバイダーへ、最大 {{maxFiles}} 個の対象 UTF-8 ファイルが送信されます。ソーステキストはマスキングされ、マスキング後に {{maxKiB}} KiB に制限されます。機密情報と思われるパスと組み込みの依存関係/ビルドフォルダーはスキップされます。サポートされているプロジェクトの .gitignore ルールが適用され、不正またはサポートされていないパターンがある場合はワークスペースの作成が中止されます。",
+    "consent": "この開示内容を確認し、このタスクの制限されたソースコンテキストを選択したプロバイダーに送信することを承認します。",
+    "footerNote": "候補の編集内容は、アプリデータ内のタスクワークスペースの下に保存されます。",
+    "submit": "分離された変更を生成",
+    "submitting": "タスクをキューに追加中…"
+  },
+  "history": {
+    "title": "タスク履歴",
+    "refresh": "エージェントタスクを更新",
+    "cancelAria": "タスク {{label}} をキャンセル",
+    "cancelTitle": "タスクをキャンセル",
+    "emptyTitle": "ローカルのエージェントタスクはありません",
+    "emptyDetail": "新しい提案とその保存された状態がここに表示されます。"
+  },
+  "review": {
+    "title": "分離された変更のレビュー",
+    "emptyTitle": "結果を確認するタスクを選択してください",
+    "emptyDetail": "生成されたファイル変更がここに表示されます。登録済みプロジェクトには一切変更を加えません。",
+    "requestLabel": "リクエスト",
+    "rationaleLabel": "プロバイダーの根拠",
+    "pathsSummary": "開示されたソースパス ({{count}})",
+    "changesTitle": "ファイルの差分",
+    "changesCount_one": "{{count}} 件の変更",
+    "changesCount_other": "{{count}} 件の変更",
+    "changesError": "分離ワークスペースから変更を読み取れませんでした: {{message}}",
+    "before": "変更前",
+    "after": "変更後",
+    "deletedNote": "この削除は分離ワークスペース内で発生しました。",
+    "previewUnavailable": "テキストプレビューを利用できません: {{status}}。",
+    "runningNote": "タスクが実行中です。ワークスペースと開示されたパスは、記録され次第表示されます。",
+    "noDiffError": "差分プレビューは利用できません。",
+    "noDiff": "このタスクで生成されたファイル変更はありません。",
+    "eventsSummary": "タスクイベント ({{count}})",
+    "retryNote": "再試行では新しい分離タスクを作成し、改めてソースの開示が必要になります。",
+    "retryAction": "タスクを再試行"
+  },
+  "meta": {
+    "tokens": "{{value}} トークン",
+    "cost": "{{value}}"
+  },
+  "status": {
+    "Queued": "キュー待ち",
+    "Running": "実行中",
+    "Succeeded": "成功",
+    "Failed": "失敗",
+    "Blocked": "ブロック",
+    "Cancelled": "キャンセル済み",
+    "Interrupted": "中断",
+    "Paused": "一時停止"
+  },
+  "events": {
+    "created": "タスクを作成しました",
+    "status_changed": "ステータスが {{from}} から {{to}} に変更されました",
+    "workspace_created": "分離ワークスペースを準備しました",
+    "completed": "タスクが完了しました",
+    "failed": "タスクが失敗しました",
+    "cancelled": "タスクがキャンセルされました",
+    "interrupted": "タスクが中断されました",
+    "rawDetail": "{{detail}}"
+  },
+  "capabilityNote": "このバージョンはタスク状態を記録し、分離されたコピー内にレビュー可能な変更を作成します。登録済みフォルダーへの変更の適用、コマンドの実行、テストの実行、Git の適用/ロールバック操作は提供しません。",
+  "replyLanguage": {
+    "instruction": "説明は {{language}} で記述してください。コード、コマンド、識別子、ファイルパスはすべて変更しないでください。"
+  }
+}

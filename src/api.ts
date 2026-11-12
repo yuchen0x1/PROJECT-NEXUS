@@ -143,7 +143,7 @@ export type LocalAgentTask = {
   startedAt: string | null
   finishedAt: string | null
   error: string | null
-  events: { at: string; type: string; status?: string; detail: string; metadata?: Record<string, unknown> }[]
+  events: { at: string; type: string; status?: string; fromStatus?: string; detail: string; metadata?: Record<string, unknown> }[]
   disclosedPaths: string[]
   changedFiles: string[]
   provider: { id: string; kind: string; host: string | null; model: string } | null

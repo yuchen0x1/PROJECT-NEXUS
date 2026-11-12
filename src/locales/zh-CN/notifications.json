@@ -1,0 +1,71 @@
+{
+  "activity": {
+    "workstationReady": {
+      "label": "工作站已就绪",
+      "detail_one": "已登记 {{count}} 个本地项目。",
+      "detail_other": "已登记 {{count}} 个本地项目。"
+    },
+    "environmentCheckFinished": {
+      "label": "环境检测完成",
+      "detail": "{{total}} 个开发工具中 {{available}} 个可用。"
+    },
+    "environmentCheckFailed": {
+      "label": "环境检测失败"
+    },
+    "projectAdded": {
+      "label": "已添加本地项目"
+    },
+    "projectAlreadyRegistered": {
+      "label": "项目已存在"
+    },
+    "projectRemoved": {
+      "label": "已从 NEXUS 移除项目",
+      "detail": "文件夹及其文件保持不变。"
+    },
+    "projectAddFailed": {
+      "label": "无法添加项目"
+    },
+    "scanComplete": {
+      "label": "只读扫描完成",
+      "detail": "{{name}}：{{stack}}；已检查 {{count}} 个条目。"
+    },
+    "scanFailed": {
+      "label": "项目扫描失败"
+    },
+    "agentTaskQueued": {
+      "label": "本地智能体任务已加入队列",
+      "detail": "{{project}}：{{label}}"
+    },
+    "agentTaskFailed": {
+      "label": "本地智能体任务失败"
+    },
+    "agentTaskStartError": {
+      "label": "本地智能体任务无法启动"
+    },
+    "agentCancellationRequested": {
+      "label": "已请求取消本地智能体任务"
+    },
+    "agentRetryQueued": {
+      "label": "本地智能体重试已加入队列"
+    },
+    "agentTaskCompleted": {
+      "label": "智能体任务已完成",
+      "detail": "{{project}}：{{label}}"
+    },
+    "autoStartEnabled": {
+      "label": "已启用随 Windows 启动",
+      "detail": "此设置仅在您确认后才会更改。"
+    },
+    "autoStartDisabled": {
+      "label": "已停用随 Windows 启动",
+      "detail": "此设置仅在您确认后才会更改。"
+    }
+  },
+  "toast": {
+    "languageChanged": "语言已更新",
+    "themeChanged": "主题已更新",
+    "settingsSaved": "设置已保存",
+    "projectAdded": "项目已添加",
+    "scanQueued": "扫描已加入队列"
+  }
+}

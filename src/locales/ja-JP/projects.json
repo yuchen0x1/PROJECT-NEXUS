@@ -1,0 +1,48 @@
+{
+  "page": {
+    "title": "プロジェクト",
+    "subtitle": "登録済みフォルダー"
+  },
+  "registered": {
+    "title": "登録済みフォルダー",
+    "detail": "フォルダー参照はこの Windows ユーザープロファイルに保存され、GitHub プロジェクト記録とは別に管理されます。",
+    "count": "{{count}} 件のプロジェクト"
+  },
+  "table": {
+    "project": "プロジェクト",
+    "scanStatus": "スキャン状態",
+    "actions": "アクション",
+    "technologies": "検出された技術"
+  },
+  "row": {
+    "missing": "フォルダーが見つかりません",
+    "pathChanged": "パスが変更されました",
+    "scanned": "スキャン済み",
+    "awaitingScan": "スキャン待ち",
+    "notScanned": "未スキャン",
+    "scanLimit": "スキャン上限に到達しました",
+    "lastScan": "最終スキャン {{time}}",
+    "scanAction": "スキャン",
+    "scanAria": "{{name}} をスキャン",
+    "removeAria": "{{name}} を NEXUS から削除"
+  },
+  "empty": {
+    "title": "ローカルプロジェクトが追加されていません",
+    "detail": "プロジェクトフォルダーを選択してください。NEXUS がこのコンピューターの他のフォルダーを検索することはありません。"
+  },
+  "dialogs": {
+    "addFolder": "ローカルのプロジェクトフォルダーを追加",
+    "removeTitle": "NEXUS からプロジェクトを削除",
+    "removeMessage": "ローカルのプロジェクト一覧から {{name}} を削除しますか?",
+    "removeDetail": "この操作は NEXUS の参照のみを削除します。プロジェクトファイルは削除されず、変更も加えられません。",
+    "removeConfirm": "NEXUS から削除",
+    "removeCancel": "プロジェクトを保持"
+  },
+  "selected": {
+    "label": "選択したプロジェクト",
+    "lastScan": "最終スキャン {{time}}"
+  },
+  "tech": {
+    "none": "既知のスタックマーカーはありません"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "activity": {
+    "workstationReady": {
+      "label": "Estação de trabalho pronta",
+      "detail_one": "{{count}} projeto local registrado.",
+      "detail_other": "{{count}} projetos locais registrados."
+    },
+    "environmentCheckFinished": {
+      "label": "Verificação do ambiente concluída",
+      "detail": "{{available}} de {{total}} ferramentas de desenvolvimento disponíveis."
+    },
+    "environmentCheckFailed": {
+      "label": "Falha na verificação do ambiente"
+    },
+    "projectAdded": {
+      "label": "Projeto local adicionado"
+    },
+    "projectAlreadyRegistered": {
+      "label": "Projeto já registrado"
+    },
+    "projectRemoved": {
+      "label": "Projeto removido do NEXUS",
+      "detail": "A pasta e seus arquivos permaneceram inalterados."
+    },
+    "projectAddFailed": {
+      "label": "Não foi possível adicionar o projeto"
+    },
+    "scanComplete": {
+      "label": "Verificação somente leitura concluída",
+      "detail": "{{name}}: {{stack}}; {{count}} entradas verificadas."
+    },
+    "scanFailed": {
+      "label": "Falha na verificação do projeto"
+    },
+    "agentTaskQueued": {
+      "label": "Tarefa local do agente enfileirada",
+      "detail": "{{project}}: {{label}}"
+    },
+    "agentTaskFailed": {
+      "label": "Falha na tarefa local do agente"
+    },
+    "agentTaskStartError": {
+      "label": "A tarefa local do agente não pôde ser iniciada"
+    },
+    "agentCancellationRequested": {
+      "label": "Cancelamento da tarefa local do agente solicitado"
+    },
+    "agentRetryQueued": {
+      "label": "Nova tentativa da tarefa local do agente enfileirada"
+    },
+    "agentTaskCompleted": {
+      "label": "Tarefa do agente concluída",
+      "detail": "{{project}}: {{label}}"
+    },
+    "autoStartEnabled": {
+      "label": "Iniciar com o Windows ativado",
+      "detail": "Esta configuração só é alterada após a sua confirmação."
+    },
+    "autoStartDisabled": {
+      "label": "Iniciar com o Windows desativado",
+      "detail": "Esta configuração só é alterada após a sua confirmação."
+    }
+  },
+  "toast": {
+    "languageChanged": "Idioma atualizado",
+    "themeChanged": "Tema atualizado",
+    "settingsSaved": "Configurações salvas",
+    "projectAdded": "Projeto adicionado",
+    "scanQueued": "Verificação enfileirada"
+  }
+}

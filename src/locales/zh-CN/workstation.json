@@ -1,0 +1,57 @@
+{
+  "title": "工作台",
+  "subtitle": "以本地优先的方式查看这台 Windows 计算机及其已授权的项目文件夹。",
+  "overline": "WINDOWS 开发工作站",
+  "sections": {
+    "workbench": "工作台",
+    "projects": "本地项目",
+    "environment": "开发环境",
+    "agent": "AI 智能体",
+    "remote": "远程控制台"
+  },
+  "sectionSubtitle": {
+    "projects": "由您明确选择文件夹。首次扫描只读取名称和项目标记。",
+    "environment": "从当前 Windows 用户账户检测到的可执行文件路径和版本。",
+    "agent": "在注册项目的隔离副本中生成可审查的代码变更。",
+    "remote": "既有的 GitHub 和发布工作流，与本地执行权限相互独立。"
+  },
+  "readiness": {
+    "title": "这台计算机已准备好进行本地项目配置",
+    "detail": "扫描为只读操作。本阶段不启用文件修改、构建、Git 写入和发布。"
+  },
+  "summary": {
+    "projects": "本地项目",
+    "projectsDetail": "个已登记文件夹",
+    "tools": "已检测工具",
+    "toolsDetail": "路径与安全版本探测已完成",
+    "toolsChecking": "正在检测环境",
+    "scans": "项目扫描",
+    "scansDetail": "只读报告已保存在本地",
+    "startup": "Windows 开机自启",
+    "startupDetail": "由用户控制的偏好设置"
+  },
+  "recentProjects": {
+    "title": "最近的项目",
+    "detail": "只有您添加的文件夹对工作站可见。"
+  },
+  "environmentPreview": {
+    "title": "开发环境",
+    "recheck": "重新检测开发工具",
+    "checking": "正在检测已安装的工具…",
+    "openReport": "查看完整环境报告"
+  },
+  "boundary": {
+    "title": "执行边界",
+    "inForce": "生效中",
+    "folderDialog": "项目通过 Windows 文件夹对话框选择",
+    "scanLimits": "扫描跳过符号链接并受大小限制约束",
+    "changesDisabled": "在审批控制上线之前，变更和命令保持禁用"
+  },
+  "agentPanel": {
+    "title": "AI 智能体动态",
+    "empty": "当前没有运行中的智能体任务。",
+    "start": "打开 AI 智能体页面以发起任务。",
+    "activeTask": "进行中的任务",
+    "noActiveTask": "没有进行中的任务"
+  }
+}

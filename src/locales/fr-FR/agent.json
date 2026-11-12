@@ -1,0 +1,84 @@
+{
+  "page": {
+    "title": "Agent IA",
+    "subtitle": "Générer des modifications de code vérifiables dans une copie isolée d'un projet enregistré."
+  },
+  "compose": {
+    "title": "Décrire une modification de code",
+    "providerReady": "Fournisseur prêt",
+    "providerRequired": "Fournisseur requis",
+    "projectLabel": "Projet enregistré",
+    "projectPlaceholder": "Choisir un projet",
+    "providerLabel": "Fournisseur configuré",
+    "providerPlaceholder": "Choisir un fournisseur",
+    "noProjects": "Ajoutez un dossier local avec le bouton ci-dessus avant de démarrer une tâche de l'agent.",
+    "noProviders": "Aucun fournisseur n'est configuré. Définissez les valeurs du fournisseur IA dans l'environnement du service local ; les clés API restent en dehors du moteur de rendu.",
+    "promptLabel": "Demande",
+    "promptBytes": "{{used}} / {{limit}} octets",
+    "promptPlaceholder": "Décrivez la modification envisagée, les contraintes et la structure souhaitée du résultat.",
+    "disclosureTitle": "Divulgation des sources",
+    "disclosureBody": "Le démarrage de cette tâche envoie votre requête et jusqu'à {{maxFiles}} fichiers UTF-8 éligibles depuis une copie isolée de taille limitée vers le fournisseur sélectionné. Le texte des sources est expurgé et plafonné à {{maxKiB}} KiB après expurgation. Les chemins à forme de secret et les dossiers intégrés de dépendances/build sont ignorés. Les règles .gitignore prises en charge du projet sont appliquées ; les motifs mal formés ou non pris en charge interrompent la création de l'espace de travail.",
+    "consent": "J'ai examiné cette divulgation et j'autorise l'envoi du contexte de sources limité de cette tâche au fournisseur sélectionné.",
+    "footerNote": "Les modifications candidates restent sous l'espace de travail de la tâche dans les données de l'application.",
+    "submit": "Générer des modifications isolées",
+    "submitting": "Mise en file d'attente de la tâche…"
+  },
+  "history": {
+    "title": "Historique des tâches",
+    "refresh": "Actualiser les tâches de l'agent",
+    "cancelAria": "Annuler la tâche {{label}}",
+    "cancelTitle": "Annuler la tâche",
+    "emptyTitle": "Aucune tâche locale de l'agent",
+    "emptyDetail": "Les nouvelles propositions et leur état enregistré s'afficheront ici."
+  },
+  "review": {
+    "title": "Revue des modifications isolées",
+    "emptyTitle": "Sélectionnez une tâche pour examiner son résultat",
+    "emptyDetail": "Les modifications de fichiers générées s'affichent ici ; le projet enregistré reste intact.",
+    "requestLabel": "REQUÊTE",
+    "rationaleLabel": "JUSTIFICATION DU FOURNISSEUR",
+    "pathsSummary": "Chemins de sources divulgués ({{count}})",
+    "changesTitle": "Différences de fichiers",
+    "changesCount_one": "{{count}} modification",
+    "changesCount_other": "{{count}} modifications",
+    "changesError": "Les modifications n'ont pas pu être lues depuis l'espace de travail isolé : {{message}}",
+    "before": "Avant",
+    "after": "Après",
+    "deletedNote": "Cette suppression a eu lieu dans l'espace de travail isolé.",
+    "previewUnavailable": "Aperçu du texte indisponible : {{status}}.",
+    "runningNote": "La tâche est en cours. Son espace de travail et les chemins divulgués apparaîtront au fur et à mesure de leur enregistrement.",
+    "noDiffError": "Aucun aperçu des différences n'est disponible.",
+    "noDiff": "Aucune modification de fichier n'a été générée pour cette tâche.",
+    "eventsSummary": "Événements de la tâche ({{count}})",
+    "retryNote": "Une nouvelle tentative crée une nouvelle tâche isolée et exige une nouvelle divulgation des sources.",
+    "retryAction": "Relancer la tâche"
+  },
+  "meta": {
+    "tokens": "{{value}} jetons",
+    "cost": "{{value}}"
+  },
+  "status": {
+    "Queued": "En file d'attente",
+    "Running": "En cours",
+    "Succeeded": "Réussie",
+    "Failed": "Échec",
+    "Blocked": "Bloquée",
+    "Cancelled": "Annulée",
+    "Interrupted": "Interrompue",
+    "Paused": "En pause"
+  },
+  "events": {
+    "created": "Tâche créée",
+    "status_changed": "Statut changé de {{from}} à {{to}}",
+    "workspace_created": "Espace de travail isolé préparé",
+    "completed": "Tâche terminée",
+    "failed": "Échec de la tâche",
+    "cancelled": "Tâche annulée",
+    "interrupted": "Tâche interrompue",
+    "rawDetail": "{{detail}}"
+  },
+  "capabilityNote": "Cette version enregistre l'état des tâches et crée des modifications vérifiables dans une copie isolée. Elle n'applique pas les modifications au dossier enregistré, n'exécute pas de commandes, ne lance pas de tests et ne fournit pas de contrôles Git apply/rollback.",
+  "replyLanguage": {
+    "instruction": "Veuillez rédiger vos explications en {{language}}. Conservez inchangés tout le code, les commandes, les identifiants et les chemins de fichiers."
+  }
+}

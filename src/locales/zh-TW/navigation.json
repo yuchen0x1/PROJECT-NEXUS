@@ -1,0 +1,66 @@
+{
+  "rail": {
+    "workspace": "工作區",
+    "management": "管理",
+    "workbench": "工作台",
+    "projects": "專案",
+    "environment": "環境",
+    "agent": "AI 代理",
+    "remote": "遠端主控台",
+    "settings": "設定",
+    "collapse": "收合側邊欄",
+    "expand": "展開側邊欄",
+    "localBadge": "本機"
+  },
+  "topbar": {
+    "machine": "本機電腦",
+    "agentActive": "桌面代理已啟動",
+    "searchPlaceholder": "搜尋命令與專案…",
+    "searchHint": "Ctrl+K",
+    "notifications": "通知",
+    "themeToggle": "切換主題",
+    "settings": "開啟設定"
+  },
+  "commandPalette": {
+    "title": "命令選擇區",
+    "placeholder": "輸入命令或專案名稱…",
+    "empty": "沒有符合的命令",
+    "groups": {
+      "pages": "頁面",
+      "actions": "動作",
+      "projects": "專案",
+      "appearance": "外觀",
+      "language": "語言"
+    },
+    "actions": {
+      "addProject": "新增本機專案資料夾",
+      "recheckEnvironment": "重新檢查開發環境",
+      "refreshProjects": "重新整理專案清單",
+      "openRemote": "開啟遠端主控台",
+      "openSettings": "開啟設定",
+      "openAgent": "開啟 AI 代理頁面",
+      "toggleTheme": "在深色與淺色主題之間切換",
+      "toggleMotion": "切換減弱動態效果",
+      "scanProject": "掃描專案"
+    },
+    "hint": "使用 ↑ ↓ 選擇，Enter 執行，Esc 關閉"
+  },
+  "notifications": {
+    "title": "通知",
+    "empty": "一切都已處理完畢",
+    "emptyDetail": "新的活動與任務結果會顯示在這裡。",
+    "markAllRead": "全部標記為已讀",
+    "clear": "清除全部",
+    "open": "開啟相關頁面"
+  },
+  "bottomPanel": {
+    "label": "活動記錄",
+    "events_one": "{{count}} 筆事件",
+    "events_other": "{{count}} 筆事件",
+    "empty": "環境偵測與專案掃描的詳細資訊會顯示在這裡。尚未執行任何終端機命令。",
+    "resize": "拖曳以調整大小"
+  },
+  "shortcuts": {
+    "commandPalette": "開啟命令選擇區"
+  }
+}

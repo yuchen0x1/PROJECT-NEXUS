@@ -1,0 +1,41 @@
+{
+  "page": {
+    "title": "設定",
+    "subtitle": "外觀、語言與工作站行為。"
+  },
+  "sections": {
+    "appearance": "外觀與語言",
+    "agent": "AI 代理",
+    "startup": "啟動",
+    "about": "關於"
+  },
+  "appearance": {
+    "languageLabel": "介面語言",
+    "languageHint": "立即套用於整個應用程式。您的選擇會在重新啟動後保留。",
+    "languageChanged": "語言已切換為{{language}}",
+    "coverageNote": "本版本提供的所有語言均已完成完整校訂。",
+    "themeLabel": "主題",
+    "themeHint": "「跟隨 Windows」會即時配合系統的淺色或深色設定。",
+    "motionLabel": "減弱動態效果",
+    "motionHint": "將整個工作站的動畫與轉場效果降至最低。",
+    "agentReplyLabel": "代理回覆語言",
+    "agentReplyHint": "只會影響代理撰寫的說明文字，絕不會變更程式碼、命令與檔案路徑。",
+    "agentReplyUi": "跟隨介面語言",
+    "agentReplyInput": "跟隨我的請求語言",
+    "agentReplyFixed": "固定使用："
+  },
+  "startup": {
+    "autoStartLabel": "隨 Windows 啟動",
+    "autoStartDetail": "在您登入後啟動 NEXUS。此設定只有在您確認後才會變更。"
+  },
+  "about": {
+    "version": "版本",
+    "platform": "平台",
+    "dataPath": "使用者資料",
+    "logsPath": "日誌",
+    "cachePath": "快取",
+    "settingsFile": "設定檔",
+    "systemLocale": "系統語言",
+    "openLogs": "開啟日誌資料夾"
+  }
+}

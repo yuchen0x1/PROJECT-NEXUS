@@ -1,0 +1,66 @@
+{
+  "rail": {
+    "workspace": "Arbeitsbereich",
+    "management": "Verwaltung",
+    "workbench": "Übersicht",
+    "projects": "Projekte",
+    "environment": "Entwicklungsumgebung",
+    "agent": "KI-Agent",
+    "remote": "Remote-Konsole",
+    "settings": "Einstellungen",
+    "collapse": "Seitenleiste einklappen",
+    "expand": "Seitenleiste ausklappen",
+    "localBadge": "LOKAL"
+  },
+  "topbar": {
+    "machine": "Lokaler Rechner",
+    "agentActive": "Desktop-Agent aktiv",
+    "searchPlaceholder": "Befehle und Projekte suchen…",
+    "searchHint": "Strg+K",
+    "notifications": "Benachrichtigungen",
+    "themeToggle": "Design umschalten",
+    "settings": "Einstellungen öffnen"
+  },
+  "commandPalette": {
+    "title": "Befehlspalette",
+    "placeholder": "Befehl oder Projektname eingeben…",
+    "empty": "Keine passenden Befehle",
+    "groups": {
+      "pages": "Seiten",
+      "actions": "Aktionen",
+      "projects": "Projekte",
+      "appearance": "Erscheinungsbild",
+      "language": "Sprache"
+    },
+    "actions": {
+      "addProject": "Lokalen Projektordner hinzufügen",
+      "recheckEnvironment": "Entwicklungsumgebung neu prüfen",
+      "refreshProjects": "Projektliste aktualisieren",
+      "openRemote": "Remote-Konsole öffnen",
+      "openSettings": "Einstellungen öffnen",
+      "openAgent": "KI-Agent-Seite öffnen",
+      "toggleTheme": "Zwischen dunklem und hellem Design wechseln",
+      "toggleMotion": "Reduzierte Bewegung umschalten",
+      "scanProject": "Projekt scannen"
+    },
+    "hint": "Mit ↑ ↓ navigieren, mit Eingabe ausführen, mit Esc schließen"
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "empty": "Sie sind auf dem neuesten Stand",
+    "emptyDetail": "Neue Aktivitäten und Aufgabenergebnisse erscheinen hier.",
+    "markAllRead": "Alle als gelesen markieren",
+    "clear": "Alle löschen",
+    "open": "Zugehörige Seite öffnen"
+  },
+  "bottomPanel": {
+    "label": "Aktivitätsprotokoll",
+    "events_one": "{{count}} Ereignis",
+    "events_other": "{{count}} Ereignisse",
+    "empty": "Details zu Umgebungs- und Projekt-Scans erscheinen hier. Es wurden keine Terminalbefehle ausgeführt.",
+    "resize": "Zum Anpassen der Größe ziehen"
+  },
+  "shortcuts": {
+    "commandPalette": "Befehlspalette öffnen"
+  }
+}

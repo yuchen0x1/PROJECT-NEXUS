@@ -1,0 +1,41 @@
+{
+  "page": {
+    "title": "Einstellungen",
+    "subtitle": "Erscheinungsbild, Sprache und Verhalten des Arbeitsplatzes."
+  },
+  "sections": {
+    "appearance": "Erscheinungsbild und Sprache",
+    "agent": "KI-Agent",
+    "startup": "Start",
+    "about": "Über"
+  },
+  "appearance": {
+    "languageLabel": "Sprache der Oberfläche",
+    "languageHint": "Gilt sofort für die gesamte Anwendung. Ihre Auswahl bleibt über Neustarts hinweg erhalten.",
+    "languageChanged": "Sprache geändert zu {{language}}",
+    "coverageNote": "Alle ausgelieferten Sprachen sind für diese Release vollständig geprüft.",
+    "themeLabel": "Design",
+    "themeHint": "„Windows folgen“ übernimmt die helle oder dunkle Systemeinstellung in Echtzeit.",
+    "motionLabel": "Bewegung reduzieren",
+    "motionHint": "Minimiert Animationen und Übergänge im gesamten Arbeitsplatz.",
+    "agentReplyLabel": "Antwortsprache des Agenten",
+    "agentReplyHint": "Beeinflusst nur den erläuternden Text des Agenten. Code, Befehle und Dateipfade werden niemals geändert.",
+    "agentReplyUi": "Sprache der Oberfläche folgen",
+    "agentReplyInput": "Sprache meiner Anfrage folgen",
+    "agentReplyFixed": "Immer verwenden:"
+  },
+  "startup": {
+    "autoStartLabel": "Mit Windows starten",
+    "autoStartDetail": "Startet NEXUS nach Ihrer Anmeldung. Diese Einstellung ändert sich erst nach Ihrer Bestätigung."
+  },
+  "about": {
+    "version": "Version",
+    "platform": "Plattform",
+    "dataPath": "Benutzerdaten",
+    "logsPath": "Protokolle",
+    "cachePath": "Cache",
+    "settingsFile": "Einstellungsdatei",
+    "systemLocale": "Systemsprache",
+    "openLogs": "Protokollordner öffnen"
+  }
+}

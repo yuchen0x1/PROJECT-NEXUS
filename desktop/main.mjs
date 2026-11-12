@@ -8,6 +8,28 @@ import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, screen, Tray } 
 import { detectDevelopmentEnvironment } from '../server/services/local-environment.mjs'
 import { listLocalProjects, registerLocalProject, scanLocalProject, unregisterLocalProject } from '../server/services/local-projects.mjs'
 
+// Languages shipped in src/i18n/languages.ts. Kept in sync manually; the
+// renderer validates as well, this is the durable boundary.
+const SUPPORTED_LANGUAGES = Object.freeze(['zh-CN', 'zh-TW', 'en-US', 'ja-JP', 'ko-KR', 'fr-FR', 'de-DE', 'es-ES', 'pt-BR', 'ru-RU'])
+const THEMES = Object.freeze(['dark', 'light', 'system'])
+
+const TRAY_STRINGS = {
+  'zh-CN': { open: '打开 PROJECT NEXUS', exit: '退出 PROJECT NEXUS', tooltip: 'PROJECT NEXUS — Windows 工作站' },
+  'zh-TW': { open: '開啟 PROJECT NEXUS', exit: '結束 PROJECT NEXUS', tooltip: 'PROJECT NEXUS — Windows 工作站' },
+  'en-US': { open: 'Open PROJECT NEXUS', exit: 'Exit PROJECT NEXUS', tooltip: 'PROJECT NEXUS — Windows Workstation' },
+  'ja-JP': { open: 'PROJECT NEXUS を開く', exit: 'PROJECT NEXUS を終了', tooltip: 'PROJECT NEXUS — Windows ワークステーション' },
+  'ko-KR': { open: 'PROJECT NEXUS 열기', exit: 'PROJECT NEXUS 종료', tooltip: 'PROJECT NEXUS — Windows 워크스테이션' },
+  'fr-FR': { open: 'Ouvrir PROJECT NEXUS', exit: 'Quitter PROJECT NEXUS', tooltip: 'PROJECT NEXUS — Station de travail Windows' },
+  'de-DE': { open: 'PROJECT NEXUS öffnen', exit: 'PROJECT NEXUS beenden', tooltip: 'PROJECT NEXUS — Windows-Arbeitsbereich' },
+  'es-ES': { open: 'Abrir PROJECT NEXUS', exit: 'Salir de PROJECT NEXUS', tooltip: 'PROJECT NEXUS — Estación de trabajo Windows' },
+  'pt-BR': { open: 'Abrir PROJECT NEXUS', exit: 'Encerrar PROJECT NEXUS', tooltip: 'PROJECT NEXUS — Estação de trabalho Windows' },
+  'ru-RU': { open: 'Открыть PROJECT NEXUS', exit: 'Выйти из PROJECT NEXUS', tooltip: 'PROJECT NEXUS — рабочая станция Windows' }
+}
+
+function trayLanguage(preferences) {
+  return SUPPORTED_LANGUAGES.includes(preferences.language) ? preferences.language : 'en-US'
+}
+
 const here = path.dirname(fileURLToPath(import.meta.url))
 const smokeTest = process.argv.includes('--nexus-smoke-test')
 const traceSmoke = (event) => { if (smokeTest) process.stdout.write(`NEXUS_DESKTOP_TRACE:${event}\n`) }
@@ -37,7 +59,7 @@ let mainWindow = null
 let tray = null
 let windowSaveTimer = null
 let isQuitting = false
-let preferences = { autoStart: false }
+let preferences = { autoStart: false, language: null, theme: 'dark', reduceMotion: false, agentReplyLanguage: 'ui' }
 
 process.env.NEXUS_LOCAL_API_TOKEN = apiToken
 process.env.NEXUS_DESKTOP_VERSION = app.getVersion()
@@ -220,9 +242,10 @@ function registerLocalCapabilities() {
     return result
   })
   registerIpc('desktop:projects:list', async () => await listLocalProjects({ dataDir: userDataPath }))
-  registerIpc('desktop:projects:add', async () => {
+  registerIpc('desktop:projects:add', async (dialogTitle) => {
+    const title = typeof dialogTitle === 'string' && dialogTitle.length <= 160 ? dialogTitle : 'Add a local project folder'
     const selection = await dialog.showOpenDialog(mainWindow, {
-      title: 'Add a local project folder',
+      title,
       properties: ['openDirectory', 'dontAddToRecent']
     })
     if (selection.canceled || !selection.filePaths[0]) return null
@@ -230,14 +253,23 @@ function registerLocalCapabilities() {
     await writeLog('info', result.added ? 'local-project-added' : 'local-project-already-registered', { projectId: result.project.id })
     return result
   })
-  registerIpc('desktop:projects:remove', async (projectId, projectName) => {
+  registerIpc('desktop:projects:remove', async (projectId, projectName, dialogText) => {
     if (typeof projectName !== 'string' || projectName.length > 160) throw new Error('Invalid project name.')
+    const text = (dialogText && typeof dialogText === 'object')
+      ? {
+          title: typeof dialogText.title === 'string' ? dialogText.title.slice(0, 160) : 'Remove project from NEXUS',
+          message: typeof dialogText.message === 'string' && dialogText.message.length <= 400 ? dialogText.message : `Remove ${projectName} from the local project list?`,
+          detail: typeof dialogText.detail === 'string' ? dialogText.detail.slice(0, 500) : 'This removes only the NEXUS reference. No project files will be deleted or changed.',
+          confirm: typeof dialogText.confirm === 'string' ? dialogText.confirm.slice(0, 80) : 'Remove from NEXUS',
+          cancel: typeof dialogText.cancel === 'string' ? dialogText.cancel.slice(0, 80) : 'Keep project'
+        }
+      : null
     const confirmation = await dialog.showMessageBox(mainWindow, {
       type: 'warning',
-      title: 'Remove project from NEXUS',
-      message: `Remove ${projectName} from the local project list?`,
-      detail: 'This removes only the NEXUS reference. No project files will be deleted or changed.',
-      buttons: ['Keep project', 'Remove from NEXUS'],
+      title: text?.title ?? 'Remove project from NEXUS',
+      message: text?.message ?? `Remove ${projectName} from the local project list?`,
+      detail: text?.detail ?? 'This removes only the NEXUS reference. No project files will be deleted or changed.',
+      buttons: [text?.cancel ?? 'Keep project', text?.confirm ?? 'Remove from NEXUS'],
       defaultId: 0,
       cancelId: 0,
       noLink: true
@@ -259,6 +291,47 @@ function registerLocalCapabilities() {
     await writeJson(settingsPath, preferences)
     await writeLog('info', 'auto-start-setting-changed', { enabled })
     return { enabled }
+  })
+  registerIpc('desktop:settings:get', async () => ({
+    preferences: {
+      language: preferences.language ?? null,
+      theme: preferences.theme ?? 'dark',
+      reduceMotion: Boolean(preferences.reduceMotion),
+      agentReplyLanguage: preferences.agentReplyLanguage ?? 'ui'
+    },
+    systemLocale: app.getLocale(),
+    settingsPath
+  }))
+  registerIpc('desktop:settings:update', async (partial) => {
+    if (!partial || typeof partial !== 'object' || Array.isArray(partial)) throw new Error('Settings update payload must be an object.')
+    const next = { ...preferences }
+    if ('language' in partial) {
+      const language = partial.language
+      if (language !== null && !SUPPORTED_LANGUAGES.includes(language)) throw new Error('That language is not available in this build.')
+      next.language = language
+    }
+    if ('theme' in partial) {
+      if (!THEMES.includes(partial.theme)) throw new Error('Theme must be dark, light or system.')
+      next.theme = partial.theme
+    }
+    if ('reduceMotion' in partial) {
+      if (typeof partial.reduceMotion !== 'boolean') throw new Error('reduceMotion must be a boolean.')
+      next.reduceMotion = partial.reduceMotion
+    }
+    if ('agentReplyLanguage' in partial) {
+      const mode = partial.agentReplyLanguage
+      if (mode !== 'ui' && mode !== 'input' && !SUPPORTED_LANGUAGES.includes(mode)) throw new Error('agentReplyLanguage must be "ui", "input" or a supported language code.')
+      next.agentReplyLanguage = mode
+    }
+    preferences = next
+    await writeJson(settingsPath, preferences)
+    await writeLog('info', 'settings-updated', { keys: Object.keys(partial).join(',') })
+    return {
+      language: preferences.language ?? null,
+      theme: preferences.theme,
+      reduceMotion: Boolean(preferences.reduceMotion),
+      agentReplyLanguage: preferences.agentReplyLanguage
+    }
   })
 }
 
@@ -316,11 +389,12 @@ function createTray() {
   const icon = nativeImage.createFromPath(iconPath)
   if (icon.isEmpty()) throw new Error('The NEXUS tray icon could not be loaded.')
   tray = new Tray(icon)
-  tray.setToolTip('PROJECT NEXUS — Windows Workstation')
+  const strings = TRAY_STRINGS[trayLanguage(preferences)] || TRAY_STRINGS['en-US']
+  tray.setToolTip(strings.tooltip)
   tray.setContextMenu(Menu.buildFromTemplate([
-    { label: 'Open PROJECT NEXUS', click: showWindow },
+    { label: strings.open, click: showWindow },
     { type: 'separator' },
-    { label: 'Exit PROJECT NEXUS', click: () => app.quit() }
+    { label: strings.exit, click: () => app.quit() }
   ]))
   tray.on('double-click', showWindow)
 }
@@ -348,11 +422,20 @@ async function startDesktop() {
   traceSmoke('waiting-for-ready')
   await app.whenReady()
   traceSmoke('app-ready')
+  // The product renders its own localized chrome; the default English
+  // Electron menu (and its Alt accelerator) would break that illusion.
+  Menu.setApplicationMenu(null)
   await fs.mkdir(userDataPath, { recursive: true })
   await fs.mkdir(logsPath, { recursive: true })
   await fs.mkdir(cachePath, { recursive: true })
-  preferences = await readJson(settingsPath, { autoStart: false })
-  if (typeof preferences.autoStart !== 'boolean') preferences = { autoStart: false }
+  const stored = await readJson(settingsPath, {})
+  preferences = {
+    autoStart: typeof stored.autoStart === 'boolean' ? stored.autoStart : false,
+    language: SUPPORTED_LANGUAGES.includes(stored.language) ? stored.language : null,
+    theme: THEMES.includes(stored.theme) ? stored.theme : 'dark',
+    reduceMotion: typeof stored.reduceMotion === 'boolean' ? stored.reduceMotion : false,
+    agentReplyLanguage: (stored.agentReplyLanguage === 'ui' || stored.agentReplyLanguage === 'input' || SUPPORTED_LANGUAGES.includes(stored.agentReplyLanguage)) ? stored.agentReplyLanguage : 'ui'
+  }
   if (preferences.autoStart) app.setLoginItemSettings({ openAtLogin: true, path: app.getPath('exe') })
   await writeLog('info', 'application-starting', { version: app.getVersion(), platform: process.platform, arch: process.arch })
 

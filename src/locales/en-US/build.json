@@ -1,0 +1,29 @@
+{
+  "eyebrow": "GitHub Actions",
+  "title": "Build Center",
+  "subtitle": "Inspect workflows, dispatch builds, and follow runs from one project-aware surface.",
+  "picker": {
+    "kicker": "Target repository",
+    "title": "Choose a project",
+    "emptyTitle": "No target repositories",
+    "emptyDetail": "Sync repositories before opening a build context."
+  },
+  "workflows": {
+    "kicker": "Workflow catalog",
+    "selectRepository": "Select a repository",
+    "runAction": "Run workflow",
+    "dispatched": "Build dispatch queued",
+    "dispatchFailed": "Build dispatch failed",
+    "loadFailed": "Unable to load workflows",
+    "emptyTitle": "No workflows discovered",
+    "emptyDetail": "GitHub returned no Actions workflows for this repository.",
+    "waitingTitle": "Build context is waiting",
+    "waitingDetail": "Select a repository to load its real GitHub Actions workflows."
+  },
+  "runs": {
+    "kicker": "Execution history",
+    "title": "Recent runs",
+    "emptyTitle": "No run history loaded",
+    "emptyDetail": "Choose a repository with Actions access to view recent runs."
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "page": {
+    "title": "개발 환경",
+    "subtitle": "이 Windows 사용자 계정에서 감지된 실행 파일 경로와 버전입니다."
+  },
+  "summary": {
+    "detected": "총 {{total}}개 중 {{available}}개 도구 감지됨",
+    "running": "환경 감지가 실행 중입니다",
+    "detail": "실행 파일은 안전한 범위에서만 버전 확인을 수행합니다. 명령 shim과 Windows Terminal은 실행하지 않고 경로로 감지하며, 여러 PATH 항목은 충돌로 표시됩니다."
+  },
+  "table": {
+    "title": "설치된 개발 도구",
+    "scannedAt": "{{time}}에 확인",
+    "checking": "확인 중",
+    "stillRunning": "첫 환경 확인이 아직 실행 중입니다.",
+    "columns": {
+      "tool": "도구",
+      "paths": "감지된 경로",
+      "version": "버전"
+    },
+    "noPath": "PATH에서 찾을 수 없음",
+    "pathConflict": "여러 PATH 항목"
+  },
+  "status": {
+    "AVAILABLE": "사용 가능",
+    "SHIM_FOUND": "shim 발견 · 버전 미확인",
+    "PATH_FOUND": "경로 발견 · 버전 미확인",
+    "MISSING": "찾을 수 없음",
+    "TIMEOUT": "버전 확인 시간 초과",
+    "VERSION_ERROR": "버전을 읽을 수 없음"
+  },
+  "note": "감지는 PATH에서 발견된 바이너리에 대해서만 버전 명령을 실행합니다. PATH 변경, 패키지 설치, 권한 상승은 수행하지 않습니다."
+}

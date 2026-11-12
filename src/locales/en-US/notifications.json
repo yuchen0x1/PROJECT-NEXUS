@@ -1,0 +1,71 @@
+{
+  "activity": {
+    "workstationReady": {
+      "label": "Workstation ready",
+      "detail_one": "{{count}} local project registered.",
+      "detail_other": "{{count}} local projects registered."
+    },
+    "environmentCheckFinished": {
+      "label": "Environment check finished",
+      "detail": "{{available}} of {{total}} development tools available."
+    },
+    "environmentCheckFailed": {
+      "label": "Environment check failed"
+    },
+    "projectAdded": {
+      "label": "Local project added"
+    },
+    "projectAlreadyRegistered": {
+      "label": "Project already registered"
+    },
+    "projectRemoved": {
+      "label": "Project removed from NEXUS",
+      "detail": "The folder and its files were left unchanged."
+    },
+    "projectAddFailed": {
+      "label": "Project could not be added"
+    },
+    "scanComplete": {
+      "label": "Read-only scan complete",
+      "detail": "{{name}}: {{stack}}; {{count}} entries checked."
+    },
+    "scanFailed": {
+      "label": "Project scan failed"
+    },
+    "agentTaskQueued": {
+      "label": "Local Agent task queued",
+      "detail": "{{project}}: {{label}}"
+    },
+    "agentTaskFailed": {
+      "label": "Local Agent task failed"
+    },
+    "agentTaskStartError": {
+      "label": "Local Agent task could not start"
+    },
+    "agentCancellationRequested": {
+      "label": "Local Agent cancellation requested"
+    },
+    "agentRetryQueued": {
+      "label": "Local Agent retry queued"
+    },
+    "agentTaskCompleted": {
+      "label": "Agent task completed",
+      "detail": "{{project}}: {{label}}"
+    },
+    "autoStartEnabled": {
+      "label": "Start with Windows enabled",
+      "detail": "This setting changes only after your confirmation."
+    },
+    "autoStartDisabled": {
+      "label": "Start with Windows disabled",
+      "detail": "This setting changes only after your confirmation."
+    }
+  },
+  "toast": {
+    "languageChanged": "Language updated",
+    "themeChanged": "Theme updated",
+    "settingsSaved": "Settings saved",
+    "projectAdded": "Project added",
+    "scanQueued": "Scan queued"
+  }
+}

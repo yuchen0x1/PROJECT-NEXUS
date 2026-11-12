@@ -1,0 +1,66 @@
+{
+  "rail": {
+    "workspace": "Espaço de trabalho",
+    "management": "Gerenciamento",
+    "workbench": "Painel de trabalho",
+    "projects": "Projetos",
+    "environment": "Ambiente de desenvolvimento",
+    "agent": "Agente de IA",
+    "remote": "Console remoto",
+    "settings": "Configurações",
+    "collapse": "Recolher barra lateral",
+    "expand": "Expandir barra lateral",
+    "localBadge": "LOCAL"
+  },
+  "topbar": {
+    "machine": "Máquina local",
+    "agentActive": "Agente de desktop ativo",
+    "searchPlaceholder": "Pesquisar comandos e projetos…",
+    "searchHint": "Ctrl+K",
+    "notifications": "Notificações",
+    "themeToggle": "Alternar tema",
+    "settings": "Abrir configurações"
+  },
+  "commandPalette": {
+    "title": "Paleta de comandos",
+    "placeholder": "Digite um comando ou nome de projeto…",
+    "empty": "Nenhum comando correspondente",
+    "groups": {
+      "pages": "Páginas",
+      "actions": "Ações",
+      "projects": "Projetos",
+      "appearance": "Aparência",
+      "language": "Idioma"
+    },
+    "actions": {
+      "addProject": "Adicionar uma pasta de projeto local",
+      "recheckEnvironment": "Reverificar o ambiente de desenvolvimento",
+      "refreshProjects": "Atualizar a lista de projetos",
+      "openRemote": "Abrir o console remoto",
+      "openSettings": "Abrir configurações",
+      "openAgent": "Abrir a página do Agente de IA",
+      "toggleTheme": "Alternar entre tema escuro e claro",
+      "toggleMotion": "Ativar ou desativar movimento reduzido",
+      "scanProject": "Verificar projeto"
+    },
+    "hint": "Navegue com ↑ ↓, execute com Enter, feche com Esc"
+  },
+  "notifications": {
+    "title": "Notificações",
+    "empty": "Você está em dia",
+    "emptyDetail": "As novas atividades e os resultados de tarefas aparecerão aqui.",
+    "markAllRead": "Marcar tudo como lido",
+    "clear": "Limpar tudo",
+    "open": "Abrir a página relacionada"
+  },
+  "bottomPanel": {
+    "label": "Registro de atividades",
+    "events_one": "{{count}} evento",
+    "events_other": "{{count}} eventos",
+    "empty": "Os detalhes da verificação do ambiente e dos projetos aparecerão aqui. Nenhum comando de terminal foi executado.",
+    "resize": "Arraste para redimensionar"
+  },
+  "shortcuts": {
+    "commandPalette": "Abrir a paleta de comandos"
+  }
+}

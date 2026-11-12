@@ -1,0 +1,84 @@
+{
+  "page": {
+    "title": "AI 智能体",
+    "subtitle": "在注册项目的隔离副本中生成可审查的代码变更。"
+  },
+  "compose": {
+    "title": "描述一项代码变更",
+    "providerReady": "提供商已就绪",
+    "providerRequired": "需要配置提供商",
+    "projectLabel": "已注册项目",
+    "projectPlaceholder": "选择一个项目",
+    "providerLabel": "已配置的提供商",
+    "providerPlaceholder": "选择一个提供商",
+    "noProjects": "请先使用上方按钮添加本地文件夹，然后再发起智能体任务。",
+    "noProviders": "尚未配置提供商。请在本地服务环境中设置 AI 提供商参数；API 密钥不会进入渲染进程。",
+    "promptLabel": "请求内容",
+    "promptBytes": "{{used}} / {{limit}} 字节",
+    "promptPlaceholder": "描述目标变更、约束条件，以及您希望结果如何组织。",
+    "disclosureTitle": "源代码披露",
+    "disclosureBody": "开始此任务会将您的提示词以及来自有边界隔离副本的最多 {{maxFiles}} 个符合条件的 UTF-8 文件发送给所选提供商。源文本会被脱敏，脱敏后上限为 {{maxKiB}} KiB。疑似密钥的路径和内置依赖/构建目录会被跳过。将应用项目支持的 .gitignore 规则；格式错误或不支持的模式会阻止工作区创建。",
+    "consent": "我已阅读此披露，并授权将本任务的有边界源代码上下文发送给所选提供商。",
+    "footerNote": "候选变更仅保存在应用数据中的任务工作区里。",
+    "submit": "生成隔离变更",
+    "submitting": "正在将任务加入队列…"
+  },
+  "history": {
+    "title": "任务历史",
+    "refresh": "刷新智能体任务",
+    "cancelAria": "取消任务 {{label}}",
+    "cancelTitle": "取消任务",
+    "emptyTitle": "暂无本地智能体任务",
+    "emptyDetail": "新的提案及其保存的状态会显示在这里。"
+  },
+  "review": {
+    "title": "隔离变更审查",
+    "emptyTitle": "选择一个任务以查看其结果",
+    "emptyDetail": "生成的文件变更会显示在这里；已注册的项目保持不变。",
+    "requestLabel": "请求内容",
+    "rationaleLabel": "提供商说明",
+    "pathsSummary": "披露的源文件路径（{{count}}）",
+    "changesTitle": "文件差异",
+    "changesCount_one": "{{count}} 处变更",
+    "changesCount_other": "{{count}} 处变更",
+    "changesError": "无法从隔离工作区读取变更：{{message}}",
+    "before": "变更前",
+    "after": "变更后",
+    "deletedNote": "此删除操作发生在隔离工作区内。",
+    "previewUnavailable": "文本预览不可用：{{status}}。",
+    "runningNote": "任务正在运行。它的工作区和披露路径会随执行逐步显示。",
+    "noDiffError": "暂无可用的差异预览。",
+    "noDiff": "此任务未生成文件变更。",
+    "eventsSummary": "任务事件（{{count}}）",
+    "retryNote": "重试会创建新的隔离任务，并需要重新确认源代码披露。",
+    "retryAction": "重试任务"
+  },
+  "meta": {
+    "tokens": "{{value}} 个 Token",
+    "cost": "{{value}}"
+  },
+  "status": {
+    "Queued": "排队中",
+    "Running": "运行中",
+    "Succeeded": "已成功",
+    "Failed": "已失败",
+    "Blocked": "已阻断",
+    "Cancelled": "已取消",
+    "Interrupted": "已中断",
+    "Paused": "已暂停"
+  },
+  "events": {
+    "created": "任务已创建",
+    "status_changed": "状态从 {{from}} 变为 {{to}}",
+    "workspace_created": "隔离工作区已就绪",
+    "completed": "任务已完成",
+    "failed": "任务失败",
+    "cancelled": "任务已取消",
+    "interrupted": "任务已中断",
+    "rawDetail": "{{detail}}"
+  },
+  "capabilityNote": "本版本会记录任务状态并在隔离副本中创建可审查的变更。它不会将变更应用到已注册文件夹，不会执行命令、运行测试，也不提供 Git apply/回滚控制。",
+  "replyLanguage": {
+    "instruction": "请使用{{language}}撰写说明文字。保持所有代码、命令、标识符和文件路径不变。"
+  }
+}

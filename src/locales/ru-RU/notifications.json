@@ -1,0 +1,73 @@
+{
+  "activity": {
+    "workstationReady": {
+      "label": "Рабочая станция готова",
+      "detail_one": "Зарегистрирован {{count}} локальный проект.",
+      "detail_few": "Зарегистрировано {{count}} локальных проекта.",
+      "detail_many": "Зарегистрировано {{count}} локальных проектов.",
+      "detail_other": "Зарегистрировано {{count}} локальных проекта."
+    },
+    "environmentCheckFinished": {
+      "label": "Проверка среды завершена",
+      "detail": "Доступно инструментов: {{available}} из {{total}}."
+    },
+    "environmentCheckFailed": {
+      "label": "Сбой проверки среды"
+    },
+    "projectAdded": {
+      "label": "Локальный проект добавлен"
+    },
+    "projectAlreadyRegistered": {
+      "label": "Проект уже зарегистрирован"
+    },
+    "projectRemoved": {
+      "label": "Проект удалён из NEXUS",
+      "detail": "Папка и её файлы остались без изменений."
+    },
+    "projectAddFailed": {
+      "label": "Не удалось добавить проект"
+    },
+    "scanComplete": {
+      "label": "Сканирование только для чтения завершено",
+      "detail": "{{name}}: {{stack}}; проверено записей: {{count}}."
+    },
+    "scanFailed": {
+      "label": "Сбой сканирования проекта"
+    },
+    "agentTaskQueued": {
+      "label": "Локальная задача агента поставлена в очередь",
+      "detail": "{{project}}: {{label}}"
+    },
+    "agentTaskFailed": {
+      "label": "Сбой локальной задачи агента"
+    },
+    "agentTaskStartError": {
+      "label": "Не удалось запустить локальную задачу агента"
+    },
+    "agentCancellationRequested": {
+      "label": "Запрошена отмена локальной задачи агента"
+    },
+    "agentRetryQueued": {
+      "label": "Повтор локальной задачи агента поставлен в очередь"
+    },
+    "agentTaskCompleted": {
+      "label": "Задача агента завершена",
+      "detail": "{{project}}: {{label}}"
+    },
+    "autoStartEnabled": {
+      "label": "Запуск с Windows включён",
+      "detail": "Эта настройка меняется только после вашего подтверждения."
+    },
+    "autoStartDisabled": {
+      "label": "Запуск с Windows отключён",
+      "detail": "Эта настройка меняется только после вашего подтверждения."
+    }
+  },
+  "toast": {
+    "languageChanged": "Язык обновлён",
+    "themeChanged": "Тема обновлена",
+    "settingsSaved": "Настройки сохранены",
+    "projectAdded": "Проект добавлен",
+    "scanQueued": "Сканирование поставлено в очередь"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "page": {
+    "title": "KI-Agent",
+    "subtitle": "Überprüfbare Codeänderungen in einer isolierten Kopie eines registrierten Projekts erzeugen."
+  },
+  "compose": {
+    "title": "Eine Codeänderung beschreiben",
+    "providerReady": "Anbieter bereit",
+    "providerRequired": "Anbieter erforderlich",
+    "projectLabel": "Registriertes Projekt",
+    "projectPlaceholder": "Projekt auswählen",
+    "providerLabel": "Konfigurierter Anbieter",
+    "providerPlaceholder": "Anbieter auswählen",
+    "noProjects": "Fügen Sie über die Schaltfläche oben einen lokalen Ordner hinzu, bevor Sie eine Agent-Aufgabe starten.",
+    "noProviders": "Es ist kein Anbieter konfiguriert. Legen Sie die KI-Anbieter-Werte in der Umgebung des lokalen Dienstes fest; API-Schlüssel bleiben außerhalb des Renderers.",
+    "promptLabel": "Anfrage",
+    "promptBytes": "{{used}} / {{limit}} Bytes",
+    "promptPlaceholder": "Beschreiben Sie die beabsichtigte Änderung, Einschränkungen und wie das Ergebnis strukturiert sein soll.",
+    "disclosureTitle": "Quellenoffenlegung",
+    "disclosureBody": "Der Start dieser Aufgabe sendet Ihre Anfrage und bis zu {{maxFiles}} geeignete UTF-8-Dateien aus einer begrenzten isolierten Kopie an den ausgewählten Anbieter. Quelltext wird geschwärzt und nach der Schwärzung auf {{maxKiB}} KiB begrenzt. Geheimnisartige Pfade und eingebaute Abhängigkeits-/Build-Ordner werden übersprungen. Unterstützte .gitignore-Regeln des Projekts werden angewendet; fehlerhafte oder nicht unterstützte Muster stoppen die Erstellung des Arbeitsbereichs.",
+    "consent": "Ich habe diese Offenlegung geprüft und autorisiere das Senden des begrenzten Quellkontexts dieser Aufgabe an den ausgewählten Anbieter.",
+    "footerNote": "Kandidatenänderungen bleiben unter dem Aufgabenarbeitsbereich in den App-Daten.",
+    "submit": "Isolierte Änderungen erzeugen",
+    "submitting": "Aufgabe wird in Warteschlange gestellt…"
+  },
+  "history": {
+    "title": "Aufgabenverlauf",
+    "refresh": "Agent-Aufgaben aktualisieren",
+    "cancelAria": "Aufgabe {{label}} abbrechen",
+    "cancelTitle": "Aufgabe abbrechen",
+    "emptyTitle": "Keine lokalen Agent-Aufgaben",
+    "emptyDetail": "Neue Vorschläge und ihr gespeicherter Zustand erscheinen hier."
+  },
+  "review": {
+    "title": "Prüfung isolierter Änderungen",
+    "emptyTitle": "Wählen Sie eine Aufgabe aus, um ihr Ergebnis zu prüfen",
+    "emptyDetail": "Generierte Dateiänderungen werden hier angezeigt; das registrierte Projekt bleibt unberührt.",
+    "requestLabel": "ANFRAGE",
+    "rationaleLabel": "ANBIETERBEGRÜNDUNG",
+    "pathsSummary": "Offengelegte Quellpfade ({{count}})",
+    "changesTitle": "Dateiunterschiede",
+    "changesCount_one": "{{count}} Änderung",
+    "changesCount_other": "{{count}} Änderungen",
+    "changesError": "Änderungen konnten nicht aus dem isolierten Arbeitsbereich gelesen werden: {{message}}",
+    "before": "Vorher",
+    "after": "Nachher",
+    "deletedNote": "Diese Löschung erfolgte im isolierten Arbeitsbereich.",
+    "previewUnavailable": "Textvorschau nicht verfügbar: {{status}}.",
+    "runningNote": "Die Aufgabe läuft. Ihr Arbeitsbereich und die offengelegten Pfade erscheinen, sobald sie erfasst sind.",
+    "noDiffError": "Keine Vorschau der Unterschiede verfügbar.",
+    "noDiff": "Für diese Aufgabe wurden keine Dateiänderungen erzeugt.",
+    "eventsSummary": "Aufgabenereignisse ({{count}})",
+    "retryNote": "Ein erneuter Versuch erstellt eine neue isolierte Aufgabe und erfordert eine erneute Quellenoffenlegung.",
+    "retryAction": "Aufgabe erneut ausführen"
+  },
+  "meta": {
+    "tokens": "{{value}} Token",
+    "cost": "{{value}}"
+  },
+  "status": {
+    "Queued": "In Warteschlange",
+    "Running": "Läuft",
+    "Succeeded": "Erfolgreich",
+    "Failed": "Fehlgeschlagen",
+    "Blocked": "Blockiert",
+    "Cancelled": "Abgebrochen",
+    "Interrupted": "Unterbrochen",
+    "Paused": "Pausiert"
+  },
+  "events": {
+    "created": "Aufgabe erstellt",
+    "status_changed": "Status von {{from}} zu {{to}} geändert",
+    "workspace_created": "Isolierter Arbeitsbereich vorbereitet",
+    "completed": "Aufgabe abgeschlossen",
+    "failed": "Aufgabe fehlgeschlagen",
+    "cancelled": "Aufgabe abgebrochen",
+    "interrupted": "Aufgabe unterbrochen",
+    "rawDetail": "{{detail}}"
+  },
+  "capabilityNote": "Diese Version zeichnet den Aufgabenstatus auf und erzeugt überprüfbare Änderungen in einer isolierten Kopie. Sie wendet keine Änderungen auf den registrierten Ordner an, führt keine Befehle aus, startet keine Tests und bietet keine Git-Apply-/Rollback-Steuerung.",
+  "replyLanguage": {
+    "instruction": "Bitte schreiben Sie Ihre Erläuterungen in {{language}}. Lassen Sie sämtlichen Code, Befehle, Bezeichner und Dateipfade unverändert."
+  }
+}

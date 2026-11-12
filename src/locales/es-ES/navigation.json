@@ -1,0 +1,66 @@
+{
+  "rail": {
+    "workspace": "Espacio de trabajo",
+    "management": "Gestión",
+    "workbench": "Panel de trabajo",
+    "projects": "Proyectos",
+    "environment": "Entorno de desarrollo",
+    "agent": "Agente de IA",
+    "remote": "Consola remota",
+    "settings": "Configuración",
+    "collapse": "Contraer barra lateral",
+    "expand": "Expandir barra lateral",
+    "localBadge": "LOCAL"
+  },
+  "topbar": {
+    "machine": "Equipo local",
+    "agentActive": "Agente de escritorio activo",
+    "searchPlaceholder": "Buscar comandos y proyectos…",
+    "searchHint": "Ctrl+K",
+    "notifications": "Notificaciones",
+    "themeToggle": "Cambiar tema",
+    "settings": "Abrir configuración"
+  },
+  "commandPalette": {
+    "title": "Paleta de comandos",
+    "placeholder": "Escribe un comando o nombre de proyecto…",
+    "empty": "No hay comandos coincidentes",
+    "groups": {
+      "pages": "Páginas",
+      "actions": "Acciones",
+      "projects": "Proyectos",
+      "appearance": "Apariencia",
+      "language": "Idioma"
+    },
+    "actions": {
+      "addProject": "Añadir una carpeta de proyecto local",
+      "recheckEnvironment": "Comprobar de nuevo el entorno de desarrollo",
+      "refreshProjects": "Actualizar la lista de proyectos",
+      "openRemote": "Abrir la consola remota",
+      "openSettings": "Abrir configuración",
+      "openAgent": "Abrir la página del Agente de IA",
+      "toggleTheme": "Alternar entre tema oscuro y claro",
+      "toggleMotion": "Activar o desactivar el movimiento reducido",
+      "scanProject": "Escanear proyecto"
+    },
+    "hint": "Navega con ↑ ↓, ejecuta con Entrar, cierra con Esc"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "empty": "Estás al día",
+    "emptyDetail": "La nueva actividad y los resultados de tareas aparecerán aquí.",
+    "markAllRead": "Marcar todo como leído",
+    "clear": "Borrar todo",
+    "open": "Abrir la página relacionada"
+  },
+  "bottomPanel": {
+    "label": "Registro de actividad",
+    "events_one": "{{count}} evento",
+    "events_other": "{{count}} eventos",
+    "empty": "Los detalles del análisis del entorno y de los proyectos aparecerán aquí. No se ha ejecutado ningún comando de terminal.",
+    "resize": "Arrastra para cambiar el tamaño"
+  },
+  "shortcuts": {
+    "commandPalette": "Abrir la paleta de comandos"
+  }
+}

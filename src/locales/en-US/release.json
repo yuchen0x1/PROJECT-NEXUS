@@ -1,0 +1,80 @@
+{
+  "center": {
+    "eyebrow": "Version control",
+    "title": "Release Center",
+    "subtitle": "Create drafts, inspect release assets, and keep publishing behind an explicit administrator confirmation.",
+    "refresh": "Refresh releases",
+    "loading": "Reading GitHub Releases",
+    "chooseRepositoryFirst": "Choose a repository first",
+    "draftQueued": "Release draft queued",
+    "draftFailed": "Release draft failed",
+    "publishQueued": "Release publish queued",
+    "loadFailed": "Unable to load releases"
+  },
+  "form": {
+    "kicker": "Draft a release",
+    "title": "Prepare a version",
+    "repository": "Repository",
+    "tag": "Tag",
+    "tagPlaceholder": "v1.2.3",
+    "name": "Name",
+    "namePlaceholder": "Release name",
+    "notes": "Notes",
+    "notesPlaceholder": "Release notes can be edited before publishing.",
+    "create": "Create draft"
+  },
+  "policy": {
+    "kicker": "Publishing policy",
+    "title": "Approval gates",
+    "semverTitle": "Semantic version required",
+    "semverDetail": "Existing tags are checked before a draft is created.",
+    "digestTitle": "Assets are digestable",
+    "digestDetail": "Uploaded assets receive a SHA-256 record in the audit trail.",
+    "adminTitle": "Publish requires Administrator",
+    "adminDetail": "Production release publishing needs confirm=true and an administrator role."
+  },
+  "list": {
+    "emptyBannerTitle": "Release data is empty",
+    "emptyBannerDetail": "Sync repositories first. Releases are fetched from GitHub when a token is configured.",
+    "unpublishedDraft": "Unpublished draft",
+    "stateDraft": "Draft",
+    "statePrerelease": "Pre-release",
+    "statePublished": "Published",
+    "emptyTitle": "No releases returned",
+    "emptyDetail": "This is a live read. A blank result means GitHub returned no releases for the current repository set."
+  },
+  "autoUpdate": {
+    "eyebrow": "Cross-platform updates",
+    "title": "Auto Update",
+    "subtitle": "Inspect real project files, manifests, channels, digests, and signing evidence across the repository set.",
+    "checkAll": "Check all projects",
+    "summary": {
+      "checked": "Projects checked",
+      "ready": "Ready",
+      "blocked": "Blocked",
+      "lastCheck": "Last check"
+    },
+    "versionUnknown": "version unknown",
+    "evidence_one": "{{count}} evidence file · {{samples}}",
+    "evidence_other": "{{count}} evidence files · {{samples}}",
+    "noEvidence": "No supported update evidence found",
+    "recheck": "Recheck project",
+    "recheckToast": "Update check queued for {{project}}",
+    "loading": "Reading update evidence",
+    "checkQueued": "Update checks queued",
+    "checkFailed": "Unable to queue update checks",
+    "loadFailed": "Unable to load update checks",
+    "emptyTitle": "No update checks yet",
+    "emptyDetail": "Run a check to inspect Electron, Tauri, Python, .NET, Java, and web update signals from real repository files.",
+    "runFirst": "Run first check",
+    "semantics": {
+      "kicker": "Security semantics",
+      "title": "What the checks mean",
+      "sha": "Content integrity",
+      "signatureLabel": "Signature",
+      "signature": "Publisher authenticity",
+      "https": "Transport protection",
+      "blocked": "Required evidence missing"
+    }
+  }
+}

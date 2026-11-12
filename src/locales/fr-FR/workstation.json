@@ -1,0 +1,57 @@
+{
+  "title": "Tableau de bord",
+  "subtitle": "Une vue d'abord locale de cette machine Windows et de ses dossiers de projets approuvés.",
+  "overline": "STATION DE DÉVELOPPEMENT WINDOWS",
+  "sections": {
+    "workbench": "Tableau de bord",
+    "projects": "Projets locaux",
+    "environment": "Environnement de développement",
+    "agent": "Agent IA",
+    "remote": "Console distante"
+  },
+  "sectionSubtitle": {
+    "projects": "Choisissez les dossiers explicitement. La première analyse lit uniquement les noms et les marqueurs de projet.",
+    "environment": "Chemins d'exécutables et versions détectés à partir de ce compte utilisateur Windows.",
+    "agent": "Générer des modifications de code vérifiables dans une copie isolée d'un projet enregistré.",
+    "remote": "Flux de travail GitHub et de version (release) existants, maintenus séparés des autorisations d'exécution locale."
+  },
+  "readiness": {
+    "title": "Cette machine est prête pour la configuration de projets locaux",
+    "detail": "L'analyse est en lecture seule. Les modifications de fichiers, les builds, les écritures Git et la publication ne sont pas activés dans cette phase."
+  },
+  "summary": {
+    "projects": "Projets locaux",
+    "projectsDetail": "dossiers enregistrés",
+    "tools": "Outils détectés",
+    "toolsDetail": "chemins détectés et sondes de version sûres terminées",
+    "toolsChecking": "analyse de l'environnement en cours",
+    "scans": "Analyses de projets",
+    "scansDetail": "rapports en lecture seule enregistrés localement",
+    "startup": "Démarrage Windows",
+    "startupDetail": "préférence contrôlée par l'utilisateur"
+  },
+  "recentProjects": {
+    "title": "Projets récents",
+    "detail": "Seuls les dossiers que vous ajoutez sont visibles par la station de travail."
+  },
+  "environmentPreview": {
+    "title": "Environnement de développement",
+    "recheck": "Revérifier les outils de développement",
+    "checking": "Vérification des outils installés…",
+    "openReport": "Ouvrir le rapport d'environnement complet"
+  },
+  "boundary": {
+    "title": "Périmètre d'exécution",
+    "inForce": "EN VIGUEUR",
+    "folderDialog": "Les projets sont choisis via la boîte de dialogue de dossiers Windows",
+    "scanLimits": "Les analyses ignorent les liens symboliques et respectent les limites de taille",
+    "changesDisabled": "Les modifications et les commandes restent désactivées jusqu'à la livraison des contrôles d'approbation"
+  },
+  "agentPanel": {
+    "title": "Activité de l'Agent IA",
+    "empty": "Aucune tâche de l'agent n'est en cours.",
+    "start": "Ouvrez la page Agent IA pour démarrer une tâche.",
+    "activeTask": "Tâche active",
+    "noActiveTask": "Aucune tâche active"
+  }
+}

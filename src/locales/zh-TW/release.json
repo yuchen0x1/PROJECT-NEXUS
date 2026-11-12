@@ -1,0 +1,80 @@
+{
+  "center": {
+    "eyebrow": "版本控制",
+    "title": "發佈中心",
+    "subtitle": "建立草稿、檢視發佈資產，並讓發佈一律需要管理員的明確確認。",
+    "refresh": "重新整理發佈",
+    "loading": "正在讀取 GitHub Releases",
+    "chooseRepositoryFirst": "請先選擇一個儲存庫",
+    "draftQueued": "發佈草稿已排入佇列",
+    "draftFailed": "發佈草稿建立失敗",
+    "publishQueued": "發佈操作已排入佇列",
+    "loadFailed": "無法載入發佈"
+  },
+  "form": {
+    "kicker": "建立發佈草稿",
+    "title": "準備一個版本",
+    "repository": "儲存庫",
+    "tag": "標籤",
+    "tagPlaceholder": "v1.2.3",
+    "name": "名稱",
+    "namePlaceholder": "發佈名稱",
+    "notes": "發佈說明",
+    "notesPlaceholder": "發佈說明可在發佈前編輯。",
+    "create": "建立草稿"
+  },
+  "policy": {
+    "kicker": "發佈原則",
+    "title": "核准門禁",
+    "semverTitle": "需要語意化版本",
+    "semverDetail": "建立草稿前會檢查現有的標籤。",
+    "digestTitle": "資產可計算摘要",
+    "digestDetail": "上傳的資產會在稽核軌跡中記錄 SHA-256。",
+    "adminTitle": "發佈需要管理員權限",
+    "adminDetail": "正式發佈需要 confirm=true 以及管理員角色。"
+  },
+  "list": {
+    "emptyBannerTitle": "發佈資料為空",
+    "emptyBannerDetail": "請先同步儲存庫。設定 Token 後，發佈內容會從 GitHub 取得。",
+    "unpublishedDraft": "未發佈的草稿",
+    "stateDraft": "草稿",
+    "statePrerelease": "預發佈",
+    "statePublished": "已發佈",
+    "emptyTitle": "未傳回任何發佈",
+    "emptyDetail": "這是即時讀取。空白結果表示 GitHub 未為目前的儲存庫集合傳回任何發佈。"
+  },
+  "autoUpdate": {
+    "eyebrow": "跨平台更新",
+    "title": "自動更新",
+    "subtitle": "檢視整個儲存庫集合中真實的專案檔案、資訊清單、通道、摘要與簽署證據。",
+    "checkAll": "檢查所有專案",
+    "summary": {
+      "checked": "已檢查的專案",
+      "ready": "就緒",
+      "blocked": "已封鎖",
+      "lastCheck": "上次檢查"
+    },
+    "versionUnknown": "版本未知",
+    "evidence_one": "{{count}} 個證據檔案 · {{samples}}",
+    "evidence_other": "{{count}} 個證據檔案 · {{samples}}",
+    "noEvidence": "找不到受支援的更新證據",
+    "recheck": "重新檢查專案",
+    "recheckToast": "已將 {{project}} 的更新檢查排入佇列",
+    "loading": "正在讀取更新證據",
+    "checkQueued": "更新檢查已排入佇列",
+    "checkFailed": "無法將更新檢查排入佇列",
+    "loadFailed": "無法載入更新檢查",
+    "emptyTitle": "尚無更新檢查",
+    "emptyDetail": "執行一次檢查，從真實的儲存庫檔案檢視 Electron、Tauri、Python、.NET、Java 與 Web 的更新訊號。",
+    "runFirst": "執行首次檢查",
+    "semantics": {
+      "kicker": "安全性語意",
+      "title": "各項檢查的意義",
+      "sha": "內容完整性",
+      "signatureLabel": "簽章",
+      "signature": "發佈者真實性",
+      "https": "傳輸保護",
+      "blocked": "缺少必要的證據"
+    }
+  }
+}

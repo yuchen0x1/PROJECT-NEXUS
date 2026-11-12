@@ -1,0 +1,57 @@
+{
+  "title": "Panel de trabajo",
+  "subtitle": "Una vista local de este equipo Windows y de sus carpetas de proyecto aprobadas.",
+  "overline": "ESTACIÓN DE TRABAJO DE DESARROLLO WINDOWS",
+  "sections": {
+    "workbench": "Panel de trabajo",
+    "projects": "Proyectos locales",
+    "environment": "Entorno de desarrollo",
+    "agent": "Agente de IA",
+    "remote": "Consola remota"
+  },
+  "sectionSubtitle": {
+    "projects": "Elige las carpetas explícitamente. El primer escaneo solo lee nombres y marcadores de proyecto.",
+    "environment": "Rutas ejecutables y versiones detectadas en esta cuenta de usuario de Windows.",
+    "agent": "Genera cambios de código revisables en una copia aislada de un proyecto registrado.",
+    "remote": "Flujos de trabajo de GitHub y de publicación existentes, mantenidos separados de los permisos de ejecución locales."
+  },
+  "readiness": {
+    "title": "Este equipo está listo para la configuración de proyectos locales",
+    "detail": "El escaneo es de solo lectura. La edición de archivos, las compilaciones, las escrituras en Git y la publicación no están habilitadas en esta fase."
+  },
+  "summary": {
+    "projects": "Proyectos locales",
+    "projectsDetail": "carpetas registradas",
+    "tools": "Herramientas detectadas",
+    "toolsDetail": "rutas y sondas de versión seguras completadas",
+    "toolsChecking": "comprobando el entorno",
+    "scans": "Escaneos de proyectos",
+    "scansDetail": "informes de solo lectura guardados localmente",
+    "startup": "Inicio de Windows",
+    "startupDetail": "preferencia controlada por el usuario"
+  },
+  "recentProjects": {
+    "title": "Proyectos recientes",
+    "detail": "Solo las carpetas que añadas son visibles para la estación de trabajo."
+  },
+  "environmentPreview": {
+    "title": "Entorno de desarrollo",
+    "recheck": "Comprobar de nuevo las herramientas de desarrollo",
+    "checking": "Comprobando las herramientas instaladas…",
+    "openReport": "Abrir el informe completo del entorno"
+  },
+  "boundary": {
+    "title": "Límite de ejecución",
+    "inForce": "EN VIGOR",
+    "folderDialog": "Los proyectos se eligen a través del diálogo de carpetas de Windows",
+    "scanLimits": "Los escaneos omiten enlaces simbólicos y se mantienen dentro de los límites de tamaño",
+    "changesDisabled": "Los cambios y los comandos permanecen deshabilitados hasta que se publiquen los controles de aprobación"
+  },
+  "agentPanel": {
+    "title": "Actividad del Agente de IA",
+    "empty": "No hay tareas del agente en ejecución.",
+    "start": "Abre la página del Agente de IA para iniciar una tarea.",
+    "activeTask": "Tarea activa",
+    "noActiveTask": "Sin tarea activa"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "page": {
+    "title": "Entwicklungsumgebung",
+    "subtitle": "Erkannte ausführbare Pfade und Versionen dieses Windows-Benutzerkontos."
+  },
+  "summary": {
+    "detected": "{{available}} von {{total}} Tools erkannt",
+    "running": "Umgebungserkennung läuft",
+    "detail": "Ausführbare Dateien erhalten begrenzte Versionsprüfungen, wo dies sicher möglich ist. Befehls-Shims und Windows Terminal werden über den Pfad erkannt, ohne aufgerufen zu werden; mehrere PATH-Einträge werden als Konflikte markiert."
+  },
+  "table": {
+    "title": "Installierte Entwicklungstools",
+    "scannedAt": "Geprüft {{time}}",
+    "checking": "PRÜFUNG LÄUFT",
+    "stillRunning": "Die erste Umgebungsprüfung läuft noch.",
+    "columns": {
+      "tool": "Tool",
+      "paths": "Erkannte Pfade",
+      "version": "Version"
+    },
+    "noPath": "Nicht im PATH gefunden",
+    "pathConflict": "Mehrere PATH-Einträge"
+  },
+  "status": {
+    "AVAILABLE": "Verfügbar",
+    "SHIM_FOUND": "Shim gefunden · Version nicht abgefragt",
+    "PATH_FOUND": "Pfad gefunden · Version nicht abgefragt",
+    "MISSING": "Nicht gefunden",
+    "TIMEOUT": "Versionsprüfung hat Zeitlimit überschritten",
+    "VERSION_ERROR": "Version konnte nicht gelesen werden"
+  },
+  "note": "Die Erkennung führt Versionsbefehle nur für im PATH gefundene Binärdateien aus. Sie ändert den PATH nicht, installiert keine Pakete und erhöht keine Berechtigungen."
+}

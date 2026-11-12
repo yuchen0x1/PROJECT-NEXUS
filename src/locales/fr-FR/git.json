@@ -1,0 +1,202 @@
+{
+  "shell": {
+    "brand": "Centre de contrôle GitHub",
+    "sections": {
+      "workspace": "Espace de travail"
+    },
+    "nav": {
+      "overview": "Vue d'ensemble",
+      "projects": "Projets",
+      "buildCenter": "Centre de build",
+      "releaseCenter": "Centre de release",
+      "autoUpdate": "Mise à jour automatique",
+      "repositoryScanner": "Analyseur de dépôts",
+      "aiPipeline": "Pipeline IA",
+      "adapterCenter": "Centre d'adaptateurs",
+      "updateSecurity": "Sécurité des mises à jour",
+      "integrationHistory": "Historique d'intégration",
+      "githubConnections": "Connexions GitHub",
+      "monitoring": "Supervision",
+      "aiOperations": "Opérations IA",
+      "taskCenter": "Centre de tâches",
+      "securityCenter": "Centre de sécurité",
+      "serverSettings": "Paramètres du serveur"
+    },
+    "connection": {
+      "connected": "GitHub connecté",
+      "notConnected": "GitHub non connecté",
+      "authenticated": "Compte authentifié",
+      "addToken": "Ajoutez un token pour débloquer les données en direct"
+    },
+    "foot": "Privilège minimum par défaut",
+    "topbar": {
+      "searchPlaceholder": "Rechercher des dépôts",
+      "refresh": "Actualiser"
+    },
+    "toast": {
+      "loadFailed": "Impossible de charger le centre de contrôle",
+      "syncQueued": "Synchronisation des dépôts mise en file d'attente",
+      "syncFailed": "Échec de la synchronisation"
+    },
+    "embeddedRemote": "Console distante"
+  },
+  "overview": {
+    "eyebrow": "Vue d'ensemble opérationnelle",
+    "title": "Centre de contrôle",
+    "subtitle": "Une surface d'exploitation unique pour les dépôts, les builds, les releases et la santé des projets.",
+    "syncGithub": "Synchroniser GitHub",
+    "connectTitle": "Connectez GitHub pour alimenter cet espace de travail",
+    "connectDetail": "Définissez GITHUB_TOKEN dans .env, redémarrez l'API, puis synchronisez les dépôts. L'interface reste vide tant qu'elle n'a pas de données réelles.",
+    "openSetup": "Ouvrir la configuration",
+    "metrics": {
+      "repositories": "Dépôts",
+      "managedProjects": "Projets gérés",
+      "runningTasks": "Tâches en cours",
+      "successfulBuilds": "Builds réussis",
+      "failedBuilds": "Builds en échec",
+      "releases": "Dernières releases",
+      "autoUpdateProjects": "Prêts pour la mise à jour automatique",
+      "alerts": "Alertes ouvertes"
+    },
+    "metricFoot": {
+      "needsReview": "À examiner",
+      "live": "Données en direct de l'espace de travail",
+      "waiting": "En attente de connexion"
+    },
+    "projectsPanel": {
+      "kicker": "Surface gérée",
+      "title": "Projets",
+      "loading": "Chargement de l'espace de travail"
+    },
+    "activityPanel": {
+      "kicker": "Flux de signaux",
+      "title": "Activité récente",
+      "emptyTitle": "L'activité apparaîtra ici",
+      "emptyDetail": "Les synchronisations de dépôts et les actions de build sont enregistrées au fur et à mesure."
+    },
+    "taskPanel": {
+      "kicker": "Couche d'exécution",
+      "title": "Activité des tâches",
+      "liveState": "État en direct"
+    },
+    "empty": {
+      "projectsTitle": "Aucun dépôt dans cet espace de travail",
+      "projectsDetail": "Synchronisez les dépôts GitHub autorisés pour rendre cette surface utile.",
+      "syncButton": "Synchroniser les dépôts",
+      "tasksTitle": "Aucune tâche pour le moment",
+      "tasksDetail": "La synchronisation des dépôts et le lancement de builds créeront des enregistrements de tâches durables."
+    }
+  },
+  "projects": {
+    "eyebrow": "Registre des dépôts",
+    "title": "Projets",
+    "subtitle": "Chaque dépôt conserve son propre contexte de branche, de build, de release et de déploiement.",
+    "sync": "Synchroniser les dépôts",
+    "visible_one": "{{count}} dépôt visible",
+    "visible_other": "{{count}} dépôts visibles",
+    "matching": "correspondant à « {{query}} »",
+    "all": "Tous",
+    "emptyTitle": "Le registre des dépôts est vide",
+    "emptyDetail": "Utilisez Synchroniser les dépôts après avoir configuré un token GitHub. L'accès public et privé suit le périmètre du token.",
+    "startSync": "Démarrer la synchronisation",
+    "scanStack": "Analyser la stack",
+    "scanToast": "Analyse mise en file d'attente pour {{repository}}",
+    "noDescription": "Aucune description de dépôt fournie."
+  },
+  "monitoring": {
+    "eyebrow": "Signaux de santé",
+    "title": "Supervision",
+    "subtitle": "Une vue compacte de l'activité des dépôts et des signaux d'exécution déjà connus de NEXUS.",
+    "healthKicker": "Santé des dépôts",
+    "healthyByIssues": "sain d'après le nombre d'issues",
+    "noSynthetic": "Aucune donnée de disponibilité synthétique n'est affichée.",
+    "signalsKicker": "Signaux actuels",
+    "signalsTitle": "Indicateurs opérationnels",
+    "signal": {
+      "tracked": "Dépôts suivis",
+      "failures": "Échecs de build",
+      "alerts": "Alertes de tâches ouvertes",
+      "lastTask": "Dernier état de tâche"
+    },
+    "noTasks": "Aucune tâche",
+    "coverageKicker": "Couverture",
+    "coverageTitle": "Vérifications de projets",
+    "lastUpdated": "dernière mise à jour {{time}}",
+    "issues_one": "{{count}} issue",
+    "issues_other": "{{count}} issues",
+    "emptyTitle": "La supervision commence avec les projets",
+    "emptyDetail": "Importez des dépôts pour créer de véritables enregistrements de santé."
+  },
+  "connections": {
+    "eyebrow": "Surface d'autorisation",
+    "title": "Connexions GitHub",
+    "subtitle": "Conserver la compatibilité avec les tokens hérités tout en faisant évoluer l'accès aux dépôts vers des installations d'application GitHub à périmètre limité.",
+    "install": "Installer l'application GitHub",
+    "installFailed": "L'application GitHub n'est pas configurée",
+    "appKicker": "Application GitHub",
+    "appConfigured": "Configurée",
+    "appSetupRequired": "Configuration requise",
+    "fields": {
+      "appId": "App ID",
+      "privateKey": "Clé privée",
+      "webhookSecret": "Secret de webhook"
+    },
+    "legacyKicker": "Compatibilité héritée",
+    "legacyTitle": "Chemin de migration",
+    "legacyDetail": "Le chemin GITHUB_TOKEN actuel reste disponible pour le développement local. Les installations d'application ajoutent un accès aux dépôts à périmètre limité et des tokens de courte durée, sans envoyer de clé privée au navigateur.",
+    "installationsKicker": "Installations",
+    "installationsTitle": "Comptes autorisés",
+    "repositorySelection": "dépôts sélectionnés",
+    "tokenCached": "token mis en cache",
+    "tokenOnUse": "token actualisé à chaque utilisation",
+    "noInstallationsTitle": "Aucune installation d'application",
+    "noInstallationsDetail": "Configurez les identifiants de l'application, installez-la pour un compte, puis actualisez cette page."
+  },
+  "security": {
+    "eyebrow": "Garde-fous et preuves",
+    "title": "Centre de sécurité",
+    "subtitle": "Examinez les opérations qui ont modifié l'état externe et les preuves enregistrées pour chacune.",
+    "refresh": "Actualiser l'audit",
+    "roleCard": {
+      "title": "Modèle de rôles",
+      "detail": "Le lecteur lit. L'opérateur met en file des builds, des analyses et des brouillons. L'administrateur publie et modifie les autorisations."
+    },
+    "webhookCard": {
+      "title": "Preuves de webhook",
+      "detail": "La vérification HMAC, les identifiants de livraison et les enregistrements du cycle de vie des événements empêchent les mises à jour dupliquées ou non signées."
+    },
+    "releaseCard": {
+      "title": "Preuves de release",
+      "detail": "Les vérifications de version, les empreintes d'artefacts et la confirmation explicite sont enregistrées avant publication."
+    },
+    "auditKicker": "Piste de l'opérateur",
+    "auditTitle": "Journal d'audit",
+    "highRisk": "Risque élevé",
+    "noAuditTitle": "Aucune entrée d'audit pour le moment",
+    "noAuditDetail": "Les opérations à fort impact apparaîtront ici après leur exécution."
+  },
+  "serverSettings": {
+    "eyebrow": "Configuration système",
+    "title": "Paramètres du serveur",
+    "subtitle": "Une configuration adossée aux variables d'environnement garde les identifiants hors de l'état du navigateur et des enregistrements de projets.",
+    "githubKicker": "Connexion GitHub",
+    "githubTitle": "Intégration en direct",
+    "fields": {
+      "status": "Statut",
+      "connected": "Connecté",
+      "owner": "Compte ou propriétaire",
+      "notConfigured": "Non configuré",
+      "apiEndpoint": "Endpoint d'API",
+      "grantedSurface": "Périmètre accordé",
+      "noToken": "Aucun token chargé"
+    },
+    "safetyKicker": "Réglages de sécurité par défaut",
+    "safetyTitle": "Garde-fous",
+    "credentialsTitle": "Les identifiants restent côté serveur",
+    "credentialsDetail": "Les tokens sont lus depuis les variables d'environnement et ne sont jamais renvoyés au navigateur.",
+    "refTitle": "Les builds ciblent un ref explicite",
+    "refDetail": "Les requêtes de dispatch utilisent la branche par défaut du dépôt sélectionné, sauf surcharge explicite.",
+    "guardsTitle": "Les actions de release et de PR sont contrôlées",
+    "guardsDetail": "Les écritures GitHub à fort impact exigent des contrôles au niveau des routes et une confirmation explicite ; les écritures distantes restent désactivées par défaut."
+  }
+}

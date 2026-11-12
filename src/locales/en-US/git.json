@@ -1,0 +1,202 @@
+{
+  "shell": {
+    "brand": "GitHub control center",
+    "sections": {
+      "workspace": "Workspace"
+    },
+    "nav": {
+      "overview": "Overview",
+      "projects": "Projects",
+      "buildCenter": "Build Center",
+      "releaseCenter": "Release Center",
+      "autoUpdate": "Auto Update",
+      "repositoryScanner": "Repository Scanner",
+      "aiPipeline": "AI Pipeline",
+      "adapterCenter": "Adapter Center",
+      "updateSecurity": "Update Security",
+      "integrationHistory": "Integration History",
+      "githubConnections": "GitHub Connections",
+      "monitoring": "Monitoring",
+      "aiOperations": "AI Operations",
+      "taskCenter": "Task Center",
+      "securityCenter": "Security Center",
+      "serverSettings": "Server settings"
+    },
+    "connection": {
+      "connected": "GitHub connected",
+      "notConnected": "GitHub not connected",
+      "authenticated": "Authenticated account",
+      "addToken": "Add token to unlock live data"
+    },
+    "foot": "Least privilege by default",
+    "topbar": {
+      "searchPlaceholder": "Search repositories",
+      "refresh": "Refresh"
+    },
+    "toast": {
+      "loadFailed": "Unable to load control center",
+      "syncQueued": "Repository sync queued",
+      "syncFailed": "Sync failed"
+    },
+    "embeddedRemote": "Remote console"
+  },
+  "overview": {
+    "eyebrow": "Operational overview",
+    "title": "Control center",
+    "subtitle": "A single operating surface for repositories, builds, releases, and project health.",
+    "syncGithub": "Sync GitHub",
+    "connectTitle": "Connect GitHub to populate this workspace",
+    "connectDetail": "Set GITHUB_TOKEN in .env, restart the API, then sync repositories. The interface stays empty until it has real data.",
+    "openSetup": "Open setup",
+    "metrics": {
+      "repositories": "Repositories",
+      "managedProjects": "Managed projects",
+      "runningTasks": "Running tasks",
+      "successfulBuilds": "Successful builds",
+      "failedBuilds": "Failed builds",
+      "releases": "Latest releases",
+      "autoUpdateProjects": "Auto update ready",
+      "alerts": "Open alerts"
+    },
+    "metricFoot": {
+      "needsReview": "Needs review",
+      "live": "Live workspace data",
+      "waiting": "Waiting for connection"
+    },
+    "projectsPanel": {
+      "kicker": "Managed surface",
+      "title": "Projects",
+      "loading": "Loading workspace"
+    },
+    "activityPanel": {
+      "kicker": "Signal feed",
+      "title": "Recent activity",
+      "emptyTitle": "Activity will appear here",
+      "emptyDetail": "Repository syncs and build actions are recorded as they happen."
+    },
+    "taskPanel": {
+      "kicker": "Execution layer",
+      "title": "Task pulse",
+      "liveState": "Live state"
+    },
+    "empty": {
+      "projectsTitle": "No repositories in this workspace",
+      "projectsDetail": "Sync authorized GitHub repositories to make this surface useful.",
+      "syncButton": "Sync repositories",
+      "tasksTitle": "No tasks yet",
+      "tasksDetail": "Syncing repositories and dispatching builds will create durable task records."
+    }
+  },
+  "projects": {
+    "eyebrow": "Repository registry",
+    "title": "Projects",
+    "subtitle": "Every repository keeps its own branch, build, release, and deployment context.",
+    "sync": "Sync repositories",
+    "visible_one": "{{count}} repository visible",
+    "visible_other": "{{count}} repositories visible",
+    "matching": "matching “{{query}}”",
+    "all": "All",
+    "emptyTitle": "Repository registry is empty",
+    "emptyDetail": "Use Sync repositories after configuring a GitHub token. Public and private access follow the token's scope.",
+    "startSync": "Start sync",
+    "scanStack": "Scan stack",
+    "scanToast": "Scan queued for {{repository}}",
+    "noDescription": "No repository description provided."
+  },
+  "monitoring": {
+    "eyebrow": "Health signals",
+    "title": "Monitoring",
+    "subtitle": "A compact view of repository activity and the execution signals NEXUS already knows.",
+    "healthKicker": "Repository health",
+    "healthyByIssues": "healthy by issue count",
+    "noSynthetic": "No synthetic uptime data is shown.",
+    "signalsKicker": "Current signals",
+    "signalsTitle": "Operational indicators",
+    "signal": {
+      "tracked": "Repositories tracked",
+      "failures": "Build failures",
+      "alerts": "Open task alerts",
+      "lastTask": "Last task state"
+    },
+    "noTasks": "No tasks",
+    "coverageKicker": "Coverage",
+    "coverageTitle": "Project checks",
+    "lastUpdated": "last updated {{time}}",
+    "issues_one": "{{count}} issue",
+    "issues_other": "{{count}} issues",
+    "emptyTitle": "Monitoring starts with projects",
+    "emptyDetail": "Import repositories to create real health records."
+  },
+  "connections": {
+    "eyebrow": "Authorization surface",
+    "title": "GitHub Connections",
+    "subtitle": "Keep legacy token compatibility while moving repository access toward scoped GitHub App installations.",
+    "install": "Install GitHub App",
+    "installFailed": "GitHub App is not configured",
+    "appKicker": "GitHub App",
+    "appConfigured": "Configured",
+    "appSetupRequired": "Setup required",
+    "fields": {
+      "appId": "App ID",
+      "privateKey": "Private key",
+      "webhookSecret": "Webhook secret"
+    },
+    "legacyKicker": "Legacy compatibility",
+    "legacyTitle": "Migration path",
+    "legacyDetail": "The current GITHUB_TOKEN path remains available for local development. App installations add scoped repository access and short-lived tokens without sending a private key to the browser.",
+    "installationsKicker": "Installations",
+    "installationsTitle": "Authorized accounts",
+    "repositorySelection": "selected repositories",
+    "tokenCached": "token cached",
+    "tokenOnUse": "token will be refreshed on use",
+    "noInstallationsTitle": "No App installations",
+    "noInstallationsDetail": "Configure the App credentials, install it for an account, then refresh this page."
+  },
+  "security": {
+    "eyebrow": "Guardrails and evidence",
+    "title": "Security Center",
+    "subtitle": "Review the operations that changed external state and the evidence recorded for each one.",
+    "refresh": "Refresh audit",
+    "roleCard": {
+      "title": "Role model",
+      "detail": "Viewer reads. Operator queues builds, scans, and drafts. Administrator publishes and changes authorization."
+    },
+    "webhookCard": {
+      "title": "Webhook evidence",
+      "detail": "HMAC verification, delivery IDs, and event lifecycle records prevent duplicate or unsigned updates."
+    },
+    "releaseCard": {
+      "title": "Release evidence",
+      "detail": "Version checks, asset digests, and explicit confirmation are recorded before publishing."
+    },
+    "auditKicker": "Operator trail",
+    "auditTitle": "Audit log",
+    "highRisk": "High risk",
+    "noAuditTitle": "No audit entries yet",
+    "noAuditDetail": "High-impact operations will appear here after they are executed."
+  },
+  "serverSettings": {
+    "eyebrow": "System configuration",
+    "title": "Server settings",
+    "subtitle": "Environment-backed configuration keeps credentials out of browser state and project records.",
+    "githubKicker": "GitHub connection",
+    "githubTitle": "Live integration",
+    "fields": {
+      "status": "Status",
+      "connected": "Connected",
+      "owner": "Account or owner",
+      "notConfigured": "Not configured",
+      "apiEndpoint": "API endpoint",
+      "grantedSurface": "Granted surface",
+      "noToken": "No token loaded"
+    },
+    "safetyKicker": "Safety defaults",
+    "safetyTitle": "Guardrails",
+    "credentialsTitle": "Credentials stay server-side",
+    "credentialsDetail": "Tokens are read from environment variables and never returned to the browser.",
+    "refTitle": "Builds target an explicit ref",
+    "refDetail": "Dispatch requests use the selected repository's default branch unless overridden.",
+    "guardsTitle": "Release and PR actions are guarded",
+    "guardsDetail": "High-impact GitHub writes require route-level gates and explicit confirmation; remote writes stay disabled by default."
+  }
+}

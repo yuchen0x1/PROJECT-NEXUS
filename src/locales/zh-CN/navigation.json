@@ -1,0 +1,66 @@
+{
+  "rail": {
+    "workspace": "工作区",
+    "management": "管理",
+    "workbench": "工作台",
+    "projects": "项目",
+    "environment": "开发环境",
+    "agent": "AI 智能体",
+    "remote": "远程控制台",
+    "settings": "设置",
+    "collapse": "折叠侧边栏",
+    "expand": "展开侧边栏",
+    "localBadge": "本地"
+  },
+  "topbar": {
+    "machine": "本地计算机",
+    "agentActive": "桌面代理已启动",
+    "searchPlaceholder": "搜索命令和项目…",
+    "searchHint": "Ctrl+K",
+    "notifications": "通知",
+    "themeToggle": "切换主题",
+    "settings": "打开设置"
+  },
+  "commandPalette": {
+    "title": "命令面板",
+    "placeholder": "输入命令或项目名称…",
+    "empty": "没有匹配的命令",
+    "groups": {
+      "pages": "页面",
+      "actions": "操作",
+      "projects": "项目",
+      "appearance": "外观",
+      "language": "语言"
+    },
+    "actions": {
+      "addProject": "添加本地项目文件夹",
+      "recheckEnvironment": "重新检测开发环境",
+      "refreshProjects": "刷新项目列表",
+      "openRemote": "打开远程控制台",
+      "openSettings": "打开设置",
+      "openAgent": "打开 AI 智能体页面",
+      "toggleTheme": "在深色和浅色主题之间切换",
+      "toggleMotion": "切换减弱动态效果",
+      "scanProject": "扫描项目"
+    },
+    "hint": "使用 ↑ ↓ 选择，Enter 运行，Esc 关闭"
+  },
+  "notifications": {
+    "title": "通知",
+    "empty": "没有新通知",
+    "emptyDetail": "新的活动和任务结果会显示在这里。",
+    "markAllRead": "全部标记为已读",
+    "clear": "清空全部",
+    "open": "打开相关页面"
+  },
+  "bottomPanel": {
+    "label": "活动日志",
+    "events_one": "{{count}} 条事件",
+    "events_other": "{{count}} 条事件",
+    "empty": "环境检测和项目扫描的详细信息会显示在这里。尚未运行任何终端命令。",
+    "resize": "拖动调整高度"
+  },
+  "shortcuts": {
+    "commandPalette": "打开命令面板"
+  }
+}

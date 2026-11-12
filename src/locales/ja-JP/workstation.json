@@ -1,0 +1,57 @@
+{
+  "title": "ワークベンチ",
+  "subtitle": "この Windows マシンと承認されたプロジェクトフォルダーのローカルファーストなビューです。",
+  "overline": "WINDOWS 開発ワークステーション",
+  "sections": {
+    "workbench": "ワークベンチ",
+    "projects": "ローカルプロジェクト",
+    "environment": "開発環境",
+    "agent": "AI エージェント",
+    "remote": "リモートコンソール"
+  },
+  "sectionSubtitle": {
+    "projects": "フォルダーは明示的に選択します。初回スキャンでは名前とプロジェクトマーカーのみを読み取ります。",
+    "environment": "この Windows ユーザーアカウントから検出された実行可能ファイルのパスとバージョン。",
+    "agent": "登録済みプロジェクトの分離されたコピー内で、レビュー可能なコード変更を生成します。",
+    "remote": "既存の GitHub およびリリースワークフロー。ローカルの実行権限から切り離して管理されます。"
+  },
+  "readiness": {
+    "title": "このマシンはローカルプロジェクトのセットアップに対応しています",
+    "detail": "スキャンは読み取り専用です。このフェーズでは、ファイル編集、ビルド、Git への書き込み、公開は有効化されません。"
+  },
+  "summary": {
+    "projects": "ローカルプロジェクト",
+    "projectsDetail": "登録済みフォルダー",
+    "tools": "検出されたツール",
+    "toolsDetail": "パスと安全なバージョン確認が完了",
+    "toolsChecking": "環境を確認中",
+    "scans": "プロジェクトスキャン",
+    "scansDetail": "読み取り専用レポートをローカルに保存",
+    "startup": "Windows スタートアップ",
+    "startupDetail": "ユーザーが制御する設定"
+  },
+  "recentProjects": {
+    "title": "最近のプロジェクト",
+    "detail": "追加したフォルダーのみがワークステーションに表示されます。"
+  },
+  "environmentPreview": {
+    "title": "開発環境",
+    "recheck": "開発ツールを再確認",
+    "checking": "インストール済みツールを確認中…",
+    "openReport": "完全な環境レポートを開く"
+  },
+  "boundary": {
+    "title": "実行境界",
+    "inForce": "適用中",
+    "folderDialog": "プロジェクトは Windows のフォルダーダイアログで選択されます",
+    "scanLimits": "スキャンはシンボリックリンクをスキップし、サイズ制限内で実行されます",
+    "changesDisabled": "承認コントロールが提供されるまで、変更とコマンドは無効のままです"
+  },
+  "agentPanel": {
+    "title": "AI エージェントのアクティビティ",
+    "empty": "実行中のエージェントタスクはありません。",
+    "start": "AI エージェントページを開いてタスクを開始します。",
+    "activeTask": "実行中のタスク",
+    "noActiveTask": "実行中のタスクはありません"
+  }
+}

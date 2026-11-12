@@ -1,0 +1,33 @@
+{
+  "page": {
+    "title": "Ambiente de desenvolvimento",
+    "subtitle": "Caminhos executáveis e versões detectados nesta conta de usuário do Windows."
+  },
+  "summary": {
+    "detected": "{{available}} de {{total}} ferramentas detectadas",
+    "running": "A detecção do ambiente está em execução",
+    "detail": "Os executáveis recebem verificações de versão limitadas quando é seguro. Os shims de comandos e o Windows Terminal são detectados pelo caminho sem serem invocados; várias entradas de PATH são sinalizadas como conflitos."
+  },
+  "table": {
+    "title": "Ferramentas de desenvolvimento instaladas",
+    "scannedAt": "Verificado {{time}}",
+    "checking": "VERIFICANDO",
+    "stillRunning": "A primeira verificação do ambiente ainda está em execução.",
+    "columns": {
+      "tool": "Ferramenta",
+      "paths": "Caminhos detectados",
+      "version": "Versão"
+    },
+    "noPath": "Não encontrado no PATH",
+    "pathConflict": "Várias entradas de PATH"
+  },
+  "status": {
+    "AVAILABLE": "Disponível",
+    "SHIM_FOUND": "Shim encontrado · versão não consultada",
+    "PATH_FOUND": "Caminho encontrado · versão não consultada",
+    "MISSING": "Não encontrado",
+    "TIMEOUT": "A verificação de versão excedeu o tempo limite",
+    "VERSION_ERROR": "Não foi possível ler a versão"
+  },
+  "note": "A detecção executa comandos de versão apenas para binários encontrados no PATH. Ela não altera o PATH, não instala pacotes nem eleva permissões."
+}

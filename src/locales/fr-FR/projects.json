@@ -1,0 +1,48 @@
+{
+  "page": {
+    "title": "Projets",
+    "subtitle": "Dossiers enregistrés"
+  },
+  "registered": {
+    "title": "Dossiers enregistrés",
+    "detail": "Les références de dossiers sont stockées dans ce profil utilisateur Windows, séparées des enregistrements de projets GitHub.",
+    "count": "{{count}} PROJETS"
+  },
+  "table": {
+    "project": "Projet",
+    "scanStatus": "Statut de l'analyse",
+    "actions": "Actions",
+    "technologies": "Technologies détectées"
+  },
+  "row": {
+    "missing": "Dossier introuvable",
+    "pathChanged": "Chemin modifié",
+    "scanned": "Analysé",
+    "awaitingScan": "En attente d'analyse",
+    "notScanned": "Non analysé",
+    "scanLimit": "Limite d'analyse atteinte",
+    "lastScan": "Dernière analyse {{time}}",
+    "scanAction": "Analyser",
+    "scanAria": "Analyser {{name}}",
+    "removeAria": "Retirer {{name}} de NEXUS"
+  },
+  "empty": {
+    "title": "Aucun projet local n'a été ajouté",
+    "detail": "Choisissez un dossier de projet. NEXUS ne recherchera pas dans d'autres dossiers de cet ordinateur."
+  },
+  "dialogs": {
+    "addFolder": "Ajouter un dossier de projet local",
+    "removeTitle": "Retirer le projet de NEXUS",
+    "removeMessage": "Retirer {{name}} de la liste des projets locaux ?",
+    "removeDetail": "Cela ne supprime que la référence NEXUS. Aucun fichier de projet ne sera supprimé ni modifié.",
+    "removeConfirm": "Retirer de NEXUS",
+    "removeCancel": "Conserver le projet"
+  },
+  "selected": {
+    "label": "Projet sélectionné",
+    "lastScan": "Dernière analyse {{time}}"
+  },
+  "tech": {
+    "none": "Aucun marqueur de stack connu"
+  }
+}

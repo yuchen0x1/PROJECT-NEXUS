@@ -1,0 +1,66 @@
+{
+  "rail": {
+    "workspace": "ワークスペース",
+    "management": "管理",
+    "workbench": "ワークベンチ",
+    "projects": "プロジェクト",
+    "environment": "開発環境",
+    "agent": "AI エージェント",
+    "remote": "リモートコンソール",
+    "settings": "設定",
+    "collapse": "サイドバーを折りたたむ",
+    "expand": "サイドバーを展開する",
+    "localBadge": "ローカル"
+  },
+  "topbar": {
+    "machine": "ローカルマシン",
+    "agentActive": "デスクトップエージェントが有効",
+    "searchPlaceholder": "コマンドやプロジェクトを検索…",
+    "searchHint": "Ctrl+K",
+    "notifications": "通知",
+    "themeToggle": "テーマを切り替える",
+    "settings": "設定を開く"
+  },
+  "commandPalette": {
+    "title": "コマンドパレット",
+    "placeholder": "コマンドまたはプロジェクト名を入力…",
+    "empty": "一致するコマンドがありません",
+    "groups": {
+      "pages": "ページ",
+      "actions": "アクション",
+      "projects": "プロジェクト",
+      "appearance": "外観",
+      "language": "言語"
+    },
+    "actions": {
+      "addProject": "ローカルのプロジェクトフォルダーを追加",
+      "recheckEnvironment": "開発環境を再確認",
+      "refreshProjects": "プロジェクト一覧を更新",
+      "openRemote": "リモートコンソールを開く",
+      "openSettings": "設定を開く",
+      "openAgent": "AI エージェントページを開く",
+      "toggleTheme": "ダークテーマとライトテーマを切り替える",
+      "toggleMotion": "動きの抑制を切り替える",
+      "scanProject": "プロジェクトをスキャン"
+    },
+    "hint": "↑ ↓ で移動、Enter で実行、Esc で閉じる"
+  },
+  "notifications": {
+    "title": "通知",
+    "empty": "すべて確認済みです",
+    "emptyDetail": "新しいアクティビティとタスクの結果がここに表示されます。",
+    "markAllRead": "すべて既読にする",
+    "clear": "すべてクリア",
+    "open": "関連ページを開く"
+  },
+  "bottomPanel": {
+    "label": "アクティビティログ",
+    "events_one": "{{count}} 件のイベント",
+    "events_other": "{{count}} 件のイベント",
+    "empty": "環境とプロジェクトのスキャン詳細がここに表示されます。ターミナルコマンドは実行されていません。",
+    "resize": "ドラッグしてサイズを変更"
+  },
+  "shortcuts": {
+    "commandPalette": "コマンドパレットを開く"
+  }
+}

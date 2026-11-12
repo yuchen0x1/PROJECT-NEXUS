@@ -1,0 +1,202 @@
+{
+  "shell": {
+    "brand": "GitHub コントロールセンター",
+    "sections": {
+      "workspace": "ワークスペース"
+    },
+    "nav": {
+      "overview": "概要",
+      "projects": "プロジェクト",
+      "buildCenter": "ビルドセンター",
+      "releaseCenter": "リリースセンター",
+      "autoUpdate": "自動更新",
+      "repositoryScanner": "リポジトリスキャナー",
+      "aiPipeline": "AI パイプライン",
+      "adapterCenter": "アダプターセンター",
+      "updateSecurity": "更新セキュリティ",
+      "integrationHistory": "統合履歴",
+      "githubConnections": "GitHub 接続",
+      "monitoring": "モニタリング",
+      "aiOperations": "AI オペレーション",
+      "taskCenter": "タスクセンター",
+      "securityCenter": "セキュリティセンター",
+      "serverSettings": "サーバー設定"
+    },
+    "connection": {
+      "connected": "GitHub に接続済み",
+      "notConnected": "GitHub に未接続",
+      "authenticated": "認証済みアカウント",
+      "addToken": "トークンを追加してライブデータを表示"
+    },
+    "foot": "デフォルトで最小権限",
+    "topbar": {
+      "searchPlaceholder": "リポジトリを検索",
+      "refresh": "更新"
+    },
+    "toast": {
+      "loadFailed": "コントロールセンターを読み込めません",
+      "syncQueued": "リポジトリ同期をキューに追加しました",
+      "syncFailed": "同期に失敗しました"
+    },
+    "embeddedRemote": "リモートコンソール"
+  },
+  "overview": {
+    "eyebrow": "運用オーバービュー",
+    "title": "コントロールセンター",
+    "subtitle": "リポジトリ、ビルド、リリース、プロジェクトの状態を 1 つの画面で操作できます。",
+    "syncGithub": "GitHub を同期",
+    "connectTitle": "GitHub を接続してこのワークスペースを利用可能にする",
+    "connectDetail": ".env に GITHUB_TOKEN を設定し、API を再起動してからリポジトリを同期してください。実際のデータが存在するまで、インターフェースは空のままです。",
+    "openSetup": "セットアップを開く",
+    "metrics": {
+      "repositories": "リポジトリ",
+      "managedProjects": "管理対象プロジェクト",
+      "runningTasks": "実行中のタスク",
+      "successfulBuilds": "成功したビルド",
+      "failedBuilds": "失敗したビルド",
+      "releases": "最新のリリース",
+      "autoUpdateProjects": "自動更新準備完了",
+      "alerts": "未解決のアラート"
+    },
+    "metricFoot": {
+      "needsReview": "レビューが必要",
+      "live": "ライブワークスペースデータ",
+      "waiting": "接続を待機中"
+    },
+    "projectsPanel": {
+      "kicker": "管理対象範囲",
+      "title": "プロジェクト",
+      "loading": "ワークスペースを読み込み中"
+    },
+    "activityPanel": {
+      "kicker": "シグナルフィード",
+      "title": "最近のアクティビティ",
+      "emptyTitle": "アクティビティがここに表示されます",
+      "emptyDetail": "リポジトリ同期とビルド操作は、実行時に記録されます。"
+    },
+    "taskPanel": {
+      "kicker": "実行レイヤー",
+      "title": "タスクの状況",
+      "liveState": "ライブ状態"
+    },
+    "empty": {
+      "projectsTitle": "このワークスペースにリポジトリがありません",
+      "projectsDetail": "承認済みの GitHub リポジトリを同期して、この画面を活用できるようにしてください。",
+      "syncButton": "リポジトリを同期",
+      "tasksTitle": "タスクがまだありません",
+      "tasksDetail": "リポジトリの同期とビルドの送信により、永続的なタスク記録が作成されます。"
+    }
+  },
+  "projects": {
+    "eyebrow": "リポジトリレジストリー",
+    "title": "プロジェクト",
+    "subtitle": "各リポジトリは、独自のブランチ、ビルド、リリース、デプロイのコンテキストを保持します。",
+    "sync": "リポジトリを同期",
+    "visible_one": "{{count}} 件のリポジトリを表示中",
+    "visible_other": "{{count}} 件のリポジトリを表示中",
+    "matching": "「{{query}}」に一致",
+    "all": "すべて",
+    "emptyTitle": "リポジトリレジストリーが空です",
+    "emptyDetail": "GitHub トークンを設定した後、リポジトリの同期を使用してください。公開およびプライベートアクセスはトークンのスコープに従います。",
+    "startSync": "同期を開始",
+    "scanStack": "スタックをスキャン",
+    "scanToast": "{{repository}} のスキャンをキューに追加しました",
+    "noDescription": "リポジトリの説明が提供されていません。"
+  },
+  "monitoring": {
+    "eyebrow": "ヘルスシグナル",
+    "title": "モニタリング",
+    "subtitle": "リポジトリのアクティビティと、NEXUS が認識している実行シグナルをコンパクトに表示します。",
+    "healthKicker": "リポジトリの健全性",
+    "healthyByIssues": "問題数の観点で健全",
+    "noSynthetic": "人工的なアップタイムデータは表示されません。",
+    "signalsKicker": "現在のシグナル",
+    "signalsTitle": "運用インジケーター",
+    "signal": {
+      "tracked": "追跡中のリポジトリ",
+      "failures": "ビルド失敗",
+      "alerts": "未解決のタスクアラート",
+      "lastTask": "最後のタスク状態"
+    },
+    "noTasks": "タスクなし",
+    "coverageKicker": "カバレッジ",
+    "coverageTitle": "プロジェクトチェック",
+    "lastUpdated": "最終更新 {{time}}",
+    "issues_one": "{{count}} 件の問題",
+    "issues_other": "{{count}} 件の問題",
+    "emptyTitle": "モニタリングはプロジェクトから始まります",
+    "emptyDetail": "リポジトリを取り込んで、実際のヘルス記録を作成してください。"
+  },
+  "connections": {
+    "eyebrow": "認可の範囲",
+    "title": "GitHub 接続",
+    "subtitle": "レガシートークンの互換性を維持しながら、リポジトリアクセスをスコープ付き GitHub App インストールへ移行します。",
+    "install": "GitHub App をインストール",
+    "installFailed": "GitHub App が設定されていません",
+    "appKicker": "GitHub App",
+    "appConfigured": "設定済み",
+    "appSetupRequired": "セットアップが必要",
+    "fields": {
+      "appId": "App ID",
+      "privateKey": "秘密鍵",
+      "webhookSecret": "Webhook シークレット"
+    },
+    "legacyKicker": "レガシー互換",
+    "legacyTitle": "移行パス",
+    "legacyDetail": "現在の GITHUB_TOKEN 経路は、ローカル開発のために引き続き利用できます。App インストールはスコープ付きのリポジトリアクセスと短命のトークンを追加し、秘密鍵をブラウザーに送信しません。",
+    "installationsKicker": "インストール",
+    "installationsTitle": "承認済みアカウント",
+    "repositorySelection": "選択されたリポジトリ",
+    "tokenCached": "トークンをキャッシュ済み",
+    "tokenOnUse": "トークンは使用時に更新されます",
+    "noInstallationsTitle": "App インストールがありません",
+    "noInstallationsDetail": "App の資格情報を設定し、アカウントに対してインストールしてから、このページを更新してください。"
+  },
+  "security": {
+    "eyebrow": "ガードレールとエビデンス",
+    "title": "セキュリティセンター",
+    "subtitle": "外部の状態を変更した操作と、それぞれについて記録されたエビデンスを確認します。",
+    "refresh": "監査を更新",
+    "roleCard": {
+      "title": "ロールモデル",
+      "detail": "Viewer は読み取りを行います。Operator はビルド、スキャン、ドラフトをキューに追加します。Administrator は公開と認可の変更を行います。"
+    },
+    "webhookCard": {
+      "title": "Webhook エビデンス",
+      "detail": "HMAC 検証、配信 ID、イベントライフサイクル記録により、重複または未署名の更新を防止します。"
+    },
+    "releaseCard": {
+      "title": "リリースエビデンス",
+      "detail": "公開の前に、バージョン確認、アセットダイジェスト、明示的な確認が記録されます。"
+    },
+    "auditKicker": "オペレーターの操作記録",
+    "auditTitle": "監査ログ",
+    "highRisk": "高リスク",
+    "noAuditTitle": "監査エントリーはまだありません",
+    "noAuditDetail": "影響の大きい操作は、実行後にここに表示されます。"
+  },
+  "serverSettings": {
+    "eyebrow": "システム構成",
+    "title": "サーバー設定",
+    "subtitle": "環境変数ベースの構成により、資格情報はブラウザー状態やプロジェクト記録から切り離されます。",
+    "githubKicker": "GitHub 接続",
+    "githubTitle": "ライブ統合",
+    "fields": {
+      "status": "ステータス",
+      "connected": "接続済み",
+      "owner": "アカウントまたはオーナー",
+      "notConfigured": "未設定",
+      "apiEndpoint": "API エンドポイント",
+      "grantedSurface": "付与された権限範囲",
+      "noToken": "読み込まれたトークンはありません"
+    },
+    "safetyKicker": "安全に関するデフォルト",
+    "safetyTitle": "ガードレール",
+    "credentialsTitle": "資格情報はサーバー側に保持されます",
+    "credentialsDetail": "トークンは環境変数から読み取られ、ブラウザーに返されることはありません。",
+    "refTitle": "ビルドは明示的な ref を対象とします",
+    "refDetail": "送信リクエストは、上書きされない限り選択されたリポジトリのデフォルトブランチを使用します。",
+    "guardsTitle": "リリースと PR の操作は保護されています",
+    "guardsDetail": "影響の大きい GitHub への書き込みには、ルートレベルのゲートと明示的な確認が必要です。リモート書き込みはデフォルトで無効のままです。"
+  }
+}

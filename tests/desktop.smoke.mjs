@@ -56,6 +56,9 @@ function stopProcessTree() {
 try {
   await fs.mkdir(dataRoot, { recursive: true })
   await fs.mkdir(chromiumProfile, { recursive: true })
+  // Pin the UI language so the assertions below are deterministic regardless
+  // of the Windows display language of the machine running the test.
+  await fs.writeFile(path.join(dataRoot, 'desktop-settings.json'), JSON.stringify({ language: 'en-US' }, null, 2), 'utf8')
 
   child = spawn(electronExecutable, [
     '--remote-debugging-address=127.0.0.1',
@@ -94,8 +97,8 @@ try {
   await page.waitForLoadState('domcontentloaded', { timeout: 20_000 })
   await page.waitForFunction(() => document.title.includes('PROJECT NEXUS'), null, { timeout: 20_000 })
   assert.equal(await page.title(), 'PROJECT NEXUS — Windows Workstation')
-  await page.getByRole('heading', { name: 'Workstation', exact: true }).waitFor({ timeout: 15_000 })
-  await page.getByText('Local service online', { exact: true }).waitFor({ timeout: 15_000 })
+  await page.getByRole('heading', { name: 'Workbench', exact: true }).waitFor({ timeout: 15_000 })
+  await page.getByText('Online', { exact: true }).waitFor({ timeout: 15_000 })
   assert.equal(await page.evaluate(() => typeof window.nexusDesktop), 'object', 'The isolated preload bridge should be available.')
 
   const unauthorizedHealth = await page.evaluate(async () => {

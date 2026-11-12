@@ -1,0 +1,41 @@
+{
+  "page": {
+    "title": "设置",
+    "subtitle": "外观、语言和工作站行为。"
+  },
+  "sections": {
+    "appearance": "外观与语言",
+    "agent": "AI 智能体",
+    "startup": "启动",
+    "about": "关于"
+  },
+  "appearance": {
+    "languageLabel": "界面语言",
+    "languageHint": "立即应用于整个应用。您的选择会在重启后保留。",
+    "languageChanged": "语言已切换为{{language}}",
+    "coverageNote": "本版本提供的所有语言均已完成完整校对。",
+    "themeLabel": "主题",
+    "themeHint": "“跟随 Windows”会实时匹配系统的浅色或深色设置。",
+    "motionLabel": "减弱动态效果",
+    "motionHint": "减少整个工作站中的动画和过渡效果。",
+    "agentReplyLabel": "智能体回复语言",
+    "agentReplyHint": "只影响智能体撰写的说明文字，绝不会更改代码、命令和文件路径。",
+    "agentReplyUi": "跟随界面语言",
+    "agentReplyInput": "跟随我的请求语言",
+    "agentReplyFixed": "固定使用："
+  },
+  "startup": {
+    "autoStartLabel": "随 Windows 启动",
+    "autoStartDetail": "登录后自动启动 NEXUS。此设置仅在您确认后才会更改。"
+  },
+  "about": {
+    "version": "版本",
+    "platform": "平台",
+    "dataPath": "用户数据",
+    "logsPath": "日志",
+    "cachePath": "缓存",
+    "settingsFile": "设置文件",
+    "systemLocale": "系统语言",
+    "openLogs": "打开日志文件夹"
+  }
+}

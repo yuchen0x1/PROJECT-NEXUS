@@ -1,0 +1,66 @@
+{
+  "rail": {
+    "workspace": "워크스페이스",
+    "management": "관리",
+    "workbench": "워크벤치",
+    "projects": "프로젝트",
+    "environment": "개발 환경",
+    "agent": "AI 에이전트",
+    "remote": "원격 콘솔",
+    "settings": "설정",
+    "collapse": "사이드바 접기",
+    "expand": "사이드바 펼치기",
+    "localBadge": "로컬"
+  },
+  "topbar": {
+    "machine": "로컬 머신",
+    "agentActive": "데스크톱 에이전트 작동 중",
+    "searchPlaceholder": "명령 및 프로젝트 검색…",
+    "searchHint": "Ctrl+K",
+    "notifications": "알림",
+    "themeToggle": "테마 전환",
+    "settings": "설정 열기"
+  },
+  "commandPalette": {
+    "title": "명령 팔레트",
+    "placeholder": "명령 또는 프로젝트 이름 입력…",
+    "empty": "일치하는 명령이 없습니다",
+    "groups": {
+      "pages": "페이지",
+      "actions": "작업",
+      "projects": "프로젝트",
+      "appearance": "모양",
+      "language": "언어"
+    },
+    "actions": {
+      "addProject": "로컬 프로젝트 폴더 추가",
+      "recheckEnvironment": "개발 환경 재확인",
+      "refreshProjects": "프로젝트 목록 새로 고침",
+      "openRemote": "원격 콘솔 열기",
+      "openSettings": "설정 열기",
+      "openAgent": "AI 에이전트 페이지 열기",
+      "toggleTheme": "다크 테마와 라이트 테마 전환",
+      "toggleMotion": "움직임 줄이기 전환",
+      "scanProject": "프로젝트 스캔"
+    },
+    "hint": "↑ ↓ 로 이동, Enter 로 실행, Esc 로 닫기"
+  },
+  "notifications": {
+    "title": "알림",
+    "empty": "모두 확인했습니다",
+    "emptyDetail": "새로운 활동과 작업 결과가 여기에 표시됩니다.",
+    "markAllRead": "모두 읽음으로 표시",
+    "clear": "모두 지우기",
+    "open": "관련 페이지 열기"
+  },
+  "bottomPanel": {
+    "label": "활동 로그",
+    "events_one": "이벤트 {{count}}개",
+    "events_other": "이벤트 {{count}}개",
+    "empty": "환경 및 프로젝트 스캔 세부 정보가 여기에 표시됩니다. 실행된 터미널 명령이 없습니다.",
+    "resize": "드래그하여 크기 조정"
+  },
+  "shortcuts": {
+    "commandPalette": "명령 팔레트 열기"
+  }
+}

@@ -1,0 +1,202 @@
+{
+  "shell": {
+    "brand": "GitHub 控制中心",
+    "sections": {
+      "workspace": "工作区"
+    },
+    "nav": {
+      "overview": "总览",
+      "projects": "项目",
+      "buildCenter": "构建中心",
+      "releaseCenter": "发布中心",
+      "autoUpdate": "自动更新",
+      "repositoryScanner": "仓库扫描器",
+      "aiPipeline": "AI 流水线",
+      "adapterCenter": "适配器中心",
+      "updateSecurity": "更新安全",
+      "integrationHistory": "集成历史",
+      "githubConnections": "GitHub 连接",
+      "monitoring": "监控",
+      "aiOperations": "AI 运维",
+      "taskCenter": "任务中心",
+      "securityCenter": "安全中心",
+      "serverSettings": "服务器设置"
+    },
+    "connection": {
+      "connected": "GitHub 已连接",
+      "notConnected": "GitHub 未连接",
+      "authenticated": "已认证账户",
+      "addToken": "添加 Token 以启用实时数据"
+    },
+    "foot": "默认最小权限",
+    "topbar": {
+      "searchPlaceholder": "搜索仓库",
+      "refresh": "刷新"
+    },
+    "toast": {
+      "loadFailed": "无法加载控制中心",
+      "syncQueued": "仓库同步已加入队列",
+      "syncFailed": "同步失败"
+    },
+    "embeddedRemote": "远程控制台"
+  },
+  "overview": {
+    "eyebrow": "运营概览",
+    "title": "控制中心",
+    "subtitle": "仓库、构建、发布和项目健康状况的统一操作界面。",
+    "syncGithub": "同步 GitHub",
+    "connectTitle": "连接 GitHub 以填充此工作区",
+    "connectDetail": "在 .env 中设置 GITHUB_TOKEN，重启 API，然后同步仓库。在获得真实数据之前界面保持为空。",
+    "openSetup": "打开配置",
+    "metrics": {
+      "repositories": "仓库",
+      "managedProjects": "受管项目",
+      "runningTasks": "运行中任务",
+      "successfulBuilds": "成功构建",
+      "failedBuilds": "失败构建",
+      "releases": "最新发布",
+      "autoUpdateProjects": "自动更新就绪",
+      "alerts": "待处理告警"
+    },
+    "metricFoot": {
+      "needsReview": "需要处理",
+      "live": "实时工作区数据",
+      "waiting": "等待连接"
+    },
+    "projectsPanel": {
+      "kicker": "受管范围",
+      "title": "项目",
+      "loading": "正在加载工作区"
+    },
+    "activityPanel": {
+      "kicker": "信号流",
+      "title": "近期活动",
+      "emptyTitle": "活动将显示在这里",
+      "emptyDetail": "仓库同步和构建操作会随发生实时记录。"
+    },
+    "taskPanel": {
+      "kicker": "执行层",
+      "title": "任务脉搏",
+      "liveState": "实时状态"
+    },
+    "empty": {
+      "projectsTitle": "此工作区还没有仓库",
+      "projectsDetail": "同步已授权的 GitHub 仓库，让此界面发挥作用。",
+      "syncButton": "同步仓库",
+      "tasksTitle": "还没有任务",
+      "tasksDetail": "同步仓库和派发构建会创建持久化的任务记录。"
+    }
+  },
+  "projects": {
+    "eyebrow": "仓库登记簿",
+    "title": "项目",
+    "subtitle": "每个仓库都保留自己的分支、构建、发布和部署上下文。",
+    "sync": "同步仓库",
+    "visible_one": "可见 {{count}} 个仓库",
+    "visible_other": "可见 {{count}} 个仓库",
+    "matching": "匹配 “{{query}}”",
+    "all": "全部",
+    "emptyTitle": "仓库登记簿为空",
+    "emptyDetail": "配置 GitHub Token 后使用“同步仓库”。公开和私有访问权限取决于 Token 范围。",
+    "startSync": "开始同步",
+    "scanStack": "扫描技术栈",
+    "scanToast": "已将 {{repository}} 的扫描加入队列",
+    "noDescription": "未提供仓库描述。"
+  },
+  "monitoring": {
+    "eyebrow": "健康信号",
+    "title": "监控",
+    "subtitle": "紧凑展示仓库活动和 NEXUS 已掌握的执行信号。",
+    "healthKicker": "仓库健康",
+    "healthyByIssues": "按未处理 issue 数量计为健康",
+    "noSynthetic": "不显示任何合成的可用率数据。",
+    "signalsKicker": "当前信号",
+    "signalsTitle": "运营指标",
+    "signal": {
+      "tracked": "受管仓库",
+      "failures": "构建失败",
+      "alerts": "任务告警",
+      "lastTask": "最近任务状态"
+    },
+    "noTasks": "暂无任务",
+    "coverageKicker": "覆盖范围",
+    "coverageTitle": "项目检查",
+    "lastUpdated": "最后更新于 {{time}}",
+    "issues_one": "{{count}} 个 issue",
+    "issues_other": "{{count}} 个 issue",
+    "emptyTitle": "监控从项目开始",
+    "emptyDetail": "导入仓库以创建真实的健康记录。"
+  },
+  "connections": {
+    "eyebrow": "授权界面",
+    "title": "GitHub 连接",
+    "subtitle": "保持旧版 Token 兼容，同时将仓库访问迁移到范围受限的 GitHub App 安装。",
+    "install": "安装 GitHub App",
+    "installFailed": "GitHub App 未配置",
+    "appKicker": "GitHub App",
+    "appConfigured": "已配置",
+    "appSetupRequired": "需要配置",
+    "fields": {
+      "appId": "App ID",
+      "privateKey": "私钥",
+      "webhookSecret": "Webhook 密钥"
+    },
+    "legacyKicker": "旧版兼容",
+    "legacyTitle": "迁移路径",
+    "legacyDetail": "现有 GITHUB_TOKEN 方式在本地开发中仍然可用。App 安装提供范围受限的仓库访问和短期 Token，且无需向浏览器发送私钥。",
+    "installationsKicker": "安装",
+    "installationsTitle": "已授权账户",
+    "repositorySelection": "选定仓库",
+    "tokenCached": "Token 已缓存",
+    "tokenOnUse": "Token 将在使用时刷新",
+    "noInstallationsTitle": "没有 App 安装",
+    "noInstallationsDetail": "配置 App 凭据并为其安装到某个账户后，刷新此页面。"
+  },
+  "security": {
+    "eyebrow": "防护与证据",
+    "title": "安全中心",
+    "subtitle": "审查改变了外部状态的操作以及为每个操作记录的证据。",
+    "refresh": "刷新审计",
+    "roleCard": {
+      "title": "角色模型",
+      "detail": "查看者只读。操作员可将构建、扫描和草稿加入队列。管理员可发布并更改授权。"
+    },
+    "webhookCard": {
+      "title": "Webhook 证据",
+      "detail": "HMAC 验证、投递 ID 和事件生命周期记录可防止重复或未签名的更新。"
+    },
+    "releaseCard": {
+      "title": "发布证据",
+      "detail": "版本检查、工件摘要和明确确认在发布前记录在案。"
+    },
+    "auditKicker": "操作留痕",
+    "auditTitle": "审计日志",
+    "highRisk": "高风险",
+    "noAuditTitle": "暂无审计记录",
+    "noAuditDetail": "执行高影响操作后会在这里显示。"
+  },
+  "serverSettings": {
+    "eyebrow": "系统配置",
+    "title": "服务器设置",
+    "subtitle": "基于环境的配置将凭据隔离在浏览器状态和项目记录之外。",
+    "githubKicker": "GitHub 连接",
+    "githubTitle": "实时集成",
+    "fields": {
+      "status": "状态",
+      "connected": "已连接",
+      "owner": "账户或所有者",
+      "notConfigured": "未配置",
+      "apiEndpoint": "API 端点",
+      "grantedSurface": "已授予权限",
+      "noToken": "未加载 Token"
+    },
+    "safetyKicker": "安全默认值",
+    "safetyTitle": "防护栏",
+    "credentialsTitle": "凭据保留在服务端",
+    "credentialsDetail": "Token 从环境变量读取，绝不会返回给浏览器。",
+    "refTitle": "构建指向明确的 ref",
+    "refDetail": "除非另行指定，派发请求使用所选仓库的默认分支。",
+    "guardsTitle": "发布和 PR 操作受门禁保护",
+    "guardsDetail": "高影响的 GitHub 写入需要路由级门禁和明确确认；远程写入默认停用。"
+  }
+}

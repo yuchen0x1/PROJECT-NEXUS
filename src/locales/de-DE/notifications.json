@@ -1,0 +1,71 @@
+{
+  "activity": {
+    "workstationReady": {
+      "label": "Arbeitsplatz bereit",
+      "detail_one": "{{count}} lokales Projekt registriert.",
+      "detail_other": "{{count}} lokale Projekte registriert."
+    },
+    "environmentCheckFinished": {
+      "label": "Umgebungsprüfung abgeschlossen",
+      "detail": "{{available}} von {{total}} Entwicklungstools verfügbar."
+    },
+    "environmentCheckFailed": {
+      "label": "Umgebungsprüfung fehlgeschlagen"
+    },
+    "projectAdded": {
+      "label": "Lokales Projekt hinzugefügt"
+    },
+    "projectAlreadyRegistered": {
+      "label": "Projekt bereits registriert"
+    },
+    "projectRemoved": {
+      "label": "Projekt aus NEXUS entfernt",
+      "detail": "Der Ordner und seine Dateien blieben unverändert."
+    },
+    "projectAddFailed": {
+      "label": "Projekt konnte nicht hinzugefügt werden"
+    },
+    "scanComplete": {
+      "label": "Nur-Lese-Scan abgeschlossen",
+      "detail": "{{name}}: {{stack}}; {{count}} Einträge geprüft."
+    },
+    "scanFailed": {
+      "label": "Projekt-Scan fehlgeschlagen"
+    },
+    "agentTaskQueued": {
+      "label": "Lokale Agent-Aufgabe in Warteschlange gestellt",
+      "detail": "{{project}}: {{label}}"
+    },
+    "agentTaskFailed": {
+      "label": "Lokale Agent-Aufgabe fehlgeschlagen"
+    },
+    "agentTaskStartError": {
+      "label": "Lokale Agent-Aufgabe konnte nicht starten"
+    },
+    "agentCancellationRequested": {
+      "label": "Abbruch der lokalen Agent-Aufgabe angefordert"
+    },
+    "agentRetryQueued": {
+      "label": "Erneuter Versuch der lokalen Agent-Aufgabe in Warteschlange gestellt"
+    },
+    "agentTaskCompleted": {
+      "label": "Agent-Aufgabe abgeschlossen",
+      "detail": "{{project}}: {{label}}"
+    },
+    "autoStartEnabled": {
+      "label": "„Mit Windows starten“ aktiviert",
+      "detail": "Diese Einstellung ändert sich erst nach Ihrer Bestätigung."
+    },
+    "autoStartDisabled": {
+      "label": "„Mit Windows starten“ deaktiviert",
+      "detail": "Diese Einstellung ändert sich erst nach Ihrer Bestätigung."
+    }
+  },
+  "toast": {
+    "languageChanged": "Sprache aktualisiert",
+    "themeChanged": "Design aktualisiert",
+    "settingsSaved": "Einstellungen gespeichert",
+    "projectAdded": "Projekt hinzugefügt",
+    "scanQueued": "Scan in Warteschlange gestellt"
+  }
+}

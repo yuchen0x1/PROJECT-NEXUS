@@ -1,0 +1,80 @@
+{
+  "center": {
+    "eyebrow": "Contrôle des versions",
+    "title": "Centre de release",
+    "subtitle": "Créez des brouillons, examinez les artefacts de release et gardez la publication derrière une confirmation explicite de l'administrateur.",
+    "refresh": "Actualiser les releases",
+    "loading": "Lecture des GitHub Releases",
+    "chooseRepositoryFirst": "Choisissez d'abord un dépôt",
+    "draftQueued": "Brouillon de release mis en file d'attente",
+    "draftFailed": "Échec du brouillon de release",
+    "publishQueued": "Publication de release mise en file d'attente",
+    "loadFailed": "Impossible de charger les releases"
+  },
+  "form": {
+    "kicker": "Préparer un brouillon de release",
+    "title": "Préparer une version",
+    "repository": "Dépôt",
+    "tag": "Tag",
+    "tagPlaceholder": "v1.2.3",
+    "name": "Nom",
+    "namePlaceholder": "Nom de la release",
+    "notes": "Notes",
+    "notesPlaceholder": "Les notes de release peuvent être modifiées avant la publication.",
+    "create": "Créer le brouillon"
+  },
+  "policy": {
+    "kicker": "Politique de publication",
+    "title": "Contrôles d'approbation",
+    "semverTitle": "Version sémantique requise",
+    "semverDetail": "Les tags existants sont vérifiés avant la création d'un brouillon.",
+    "digestTitle": "Les artefacts sont hachables",
+    "digestDetail": "Les artefacts téléversés reçoivent un enregistrement SHA-256 dans la piste d'audit.",
+    "adminTitle": "La publication requiert le rôle Administrateur",
+    "adminDetail": "La publication d'une release en production exige confirm=true et un rôle d'administrateur."
+  },
+  "list": {
+    "emptyBannerTitle": "Les données de release sont vides",
+    "emptyBannerDetail": "Synchronisez d'abord les dépôts. Les releases sont récupérées depuis GitHub lorsqu'un token est configuré.",
+    "unpublishedDraft": "Brouillon non publié",
+    "stateDraft": "Brouillon",
+    "statePrerelease": "Pré-release",
+    "statePublished": "Publiée",
+    "emptyTitle": "Aucune release renvoyée",
+    "emptyDetail": "Il s'agit d'une lecture en direct. Un résultat vide signifie que GitHub n'a renvoyé aucune release pour l'ensemble de dépôts actuel."
+  },
+  "autoUpdate": {
+    "eyebrow": "Mises à jour multiplateformes",
+    "title": "Mise à jour automatique",
+    "subtitle": "Examinez les vrais fichiers de projet, manifestes, canaux, empreintes et preuves de signature sur l'ensemble des dépôts.",
+    "checkAll": "Vérifier tous les projets",
+    "summary": {
+      "checked": "Projets vérifiés",
+      "ready": "Prêts",
+      "blocked": "Bloqués",
+      "lastCheck": "Dernière vérification"
+    },
+    "versionUnknown": "version inconnue",
+    "evidence_one": "{{count}} fichier de preuves · {{samples}}",
+    "evidence_other": "{{count}} fichiers de preuves · {{samples}}",
+    "noEvidence": "Aucune preuve de mise à jour prise en charge trouvée",
+    "recheck": "Revérifier le projet",
+    "recheckToast": "Vérification de mise à jour mise en file d'attente pour {{project}}",
+    "loading": "Lecture des preuves de mise à jour",
+    "checkQueued": "Vérifications de mise à jour mises en file d'attente",
+    "checkFailed": "Impossible de mettre en file les vérifications de mise à jour",
+    "loadFailed": "Impossible de charger les vérifications de mise à jour",
+    "emptyTitle": "Aucune vérification de mise à jour pour le moment",
+    "emptyDetail": "Exécutez une vérification pour examiner les signaux de mise à jour Electron, Tauri, Python, .NET, Java et web à partir de vrais fichiers de dépôts.",
+    "runFirst": "Lancer la première vérification",
+    "semantics": {
+      "kicker": "Sémantique de sécurité",
+      "title": "Ce que signifient les vérifications",
+      "sha": "Intégrité du contenu",
+      "signatureLabel": "Signature",
+      "signature": "Authenticité de l'éditeur",
+      "https": "Protection du transport",
+      "blocked": "Preuve requise manquante"
+    }
+  }
+}

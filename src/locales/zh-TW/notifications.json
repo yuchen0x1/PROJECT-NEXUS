@@ -1,0 +1,71 @@
+{
+  "activity": {
+    "workstationReady": {
+      "label": "工作站已就緒",
+      "detail_one": "已登記 {{count}} 個本機專案。",
+      "detail_other": "已登記 {{count}} 個本機專案。"
+    },
+    "environmentCheckFinished": {
+      "label": "環境偵測完成",
+      "detail": "{{total}} 個開發工具中 {{available}} 個可用。"
+    },
+    "environmentCheckFailed": {
+      "label": "環境偵測失敗"
+    },
+    "projectAdded": {
+      "label": "已新增本機專案"
+    },
+    "projectAlreadyRegistered": {
+      "label": "專案已登記"
+    },
+    "projectRemoved": {
+      "label": "已從 NEXUS 移除專案",
+      "detail": "資料夾及其檔案保持不變。"
+    },
+    "projectAddFailed": {
+      "label": "無法新增專案"
+    },
+    "scanComplete": {
+      "label": "唯讀掃描完成",
+      "detail": "{{name}}：{{stack}}；已檢查 {{count}} 個條目。"
+    },
+    "scanFailed": {
+      "label": "專案掃描失敗"
+    },
+    "agentTaskQueued": {
+      "label": "本機代理任務已排入佇列",
+      "detail": "{{project}}：{{label}}"
+    },
+    "agentTaskFailed": {
+      "label": "本機代理任務失敗"
+    },
+    "agentTaskStartError": {
+      "label": "本機代理任務無法啟動"
+    },
+    "agentCancellationRequested": {
+      "label": "已請求取消本機代理任務"
+    },
+    "agentRetryQueued": {
+      "label": "本機代理重試已排入佇列"
+    },
+    "agentTaskCompleted": {
+      "label": "代理任務已完成",
+      "detail": "{{project}}：{{label}}"
+    },
+    "autoStartEnabled": {
+      "label": "已啟用隨 Windows 啟動",
+      "detail": "此設定只有在您確認後才會變更。"
+    },
+    "autoStartDisabled": {
+      "label": "已停用隨 Windows 啟動",
+      "detail": "此設定只有在您確認後才會變更。"
+    }
+  },
+  "toast": {
+    "languageChanged": "語言已更新",
+    "themeChanged": "主題已更新",
+    "settingsSaved": "設定已儲存",
+    "projectAdded": "專案已新增",
+    "scanQueued": "掃描已排入佇列"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "title": "工作台",
+  "subtitle": "以本機優先的方式檢視這台 Windows 電腦及其已核准的專案資料夾。",
+  "overline": "WINDOWS 開發工作站",
+  "sections": {
+    "workbench": "工作台",
+    "projects": "本機專案",
+    "environment": "開發環境",
+    "agent": "AI 代理",
+    "remote": "遠端主控台"
+  },
+  "sectionSubtitle": {
+    "projects": "由您明確選擇資料夾。首次掃描只會讀取名稱與專案標記。",
+    "environment": "從這個 Windows 使用者帳戶偵測到的可執行檔路徑與版本。",
+    "agent": "在已登記專案的隔離副本中產生可供審查的程式碼變更。",
+    "remote": "既有的 GitHub 與發佈工作流程，與本機執行權限相互獨立。"
+  },
+  "readiness": {
+    "title": "這台電腦已準備好進行本機專案設定",
+    "detail": "掃描為唯讀作業。此階段不會啟用檔案編輯、建置、Git 寫入與發佈。"
+  },
+  "summary": {
+    "projects": "本機專案",
+    "projectsDetail": "個已登記資料夾",
+    "tools": "已偵測工具",
+    "toolsDetail": "路徑與安全版本偵測已完成",
+    "toolsChecking": "正在偵測環境",
+    "scans": "專案掃描",
+    "scansDetail": "唯讀報告已儲存在本機",
+    "startup": "Windows 開機啟動",
+    "startupDetail": "由使用者控制的偏好設定"
+  },
+  "recentProjects": {
+    "title": "最近的專案",
+    "detail": "只有您新增的資料夾會對工作站顯示。"
+  },
+  "environmentPreview": {
+    "title": "開發環境",
+    "recheck": "重新檢查開發工具",
+    "checking": "正在檢查已安裝的工具…",
+    "openReport": "開啟完整環境報告"
+  },
+  "boundary": {
+    "title": "執行邊界",
+    "inForce": "生效中",
+    "folderDialog": "專案透過 Windows 資料夾對話框選擇",
+    "scanLimits": "掃描會略過符號連結，並保持在大小限制內",
+    "changesDisabled": "在核准控制推出之前，變更與命令保持停用"
+  },
+  "agentPanel": {
+    "title": "AI 代理活動",
+    "empty": "目前沒有執行中的代理任務。",
+    "start": "開啟 AI 代理頁面以開始任務。",
+    "activeTask": "進行中的任務",
+    "noActiveTask": "沒有進行中的任務"
+  }
+}

@@ -1,0 +1,202 @@
+{
+  "shell": {
+    "brand": "GitHub 控制中心",
+    "sections": {
+      "workspace": "工作區"
+    },
+    "nav": {
+      "overview": "總覽",
+      "projects": "專案",
+      "buildCenter": "建置中心",
+      "releaseCenter": "發佈中心",
+      "autoUpdate": "自動更新",
+      "repositoryScanner": "儲存庫掃描器",
+      "aiPipeline": "AI 管線",
+      "adapterCenter": "配接器中心",
+      "updateSecurity": "更新安全性",
+      "integrationHistory": "整合歷史記錄",
+      "githubConnections": "GitHub 連線",
+      "monitoring": "監控",
+      "aiOperations": "AI 維運",
+      "taskCenter": "任務中心",
+      "securityCenter": "安全中心",
+      "serverSettings": "伺服器設定"
+    },
+    "connection": {
+      "connected": "GitHub 已連線",
+      "notConnected": "GitHub 未連線",
+      "authenticated": "已驗證的帳戶",
+      "addToken": "新增 Token 以啟用即時資料"
+    },
+    "foot": "預設最小權限",
+    "topbar": {
+      "searchPlaceholder": "搜尋儲存庫",
+      "refresh": "重新整理"
+    },
+    "toast": {
+      "loadFailed": "無法載入控制中心",
+      "syncQueued": "儲存庫同步已排入佇列",
+      "syncFailed": "同步失敗"
+    },
+    "embeddedRemote": "遠端主控台"
+  },
+  "overview": {
+    "eyebrow": "營運概覽",
+    "title": "控制中心",
+    "subtitle": "儲存庫、建置、發佈與專案健康狀況的統一操作介面。",
+    "syncGithub": "同步 GitHub",
+    "connectTitle": "連線 GitHub 以填入此工作區",
+    "connectDetail": "在 .env 中設定 GITHUB_TOKEN，重新啟動 API，然後同步儲存庫。在取得真實資料之前，介面會保持空白。",
+    "openSetup": "開啟設定",
+    "metrics": {
+      "repositories": "儲存庫",
+      "managedProjects": "受管理的專案",
+      "runningTasks": "執行中的任務",
+      "successfulBuilds": "成功的建置",
+      "failedBuilds": "失敗的建置",
+      "releases": "最新發佈",
+      "autoUpdateProjects": "自動更新就緒",
+      "alerts": "未處理的警示"
+    },
+    "metricFoot": {
+      "needsReview": "需要審查",
+      "live": "即時工作區資料",
+      "waiting": "等待連線"
+    },
+    "projectsPanel": {
+      "kicker": "受管理的範圍",
+      "title": "專案",
+      "loading": "正在載入工作區"
+    },
+    "activityPanel": {
+      "kicker": "訊號摘要",
+      "title": "近期活動",
+      "emptyTitle": "活動會顯示在這裡",
+      "emptyDetail": "儲存庫同步與建置動作會在發生時即時記錄。"
+    },
+    "taskPanel": {
+      "kicker": "執行層",
+      "title": "任務脈動",
+      "liveState": "即時狀態"
+    },
+    "empty": {
+      "projectsTitle": "此工作區中沒有儲存庫",
+      "projectsDetail": "同步已授權的 GitHub 儲存庫，讓此介面發揮作用。",
+      "syncButton": "同步儲存庫",
+      "tasksTitle": "尚無任務",
+      "tasksDetail": "同步儲存庫與派送建置會建立持久的任務記錄。"
+    }
+  },
+  "projects": {
+    "eyebrow": "儲存庫註冊表",
+    "title": "專案",
+    "subtitle": "每個儲存庫都保留自己的分支、建置、發佈與部署脈絡。",
+    "sync": "同步儲存庫",
+    "visible_one": "可見 {{count}} 個儲存庫",
+    "visible_other": "可見 {{count}} 個儲存庫",
+    "matching": "符合「{{query}}」",
+    "all": "全部",
+    "emptyTitle": "儲存庫註冊表為空",
+    "emptyDetail": "設定 GitHub Token 後使用「同步儲存庫」。公開與私人存取權限取決於 Token 的範圍。",
+    "startSync": "開始同步",
+    "scanStack": "掃描技術堆疊",
+    "scanToast": "已將 {{repository}} 的掃描排入佇列",
+    "noDescription": "未提供儲存庫描述。"
+  },
+  "monitoring": {
+    "eyebrow": "健康訊號",
+    "title": "監控",
+    "subtitle": "以精簡方式檢視儲存庫活動與 NEXUS 已掌握的執行訊號。",
+    "healthKicker": "儲存庫健康狀況",
+    "healthyByIssues": "依 Issue 數量計為健康",
+    "noSynthetic": "不會顯示任何合成的運作時間資料。",
+    "signalsKicker": "目前訊號",
+    "signalsTitle": "營運指標",
+    "signal": {
+      "tracked": "追蹤的儲存庫",
+      "failures": "建置失敗",
+      "alerts": "未處理的任務警示",
+      "lastTask": "最近任務狀態"
+    },
+    "noTasks": "沒有任務",
+    "coverageKicker": "涵蓋範圍",
+    "coverageTitle": "專案檢查",
+    "lastUpdated": "最後更新於 {{time}}",
+    "issues_one": "{{count}} 個 Issue",
+    "issues_other": "{{count}} 個 Issue",
+    "emptyTitle": "監控從專案開始",
+    "emptyDetail": "匯入儲存庫以建立真實的健康記錄。"
+  },
+  "connections": {
+    "eyebrow": "授權介面",
+    "title": "GitHub 連線",
+    "subtitle": "在將儲存庫存取移轉至範圍受限的 GitHub App 安裝的同時，保留舊版 Token 相容性。",
+    "install": "安裝 GitHub App",
+    "installFailed": "GitHub App 未設定",
+    "appKicker": "GitHub App",
+    "appConfigured": "已設定",
+    "appSetupRequired": "需要設定",
+    "fields": {
+      "appId": "App ID",
+      "privateKey": "私密金鑰",
+      "webhookSecret": "Webhook 祕密"
+    },
+    "legacyKicker": "舊版相容性",
+    "legacyTitle": "移轉路徑",
+    "legacyDetail": "現有的 GITHUB_TOKEN 方式在本機開發中仍然可用。App 安裝提供範圍受限的儲存庫存取與短期 Token，且不會將私密金鑰傳送至瀏覽器。",
+    "installationsKicker": "安裝",
+    "installationsTitle": "已授權的帳戶",
+    "repositorySelection": "選定的儲存庫",
+    "tokenCached": "Token 已快取",
+    "tokenOnUse": "Token 將在使用時重新整理",
+    "noInstallationsTitle": "沒有 App 安裝",
+    "noInstallationsDetail": "設定 App 憑證並將其安裝到某個帳戶後，重新整理此頁面。"
+  },
+  "security": {
+    "eyebrow": "防護與證據",
+    "title": "安全中心",
+    "subtitle": "審查改變外部狀態的作業，以及為每個作業記錄的證據。",
+    "refresh": "重新整理稽核",
+    "roleCard": {
+      "title": "角色模型",
+      "detail": "檢視者只能讀取。操作員可將建置、掃描與草稿排入佇列。管理員可發佈並變更授權。"
+    },
+    "webhookCard": {
+      "title": "Webhook 證據",
+      "detail": "HMAC 驗證、傳遞 ID 與事件生命週期記錄可防止重複或未簽署的更新。"
+    },
+    "releaseCard": {
+      "title": "發佈證據",
+      "detail": "版本檢查、資產摘要與明確確認會在發佈前記錄在案。"
+    },
+    "auditKicker": "操作員留痕",
+    "auditTitle": "稽核記錄",
+    "highRisk": "高風險",
+    "noAuditTitle": "尚無稽核記錄",
+    "noAuditDetail": "執行高影響作業後，會顯示在這裡。"
+  },
+  "serverSettings": {
+    "eyebrow": "系統設定",
+    "title": "伺服器設定",
+    "subtitle": "以環境變數為基礎的設定會將憑證隔離在瀏覽器狀態與專案記錄之外。",
+    "githubKicker": "GitHub 連線",
+    "githubTitle": "即時整合",
+    "fields": {
+      "status": "狀態",
+      "connected": "已連線",
+      "owner": "帳戶或擁有者",
+      "notConfigured": "未設定",
+      "apiEndpoint": "API 端點",
+      "grantedSurface": "已授予的權限範圍",
+      "noToken": "未載入 Token"
+    },
+    "safetyKicker": "安全預設值",
+    "safetyTitle": "防護欄",
+    "credentialsTitle": "憑證保留在伺服器端",
+    "credentialsDetail": "Token 從環境變數讀取，絕不會傳回瀏覽器。",
+    "refTitle": "建置以明確的 ref 為目標",
+    "refDetail": "除非另行指定，派送請求會使用所選儲存庫的預設分支。",
+    "guardsTitle": "發佈與 PR 動作受門禁保護",
+    "guardsDetail": "高影響的 GitHub 寫入需要路由層級的門禁與明確確認；遠端寫入預設為停用。"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "eyebrow": "GitHub Actions",
+  "title": "ビルドセンター",
+  "subtitle": "ワークフローの確認、ビルドの送信、実行の追跡を、プロジェクトを認識する 1 つの画面から行えます。",
+  "picker": {
+    "kicker": "対象リポジトリ",
+    "title": "プロジェクトを選択",
+    "emptyTitle": "対象リポジトリがありません",
+    "emptyDetail": "ビルドコンテキストを開く前にリポジトリを同期してください。"
+  },
+  "workflows": {
+    "kicker": "ワークフローカタログ",
+    "selectRepository": "リポジトリを選択",
+    "runAction": "ワークフローを実行",
+    "dispatched": "ビルドの送信をキューに追加しました",
+    "dispatchFailed": "ビルドの送信に失敗しました",
+    "loadFailed": "ワークフローを読み込めません",
+    "emptyTitle": "ワークフローが見つかりません",
+    "emptyDetail": "このリポジトリについて、GitHub は Actions ワークフローを返しませんでした。",
+    "waitingTitle": "ビルドコンテキストが待機中です",
+    "waitingDetail": "リポジトリを選択すると、実際の GitHub Actions ワークフローが読み込まれます。"
+  },
+  "runs": {
+    "kicker": "実行履歴",
+    "title": "最近の実行",
+    "emptyTitle": "実行履歴が読み込まれていません",
+    "emptyDetail": "Actions アクセス権のあるリポジトリを選択すると、最近の実行が表示されます。"
+  }
+}

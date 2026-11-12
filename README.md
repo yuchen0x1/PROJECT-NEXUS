@@ -21,9 +21,15 @@ It uses React/Vite, Express, GitHub REST APIs and versioned JSON persistence. Th
 
 - Native Windows Electron workstation with local project registration, environment detection and isolated AI change proposals.
 
+## Windows workstation: UI, themes and languages (Phase 5)
+
+The desktop shell is a commercial-grade dark developer workstation: an activity bar with collapsible rail, a top bar with a `Ctrl+K` command palette and notification center, a resizable activity-log drawer, a full in-app Settings page, and a light/dark/system theme system driven by shared design tokens (`src/theme.css`).
+
+The entire interface is internationalized with i18next/react-i18next. Ten languages ship in this release: 简体中文, 繁體中文, English, 日本語, 한국어, Français, Deutsch, Español, Português (Brasil), Русский. The first launch follows the Windows display language (falling back to English), switching applies instantly without a restart, and the choice persists in the user's app-data settings file. Dates, numbers, currency and relative times are formatted per locale. AI model output, code, commands and terminal content are never translated. See [the i18n architecture](docs/PHASE5_I18N_ARCHITECTURE.md), [the design system](docs/PHASE5_DESIGN_SYSTEM.md) and [translation coverage](docs/PHASE5_TRANSLATION_COVERAGE.md).
+
 ## Windows desktop and local Agent
 
-Build a Windows x64 NSIS installer in a fresh output folder with `npm run desktop:package:win -- --config.directories.output=release-phase4-fresh`. The checked Phase 4 installer is documented in [the delivery report](docs/PHASE4_DELIVERY_REPORT.md); it is unsigned. The desktop Agent sends a prompt and a bounded, explicitly disclosed source context to the configured provider, then saves a proposed diff inside a task-private app-data workspace. It does not yet apply proposals to the selected project, run local commands/tests or automatically repair failures. See [Agent engine](docs/PHASE4_AGENT_ENGINE.md), [Windows installation](docs/PHASE4_WINDOWS_INSTALL.md) and [security limits](docs/PHASE4_SECURITY.md).
+Build a Windows x64 NSIS installer with `npm run desktop:package:win`. The checked Phase 5.1 installer (v0.2.1) is documented in [the delivery report](docs/PHASE5_1_DELIVERY_REPORT.md); it is unsigned. The desktop Agent sends a prompt and a bounded, explicitly disclosed source context to the configured provider, then saves a proposed diff inside a task-private app-data workspace. It does not yet apply proposals to the selected project, run local commands/tests or automatically repair failures. See [Agent engine](docs/PHASE4_AGENT_ENGINE.md), [Windows installation](docs/PHASE4_WINDOWS_INSTALL.md) and [security limits](docs/PHASE4_SECURITY.md).
 ## Quick start
 
 ```powershell
@@ -52,11 +58,18 @@ Remote writes are disabled unless `NEXUS_ENABLE_REMOTE_WRITES=true`. The default
 ## Commands
 
 ```powershell
-npm run dev           # local API and Vite development server
-npm run build         # production frontend build
-npm test              # Vitest unit and isolated API tests
-npm run test:browser  # Playwright navigation and screenshot flow against a running app
-npm run start         # API plus built frontend
+npm run dev              # local API and Vite development server
+npm run build            # production frontend build
+npm test                 # Vitest unit and isolated API tests (incl. i18n key parity)
+npm run test:browser     # Playwright navigation and screenshot flow against a running app
+npm run test:desktop     # Electron desktop smoke test (real window)
+npm run test:desktop:agent  # Electron local Agent UI workflow test
+npm run test:desktop:i18n   # Electron i18n acceptance (detection, switching, persistence)
+npm run test:desktop:quality # Electron quality run: sizes, themes, palette, notifications, recovery
+node tests/desktop-perf.mjs  # Electron performance measurements
+node scripts/i18n-deep-audit.mjs  # deep i18n + hardcoded-string/color audit
+npm run i18n:coverage    # translation coverage report → docs/PHASE5_TRANSLATION_COVERAGE.md
+npm run start            # API plus built frontend
 ```
 
 `npm run test:ui` is the legacy API/browser smoke script; it can enqueue a repository sync when pointed at a live server. Use an isolated state file for that script.
@@ -79,6 +92,19 @@ Docker Compose binds its published port to loopback by default. If the service i
 
 ## Documentation
 
+- [Phase 5.1 audit](docs/PHASE5_1_AUDIT.md)
+- [Phase 5.1 fixes](docs/PHASE5_1_FIXES.md)
+- [Phase 5.1 i18n audit](docs/PHASE5_1_I18N_AUDIT.md)
+- [Phase 5.1 theme audit](docs/PHASE5_1_THEME_AUDIT.md)
+- [Phase 5.1 Windows test report](docs/PHASE5_1_WINDOWS_TEST.md)
+- [Phase 5.1 regression report](docs/PHASE5_1_REGRESSION.md)
+- [Phase 5.1 delivery report](docs/PHASE5_1_DELIVERY_REPORT.md)
+- [Phase 5 UI audit](docs/PHASE5_UI_AUDIT.md)
+- [Phase 5 design system](docs/PHASE5_DESIGN_SYSTEM.md)
+- [Phase 5 i18n architecture](docs/PHASE5_I18N_ARCHITECTURE.md)
+- [Phase 5 translation coverage](docs/PHASE5_TRANSLATION_COVERAGE.md)
+- [Phase 5 test report](docs/PHASE5_TEST_REPORT.md)
+- [Phase 5 delivery report](docs/PHASE5_DELIVERY_REPORT.md)
 - [Phase 4 audit](docs/PHASE4_AUDIT.md)
 - [Phase 4 architecture](docs/PHASE4_ARCHITECTURE.md)
 - [Phase 4 local Agent engine](docs/PHASE4_AGENT_ENGINE.md)
@@ -120,3 +146,5 @@ Docker Compose binds its published port to loopback by default. If the service i
 Additional real-app screenshots are in `docs/screenshots/phase3/`.
 
 The Phase 4 native Agent workflow was captured from a running Electron application: ![PROJECT NEXUS local Agent proposal](docs/screenshots/phase4/local-agent-workflow.png)
+
+Phase 5 captures (real Electron runs, multiple languages and both themes) are in `docs/screenshots/phase5/`: ![PROJECT NEXUS Chinese workbench](docs/screenshots/phase5/workbench-zh-CN.png)

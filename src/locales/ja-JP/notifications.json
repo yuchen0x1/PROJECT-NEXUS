@@ -1,0 +1,71 @@
+{
+  "activity": {
+    "workstationReady": {
+      "label": "ワークステーションの準備ができました",
+      "detail_one": "{{count}} 件のローカルプロジェクトが登録されました。",
+      "detail_other": "{{count}} 件のローカルプロジェクトが登録されました。"
+    },
+    "environmentCheckFinished": {
+      "label": "環境チェックが完了しました",
+      "detail": "{{total}} 個中 {{available}} 個の開発ツールが利用可能です。"
+    },
+    "environmentCheckFailed": {
+      "label": "環境チェックに失敗しました"
+    },
+    "projectAdded": {
+      "label": "ローカルプロジェクトを追加しました"
+    },
+    "projectAlreadyRegistered": {
+      "label": "プロジェクトは既に登録されています"
+    },
+    "projectRemoved": {
+      "label": "プロジェクトを NEXUS から削除しました",
+      "detail": "フォルダーとそのファイルは変更されていません。"
+    },
+    "projectAddFailed": {
+      "label": "プロジェクトを追加できませんでした"
+    },
+    "scanComplete": {
+      "label": "読み取り専用スキャンが完了しました",
+      "detail": "{{name}}: {{stack}}、{{count}} 件のエントリーを確認しました。"
+    },
+    "scanFailed": {
+      "label": "プロジェクトスキャンに失敗しました"
+    },
+    "agentTaskQueued": {
+      "label": "ローカルエージェントタスクをキューに追加しました",
+      "detail": "{{project}}: {{label}}"
+    },
+    "agentTaskFailed": {
+      "label": "ローカルエージェントタスクが失敗しました"
+    },
+    "agentTaskStartError": {
+      "label": "ローカルエージェントタスクを開始できませんでした"
+    },
+    "agentCancellationRequested": {
+      "label": "ローカルエージェントのキャンセルを要求しました"
+    },
+    "agentRetryQueued": {
+      "label": "ローカルエージェントの再試行をキューに追加しました"
+    },
+    "agentTaskCompleted": {
+      "label": "エージェントタスクが完了しました",
+      "detail": "{{project}}: {{label}}"
+    },
+    "autoStartEnabled": {
+      "label": "「Windows と共に開始」を有効化しました",
+      "detail": "この設定は確認後にのみ変更されます。"
+    },
+    "autoStartDisabled": {
+      "label": "「Windows と共に開始」を無効化しました",
+      "detail": "この設定は確認後にのみ変更されます。"
+    }
+  },
+  "toast": {
+    "languageChanged": "言語を更新しました",
+    "themeChanged": "テーマを更新しました",
+    "settingsSaved": "設定を保存しました",
+    "projectAdded": "プロジェクトを追加しました",
+    "scanQueued": "スキャンをキューに追加しました"
+  }
+}

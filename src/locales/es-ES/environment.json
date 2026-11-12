@@ -1,0 +1,33 @@
+{
+  "page": {
+    "title": "Entorno de desarrollo",
+    "subtitle": "Rutas ejecutables y versiones detectadas en esta cuenta de usuario de Windows."
+  },
+  "summary": {
+    "detected": "{{available}} de {{total}} herramientas detectadas",
+    "running": "La detección del entorno está en ejecución",
+    "detail": "Los ejecutables reciben comprobaciones de versión acotadas cuando es seguro. Las shims de comandos y Windows Terminal se detectan por ruta sin invocarse; las múltiples entradas de PATH se marcan como conflictos."
+  },
+  "table": {
+    "title": "Herramientas de desarrollo instaladas",
+    "scannedAt": "Comprobado {{time}}",
+    "checking": "COMPROBANDO",
+    "stillRunning": "La primera comprobación del entorno sigue en ejecución.",
+    "columns": {
+      "tool": "Herramienta",
+      "paths": "Rutas detectadas",
+      "version": "Versión"
+    },
+    "noPath": "No encontrado en PATH",
+    "pathConflict": "Varias entradas de PATH"
+  },
+  "status": {
+    "AVAILABLE": "Disponible",
+    "SHIM_FOUND": "Shim encontrado · versión no consultada",
+    "PATH_FOUND": "Ruta encontrada · versión no consultada",
+    "MISSING": "No encontrado",
+    "TIMEOUT": "La comprobación de versión agotó el tiempo de espera",
+    "VERSION_ERROR": "No se pudo leer la versión"
+  },
+  "note": "La detección solo ejecuta comandos de versión para binarios encontrados en PATH. No modifica PATH, no instala paquetes ni eleva permisos."
+}

@@ -1,0 +1,17 @@
+{
+  "generic": "Une erreur est survenue. Veuillez réessayer.",
+  "loadFailed": "Impossible de charger les données demandées.",
+  "environmentCheck": "La vérification de l'environnement a échoué.",
+  "addProject": "Impossible d'ajouter ce dossier.",
+  "scanProject": "L'analyse du projet a échoué.",
+  "removeProject": "Impossible de retirer la référence du projet.",
+  "autoStart": "Impossible de modifier le réglage de démarrage Windows.",
+  "agentConfig": "Impossible de charger l'état de l'agent local.",
+  "agentTaskDetail": "Impossible de charger les détails de la tâche de l'agent.",
+  "agentTaskRefresh": "Impossible d'actualiser le statut de la tâche de l'agent.",
+  "agentTaskStart": "Impossible de démarrer la tâche locale de l'agent.",
+  "agentTaskCancel": "Impossible d'annuler la tâche de l'agent.",
+  "agentTaskRetry": "Impossible de relancer la tâche de l'agent.",
+  "workstationData": "Impossible de charger les données locales de la station de travail.",
+  "serviceUnavailable": "Le service local ne répond pas. Redémarrez PROJECT NEXUS et réessayez."
+}

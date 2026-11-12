@@ -1,0 +1,80 @@
+{
+  "center": {
+    "eyebrow": "バージョン管理",
+    "title": "リリースセンター",
+    "subtitle": "ドラフトの作成、リリースアセットの確認を行い、公開は明示的な管理者確認の背後に保持します。",
+    "refresh": "リリースを更新",
+    "loading": "GitHub Releases を読み取り中",
+    "chooseRepositoryFirst": "先にリポジトリを選択してください",
+    "draftQueued": "リリースドラフトをキューに追加しました",
+    "draftFailed": "リリースドラフトに失敗しました",
+    "publishQueued": "リリースの公開をキューに追加しました",
+    "loadFailed": "リリースを読み込めません"
+  },
+  "form": {
+    "kicker": "リリースの下書き",
+    "title": "バージョンを準備",
+    "repository": "リポジトリ",
+    "tag": "タグ",
+    "tagPlaceholder": "v1.2.3",
+    "name": "名前",
+    "namePlaceholder": "リリース名",
+    "notes": "ノート",
+    "notesPlaceholder": "リリースノートは公開前に編集できます。",
+    "create": "ドラフトを作成"
+  },
+  "policy": {
+    "kicker": "公開ポリシー",
+    "title": "承認ゲート",
+    "semverTitle": "セマンティックバージョンが必要です",
+    "semverDetail": "ドラフトを作成する前に、既存のタグが確認されます。",
+    "digestTitle": "アセットはダイジェスト化可能",
+    "digestDetail": "アップロードされたアセットには、監査証跡に SHA-256 の記録が残ります。",
+    "adminTitle": "公開には Administrator が必要",
+    "adminDetail": "本番リリースの公開には confirm=true と管理者ロールが必要です。"
+  },
+  "list": {
+    "emptyBannerTitle": "リリースデータが空です",
+    "emptyBannerDetail": "先にリポジトリを同期してください。トークンが設定されると、リリースは GitHub から取得されます。",
+    "unpublishedDraft": "未公開のドラフト",
+    "stateDraft": "下書き",
+    "statePrerelease": "プレリリース",
+    "statePublished": "公開済み",
+    "emptyTitle": "リリースが返されませんでした",
+    "emptyDetail": "これはライブ読み取りです。結果が空白の場合、現在のリポジトリセットに対して GitHub がリリースを返さなかったことを意味します。"
+  },
+  "autoUpdate": {
+    "eyebrow": "クロスプラットフォーム更新",
+    "title": "自動更新",
+    "subtitle": "リポジトリセット全体の実際のプロジェクトファイル、マニフェスト、チャネル、ダイジェスト、署名エビデンスを確認します。",
+    "checkAll": "すべてのプロジェクトをチェック",
+    "summary": {
+      "checked": "チェック済みプロジェクト",
+      "ready": "準備完了",
+      "blocked": "ブロック",
+      "lastCheck": "最終チェック"
+    },
+    "versionUnknown": "バージョン不明",
+    "evidence_one": "{{count}} 件のエビデンスファイル · {{samples}}",
+    "evidence_other": "{{count}} 件のエビデンスファイル · {{samples}}",
+    "noEvidence": "サポート対象の更新エビデンスが見つかりません",
+    "recheck": "プロジェクトを再チェック",
+    "recheckToast": "{{project}} の更新チェックをキューに追加しました",
+    "loading": "更新エビデンスを読み取り中",
+    "checkQueued": "更新チェックをキューに追加しました",
+    "checkFailed": "更新チェックをキューに追加できません",
+    "loadFailed": "更新チェックを読み込めません",
+    "emptyTitle": "更新チェックはまだありません",
+    "emptyDetail": "チェックを実行すると、実際のリポジトリファイルから Electron、Tauri、Python、.NET、Java、Web の更新シグナルを確認できます。",
+    "runFirst": "最初のチェックを実行",
+    "semantics": {
+      "kicker": "セキュリティの意味",
+      "title": "チェックの意味",
+      "sha": "コンテンツの整合性",
+      "signatureLabel": "署名",
+      "signature": "発行元の真正性",
+      "https": "転送の保護",
+      "blocked": "必要なエビデンスが不足しています"
+    }
+  }
+}

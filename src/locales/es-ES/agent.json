@@ -1,0 +1,84 @@
+{
+  "page": {
+    "title": "Agente de IA",
+    "subtitle": "Genera cambios de código revisables en una copia aislada de un proyecto registrado."
+  },
+  "compose": {
+    "title": "Describe un cambio de código",
+    "providerReady": "Proveedor listo",
+    "providerRequired": "Se requiere un proveedor",
+    "projectLabel": "Proyecto registrado",
+    "projectPlaceholder": "Elige un proyecto",
+    "providerLabel": "Proveedor configurado",
+    "providerPlaceholder": "Elige un proveedor",
+    "noProjects": "Añade una carpeta local con el botón de arriba antes de iniciar una tarea del agente.",
+    "noProviders": "No hay ningún proveedor configurado. Define los valores del proveedor de IA en el entorno del servicio local; las claves de API quedan fuera del renderizador.",
+    "promptLabel": "Solicitud",
+    "promptBytes": "{{used}} / {{limit}} bytes",
+    "promptPlaceholder": "Describe el cambio previsto, las restricciones y cómo quieres que se estructure el resultado.",
+    "disclosureTitle": "Divulgación de código fuente",
+    "disclosureBody": "Iniciar esta tarea envía tu solicitud y hasta {{maxFiles}} archivos UTF-8 elegibles desde una copia aislada y acotada al proveedor seleccionado. El texto fuente se depura y se limita a {{maxKiB}} KiB tras la depuración. Las rutas con forma de secreto y las carpetas integradas de dependencias/compilación se omiten. Se aplican las reglas de .gitignore del proyecto; los patrones malformados o no compatibles detienen la creación del espacio de trabajo aislado.",
+    "consent": "He revisado esta divulgación y autorizo el envío del contexto de código fuente acotado de esta tarea al proveedor seleccionado.",
+    "footerNote": "Las ediciones candidatas permanecen bajo el espacio de trabajo aislado de la tarea en los datos de la aplicación.",
+    "submit": "Generar cambios aislados",
+    "submitting": "Poniendo la tarea en cola…"
+  },
+  "history": {
+    "title": "Historial de tareas",
+    "refresh": "Actualizar tareas del agente",
+    "cancelAria": "Cancelar tarea {{label}}",
+    "cancelTitle": "Cancelar tarea",
+    "emptyTitle": "Sin tareas locales del agente",
+    "emptyDetail": "Las nuevas propuestas y su estado guardado aparecerán aquí."
+  },
+  "review": {
+    "title": "Revisión de cambios aislados",
+    "emptyTitle": "Selecciona una tarea para inspeccionar su resultado",
+    "emptyDetail": "Los cambios de archivos generados se muestran aquí; el proyecto registrado permanece intacto.",
+    "requestLabel": "SOLICITUD",
+    "rationaleLabel": "JUSTIFICACIÓN DEL PROVEEDOR",
+    "pathsSummary": "Rutas de código fuente divulgadas ({{count}})",
+    "changesTitle": "Diferencias de archivos",
+    "changesCount_one": "{{count}} cambio",
+    "changesCount_other": "{{count}} cambios",
+    "changesError": "No se pudieron leer los cambios desde el espacio de trabajo aislado: {{message}}",
+    "before": "Antes",
+    "after": "Después",
+    "deletedNote": "Esta eliminación ocurrió dentro del espacio de trabajo aislado.",
+    "previewUnavailable": "Vista previa de texto no disponible: {{status}}.",
+    "runningNote": "La tarea está en ejecución. Su espacio de trabajo y las rutas divulgadas aparecerán a medida que se registren.",
+    "noDiffError": "No hay vista previa de diferencias disponible.",
+    "noDiff": "No se generaron cambios de archivos para esta tarea.",
+    "eventsSummary": "Eventos de la tarea ({{count}})",
+    "retryNote": "Reintentar crea una nueva tarea aislada y requiere una nueva divulgación de código fuente.",
+    "retryAction": "Reintentar tarea"
+  },
+  "meta": {
+    "tokens": "{{value}} tokens",
+    "cost": "{{value}}"
+  },
+  "status": {
+    "Queued": "En cola",
+    "Running": "En ejecución",
+    "Succeeded": "Completada",
+    "Failed": "Con error",
+    "Blocked": "Bloqueada",
+    "Cancelled": "Cancelada",
+    "Interrupted": "Interrumpida",
+    "Paused": "En pausa"
+  },
+  "events": {
+    "created": "Tarea creada",
+    "status_changed": "Estado cambiado de {{from}} a {{to}}",
+    "workspace_created": "Espacio de trabajo aislado preparado",
+    "completed": "Tarea completada",
+    "failed": "Tarea con error",
+    "cancelled": "Tarea cancelada",
+    "interrupted": "Tarea interrumpida",
+    "rawDetail": "{{detail}}"
+  },
+  "capabilityNote": "Esta versión registra el estado de las tareas y crea cambios revisables en una copia aislada. No aplica cambios a la carpeta registrada, no ejecuta comandos, no ejecuta pruebas ni proporciona controles de Git apply/rollback.",
+  "replyLanguage": {
+    "instruction": "Escribe tus explicaciones en {{language}}. Mantén sin cambios todo el código, los comandos, los identificadores y las rutas de archivos."
+  }
+}

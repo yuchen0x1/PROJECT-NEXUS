@@ -1,0 +1,84 @@
+{
+  "page": {
+    "title": "AI Agent",
+    "subtitle": "Generate reviewable code changes in an isolated copy of a registered project."
+  },
+  "compose": {
+    "title": "Describe a code change",
+    "providerReady": "Provider ready",
+    "providerRequired": "Provider required",
+    "projectLabel": "Registered project",
+    "projectPlaceholder": "Choose a project",
+    "providerLabel": "Configured provider",
+    "providerPlaceholder": "Choose a provider",
+    "noProjects": "Add a local folder with the button above before starting an Agent task.",
+    "noProviders": "No provider is configured. Set AI provider values in the local service environment; API keys stay out of the renderer.",
+    "promptLabel": "Request",
+    "promptBytes": "{{used}} / {{limit}} bytes",
+    "promptPlaceholder": "Describe the intended change, constraints, and how you want the result structured.",
+    "disclosureTitle": "Source disclosure",
+    "disclosureBody": "Starting this task sends your prompt and up to {{maxFiles}} eligible UTF-8 files from a bounded isolated copy to the selected provider. Source text is redacted and capped at {{maxKiB}} KiB after redaction. Secret-shaped paths and built-in dependency/build folders are skipped. Supported project .gitignore rules are applied; malformed or unsupported patterns stop workspace creation.",
+    "consent": "I reviewed this disclosure and authorize sending this task's bounded source context to the selected provider.",
+    "footerNote": "Candidate edits stay under the task workspace in app data.",
+    "submit": "Generate isolated changes",
+    "submitting": "Queuing task…"
+  },
+  "history": {
+    "title": "Task history",
+    "refresh": "Refresh Agent tasks",
+    "cancelAria": "Cancel task {{label}}",
+    "cancelTitle": "Cancel task",
+    "emptyTitle": "No local Agent tasks",
+    "emptyDetail": "New proposals and their saved state will appear here."
+  },
+  "review": {
+    "title": "Isolated change review",
+    "emptyTitle": "Select a task to inspect its result",
+    "emptyDetail": "Generated file changes are shown here; the registered project stays untouched.",
+    "requestLabel": "REQUEST",
+    "rationaleLabel": "PROVIDER RATIONALE",
+    "pathsSummary": "Source paths disclosed ({{count}})",
+    "changesTitle": "File differences",
+    "changesCount_one": "{{count}} change",
+    "changesCount_other": "{{count}} changes",
+    "changesError": "Changes could not be read from the isolated workspace: {{message}}",
+    "before": "Before",
+    "after": "After",
+    "deletedNote": "This deletion occurred inside the isolated workspace.",
+    "previewUnavailable": "Text preview unavailable: {{status}}.",
+    "runningNote": "The task is running. Its workspace and disclosed paths will appear as they are recorded.",
+    "noDiffError": "No difference preview is available.",
+    "noDiff": "No file changes were generated for this task.",
+    "eventsSummary": "Task events ({{count}})",
+    "retryNote": "Retry creates a new isolated task and requires fresh source disclosure.",
+    "retryAction": "Retry task"
+  },
+  "meta": {
+    "tokens": "{{value}} tokens",
+    "cost": "{{value}}"
+  },
+  "status": {
+    "Queued": "Queued",
+    "Running": "Running",
+    "Succeeded": "Succeeded",
+    "Failed": "Failed",
+    "Blocked": "Blocked",
+    "Cancelled": "Cancelled",
+    "Interrupted": "Interrupted",
+    "Paused": "Paused"
+  },
+  "events": {
+    "created": "Task created",
+    "status_changed": "Status changed from {{from}} to {{to}}",
+    "workspace_created": "Isolated workspace prepared",
+    "completed": "Task completed",
+    "failed": "Task failed",
+    "cancelled": "Task cancelled",
+    "interrupted": "Task interrupted",
+    "rawDetail": "{{detail}}"
+  },
+  "capabilityNote": "This version records task state and creates reviewable changes in an isolated copy. It does not apply changes to the registered folder, execute commands, run tests, or provide Git apply/rollback controls.",
+  "replyLanguage": {
+    "instruction": "Please write your explanations in {{language}}. Keep all code, commands, identifiers and file paths unchanged."
+  }
+}

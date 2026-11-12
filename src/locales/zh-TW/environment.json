@@ -1,0 +1,33 @@
+{
+  "page": {
+    "title": "開發環境",
+    "subtitle": "從這個 Windows 使用者帳戶偵測到的可執行檔路徑與版本。"
+  },
+  "summary": {
+    "detected": "偵測到 {{total}} 個工具中的 {{available}} 個",
+    "running": "環境偵測進行中",
+    "detail": "在安全的前提下，對可執行檔進行有限度的版本檢查。命令墊片（shim）與 Windows Terminal 僅透過路徑識別，不會被呼叫；多個 PATH 項目會被標記為衝突。"
+  },
+  "table": {
+    "title": "已安裝的開發工具",
+    "scannedAt": "檢查於 {{time}}",
+    "checking": "檢查中",
+    "stillRunning": "首次環境偵測仍在進行中。",
+    "columns": {
+      "tool": "工具",
+      "paths": "偵測到的路徑",
+      "version": "版本"
+    },
+    "noPath": "未在 PATH 中找到",
+    "pathConflict": "存有多個 PATH 項目"
+  },
+  "status": {
+    "AVAILABLE": "可用",
+    "SHIM_FOUND": "發現墊片 · 未查詢版本",
+    "PATH_FOUND": "發現路徑 · 未查詢版本",
+    "MISSING": "找不到",
+    "TIMEOUT": "版本檢查逾時",
+    "VERSION_ERROR": "無法讀取版本"
+  },
+  "note": "偵測只會對 PATH 中找到的二進位檔執行版本命令，不會修改 PATH、安裝套件或提高權限。"
+}

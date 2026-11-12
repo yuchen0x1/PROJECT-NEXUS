@@ -16,6 +16,10 @@ if (!executableInfo?.isFile()) throw new Error(`NEXUS_INSTALLED_EXE is not a fil
 
 const tempLocalAppData = await fs.mkdtemp(path.join(os.tmpdir(), 'nexus-installed-package-smoke-'))
 const expectedDataPath = path.join(tempLocalAppData, 'PROJECT NEXUS')
+// Pin the UI language so the assertions below stay deterministic regardless
+// of the Windows display language of the machine running the test.
+await fs.mkdir(expectedDataPath, { recursive: true })
+await fs.writeFile(path.join(expectedDataPath, 'desktop-settings.json'), JSON.stringify({ language: 'en-US' }, null, 2), 'utf8')
 const keepTempDataForUninstallCheck = process.env.NEXUS_KEEP_INSTALLED_SMOKE_DATA === 'true'
 const outputLimit = 128 * 1024
 const startupTimeoutMs = 45_000
@@ -105,8 +109,8 @@ try {
   await page.waitForLoadState('domcontentloaded', { timeout: 30_000 })
   await page.waitForFunction(() => document.title.includes('PROJECT NEXUS'), null, { timeout: 30_000 })
   assert.equal(await page.title(), 'PROJECT NEXUS — Windows Workstation')
-  await page.getByRole('heading', { name: 'Workstation', exact: true }).waitFor({ timeout: 20_000 })
-  await page.getByText('Local service online', { exact: true }).waitFor({ timeout: 20_000 })
+  await page.getByRole('heading', { name: 'Workbench', exact: true }).waitFor({ timeout: 20_000 })
+  await page.getByText('Online', { exact: true }).waitFor({ timeout: 20_000 })
 
   const bridgeInfo = await page.evaluate(async () => {
     if (!window.nexusDesktop) throw new Error('The installed renderer has no desktop preload bridge.')

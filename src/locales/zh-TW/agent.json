@@ -1,0 +1,84 @@
+{
+  "page": {
+    "title": "AI 代理",
+    "subtitle": "在已登記專案的隔離副本中產生可供審查的程式碼變更。"
+  },
+  "compose": {
+    "title": "描述一項程式碼變更",
+    "providerReady": "提供者已就緒",
+    "providerRequired": "需要設定提供者",
+    "projectLabel": "已登記專案",
+    "projectPlaceholder": "選擇一個專案",
+    "providerLabel": "已設定的提供者",
+    "providerPlaceholder": "選擇一個提供者",
+    "noProjects": "請先使用上方按鈕新增本機資料夾，再開始代理任務。",
+    "noProviders": "尚未設定任何提供者。請在本機服務環境中設定 AI 提供者參數；API 金鑰不會進入渲染程序。",
+    "promptLabel": "請求內容",
+    "promptBytes": "{{used}} / {{limit}} 位元組",
+    "promptPlaceholder": "描述預期的變更、限制條件，以及您希望結果的組織方式。",
+    "disclosureTitle": "原始碼揭露",
+    "disclosureBody": "開始此任務會將您的提示詞，以及來自有邊界隔離副本中最多 {{maxFiles}} 個符合條件的 UTF-8 檔案，傳送給所選的提供者。原始碼文字會先經過遮蔽，遮蔽後的上限為 {{maxKiB}} KiB。疑似含機密內容的路徑與內建的相依套件／建置資料夾會被略過。會套用專案中受支援的 .gitignore 規則；格式錯誤或不受支援的模式會導致工作區無法建立。",
+    "consent": "我已審閱此揭露內容，並授權將此任務的有邊界原始碼內容傳送給所選的提供者。",
+    "footerNote": "候選編輯內容會保留在應用程式資料中的任務工作區內。",
+    "submit": "產生隔離變更",
+    "submitting": "正在將任務加入佇列…"
+  },
+  "history": {
+    "title": "任務歷史記錄",
+    "refresh": "重新整理代理任務",
+    "cancelAria": "取消任務 {{label}}",
+    "cancelTitle": "取消任務",
+    "emptyTitle": "沒有本機代理任務",
+    "emptyDetail": "新的提案及其儲存的狀態會顯示在這裡。"
+  },
+  "review": {
+    "title": "隔離變更審查",
+    "emptyTitle": "選擇一個任務以檢視其結果",
+    "emptyDetail": "產生的檔案變更會顯示在這裡；已登記的專案保持不變。",
+    "requestLabel": "請求內容",
+    "rationaleLabel": "提供者說明",
+    "pathsSummary": "已揭露的原始檔路徑（{{count}}）",
+    "changesTitle": "檔案差異",
+    "changesCount_one": "{{count}} 處變更",
+    "changesCount_other": "{{count}} 處變更",
+    "changesError": "無法從隔離工作區讀取變更：{{message}}",
+    "before": "變更前",
+    "after": "變更後",
+    "deletedNote": "此刪除作業發生在隔離工作區內。",
+    "previewUnavailable": "文字預覽無法使用：{{status}}。",
+    "runningNote": "任務正在執行。其工作區與揭露的路徑會在記錄後陸續顯示。",
+    "noDiffError": "目前沒有可用的差異預覽。",
+    "noDiff": "此任務未產生任何檔案變更。",
+    "eventsSummary": "任務事件（{{count}}）",
+    "retryNote": "重試會建立新的隔離任務，並需要重新進行原始碼揭露。",
+    "retryAction": "重試任務"
+  },
+  "meta": {
+    "tokens": "{{value}} 個 Token",
+    "cost": "{{value}}"
+  },
+  "status": {
+    "Queued": "已排入佇列",
+    "Running": "執行中",
+    "Succeeded": "已成功",
+    "Failed": "已失敗",
+    "Blocked": "已封鎖",
+    "Cancelled": "已取消",
+    "Interrupted": "已中斷",
+    "Paused": "已暫停"
+  },
+  "events": {
+    "created": "任務已建立",
+    "status_changed": "狀態從 {{from}} 變更為 {{to}}",
+    "workspace_created": "隔離工作區已就緒",
+    "completed": "任務已完成",
+    "failed": "任務失敗",
+    "cancelled": "任務已取消",
+    "interrupted": "任務已中斷",
+    "rawDetail": "{{detail}}"
+  },
+  "capabilityNote": "本版本會記錄任務狀態，並在隔離副本中產生可供審查的變更。它不會將變更套用至已登記資料夾，不會執行命令、執行測試，也不提供 Git apply／回滾控制。",
+  "replyLanguage": {
+    "instruction": "請以{{language}}撰寫說明文字。所有程式碼、命令、識別碼與檔案路徑保持不變。"
+  }
+}

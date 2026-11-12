@@ -52,13 +52,42 @@ export type WorkstationInfo = {
 
 export type ProjectRegistration = { project: LocalProject; added: boolean }
 
+export type ThemePreference = 'dark' | 'light' | 'system'
+
+export type AgentReplyLanguageMode = 'ui' | 'input' | (string & {})
+
+export type UserPreferences = {
+  /** null on first launch: the startup language is derived from the system locale. */
+  language: string | null
+  theme: ThemePreference
+  reduceMotion: boolean
+  agentReplyLanguage: AgentReplyLanguageMode
+}
+
+export type DesktopSettingsPayload = {
+  preferences: UserPreferences
+  systemLocale: string
+  /** Files used by the main process so the UI can show where settings live. */
+  settingsPath: string
+}
+
+export type LocalizedDialogText = {
+  title?: string
+  message: string
+  detail?: string
+  confirm: string
+  cancel: string
+}
+
 export type DesktopBridge = {
   requestApi: (request: { url: string; method?: string; body?: string }) => Promise<{ status: number; body: Record<string, unknown> }>
   getInfo: () => Promise<WorkstationInfo>
   detectEnvironment: () => Promise<EnvironmentReport>
   listProjects: () => Promise<LocalProject[]>
-  addProject: () => Promise<ProjectRegistration | null>
-  removeProject: (projectId: string, projectName: string) => Promise<{ removed: boolean }>
+  addProject: (dialogTitle?: string) => Promise<ProjectRegistration | null>
+  removeProject: (projectId: string, projectName: string, dialog?: LocalizedDialogText) => Promise<{ removed: boolean }>
   scanProject: (projectId: string) => Promise<NonNullable<LocalProject['lastScan']>>
   setAutoStart: (enabled: boolean) => Promise<{ enabled: boolean }>
+  getSettings: () => Promise<DesktopSettingsPayload>
+  updateSettings: (partial: Partial<Omit<UserPreferences, 'language'>> & { language?: string | null }) => Promise<UserPreferences>
 }

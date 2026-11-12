@@ -7,9 +7,11 @@ const base = process.env.NEXUS_URL || 'http://localhost:4317'
 const browser = await chromium.launch({ headless: true })
 try {
   const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } })
+  // Pin the UI language so selectors below are deterministic in any locale.
+  await page.addInitScript(() => window.localStorage.setItem('nexus.user-preferences', JSON.stringify({ language: 'en-US' })))
   await page.goto(base)
   await page.waitForLoadState('networkidle')
-  assert.equal(await page.title(), 'PROJECT NEXUS · GitHub control center')
+  assert.equal(await page.title(), 'PROJECT NEXUS')
   assert.equal(await page.locator('h1').first().textContent(), 'Control center')
   assert.equal(await page.locator('.nav-item').count(), 16)
   const screenshotDir = path.resolve('docs/screenshots/phase3')

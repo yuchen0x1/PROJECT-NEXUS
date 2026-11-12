@@ -1,0 +1,57 @@
+{
+  "title": "Workbench",
+  "subtitle": "A local-first view of this Windows machine and its approved project folders.",
+  "overline": "WINDOWS DEVELOPMENT WORKSTATION",
+  "sections": {
+    "workbench": "Workbench",
+    "projects": "Local projects",
+    "environment": "Development environment",
+    "agent": "AI Agent",
+    "remote": "Remote console"
+  },
+  "sectionSubtitle": {
+    "projects": "Choose folders explicitly. The first scan reads names and project markers only.",
+    "environment": "Detected executable paths and versions from this Windows user account.",
+    "agent": "Generate reviewable code changes in an isolated copy of a registered project.",
+    "remote": "Existing GitHub and release workflows, kept separate from local execution permissions."
+  },
+  "readiness": {
+    "title": "This machine is ready for local project setup",
+    "detail": "Scanning is read-only. File edits, builds, Git writes and publishing are not enabled in this phase."
+  },
+  "summary": {
+    "projects": "Local projects",
+    "projectsDetail": "registered folders",
+    "tools": "Tools detected",
+    "toolsDetail": "paths and safe version probes completed",
+    "toolsChecking": "checking environment",
+    "scans": "Project scans",
+    "scansDetail": "read-only reports saved locally",
+    "startup": "Windows startup",
+    "startupDetail": "user-controlled preference"
+  },
+  "recentProjects": {
+    "title": "Recent projects",
+    "detail": "Only folders you add are visible to the workstation."
+  },
+  "environmentPreview": {
+    "title": "Development environment",
+    "recheck": "Recheck development tools",
+    "checking": "Checking installed tools…",
+    "openReport": "Open full environment report"
+  },
+  "boundary": {
+    "title": "Execution boundary",
+    "inForce": "IN FORCE",
+    "folderDialog": "Projects are chosen through the Windows folder dialog",
+    "scanLimits": "Scans skip symbolic links and stay within size limits",
+    "changesDisabled": "Changes and commands remain disabled until approval controls ship"
+  },
+  "agentPanel": {
+    "title": "AI Agent activity",
+    "empty": "No Agent tasks are running.",
+    "start": "Open the AI Agent page to start a task.",
+    "activeTask": "Active task",
+    "noActiveTask": "No active task"
+  }
+}

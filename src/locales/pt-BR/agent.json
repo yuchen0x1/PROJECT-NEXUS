@@ -1,0 +1,84 @@
+{
+  "page": {
+    "title": "Agente de IA",
+    "subtitle": "Gera alterações de código revisáveis em uma cópia isolada de um projeto registrado."
+  },
+  "compose": {
+    "title": "Descreva uma alteração de código",
+    "providerReady": "Provedor pronto",
+    "providerRequired": "Provedor obrigatório",
+    "projectLabel": "Projeto registrado",
+    "projectPlaceholder": "Escolha um projeto",
+    "providerLabel": "Provedor configurado",
+    "providerPlaceholder": "Escolha um provedor",
+    "noProjects": "Adicione uma pasta local com o botão acima antes de iniciar uma tarefa do agente.",
+    "noProviders": "Nenhum provedor está configurado. Defina os valores do provedor de IA no ambiente do serviço local; as chaves de API ficam fora do renderizador.",
+    "promptLabel": "Solicitação",
+    "promptBytes": "{{used}} / {{limit}} bytes",
+    "promptPlaceholder": "Descreva a alteração pretendida, as restrições e como você deseja que o resultado seja estruturado.",
+    "disclosureTitle": "Divulgação de código-fonte",
+    "disclosureBody": "Iniciar esta tarefa envia sua solicitação e até {{maxFiles}} arquivos UTF-8 elegíveis de uma cópia isolada e limitada ao provedor selecionado. O texto do código-fonte é depurado e limitado a {{maxKiB}} KiB após a depuração. Caminhos com aparência de segredo e pastas internas de dependências/build são ignorados. As regras de .gitignore do projeto são aplicadas; padrões malformados ou não compatíveis interrompem a criação do espaço de trabalho isolado.",
+    "consent": "Revisei esta divulgação e autorizo o envio do contexto limitado de código-fonte desta tarefa ao provedor selecionado.",
+    "footerNote": "As edições candidatas permanecem sob o espaço de trabalho isolado da tarefa nos dados do aplicativo.",
+    "submit": "Gerar alterações isoladas",
+    "submitting": "Enfileirando tarefa…"
+  },
+  "history": {
+    "title": "Histórico de tarefas",
+    "refresh": "Atualizar tarefas do agente",
+    "cancelAria": "Cancelar tarefa {{label}}",
+    "cancelTitle": "Cancelar tarefa",
+    "emptyTitle": "Nenhuma tarefa local do agente",
+    "emptyDetail": "As novas propostas e seus estados salvos aparecerão aqui."
+  },
+  "review": {
+    "title": "Revisão de alterações isoladas",
+    "emptyTitle": "Selecione uma tarefa para inspecionar o resultado",
+    "emptyDetail": "As alterações de arquivos geradas são exibidas aqui; o projeto registrado permanece intacto.",
+    "requestLabel": "SOLICITAÇÃO",
+    "rationaleLabel": "JUSTIFICATIVA DO PROVEDOR",
+    "pathsSummary": "Caminhos de código-fonte divulgados ({{count}})",
+    "changesTitle": "Diferenças de arquivos",
+    "changesCount_one": "{{count}} alteração",
+    "changesCount_other": "{{count}} alterações",
+    "changesError": "Não foi possível ler as alterações do espaço de trabalho isolado: {{message}}",
+    "before": "Antes",
+    "after": "Depois",
+    "deletedNote": "Esta exclusão ocorreu dentro do espaço de trabalho isolado.",
+    "previewUnavailable": "Visualização de texto indisponível: {{status}}.",
+    "runningNote": "A tarefa está em execução. O espaço de trabalho dela e os caminhos divulgados aparecerão conforme forem registrados.",
+    "noDiffError": "Nenhuma visualização de diferenças disponível.",
+    "noDiff": "Nenhuma alteração de arquivo foi gerada para esta tarefa.",
+    "eventsSummary": "Eventos da tarefa ({{count}})",
+    "retryNote": "Tentar novamente cria uma nova tarefa isolada e exige uma nova divulgação de código-fonte.",
+    "retryAction": "Tentar tarefa novamente"
+  },
+  "meta": {
+    "tokens": "{{value}} tokens",
+    "cost": "{{value}}"
+  },
+  "status": {
+    "Queued": "Na fila",
+    "Running": "Em execução",
+    "Succeeded": "Concluída",
+    "Failed": "Falhou",
+    "Blocked": "Bloqueada",
+    "Cancelled": "Cancelada",
+    "Interrupted": "Interrompida",
+    "Paused": "Pausada"
+  },
+  "events": {
+    "created": "Tarefa criada",
+    "status_changed": "Status alterado de {{from}} para {{to}}",
+    "workspace_created": "Espaço de trabalho isolado preparado",
+    "completed": "Tarefa concluída",
+    "failed": "Tarefa falhou",
+    "cancelled": "Tarefa cancelada",
+    "interrupted": "Tarefa interrompida",
+    "rawDetail": "{{detail}}"
+  },
+  "capabilityNote": "Esta versão registra o estado das tarefas e cria alterações revisáveis em uma cópia isolada. Ela não aplica alterações à pasta registrada, não executa comandos, não roda testes nem fornece controles de Git apply/rollback.",
+  "replyLanguage": {
+    "instruction": "Escreva suas explicações em {{language}}. Mantenha inalterados todo o código, os comandos, os identificadores e os caminhos de arquivos."
+  }
+}
