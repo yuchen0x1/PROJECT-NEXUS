@@ -13,5 +13,11 @@
   "agentTaskCancel": "无法取消智能体任务。",
   "agentTaskRetry": "无法重试智能体任务。",
   "workstationData": "无法加载本地工作站数据。",
-  "serviceUnavailable": "本地服务没有响应。请重启 PROJECT NEXUS 后重试。"
+  "serviceUnavailable": "本地服务没有响应。请重启 PROJECT NEXUS 后重试。",
+  "agentApprovalResolve": "审批决定保存失败。",
+  "agentRollback": "工作区回滚失败。",
+  "agentApply": "修改未能应用到项目。",
+  "providerKeySave": "API 密钥未能安全保存。",
+  "providerSave": "Provider 保存失败。",
+  "agentInsights": "项目分析失败。"
 }

@@ -20,8 +20,14 @@
     "disclosureBody": "開始此任務會將您的提示詞，以及來自有邊界隔離副本中最多 {{maxFiles}} 個符合條件的 UTF-8 檔案，傳送給所選的提供者。原始碼文字會先經過遮蔽，遮蔽後的上限為 {{maxKiB}} KiB。疑似含機密內容的路徑與內建的相依套件／建置資料夾會被略過。會套用專案中受支援的 .gitignore 規則；格式錯誤或不受支援的模式會導致工作區無法建立。",
     "consent": "我已審閱此揭露內容，並授權將此任務的有邊界原始碼內容傳送給所選的提供者。",
     "footerNote": "候選編輯內容會保留在應用程式資料中的任務工作區內。",
-    "submit": "產生隔離變更",
-    "submitting": "正在將任務加入佇列…"
+    "submit": "啟動 Agent 任務",
+    "submitting": "正在將任務加入佇列…",
+    "taskTypeLabel": "任務引擎",
+    "taskTypeRuntime": "自主 Agent（多輪工具呼叫）",
+    "taskTypeLegacy": "單輪提案（舊版）",
+    "approvalPolicyLabel": "核准策略",
+    "workspaceModeLabel": "工作區隔離",
+    "runtimeNote": "Agent 會規劃任務、在隔離工作區中呼叫真實工具、執行建置與測試、自動修復失敗並審查自己的差異。高風險操作會暫停等待您的核准。"
   },
   "history": {
     "title": "任務歷史記錄",
@@ -29,7 +35,9 @@
     "cancelAria": "取消任務 {{label}}",
     "cancelTitle": "取消任務",
     "emptyTitle": "沒有本機代理任務",
-    "emptyDetail": "新的提案及其儲存的狀態會顯示在這裡。"
+    "emptyDetail": "新的提案及其儲存的狀態會顯示在這裡。",
+    "runtimeTag": "自主執行",
+    "toolCalls": "{{count}} 次工具呼叫"
   },
   "review": {
     "title": "隔離變更審查",
@@ -51,11 +59,27 @@
     "noDiff": "此任務未產生任何檔案變更。",
     "eventsSummary": "任務事件（{{count}}）",
     "retryNote": "重試會建立新的隔離任務，並需要重新進行原始碼揭露。",
-    "retryAction": "重試任務"
+    "retryAction": "重試任務",
+    "approvalsTitle": "{{count}} 項操作等待您的核准",
+    "approve": "核准",
+    "deny": "拒絕",
+    "planSummary": "任務計畫（{{count}} 步）",
+    "verificationTitle": "建置與測試驗證",
+    "verifyLog": "{{label}}：{{ok}}",
+    "noOutput": "（無輸出）",
+    "reviewTitle": "獨立差異審查",
+    "finalMessageLabel": "Agent 總結",
+    "rollback": "回復工作區",
+    "rollingBack": "回復中…",
+    "apply": "套用到專案",
+    "applying": "套用中…"
   },
   "meta": {
     "tokens": "{{value}} 個 Token",
-    "cost": "{{value}}"
+    "cost": "{{value}}",
+    "workspaceMode": "工作區：{{mode}}",
+    "iterations": "迭代次數：{{value}}",
+    "toolCalls": "工具呼叫：{{value}}"
   },
   "status": {
     "Queued": "已排入佇列",
@@ -75,10 +99,90 @@
     "failed": "任務失敗",
     "cancelled": "任務已取消",
     "interrupted": "任務已中斷",
-    "rawDetail": "{{detail}}"
+    "rawDetail": "{{detail}}",
+    "started": "Agent 執行環境已啟動",
+    "plan": "已產生計畫",
+    "tool_call": "工具已執行",
+    "model_retry": "模型輸出已重試",
+    "repair_start": "自動修復嘗試",
+    "repair_tool": "修復工具已執行",
+    "verification": "建置/測試驗證",
+    "review": "獨立審查",
+    "review_skipped": "審查已略過",
+    "final": "最終總結",
+    "phase": "階段變更",
+    "index": "專案索引已建立",
+    "index_failed": "專案索引失敗",
+    "context": "任務上下文已選定",
+    "context_failed": "上下文選擇失敗",
+    "approval_requested": "請求核准",
+    "approval_settled": "核准已處理",
+    "approval_resolved": "核准已決定",
+    "approval_expired": "核准已逾期",
+    "rolled_back": "工作區已回復",
+    "applied_to_project": "修改已套用到專案"
   },
   "capabilityNote": "本版本會記錄任務狀態，並在隔離副本中產生可供審查的變更。它不會將變更套用至已登記資料夾，不會執行命令、執行測試，也不提供 Git apply／回滾控制。",
   "replyLanguage": {
     "instruction": "請以{{language}}撰寫說明文字。所有程式碼、命令、識別碼與檔案路徑保持不變。"
+  },
+  "policy": {
+    "supervised": "監督模式 — 每次寫入都需核准",
+    "standard": "標準模式 — 工作區寫入自動執行，風險操作需核准",
+    "workspace-auto": "工作區自動 — 僅工作區外操作需核准"
+  },
+  "workspaceMode": {
+    "auto": "自動（優先 Git worktree）",
+    "worktree": "Git worktree",
+    "copy": "受限快照副本"
+  },
+  "insights": {
+    "load": "分析專案",
+    "loading": "分析中…",
+    "summary": "{{files}} 個檔案 · {{languages}} 種語言 · {{entries}} 個進入點",
+    "detailsSummary": "專案理解詳情",
+    "entryPoints": "進入點",
+    "scripts": "建置與測試腳本",
+    "languages": "語言構成",
+    "tests": "測試檔案"
+  },
+  "providers": {
+    "title": "AI Provider 與金鑰",
+    "add": "新增 Provider",
+    "empty": "尚未註冊任何 Provider。新增一個以啟用真實的 Agent 執行。",
+    "encryptionUnavailable": "作業系統金鑰加密不可用 — 無法儲存金鑰",
+    "keySaved": "金鑰已儲存",
+    "keyMissing": "未設定金鑰",
+    "keyPlaceholder": "貼上 API 金鑰（加密儲存，之後不再顯示）",
+    "saveKey": "儲存金鑰",
+    "deleteKey": "刪除金鑰",
+    "test": "測試連線",
+    "testOk": "連線成功（{{latency}} 毫秒）",
+    "testFail": "失敗：{{message}}",
+    "deleteAria": "刪除 Provider {{name}}",
+    "keyNote": "API 金鑰使用作業系統憑證庫加密保存，不會再次顯示，不會寫入日誌或專案檔案，僅轉發給本機服務程序。",
+    "formIncomplete": "名稱、Base URL 與模型為必填欄位。",
+    "form": {
+      "name": "顯示名稱",
+      "kind": "API 格式",
+      "model": "預設模型",
+      "baseUrl": "Base URL",
+      "capabilities": "僅勾選已驗證的能力",
+      "inputPrice": "輸入價格 / 每百萬 Token",
+      "outputPrice": "輸出價格 / 每百萬 Token"
+    },
+    "source": {
+      "stored": "已註冊",
+      "env": "環境變數"
+    }
+  },
+  "risk": {
+    "high": "高風險",
+    "medium": "中風險",
+    "low": "低風險"
+  },
+  "decision": {
+    "approved": "核准",
+    "denied": "拒絕"
   }
 }

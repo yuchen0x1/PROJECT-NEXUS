@@ -1,6 +1,6 @@
 {
   "name": "project-nexus",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Windows AI development and project operations workstation",
   "author": {
     "name": "PROJECT NEXUS"
@@ -24,7 +24,9 @@
     "start": "node server/index.mjs",
     "test": "vitest run",
     "test:ui": "node tests/smoke.mjs",
-    "test:browser": "node tests/browser.mjs"
+    "test:browser": "node tests/browser.mjs",
+    "test:desktop:agent-runtime": "npm run build && node tests/agent-runtime-desktop-ui.mjs",
+    "test:phase6:acceptance": "node tests/phase6-acceptance.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",

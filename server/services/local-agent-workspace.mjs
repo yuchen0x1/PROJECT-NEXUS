@@ -889,3 +889,110 @@ export async function listLocalAgentChanges(workspace) {
   }
   return changes.sort((left, right) => left.path.localeCompare(right.path, 'en'))
 }
+
+// ---- PHASE 6 additions: bounded deletion and baseline restoration ----
+
+async function resolveWorkspaceFile(workspaceState, relativePath, { mustExist = true } = {}) {
+  const segments = pathSegments(relativePath)
+  const relative = segments.join('/')
+  const manifest = await readManifest(workspaceState)
+  assertGitignoreAllowsFile(segments, manifest.gitignoreRules)
+  const target = path.join(workspaceState.source, ...segments)
+  await assertNoSymlinks(workspaceState.source, target, { allowMissingLeaf: !mustExist })
+  if (mustExist) {
+    const info = await lstatOrNull(target)
+    if (!info || info.isSymbolicLink() || !info.isFile()) throw error('Workspace path is not an existing regular file.')
+  }
+  return { segments, relative, target, manifest }
+}
+
+export async function deleteLocalAgentFile(workspace, relativePath) {
+  const workspaceState = await validateWorkspace(workspace)
+  const manifest = await readManifest(workspaceState)
+  const { relative, target } = await resolveWorkspaceFile(workspaceState, relativePath)
+  // Guard the workspace budget after deletion.
+  const baselineEntry = manifest.files.find((file) => file.path.normalize('NFC').toLocaleLowerCase('en-US') === relative.normalize('NFC').toLocaleLowerCase('en-US'))
+  if (!baselineEntry) {
+    // Newly created files may be deleted freely; baseline files are restorable.
+    const info = await fs.lstat(target)
+    if (info.isSymbolicLink() || !info.isFile()) throw error('Workspace path is not a regular file.')
+  }
+  await fs.rm(target, { force: true })
+  await pruneEmptyDirectories(workspaceState.source, path.dirname(target))
+  return relative
+}
+
+async function pruneEmptyDirectories(sourceRoot, directory) {
+  let current = path.resolve(directory)
+  const root = path.resolve(sourceRoot)
+  while (current.startsWith(root + path.sep) && current !== root) {
+    const entries = await fs.readdir(current).catch(() => null)
+    if (entries === null || entries.length > 0) return
+    await fs.rmdir(current).catch(() => {})
+    current = path.dirname(current)
+  }
+}
+
+export async function restoreLocalAgentFile(workspace, relativePath) {
+  const workspaceState = await validateWorkspace(workspace)
+  const manifest = await readManifest(workspaceState)
+  const { relative, target } = await resolveWorkspaceFile(workspaceState, relativePath, { mustExist: false })
+  const baselineEntry = manifest.files.find((file) => file.path.normalize('NFC').toLocaleLowerCase('en-US') === relative.normalize('NFC').toLocaleLowerCase('en-US'))
+  if (baselineEntry) {
+    const baselinePath = path.join(workspaceState.baselineFiles, ...pathSegments(baselineEntry.path))
+    await assertNoSymlinks(workspaceState.baselineFiles, baselinePath)
+    const bytes = await fs.readFile(baselinePath)
+    if (crypto.createHash('sha256').update(bytes).digest('hex') !== baselineEntry.sha256) throw error('Baseline snapshot changed while restoring.')
+    const info = await lstatOrNull(target)
+    if (info?.isSymbolicLink()) throw error('Workspace target became a symbolic link before restore.')
+    await ensureDirectoryTree(path.dirname(target))
+    await writeWorkspaceFile(target, bytes)
+    return { path: relative, restored: true, deleted: false }
+  }
+  const info = await lstatOrNull(target)
+  if (info) {
+    if (info.isSymbolicLink() || !info.isFile()) throw error('Workspace target is not a regular file.')
+    await fs.rm(target, { force: true })
+    await pruneEmptyDirectories(workspaceState.source, path.dirname(target))
+  }
+  return { path: relative, restored: false, deleted: Boolean(info) }
+}
+
+export async function restoreAllLocalAgentFiles(workspace) {
+  const workspaceState = await validateWorkspace(workspace)
+  const manifest = await readManifest(workspaceState)
+  // Remove every current file that is not part of the baseline, then rewrite
+  // the baseline content back over the source tree.
+  const baselineKeys = new Set(manifest.files.map((file) => file.path.normalize('NFC').toLocaleLowerCase('en-US')))
+  const currentFiles = await collectCurrentFiles(workspaceState.source, manifest.limits, manifest.gitignoreRules)
+  const removed = []
+  for (const file of currentFiles) {
+    const key = file.path.normalize('NFC').toLocaleLowerCase('en-US')
+    if (baselineKeys.has(key)) continue
+    const segments = pathSegments(file.path)
+    const target = path.join(workspaceState.source, ...segments)
+    await assertNoSymlinks(workspaceState.source, target)
+    const info = await lstatOrNull(target)
+    if (info?.isFile() && !info.isSymbolicLink()) {
+      await fs.rm(target, { force: true })
+      removed.push(file.path)
+    }
+  }
+  await pruneEmptyDirectories(workspaceState.source, workspaceState.source)
+  const restored = []
+  for (const file of manifest.files) {
+    const segments = pathSegments(file.path)
+    const baselinePath = path.join(workspaceState.baselineFiles, ...segments)
+    await assertNoSymlinks(workspaceState.baselineFiles, baselinePath)
+    const bytes = await fs.readFile(baselinePath)
+    if (crypto.createHash('sha256').update(bytes).digest('hex') !== file.sha256) throw error('Baseline snapshot changed while restoring.')
+    const target = path.join(workspaceState.source, ...segments)
+    const info = await lstatOrNull(target)
+    const unchanged = info && info.isFile() && !info.isSymbolicLink() && info.size === file.size
+    if (unchanged && crypto.createHash('sha256').update(await fs.readFile(target)).digest('hex') === file.sha256) continue
+    await ensureDirectoryTree(path.dirname(target))
+    await writeWorkspaceFile(target, bytes)
+    restored.push(file.path)
+  }
+  return { restored, removed, reset: true }
+}

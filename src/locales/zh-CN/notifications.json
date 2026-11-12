@@ -59,6 +59,21 @@
     "autoStartDisabled": {
       "label": "已停用随 Windows 启动",
       "detail": "此设置仅在您确认后才会更改。"
+    },
+    "agentApprovalResolved": {
+      "label": "Agent 审批已决定",
+      "detail": "{{tool}} 已被{{decision}}。"
+    },
+    "agentRolledBack": {
+      "label": "Agent 工作区已回滚",
+      "detail": "隔离模式：{{mode}}。项目文件未被修改。"
+    },
+    "agentApplied": {
+      "label": "Agent 修改已应用",
+      "detail": "{{count}} 个文件修改已写入项目。"
+    },
+    "agentApplyFailed": {
+      "label": "应用 Agent 修改失败"
     }
   },
   "toast": {
@@ -66,6 +81,9 @@
     "themeChanged": "主题已更新",
     "settingsSaved": "设置已保存",
     "projectAdded": "项目已添加",
-    "scanQueued": "扫描已加入队列"
+    "scanQueued": "扫描已加入队列",
+    "agentRolledBack": "工作区已回滚到原始状态。",
+    "agentApplied": "Agent 修改已应用到您的项目。",
+    "providerSaved": "Provider 已保存。"
   }
 }

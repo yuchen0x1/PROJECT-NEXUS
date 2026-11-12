@@ -13,5 +13,11 @@
   "agentTaskCancel": "無法取消代理任務。",
   "agentTaskRetry": "無法重試代理任務。",
   "workstationData": "無法載入本機工作站資料。",
-  "serviceUnavailable": "本機服務沒有回應。請重新啟動 PROJECT NEXUS 後再試一次。"
+  "serviceUnavailable": "本機服務沒有回應。請重新啟動 PROJECT NEXUS 後再試一次。",
+  "agentApprovalResolve": "核准決定儲存失敗。",
+  "agentRollback": "工作區回復失敗。",
+  "agentApply": "修改未能套用到專案。",
+  "providerKeySave": "API 金鑰未能安全儲存。",
+  "providerSave": "Provider 儲存失敗。",
+  "agentInsights": "專案分析失敗。"
 }

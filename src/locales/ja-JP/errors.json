@@ -13,5 +13,11 @@
   "agentTaskCancel": "エージェントタスクをキャンセルできませんでした。",
   "agentTaskRetry": "エージェントタスクを再試行できませんでした。",
   "workstationData": "ローカルワークステーションのデータを読み込めませんでした。",
-  "serviceUnavailable": "ローカルサービスが応答していません。PROJECT NEXUS を再起動して、もう一度お試しください。"
+  "serviceUnavailable": "ローカルサービスが応答していません。PROJECT NEXUS を再起動して、もう一度お試しください。",
+  "agentApprovalResolve": "承認の決定を保存できませんでした。",
+  "agentRollback": "ワークスペースを復元できませんでした。",
+  "agentApply": "変更をプロジェクトに適用できませんでした。",
+  "providerKeySave": "API キーを安全に保存できませんでした。",
+  "providerSave": "プロバイダーを保存できませんでした。",
+  "agentInsights": "プロジェクトを分析できませんでした。"
 }

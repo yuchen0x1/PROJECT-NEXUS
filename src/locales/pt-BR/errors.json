@@ -13,5 +13,11 @@
   "agentTaskCancel": "Não foi possível cancelar a tarefa do agente.",
   "agentTaskRetry": "Não foi possível tentar a tarefa do agente novamente.",
   "workstationData": "Não foi possível carregar os dados locais da estação de trabalho.",
-  "serviceUnavailable": "O serviço local não está respondendo. Reinicie o PROJECT NEXUS e tente novamente."
+  "serviceUnavailable": "O serviço local não está respondendo. Reinicie o PROJECT NEXUS e tente novamente.",
+  "agentApprovalResolve": "Não foi possível salvar a decisão de aprovação.",
+  "agentRollback": "Não foi possível reverter o espaço de trabalho.",
+  "agentApply": "Não foi possível aplicar as alterações ao projeto.",
+  "providerKeySave": "Não foi possível armazenar a chave de API com segurança.",
+  "providerSave": "Não foi possível salvar o provedor.",
+  "agentInsights": "Não foi possível analisar o projeto."
 }

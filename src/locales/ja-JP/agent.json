@@ -20,8 +20,14 @@
     "disclosureBody": "このタスクを開始すると、プロンプトと、制限付きの分離コピーから選択したプロバイダーへ、最大 {{maxFiles}} 個の対象 UTF-8 ファイルが送信されます。ソーステキストはマスキングされ、マスキング後に {{maxKiB}} KiB に制限されます。機密情報と思われるパスと組み込みの依存関係/ビルドフォルダーはスキップされます。サポートされているプロジェクトの .gitignore ルールが適用され、不正またはサポートされていないパターンがある場合はワークスペースの作成が中止されます。",
     "consent": "この開示内容を確認し、このタスクの制限されたソースコンテキストを選択したプロバイダーに送信することを承認します。",
     "footerNote": "候補の編集内容は、アプリデータ内のタスクワークスペースの下に保存されます。",
-    "submit": "分離された変更を生成",
-    "submitting": "タスクをキューに追加中…"
+    "submit": "エージェントタスクを開始",
+    "submitting": "タスクをキューに追加中…",
+    "taskTypeLabel": "タスクエンジン",
+    "taskTypeRuntime": "自律エージェント（マルチターンツール実行）",
+    "taskTypeLegacy": "単一パス提案（従来）",
+    "approvalPolicyLabel": "承認ポリシー",
+    "workspaceModeLabel": "ワークスペース分離",
+    "runtimeNote": "エージェントは計画を立て、分離されたワークスペースで実際のツールを呼び出し、ビルドとテストを実行し、失敗を自動修復し、自らの差分をレビューします。高リスク操作は承認のために一時停止します。"
   },
   "history": {
     "title": "タスク履歴",
@@ -29,7 +35,9 @@
     "cancelAria": "タスク {{label}} をキャンセル",
     "cancelTitle": "タスクをキャンセル",
     "emptyTitle": "ローカルのエージェントタスクはありません",
-    "emptyDetail": "新しい提案とその保存された状態がここに表示されます。"
+    "emptyDetail": "新しい提案とその保存された状態がここに表示されます。",
+    "runtimeTag": "自律実行",
+    "toolCalls": "{{count}} 回のツール呼び出し"
   },
   "review": {
     "title": "分離された変更のレビュー",
@@ -51,11 +59,27 @@
     "noDiff": "このタスクで生成されたファイル変更はありません。",
     "eventsSummary": "タスクイベント ({{count}})",
     "retryNote": "再試行では新しい分離タスクを作成し、改めてソースの開示が必要になります。",
-    "retryAction": "タスクを再試行"
+    "retryAction": "タスクを再試行",
+    "approvalsTitle": "{{count}} 件の操作が承認待ち",
+    "approve": "承認",
+    "deny": "拒否",
+    "planSummary": "計画（{{count}} ステップ）",
+    "verificationTitle": "ビルド & テスト検証",
+    "verifyLog": "{{label}}：{{ok}}",
+    "noOutput": "（出力なし）",
+    "reviewTitle": "独立差分レビュー",
+    "finalMessageLabel": "エージェントの要約",
+    "rollback": "ワークスペースを復元",
+    "rollingBack": "復元中…",
+    "apply": "プロジェクトに適用",
+    "applying": "適用中…"
   },
   "meta": {
     "tokens": "{{value}} トークン",
-    "cost": "{{value}}"
+    "cost": "{{value}}",
+    "workspaceMode": "ワークスペース：{{mode}}",
+    "iterations": "反復：{{value}}",
+    "toolCalls": "ツール呼び出し：{{value}}"
   },
   "status": {
     "Queued": "キュー待ち",
@@ -75,10 +99,90 @@
     "failed": "タスクが失敗しました",
     "cancelled": "タスクがキャンセルされました",
     "interrupted": "タスクが中断されました",
-    "rawDetail": "{{detail}}"
+    "rawDetail": "{{detail}}",
+    "started": "エージェントランタイム開始",
+    "plan": "計画作成",
+    "tool_call": "ツール実行",
+    "model_retry": "モデル出力を再試行",
+    "repair_start": "自動修復の試行",
+    "repair_tool": "修復ツール実行",
+    "verification": "ビルド/テスト検証",
+    "review": "独立レビュー",
+    "review_skipped": "レビューをスキップ",
+    "final": "最終要約",
+    "phase": "フェーズ変更",
+    "index": "プロジェクトインデックス作成",
+    "index_failed": "インデックス作成失敗",
+    "context": "タスクコンテキスト選択",
+    "context_failed": "コンテキスト選択失敗",
+    "approval_requested": "承認を要求",
+    "approval_settled": "承認処理済み",
+    "approval_resolved": "承認決定済み",
+    "approval_expired": "承認期限切れ",
+    "rolled_back": "ワークスペースを復元",
+    "applied_to_project": "変更をプロジェクトに適用"
   },
   "capabilityNote": "このバージョンはタスク状態を記録し、分離されたコピー内にレビュー可能な変更を作成します。登録済みフォルダーへの変更の適用、コマンドの実行、テストの実行、Git の適用/ロールバック操作は提供しません。",
   "replyLanguage": {
     "instruction": "説明は {{language}} で記述してください。コード、コマンド、識別子、ファイルパスはすべて変更しないでください。"
+  },
+  "policy": {
+    "supervised": "監督モード — すべての書き込みを承認",
+    "standard": "標準モード — ワークスペース書き込みは自動、リスク操作は承認",
+    "workspace-auto": "ワークスペース自動 — ワークスペース外のみ承認"
+  },
+  "workspaceMode": {
+    "auto": "自動（可能なら Git worktree）",
+    "worktree": "Git worktree",
+    "copy": "制限付きスナップショットコピー"
+  },
+  "insights": {
+    "load": "プロジェクトを分析",
+    "loading": "分析中…",
+    "summary": "{{files}} ファイル · {{languages}} 言語 · {{entries}} エントリーポイント",
+    "detailsSummary": "プロジェクト理解の詳細",
+    "entryPoints": "エントリーポイント",
+    "scripts": "ビルド & テストスクリプト",
+    "languages": "言語構成",
+    "tests": "テストファイル"
+  },
+  "providers": {
+    "title": "AI プロバイダーとキー",
+    "add": "プロバイダーを追加",
+    "empty": "プロバイダーが未登録です。追加すると実際のエージェント実行が可能になります。",
+    "encryptionUnavailable": "OS のキー暗号化が利用不可 — キーを保存できません",
+    "keySaved": "キー保存済み",
+    "keyMissing": "キー未設定",
+    "keyPlaceholder": "API キーを貼り付け（暗号化保存、再表示なし）",
+    "saveKey": "キーを保存",
+    "deleteKey": "キーを削除",
+    "test": "接続テスト",
+    "testOk": "接続成功（{{latency}} ミリ秒）",
+    "testFail": "失敗：{{message}}",
+    "deleteAria": "プロバイダー {{name}} を削除",
+    "keyNote": "API キーは OS の資格情報ストアで暗号化され、再表示されず、ログやプロジェクトファイルにも書き込まれず、ローカルサービスプロセスにのみ転送されます。",
+    "formIncomplete": "名前・Base URL・モデルは必須です。",
+    "form": {
+      "name": "表示名",
+      "kind": "API 形式",
+      "model": "既定モデル",
+      "baseUrl": "Base URL",
+      "capabilities": "検証済みの能力のみ選択",
+      "inputPrice": "入力価格 / 100万トークン",
+      "outputPrice": "出力価格 / 100万トークン"
+    },
+    "source": {
+      "stored": "登録済み",
+      "env": "環境変数"
+    }
+  },
+  "risk": {
+    "high": "高リスク",
+    "medium": "中リスク",
+    "low": "低リスク"
+  },
+  "decision": {
+    "approved": "承認",
+    "denied": "拒否"
   }
 }

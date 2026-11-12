@@ -20,8 +20,14 @@
     "disclosureBody": "Starting this task sends your prompt and up to {{maxFiles}} eligible UTF-8 files from a bounded isolated copy to the selected provider. Source text is redacted and capped at {{maxKiB}} KiB after redaction. Secret-shaped paths and built-in dependency/build folders are skipped. Supported project .gitignore rules are applied; malformed or unsupported patterns stop workspace creation.",
     "consent": "I reviewed this disclosure and authorize sending this task's bounded source context to the selected provider.",
     "footerNote": "Candidate edits stay under the task workspace in app data.",
-    "submit": "Generate isolated changes",
-    "submitting": "Queuing task…"
+    "submit": "Start agent task",
+    "submitting": "Queuing task…",
+    "taskTypeLabel": "Task engine",
+    "taskTypeRuntime": "Autonomous agent (multi-turn tools)",
+    "taskTypeLegacy": "Single-pass proposal (legacy)",
+    "approvalPolicyLabel": "Approval policy",
+    "workspaceModeLabel": "Workspace isolation",
+    "runtimeNote": "The agent plans, calls real tools in an isolated workspace, runs build/tests, repairs failures and reviews its own diff. High-risk actions pause for your approval."
   },
   "history": {
     "title": "Task history",
@@ -29,7 +35,9 @@
     "cancelAria": "Cancel task {{label}}",
     "cancelTitle": "Cancel task",
     "emptyTitle": "No local Agent tasks",
-    "emptyDetail": "New proposals and their saved state will appear here."
+    "emptyDetail": "New proposals and their saved state will appear here.",
+    "runtimeTag": "Autonomous run",
+    "toolCalls": "{{count}} tool calls"
   },
   "review": {
     "title": "Isolated change review",
@@ -51,11 +59,27 @@
     "noDiff": "No file changes were generated for this task.",
     "eventsSummary": "Task events ({{count}})",
     "retryNote": "Retry creates a new isolated task and requires fresh source disclosure.",
-    "retryAction": "Retry task"
+    "retryAction": "Retry task",
+    "approvalsTitle": "{{count}} action(s) awaiting your approval",
+    "approve": "Approve",
+    "deny": "Deny",
+    "planSummary": "Plan ({{count}} steps)",
+    "verificationTitle": "Build & test verification",
+    "verifyLog": "{{label}}: {{ok}}",
+    "noOutput": "(no output)",
+    "reviewTitle": "Independent diff review",
+    "finalMessageLabel": "Agent summary",
+    "rollback": "Roll back workspace",
+    "rollingBack": "Rolling back…",
+    "apply": "Apply to project",
+    "applying": "Applying…"
   },
   "meta": {
     "tokens": "{{value}} tokens",
-    "cost": "{{value}}"
+    "cost": "{{value}}",
+    "workspaceMode": "Workspace: {{mode}}",
+    "iterations": "Iterations: {{value}}",
+    "toolCalls": "Tool calls: {{value}}"
   },
   "status": {
     "Queued": "Queued",
@@ -75,10 +99,90 @@
     "failed": "Task failed",
     "cancelled": "Task cancelled",
     "interrupted": "Task interrupted",
-    "rawDetail": "{{detail}}"
+    "rawDetail": "{{detail}}",
+    "started": "Agent runtime started",
+    "plan": "Plan created",
+    "tool_call": "Tool executed",
+    "model_retry": "Model output retried",
+    "repair_start": "Automatic repair attempt",
+    "repair_tool": "Repair tool executed",
+    "verification": "Build/test verification",
+    "review": "Independent review",
+    "review_skipped": "Review skipped",
+    "final": "Final summary",
+    "phase": "Phase changed",
+    "index": "Project index built",
+    "index_failed": "Project indexing failed",
+    "context": "Task context selected",
+    "context_failed": "Context selection failed",
+    "approval_requested": "Approval requested",
+    "approval_settled": "Approval settled",
+    "approval_resolved": "Approval resolved",
+    "approval_expired": "Approval expired",
+    "rolled_back": "Workspace rolled back",
+    "applied_to_project": "Changes applied to the project"
   },
   "capabilityNote": "This version records task state and creates reviewable changes in an isolated copy. It does not apply changes to the registered folder, execute commands, run tests, or provide Git apply/rollback controls.",
   "replyLanguage": {
     "instruction": "Please write your explanations in {{language}}. Keep all code, commands, identifiers and file paths unchanged."
+  },
+  "policy": {
+    "supervised": "Supervised — approve every write",
+    "standard": "Standard — auto workspace writes, approve risky",
+    "workspace-auto": "Workspace auto — only out-of-workspace asks"
+  },
+  "workspaceMode": {
+    "auto": "Auto (git worktree when possible)",
+    "worktree": "Git worktree",
+    "copy": "Bounded snapshot copy"
+  },
+  "insights": {
+    "load": "Analyze project",
+    "loading": "Analyzing…",
+    "summary": "{{files}} files · {{languages}} languages · {{entries}} entry points",
+    "detailsSummary": "Project understanding details",
+    "entryPoints": "Entry points",
+    "scripts": "Build & test scripts",
+    "languages": "Languages",
+    "tests": "Test files"
+  },
+  "providers": {
+    "title": "AI providers & keys",
+    "add": "Add provider",
+    "empty": "No providers registered yet. Add one to enable real agent runs.",
+    "encryptionUnavailable": "OS key encryption unavailable — keys cannot be saved",
+    "keySaved": "Key stored",
+    "keyMissing": "No key",
+    "keyPlaceholder": "Paste API key (stored encrypted, never displayed again)",
+    "saveKey": "Save key",
+    "deleteKey": "Delete key",
+    "test": "Test connection",
+    "testOk": "Connected in {{latency}} ms",
+    "testFail": "Failed: {{message}}",
+    "deleteAria": "Delete provider {{name}}",
+    "keyNote": "API keys are encrypted with the operating system credential store, never shown again, never written to logs or project files, and forwarded only to the local service process.",
+    "formIncomplete": "Name, base URL and model are required.",
+    "form": {
+      "name": "Display name",
+      "kind": "API format",
+      "model": "Default model",
+      "baseUrl": "Base URL",
+      "capabilities": "Verified capabilities only",
+      "inputPrice": "Input price / 1M tokens",
+      "outputPrice": "Output price / 1M tokens"
+    },
+    "source": {
+      "stored": "registered",
+      "env": "environment"
+    }
+  },
+  "risk": {
+    "high": "High risk",
+    "medium": "Medium risk",
+    "low": "Low risk"
+  },
+  "decision": {
+    "approved": "approved",
+    "denied": "denied"
   }
 }

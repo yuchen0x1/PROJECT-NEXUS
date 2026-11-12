@@ -52,7 +52,9 @@
     "none": "None",
     "yes": "Yes",
     "no": "No",
-    "guarded": "Guarded"
+    "guarded": "Guarded",
+    "pass": "PASS",
+    "fail": "FAIL"
   },
   "status": {
     "Pending": "Pending",

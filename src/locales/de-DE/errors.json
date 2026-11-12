@@ -13,5 +13,11 @@
   "agentTaskCancel": "Die Agent-Aufgabe konnte nicht abgebrochen werden.",
   "agentTaskRetry": "Die Agent-Aufgabe konnte nicht erneut ausgeführt werden.",
   "workstationData": "Lokale Arbeitsplatzdaten konnten nicht geladen werden.",
-  "serviceUnavailable": "Der lokale Dienst antwortet nicht. Starten Sie PROJECT NEXUS neu und versuchen Sie es erneut."
+  "serviceUnavailable": "Der lokale Dienst antwortet nicht. Starten Sie PROJECT NEXUS neu und versuchen Sie es erneut.",
+  "agentApprovalResolve": "Die Genehmigungsentscheidung konnte nicht gespeichert werden.",
+  "agentRollback": "Der Workspace konnte nicht zurückgesetzt werden.",
+  "agentApply": "Die Änderungen konnten nicht auf das Projekt angewendet werden.",
+  "providerKeySave": "Der API-Schlüssel konnte nicht sicher gespeichert werden.",
+  "providerSave": "Der Anbieter konnte nicht gespeichert werden.",
+  "agentInsights": "Das Projekt konnte nicht analysiert werden."
 }

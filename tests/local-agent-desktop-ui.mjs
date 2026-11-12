@@ -168,8 +168,11 @@ try {
   await page.getByRole('heading', { name: 'Isolated change review', exact: true }).waitFor()
 
   await page.getByLabel(/Request/).fill(prompt)
+  // This fixture drives the PHASE 4 single-pass proposal engine; PHASE 6
+  // defaults the UI to the autonomous runtime, so select the legacy engine.
+  await page.getByLabel(/Task engine/).selectOption('local-agent')
   await page.getByLabel(/I reviewed this disclosure and authorize sending/).check()
-  const generateButton = page.getByRole('button', { name: 'Generate isolated changes', exact: true })
+  const generateButton = page.getByRole('button', { name: 'Start agent task', exact: true })
   assert.equal(await generateButton.isEnabled(), true)
   await generateButton.click()
   await page.locator('.nx-agent-status.succeeded').first().waitFor({ timeout: 20_000 })

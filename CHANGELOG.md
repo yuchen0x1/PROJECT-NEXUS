@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.0 — 2026-11-13
+
+Phase 6 — autonomous AI development engine (PHASE 6A delivered; 6B–6F partially specified).
+
+- **Autonomous agent runtime**: a real multi-turn execution loop — planning turn (persisted plan), tool execution, observation, bounded self-repair after real build/test failures, and an independent diff review with severity-ranked findings. Hard budgets (iterations, tokens, wall clock), cancellation, approval pauses, and event-sourced persistence for every step.
+- **Tool system**: 34 registered tools (file, project, git, execution, helpers) with per-tool permission levels, strict input schemas, secret-path blocking and audit events; `run_command` executes with a parameterized process spawn (no shell string concat), a development-program allowlist with dynamic risk escalation, process-tree timeout kills and a credential-free child environment.
+- **Workspace isolation**: git projects run in a dedicated `nexus-agent/<taskId>` worktree; everything else in the bounded snapshot copy (PHASE 4 engine, now with delete + baseline restore). Rollback per task and per file; apply-to-project only with explicit confirmation, a clean project tree, and automatic backups of every overwritten original.
+- **Project understanding**: incremental project index (files, symbols, imports, manifests, entry points, tests, routes) with an in-app "Analyze project" panel and bounded, redacted task-context selection.
+- **Provider system**: persistent multi-provider registry (OpenAI-compatible/OpenAI/Anthropic/Gemini/Ollama kinds) with connectivity tests, verified-capability tags, task routing and cost estimation; API keys are DPAPI-encrypted via Electron safeStorage, forwarded only to the local service, and never persisted server-side or shown again in the UI.
+- **Agent workbench UI**: provider manager, engine/approval-policy/workspace-mode selectors, plan timeline, verification panel, review findings, approval cards, delivery actions (rollback / apply), project insights — all in the existing design system and translated into all ten languages (coverage 100 %).
+- Real-provider acceptance: a complete end-to-end run (connectivity → understanding → 5-step plan → 13 tool calls → 4 modified files → `npm test` PASS → review approve → rollback → user-confirmed apply → multi-project isolation → mid-run cancellation) with the operator-provided gateway; evidence in [docs/PHASE6_ACCEPTANCE_EVIDENCE.md](docs/PHASE6_ACCEPTANCE_EVIDENCE.md).
+- New desktop test: `test:desktop:agent-runtime` drives the autonomous runtime inside the real Electron window; 124 Vitest tests (24 files) including 8 new suites; i18n deep audit clean.
+- Windows installer: `PROJECT-NEXUS-0.3.0-win-x64-setup.exe`.
+
 ## 0.2.1 — 2026-11-13
 
 Phase 5.1 — quality audit, fixes and second acceptance round (no new features).

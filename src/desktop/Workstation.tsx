@@ -2,12 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useTranslation } from 'react-i18next'
 import {
   Activity, AlertTriangle, Bell, Bot, Boxes, Check, ChevronDown, ChevronRight, CircleDot, Code2,
-  Command, Computer, FolderPlus, GitBranch, HardDrive, Languages, LayoutDashboard, Moon, PanelLeftClose,
-  PanelLeftOpen, PanelRightClose, PanelRightOpen, RefreshCw, ScanSearch, Search, Settings2, ShieldCheck,
-  Sun, TerminalSquare, Trash2, Wrench, X
+  Command, Computer, FolderPlus, GitBranch, HardDrive, KeyRound, Languages, LayoutDashboard, ListChecks,
+  Moon, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, RefreshCw, ScanSearch, Search,
+  Settings2, ShieldCheck, Sun, TerminalSquare, Trash2, Undo2, Upload, Wrench, X, Zap
 } from 'lucide-react'
 import App from '../App'
-import { api, type LocalAgentTask } from '../api'
+import { api, type AgentInsights, type AgentProvider, type LocalAgentTask } from '../api'
 import { useSettings } from '../i18n/settings'
 import { LANGUAGES } from '../i18n/languages'
 import { formatCurrency, formatRelative, formatStamp, formatTime, formatTokens } from '../i18n/format'
@@ -40,7 +40,8 @@ type CommandItem = {
   run: () => void
 }
 
-const AGENT_ACTIVE_STATUSES = ['Queued', 'Running']
+// Paused counts as active: the runtime is alive but waiting on a user approval.
+const AGENT_ACTIVE_STATUSES = ['Queued', 'Running', 'Paused']
 /** Statuses that end a task; Paused is deliberately absent (it resumes). */
 const AGENT_TERMINAL_STATUSES = ['Succeeded', 'Failed', 'Blocked', 'Cancelled', 'Interrupted', 'TimedOut']
 
@@ -76,6 +77,12 @@ export default function Workstation() {
   const [agentProjectId, setAgentProjectId] = useState('')
   const [agentProviderId, setAgentProviderId] = useState('')
   const [agentDisclosureConfirmed, setAgentDisclosureConfirmed] = useState(false)
+  const [agentTaskType, setAgentTaskType] = useState<'local-agent-runtime' | 'local-agent'>('local-agent-runtime')
+  const [agentApprovalPolicy, setAgentApprovalPolicy] = useState('standard')
+  const [agentWorkspaceMode, setAgentWorkspaceMode] = useState('auto')
+  const [agentProviders, setAgentProviders] = useState<AgentProvider[]>([])
+  const [agentKeyStatus, setAgentKeyStatus] = useState<{ providerIds: string[]; encryptionAvailable: boolean } | null>(null)
+  const [agentInsights, setAgentInsights] = useState<AgentInsights | null>(null)
   const prevAgentTasks = useRef<LocalAgentTask[]>([])
 
   const selectedProject = projects.find((project) => project.id === selectedProjectId) || projects[0] || null
@@ -166,10 +173,17 @@ export default function Workstation() {
     }).catch((cause) => {
       if (active) setError(cause instanceof Error ? cause.message : t('errors:agentConfig'))
     })
+    // PHASE 6: persistent provider registry and OS key-vault status.
+    api.agentProviders().then((result) => { if (active) setAgentProviders(result.providers) }).catch(() => {})
+    bridge?.getProviderKeyStatus?.().then((status) => { if (active) setAgentKeyStatus(status) }).catch(() => {})
     return () => { active = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, projects])
 
+  // Refetch the task detail whenever the selected task advances (status
+  // changes) so the diff, plan, verification and review appear without a
+  // manual reselect.
+  const selectedAgentTaskStatus = agentTasks.find((task) => task.id === selectedAgentTaskId)?.status
   useEffect(() => {
     if (page !== 'agent') return
     if (!selectedAgentTaskId) { setAgentDetail(null); return }
@@ -179,7 +193,7 @@ export default function Workstation() {
     })
     return () => { active = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, selectedAgentTaskId])
+  }, [page, selectedAgentTaskId, selectedAgentTaskStatus])
 
   // Poll Agent tasks while any task is queued or running, regardless of the
   // open page, so the right rail and notification center stay current.
@@ -307,7 +321,10 @@ export default function Workstation() {
         projectId: agentProjectId,
         prompt: buildAgentPrompt(agentPrompt),
         providerId: agentProviderId || null,
-        confirmSourceDisclosure: agentDisclosureConfirmed
+        confirmSourceDisclosure: agentDisclosureConfirmed,
+        taskType: agentTaskType,
+        approvalPolicy: agentApprovalPolicy,
+        workspaceMode: agentWorkspaceMode
       })
       setAgentPrompt('')
       setAgentDisclosureConfirmed(false)
@@ -352,6 +369,118 @@ export default function Workstation() {
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : t('errors:agentTaskRetry'))
     }
+  }
+
+  // ---- PHASE 6 Agent workbench handlers ----
+
+  const handleResolveApproval = async (task: LocalAgentTask, approvalId: string, decision: 'approved' | 'denied') => {
+    try {
+      const result = await api.resolveAgentApproval(task.id, approvalId, decision)
+      setAgentDetail((current) => current && current.task.id === task.id ? { ...current, task: result.task } : current)
+      addActivity({ kind: decision === 'approved' ? 'note' : 'warning', labelKey: 'notifications:activity.agentApprovalResolved.label', detailKey: 'notifications:activity.agentApprovalResolved.detail', detailParams: { tool: approvalId, decision: t(`agent:decision.${decision}`) }, page: 'agent' })
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t('errors:agentApprovalResolve'))
+    }
+  }
+
+  const handleRollbackAgentTask = async (task: LocalAgentTask) => {
+    setBusy(`agent-rollback-${task.id}`)
+    try {
+      const result = await api.rollbackAgentTask(task.id)
+      addActivity({ kind: 'ok', labelKey: 'notifications:activity.agentRolledBack.label', detailKey: 'notifications:activity.agentRolledBack.detail', detailParams: { mode: result.mode }, page: 'agent' })
+      pushToast('notifications:toast.agentRolledBack')
+      await refreshAgentTasks()
+      if (selectedAgentTaskId) setAgentDetail(await api.localAgentTask(selectedAgentTaskId))
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t('errors:agentRollback'))
+    } finally { setBusy(null) }
+  }
+
+  const handleApplyAgentTask = async (task: LocalAgentTask) => {
+    setBusy(`agent-apply-${task.id}`)
+    try {
+      const result = await api.applyAgentTask(task.id, true)
+      if (result.applied) {
+        addActivity({ kind: 'ok', labelKey: 'notifications:activity.agentApplied.label', detailKey: 'notifications:activity.agentApplied.detail', detailParams: { count: result.appliedPaths?.length || 0 }, page: 'agent' })
+        pushToast('notifications:toast.agentApplied')
+      } else {
+        setError(result.note || t('errors:agentApply'))
+      }
+      if (selectedAgentTaskId) setAgentDetail(await api.localAgentTask(selectedAgentTaskId))
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : t('errors:agentApply')
+      setError(message)
+      addActivity({ kind: 'warning', labelKey: 'notifications:activity.agentApplyFailed.label', detailText: message })
+    } finally { setBusy(null) }
+  }
+
+  const refreshAgentProviders = useCallback(async () => {
+    try {
+      const result = await api.agentProviders()
+      setAgentProviders(result.providers)
+    } catch { /* the registry may be empty on first run */ }
+    bridge?.getProviderKeyStatus?.().then((status) => setAgentKeyStatus(status)).catch(() => {})
+  }, [bridge])
+
+  const handleProviderSave = async (provider: Partial<AgentProvider> & { id?: string; name: string; kind: string; baseUrl: string; model: string }) => {
+    setBusy('provider-save')
+    try {
+      if (agentProviders.some((item) => item.id === provider.id)) {
+        await api.updateAgentProvider(provider.id!, provider)
+      } else {
+        const created = await api.createAgentProvider(provider as Parameters<typeof api.createAgentProvider>[0])
+        setAgentProviders((current) => [...current, created.provider])
+      }
+      await refreshAgentProviders()
+      await refreshAgentConfig()
+      pushToast('notifications:toast.providerSaved')
+    } finally { setBusy(null) }
+  }
+
+  const handleProviderDelete = async (id: string) => {
+    setBusy(`provider-delete-${id}`)
+    try {
+      await api.deleteAgentProvider(id)
+      await bridge?.deleteProviderKey?.(id).catch(() => null)
+      await refreshAgentProviders()
+      await refreshAgentConfig()
+    } finally { setBusy(null) }
+  }
+
+  const handleProviderTest = async (id: string): Promise<{ ok: boolean; latencyMs?: number; error?: string; replyPreview?: string; model?: string }> => {
+    return await api.testAgentProvider(id)
+  }
+
+  const handleProviderKeySet = async (id: string, key: string) => {
+    const result = await bridge?.setProviderKey?.(id, key)
+    if (!result?.saved) throw new Error(t('errors:providerKeySave'))
+    await refreshAgentProviders()
+    await refreshAgentConfig()
+    return result
+  }
+
+  const handleProviderKeyDelete = async (id: string) => {
+    await bridge?.deleteProviderKey?.(id)
+    await refreshAgentProviders()
+    await refreshAgentConfig()
+  }
+
+  const refreshAgentConfig = useCallback(async () => {
+    try {
+      const config = await api.localAgentConfig()
+      setAgentConfig(config)
+    } catch { /* keep the previous config view */ }
+  }, [])
+
+  const handleLoadInsights = async (projectId: string) => {
+    if (!projectId) return
+    setBusy('agent-insights')
+    try {
+      const insights = await api.agentProjectInsights(projectId)
+      setAgentInsights(insights)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t('errors:agentInsights'))
+    } finally { setBusy(null) }
   }
 
   const handleRemove = async (project: { id: string; name: string }) => {
@@ -556,16 +685,36 @@ export default function Workstation() {
             projectId={agentProjectId}
             providerId={agentProviderId}
             disclosureConfirmed={agentDisclosureConfirmed}
+            taskType={agentTaskType}
+            approvalPolicy={agentApprovalPolicy}
+            workspaceMode={agentWorkspaceMode}
+            providers={agentProviders}
+            keyStatus={agentKeyStatus}
+            insights={agentProjectId === agentInsights?.projectId ? agentInsights : null}
             busy={busy === 'agent-start'}
+            insightsBusy={busy === 'agent-insights'}
+            actionBusy={typeof busy === 'string' ? busy : null}
             onPromptChange={setAgentPrompt}
-            onProjectChange={setAgentProjectId}
+            onProjectChange={(value) => { setAgentProjectId(value); if (value !== agentInsights?.projectId) setAgentInsights(null) }}
             onProviderChange={setAgentProviderId}
             onDisclosureChange={setAgentDisclosureConfirmed}
+            onTaskTypeChange={setAgentTaskType}
+            onApprovalPolicyChange={setAgentApprovalPolicy}
+            onWorkspaceModeChange={setAgentWorkspaceMode}
             onStart={() => void handleStartAgentTask()}
             onSelectTask={(id) => void handleSelectAgentTask(id)}
             onCancel={(task) => void handleCancelAgentTask(task)}
             onRetry={(task) => void handleRetryAgentTask(task)}
             onRefresh={() => void refreshAgentTasks()}
+            onResolveApproval={(task, id, decision) => void handleResolveApproval(task, id, decision)}
+            onRollback={(task) => void handleRollbackAgentTask(task)}
+            onApply={(task) => void handleApplyAgentTask(task)}
+            onProvidersChanged={() => void refreshAgentProviders()}
+            onProviderKeySet={handleProviderKeySet}
+            onProviderKeyDelete={handleProviderKeyDelete}
+            onProviderDelete={handleProviderDelete}
+            onProviderTest={handleProviderTest}
+            onLoadInsights={(projectId) => void handleLoadInsights(projectId)}
           />}
 
           {page === 'remote' && <div className="nx-remote-content"><App embedded /></div>}
@@ -1135,8 +1284,7 @@ function WorkstationSettings({ info, systemLocale, onAutoStartChange }: {
     </section>
   </div>
 }
-
-function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, prompt, projectId, providerId, disclosureConfirmed, busy, onPromptChange, onProjectChange, onProviderChange, onDisclosureChange, onStart, onSelectTask, onCancel, onRetry, onRefresh }: {
+function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, prompt, projectId, providerId, disclosureConfirmed, taskType, approvalPolicy, workspaceMode, providers, keyStatus, insights, busy, insightsBusy, actionBusy, onPromptChange, onProjectChange, onProviderChange, onDisclosureChange, onTaskTypeChange, onApprovalPolicyChange, onWorkspaceModeChange, onStart, onSelectTask, onCancel, onRetry, onRefresh, onResolveApproval, onRollback, onApply, onProvidersChanged, onProviderKeySet, onProviderKeyDelete, onProviderDelete, onProviderTest, onLoadInsights }: {
   projects: LocalProject[]
   config: Awaited<ReturnType<typeof api.localAgentConfig>> | null
   tasks: LocalAgentTask[]
@@ -1146,16 +1294,36 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
   projectId: string
   providerId: string
   disclosureConfirmed: boolean
+  taskType: 'local-agent-runtime' | 'local-agent'
+  approvalPolicy: string
+  workspaceMode: string
+  providers: AgentProvider[]
+  keyStatus: { providerIds: string[]; encryptionAvailable: boolean } | null
+  insights: AgentInsights | null
   busy: boolean
+  insightsBusy: boolean
+  actionBusy: string | null
   onPromptChange: (value: string) => void
   onProjectChange: (value: string) => void
   onProviderChange: (value: string) => void
   onDisclosureChange: (value: boolean) => void
+  onTaskTypeChange: (value: 'local-agent-runtime' | 'local-agent') => void
+  onApprovalPolicyChange: (value: string) => void
+  onWorkspaceModeChange: (value: string) => void
   onStart: () => void
   onSelectTask: (id: string) => void
   onCancel: (task: LocalAgentTask) => void
   onRetry: (task: LocalAgentTask) => void
   onRefresh: () => void
+  onResolveApproval: (task: LocalAgentTask, approvalId: string, decision: 'approved' | 'denied') => void
+  onRollback: (task: LocalAgentTask) => void
+  onApply: (task: LocalAgentTask) => void
+  onProvidersChanged: () => void
+  onProviderKeySet: (id: string, key: string) => Promise<unknown>
+  onProviderKeyDelete: (id: string) => Promise<unknown>
+  onProviderDelete: (id: string) => Promise<unknown>
+  onProviderTest: (id: string) => Promise<{ ok: boolean; latencyMs?: number; error?: string; replyPreview?: string; model?: string }>
+  onLoadInsights: (projectId: string) => void
 }) {
   const { t } = useTranslation()
   const selectedTask = tasks.find((task) => task.id === selectedTaskId) || null
@@ -1164,6 +1332,9 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
   const activeTask = selectedTask && AGENT_ACTIVE_STATUSES.includes(selectedTask.status)
   const maxPromptBytes = config?.limits.maxPromptBytes || 8192
   const promptBytes = new TextEncoder().encode(prompt).length
+  const runtimeTask = selectedTask?.type === 'local-agent-runtime'
+  const pendingApprovals = selectedTask?.approvals.filter((approval) => approval.status === 'pending') || []
+  const finishedTask = selectedTask && ['Succeeded', 'Failed', 'Blocked', 'Cancelled', 'Interrupted', 'TimedOut'].includes(selectedTask.status)
 
   return <div className="nx-agent-page">
     <section className="nx-agent-compose nx-panel" aria-labelledby="nx-agent-compose-title">
@@ -1184,12 +1355,57 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
             <span>{t('agent:compose.providerLabel')}</span>
             <select value={providerId} onChange={(event) => onProviderChange(event.target.value)} disabled={!configuredProviders.length}>
               <option value="">{t('agent:compose.providerPlaceholder')}</option>
-              {configuredProviders.map((provider) => <option key={provider.id} value={provider.id}>{provider.id} · {provider.model || provider.kind}</option>)}
+              {configuredProviders.map((provider) => <option key={provider.id} value={provider.id}>{provider.name} · {provider.model}</option>)}
             </select>
           </label>
         </div>
         {!availableProjects.length && <div className="nx-agent-inline-note">{t('agent:compose.noProjects')}</div>}
         {!configuredProviders.length && <div className="nx-agent-inline-note warning">{t('agent:compose.noProviders')}</div>}
+        <div className="nx-agent-field-row nx-agent-runtime-row">
+          <label className="nx-agent-field">
+            <span>{t('agent:compose.taskTypeLabel')}</span>
+            <select value={taskType} onChange={(event) => onTaskTypeChange(event.target.value as 'local-agent-runtime' | 'local-agent')}>
+              <option value="local-agent-runtime">{t('agent:compose.taskTypeRuntime')}</option>
+              <option value="local-agent">{t('agent:compose.taskTypeLegacy')}</option>
+            </select>
+          </label>
+          {taskType === 'local-agent-runtime' && <>
+            <label className="nx-agent-field">
+              <span>{t('agent:compose.approvalPolicyLabel')}</span>
+              <select value={approvalPolicy} onChange={(event) => onApprovalPolicyChange(event.target.value)}>
+                {(config?.approvalPolicies || ['supervised', 'standard', 'workspace-auto']).map((policy) => <option key={policy} value={policy}>{t(`agent:policy.${policy}`, { defaultValue: policy })}</option>)}
+              </select>
+            </label>
+            <label className="nx-agent-field">
+              <span>{t('agent:compose.workspaceModeLabel')}</span>
+              <select value={workspaceMode} onChange={(event) => onWorkspaceModeChange(event.target.value)}>
+                {['auto', 'worktree', 'copy'].map((mode) => <option key={mode} value={mode}>{t(`agent:workspaceMode.${mode}`, { defaultValue: mode })}</option>)}
+              </select>
+            </label>
+          </>}
+        </div>
+        {taskType === 'local-agent-runtime' && <div className="nx-agent-inline-note">{t('agent:compose.runtimeNote')}</div>}
+        <div className="nx-agent-field-row nx-agent-insights-row">
+          <button className="nx-secondary" onClick={() => onLoadInsights(projectId)} disabled={!projectId || insightsBusy}>
+            <ScanSearch size={13} />{insightsBusy ? t('agent:insights.loading') : t('agent:insights.load')}
+          </button>
+          {insights && <span className="nx-agent-insights-summary">
+            {t('agent:insights.summary', { files: insights.stats.files, languages: Object.keys(insights.languages).length, entries: insights.entryPoints.length })}
+          </span>}
+        </div>
+        {insights && <details className="nx-agent-insights">
+          <summary>{t('agent:insights.detailsSummary')}</summary>
+          <div className="nx-agent-insights-body">
+            <div><strong>{t('agent:insights.entryPoints')}</strong><ul>{insights.entryPoints.map((entry) => <li key={entry.path}><code>{entry.path}</code><small>{entry.reason}</small></li>)}</ul></div>
+            <div><strong>{t('agent:insights.scripts')}</strong>
+              <ul>{insights.manifests.filter((manifest) => manifest.scripts && Object.keys(manifest.scripts).length).map((manifest) => (
+                <li key={manifest.path}><code>{manifest.path}</code><small>{Object.keys(manifest.scripts!).join(', ').slice(0, 200)}</small></li>
+              ))}</ul>
+            </div>
+            <div><strong>{t('agent:insights.languages')}</strong><ul>{Object.entries(insights.languages).map(([language, count]) => <li key={language}>{language}: {count}</li>)}</ul></div>
+            <div><strong>{t('agent:insights.tests')}</strong><ul>{insights.testPaths.slice(0, 12).map((path) => <li key={path}><code>{path}</code></li>)}</ul></div>
+          </div>
+        </details>}
         <label className="nx-agent-field nx-agent-prompt">
           <span>{t('agent:compose.promptLabel')} <small>{t('agent:compose.promptBytes', { used: promptBytes, limit: maxPromptBytes })}</small></span>
           <textarea
@@ -1202,8 +1418,8 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
         <div className="nx-agent-disclosure">
           <div className="nx-agent-disclosure-heading"><ShieldCheck size={15} /><strong>{t('agent:compose.disclosureTitle')}</strong></div>
           <p>{t('agent:compose.disclosureBody', {
-            maxFiles: config?.limits.maxContextFiles || 20,
-            maxKiB: Math.round((config?.limits.maxProviderSourceBytesAfterRedaction || 122880) / 1024)
+            maxFiles: config?.limits.maxContextFiles || 24,
+            maxKiB: Math.round((config?.limits.maxContextBytes || 122880) / 1024)
           })}</p>
           <label className="nx-agent-consent">
             <input type="checkbox" checked={disclosureConfirmed} onChange={(event) => onDisclosureChange(event.target.checked)} />
@@ -1219,6 +1435,8 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
       </div>
     </section>
 
+    <ProviderManagerPanel providers={providers} keyStatus={keyStatus} onProvidersChanged={onProvidersChanged} onKeySet={onProviderKeySet} onKeyDelete={onProviderKeyDelete} onProviderDelete={onProviderDelete} onTest={onProviderTest} busy={actionBusy} />
+
     <div className="nx-agent-work-grid">
       <section className="nx-agent-queue nx-panel" aria-labelledby="nx-agent-queue-title">
         <div className="nx-panel-heading">
@@ -1231,7 +1449,7 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
             <span className="nx-agent-task-copy">
               <strong>{task.label}</strong>
               <small>{task.projectName} · {formatRelative(task.updatedAt || task.createdAt)}</small>
-              <small>{t('common:units.change', { count: task.changedFiles.length })}</small>
+              <small>{task.type === 'local-agent-runtime' ? `${t('agent:history.runtimeTag')}${task.toolCallCount ? ` · ${t('agent:history.toolCalls', { count: task.toolCallCount })}` : ''}` : t('common:units.change', { count: task.changedFiles.length })}</small>
             </span>
             <span className={`nx-agent-status ${statusClass(task.status)}`}>{t(`agent:status.${task.status}`, { defaultValue: task.status })}</span>
           </button>
@@ -1251,20 +1469,64 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
           ? <div className="nx-agent-empty"><ScanSearch size={17} /><strong>{t('agent:review.emptyTitle')}</strong><span>{t('agent:review.emptyDetail')}</span></div>
           : <div className="nx-agent-detail-body">
             <div className="nx-agent-request"><span>{t('agent:review.requestLabel')}</span><p>{selectedTask.prompt}</p></div>
-            {selectedTask.provider && <div className="nx-agent-meta">
-              <span>{selectedTask.provider.id} · {selectedTask.provider.model}</span>
+            <div className="nx-agent-meta">
+              {selectedTask.provider && <span>{selectedTask.provider.id} · {selectedTask.provider.model}</span>}
+              {selectedTask.workspaceMode && <span>{t('agent:meta.workspaceMode', { mode: selectedTask.workspaceMode })}</span>}
+              {runtimeTask && selectedTask.iterations !== null && <span>{t('agent:meta.iterations', { value: selectedTask.iterations })}</span>}
+              {runtimeTask && <span>{t('agent:meta.toolCalls', { value: selectedTask.toolCallCount })}</span>}
               {selectedTask.usage && <span>{t('agent:meta.tokens', { value: formatTokens(selectedTask.usage.totalTokens) })}</span>}
               {selectedTask.costUsd !== null && <span>{formatCurrency(selectedTask.costUsd)}</span>}
+            </div>
+
+            {pendingApprovals.length > 0 && <div className="nx-agent-approvals" role="alert">
+              <div className="nx-agent-approvals-heading"><ShieldCheck size={14} /><strong>{t('agent:review.approvalsTitle', { count: pendingApprovals.length })}</strong></div>
+              {pendingApprovals.map((approval) => <div className="nx-agent-approval" key={approval.id}>
+                <div className="nx-agent-approval-meta"><span className={`nx-agent-risk ${approval.risk}`}>{t(`agent:risk.${approval.risk}`, { defaultValue: approval.risk })}</span><code>{approval.tool}</code></div>
+                <p>{approval.reason}</p>
+                {approval.action && <pre className="nx-agent-approval-action">{approval.action}</pre>}
+                <div className="nx-agent-approval-actions">
+                  <button className="nx-primary" onClick={() => onResolveApproval(selectedTask, approval.id, 'approved')}>{t('agent:review.approve')}</button>
+                  <button className="nx-secondary" onClick={() => onResolveApproval(selectedTask, approval.id, 'denied')}>{t('agent:review.deny')}</button>
+                </div>
+              </div>)}
             </div>}
+
+            {runtimeTask && selectedTask.plan && selectedTask.plan.length > 0 && <details className="nx-agent-plan" open>
+              <summary><ListChecks size={14} />{t('agent:review.planSummary', { count: selectedTask.plan.length })}</summary>
+              <ol>{selectedTask.plan.map((step, index) => <li key={index}>{step.description}</li>)}</ol>
+            </details>}
+
+            {runtimeTask && selectedTask.verification && <div className={`nx-agent-verification ${selectedTask.verification.passed ? 'passed' : selectedTask.verification.attempted ? 'failed' : 'skipped'}`}>
+              <strong>{t('agent:review.verificationTitle')}</strong>
+              <span>{selectedTask.verification.summary}</span>
+              {selectedTask.verification.results.filter((result) => result.attempted).map((result) => <details key={result.label} className="nx-agent-verify-log">
+                <summary>{t('agent:review.verifyLog', { label: result.label, ok: result.ok ? t('common:states.pass') : t('common:states.fail') })}</summary>
+                <pre>{(result.stderrTail || result.stdoutTail || '').slice(-4000) || t('agent:review.noOutput')}</pre>
+              </details>)}
+            </div>}
+
+            {runtimeTask && selectedTask.review && (selectedTask.review.findings.length > 0 || selectedTask.review.overall) && <div className={`nx-agent-review ${selectedTask.review.verdict}`}>
+              <strong>{t('agent:review.reviewTitle')}</strong>
+              <span>{selectedTask.review.overall}</span>
+              {selectedTask.review.findings.map((finding, index) => <div className={`nx-agent-finding ${finding.severity.toLowerCase()}`} key={index}>
+                <span className="nx-agent-finding-severity">{finding.severity}</span>
+                <code>{finding.path}{finding.line ? `:${finding.line}` : ''}</code>
+                <p>{finding.issue}</p>
+                {finding.suggestion && <small>{finding.suggestion}</small>}
+              </div>)}
+            </div>}
+
+            {runtimeTask && selectedTask.runtimeResult?.finalMessage && <div className="nx-agent-rationale"><span>{t('agent:review.finalMessageLabel')}</span><p>{selectedTask.runtimeResult.finalMessage}</p></div>}
+            {!runtimeTask && selectedTask.rationale && <div className="nx-agent-rationale"><span>{t('agent:review.rationaleLabel')}</span><p>{selectedTask.rationale}</p></div>}
             {selectedTask.disclosedPaths.length > 0 && <details className="nx-agent-paths">
               <summary>{t('agent:review.pathsSummary', { count: selectedTask.disclosedPaths.length })}</summary>
               <ul>{selectedTask.disclosedPaths.map((path) => <li key={path}><code>{path}</code></li>)}</ul>
             </details>}
             {selectedTask.error && <div className="nx-agent-error" role="alert">{selectedTask.error}</div>}
-            {selectedTask.rationale && <div className="nx-agent-rationale"><span>{t('agent:review.rationaleLabel')}</span><p>{selectedTask.rationale}</p></div>}
+
             <div className="nx-agent-change-heading">
               <strong>{t('agent:review.changesTitle')}</strong>
-              <span>{t('agent:review.changesCount', { count: detail?.changes.length ?? selectedTask.changedFiles.length })}</span>
+              <span>{t('agent:review.changesCount', { count: detail?.changes.length ?? (runtimeTask ? selectedTask.changeCount : selectedTask.changedFiles.length) })}</span>
             </div>
             {detail?.changesError && <div className="nx-agent-error">{t('agent:review.changesError', { message: detail.changesError })}</div>}
             {detail?.changes.length
@@ -1285,6 +1547,7 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
                     ? t('agent:review.noDiffError')
                     : t('agent:review.noDiff')}
               </div>}
+
             {selectedTask.events.length > 0 && <details className="nx-agent-events">
               <summary>{t('agent:review.eventsSummary', { count: selectedTask.events.length })}</summary>
               <ol>{selectedTask.events.map((event, index) => <li key={`${event.at}:${index}`}>
@@ -1296,7 +1559,16 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
                 })}</span>
               </li>)}</ol>
             </details>}
-            {selectedTask.status !== 'Queued' && selectedTask.status !== 'Running' && <div className="nx-agent-retry-row">
+
+            {finishedTask && <div className="nx-agent-delivery-row">
+              {runtimeTask && <>
+                <button className="nx-secondary" onClick={() => onRollback(selectedTask)} disabled={actionBusy === `agent-rollback-${selectedTask.id}`}><Undo2 size={13} />{actionBusy === `agent-rollback-${selectedTask.id}` ? t('agent:review.rollingBack') : t('agent:review.rollback')}</button>
+                <button className="nx-primary" onClick={() => onApply(selectedTask)} disabled={actionBusy === `agent-apply-${selectedTask.id}`}><Upload size={13} />{actionBusy === `agent-apply-${selectedTask.id}` ? t('agent:review.applying') : t('agent:review.apply')}</button>
+              </>}
+              <span>{t('agent:review.retryNote')}</span>
+              <button className="nx-secondary" onClick={() => onRetry(selectedTask)} disabled={!disclosureConfirmed || !configuredProviders.some((provider) => provider.id === selectedTask.providerId)}>{t('agent:review.retryAction')}</button>
+            </div>}
+            {!finishedTask && selectedTask.status !== 'Queued' && selectedTask.status !== 'Running' && <div className="nx-agent-retry-row">
               <span>{t('agent:review.retryNote')}</span>
               <button className="nx-secondary" onClick={() => onRetry(selectedTask)} disabled={!disclosureConfirmed || !configuredProviders.some((provider) => provider.id === selectedTask.providerId)}>{t('agent:review.retryAction')}</button>
             </div>}
@@ -1305,6 +1577,153 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
     </div>
     <div className="nx-note nx-agent-capability-note"><ShieldCheck size={14} /><span>{t('agent:capabilityNote')}</span></div>
   </div>
+}
+
+const PROVIDER_KINDS = ['openai-compatible', 'openai', 'anthropic', 'gemini', 'ollama'] as const
+const PROVIDER_CAPABILITY_OPTIONS = ['chat', 'json', 'tools', 'vision', 'long-context', 'structured-output'] as const
+
+function ProviderManagerPanel({ providers, keyStatus, onProvidersChanged, onKeySet, onKeyDelete, onProviderDelete, onTest, busy }: {
+  providers: AgentProvider[]
+  keyStatus: { providerIds: string[]; encryptionAvailable: boolean } | null
+  onProvidersChanged: () => void
+  onKeySet: (id: string, key: string) => Promise<unknown>
+  onKeyDelete: (id: string) => Promise<unknown>
+  onProviderDelete: (id: string) => Promise<unknown>
+  onTest: (id: string) => Promise<{ ok: boolean; latencyMs?: number; error?: string; replyPreview?: string; model?: string }>
+  busy: string | null
+}) {
+  const { t } = useTranslation()
+  const [open, setOpen] = useState(providers.length === 0)
+  const [editing, setEditing] = useState<Partial<AgentProvider> & { id?: string; name: string; kind: string; baseUrl: string; model: string } | null>(null)
+  const [keyDraft, setKeyDraft] = useState<Record<string, string>>({})
+  const [testResult, setTestResult] = useState<Record<string, { ok: boolean; latencyMs?: number; error?: string; replyPreview?: string }>>({})
+  const [formError, setFormError] = useState<string | null>(null)
+
+  const startCreate = () => {
+    setEditing({ id: '', name: '', kind: 'openai-compatible', baseUrl: '', model: '', capabilities: ['chat', 'json'], enabled: true, priority: 50 })
+    setOpen(true)
+    setFormError(null)
+  }
+
+  const save = async () => {
+    if (!editing) return
+    setFormError(null)
+    if (!editing.name?.trim() || !editing.baseUrl?.trim() || !editing.model?.trim()) {
+      setFormError(t('agent:providers.formIncomplete'))
+      return
+    }
+    try {
+      if (editing.id && providers.some((provider) => provider.id === editing.id)) {
+        await api.updateAgentProvider(editing.id, editing)
+      } else {
+        const id = (editing.id || '').trim() || editing.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || `provider-${Date.now()}`
+        await api.createAgentProvider({ ...editing, id })
+      }
+      setEditing(null)
+      onProvidersChanged()
+    } catch (cause) {
+      setFormError(cause instanceof Error ? cause.message : t('errors:providerSave'))
+    }
+  }
+
+  const runTest = async (id: string) => {
+    setTestResult((current) => ({ ...current, [id]: { ok: false } }))
+    try {
+      const result = await onTest(id)
+      setTestResult((current) => ({ ...current, [id]: result }))
+    } catch (cause) {
+      setTestResult((current) => ({ ...current, [id]: { ok: false, error: cause instanceof Error ? cause.message : 'test failed' } }))
+    }
+  }
+
+  return <section className="nx-agent-providers nx-panel" aria-labelledby="nx-agent-providers-title">
+    <div className="nx-panel-heading">
+      <div><span className="nx-panel-icon"><KeyRound size={15} /></span><h2 id="nx-agent-providers-title">{t('agent:providers.title')}</h2></div>
+      <div className="nx-agent-providers-heading-actions">
+        {keyStatus && !keyStatus.encryptionAvailable && <span className="nx-agent-key-warning">{t('agent:providers.encryptionUnavailable')}</span>}
+        <button className="nx-secondary" onClick={startCreate}><Zap size={13} />{t('agent:providers.add')}</button>
+        <button className="nx-icon-button" aria-label={open ? t('common:aria.collapsePanel') : t('common:aria.expandPanel')} onClick={() => setOpen((current) => !current)}>
+          {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+        </button>
+      </div>
+    </div>
+    {open && <div className="nx-agent-providers-body">
+      {providers.length === 0 && <div className="nx-agent-inline-note">{t('agent:providers.empty')}</div>}
+      <div className="nx-agent-provider-list">
+        {providers.map((provider) => <div className="nx-agent-provider-row" key={provider.id}>
+          <div className="nx-agent-provider-info">
+            <strong>{provider.name}</strong>
+            <code>{provider.model}</code>
+            <small>{provider.kind} · {provider.host || provider.baseUrl} · {t(`agent:providers.source.${provider.source}`, { defaultValue: provider.source })}</small>
+            <div className="nx-agent-provider-caps">{provider.capabilities.map((capability) => <span key={capability}>{capability}</span>)}</div>
+            {testResult[provider.id] && <small className={testResult[provider.id].ok ? 'ok' : 'fail'}>
+              {testResult[provider.id].ok
+                ? t('agent:providers.testOk', { latency: testResult[provider.id].latencyMs || 0 })
+                : t('agent:providers.testFail', { message: (testResult[provider.id].error || '').slice(0, 160) })}
+            </small>}
+          </div>
+          <div className="nx-agent-provider-actions">
+            <span className={`nx-agent-key-state ${provider.hasApiKey ? 'ready' : 'missing'}`}>{provider.hasApiKey ? t('agent:providers.keySaved') : t('agent:providers.keyMissing')}</span>
+            <input
+              type="password"
+              placeholder={t('agent:providers.keyPlaceholder')}
+              value={keyDraft[provider.id] || ''}
+              onChange={(event) => setKeyDraft((current) => ({ ...current, [provider.id]: event.target.value }))}
+              disabled={busy === `provider-key-${provider.id}`}
+            />
+            <button className="nx-row-action" disabled={!keyDraft[provider.id]?.trim()} onClick={async () => {
+              await onKeySet(provider.id, keyDraft[provider.id])
+              setKeyDraft((current) => ({ ...current, [provider.id]: '' }))
+              onProvidersChanged()
+            }}>{t('agent:providers.saveKey')}</button>
+            {provider.hasApiKey && provider.source !== 'env' && <button className="nx-row-action" onClick={async () => { await onKeyDelete(provider.id); onProvidersChanged() }}>{t('agent:providers.deleteKey')}</button>}
+            <button className="nx-row-action" onClick={() => void runTest(provider.id)} disabled={busy === `provider-test-${provider.id}`}>{t('agent:providers.test')}</button>
+            {provider.source !== 'env' && <button className="nx-row-action" onClick={() => { setEditing({ ...provider }); setOpen(true) }}>{t('common:actions.edit')}</button>}
+            {provider.source !== 'env' && <button className="nx-delete-action" disabled={busy === `provider-delete-${provider.id}`} onClick={async () => { await onProviderDelete(provider.id); onProvidersChanged() }} aria-label={t('agent:providers.deleteAria', { name: provider.name })}><Trash2 size={14} /></button>}
+          </div>
+        </div>)}
+      </div>
+      {editing && <div className="nx-agent-provider-form">
+        <div className="nx-agent-field-row">
+          <label className="nx-agent-field"><span>{t('agent:providers.form.name')}</span><input value={editing.name} onChange={(event) => setEditing({ ...editing, name: event.target.value })} maxLength={120} /></label>
+          <label className="nx-agent-field"><span>{t('agent:providers.form.kind')}</span>
+            <select value={editing.kind} onChange={(event) => setEditing({ ...editing, kind: event.target.value })}>
+              {PROVIDER_KINDS.map((kind) => <option key={kind} value={kind}>{kind}</option>)}
+            </select>
+          </label>
+          <label className="nx-agent-field"><span>{t('agent:providers.form.model')}</span><input value={editing.model} onChange={(event) => setEditing({ ...editing, model: event.target.value })} maxLength={200} placeholder="gpt-4o-mini / claude-sonnet-4 / qwen2.5-coder" /></label>
+        </div>
+        <div className="nx-agent-field-row">
+          <label className="nx-agent-field nx-grow"><span>{t('agent:providers.form.baseUrl')}</span><input value={editing.baseUrl} onChange={(event) => setEditing({ ...editing, baseUrl: event.target.value })} placeholder="https://api.example.com/v1" /></label>
+        </div>
+        <div className="nx-agent-field-row">
+          <label className="nx-agent-field"><span>{t('agent:providers.form.capabilities')}</span>
+            <div className="nx-agent-cap-picker">
+              {PROVIDER_CAPABILITY_OPTIONS.map((capability) => <label key={capability}>
+                <input
+                  type="checkbox"
+                  checked={(editing.capabilities || []).includes(capability)}
+                  onChange={(event) => {
+                    const current = editing.capabilities || []
+                    setEditing({ ...editing, capabilities: event.target.checked ? [...current, capability] : current.filter((item) => item !== capability) })
+                  }}
+                />
+                <span>{capability}</span>
+              </label>)}
+            </div>
+          </label>
+          <label className="nx-agent-field"><span>{t('agent:providers.form.inputPrice')}</span><input type="number" step="0.01" min="0" value={editing.pricing?.inputPer1M ?? ''} onChange={(event) => setEditing({ ...editing, pricing: { ...editing.pricing, inputPer1M: event.target.value === '' ? undefined : Number(event.target.value) } })} /></label>
+          <label className="nx-agent-field"><span>{t('agent:providers.form.outputPrice')}</span><input type="number" step="0.01" min="0" value={editing.pricing?.outputPer1M ?? ''} onChange={(event) => setEditing({ ...editing, pricing: { ...editing.pricing, outputPer1M: event.target.value === '' ? undefined : Number(event.target.value) } })} /></label>
+        </div>
+        {formError && <div className="nx-agent-error" role="alert">{formError}</div>}
+        <div className="nx-agent-provider-form-actions">
+          <button className="nx-primary" onClick={() => void save()}>{t('common:actions.save')}</button>
+          <button className="nx-secondary" onClick={() => setEditing(null)}>{t('common:actions.cancel')}</button>
+        </div>
+      </div>}
+      <div className="nx-agent-inline-note">{t('agent:providers.keyNote')}</div>
+    </div>}
+  </section>
 }
 
 function ProjectTable({ projects, selectedId, busy, onSelect, onScan, onRemove, onAdd }: {

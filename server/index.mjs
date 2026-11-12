@@ -15,6 +15,10 @@ import { beginAgentAttempt, createAgentRun, transitionAgentRun } from './service
 import { listLocalProjects } from './services/local-projects.mjs'
 import { createLocalAgentTask as persistLocalAgentTask, getLocalAgentTask, listLocalAgentTasks, recoverLocalAgentTaskStore, updateLocalAgentTask } from './services/local-agent-tasks.mjs'
 import { applyLocalAgentOperations, createLocalAgentWorkspace, listLocalAgentChanges, readLocalAgentFiles } from './services/local-agent-workspace.mjs'
+import { executeAgentRuntimeTask, rollbackAgentTask, applyAgentTaskToProject } from './services/agent/task-executor.mjs'
+import { listPublicProviders, createProviderRecord, updateProviderRecord, deleteProviderRecord, testProviderRecord, setRuntimeProviderKeys } from './services/provider-store.mjs'
+import { resolveApprovalInTask, expireStaleApprovals, APPROVAL_POLICIES } from './services/agent/approval.mjs'
+import { buildProjectIndex } from './services/agent/indexer.mjs'
 import fs from 'node:fs/promises'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -449,19 +453,32 @@ function localAgentPublicTask(task) {
     providerId: task.providerId || null,
     prompt: task.prompt,
     status: task.status,
+    phase: task.phase || null,
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
     startedAt: task.startedAt || null,
     finishedAt: task.finishedAt || null,
     error: task.error || null,
     events: (task.events || []).slice(-50),
+    plan: task.plan || null,
+    approvals: task.approvals || [],
+    pendingApprovalId: task.pendingApprovalId || null,
     disclosedPaths: task.disclosedPaths || [],
     changedFiles: task.changedFiles || [],
+    changeCount: task.changeCount ?? (task.changedFiles ? task.changedFiles.length : 0),
+    toolCallCount: task.toolCallCount ?? 0,
+    iterations: task.runtimeResult?.iterations ?? task.iterations ?? null,
     provider: task.provider || null,
     usage: task.usage || null,
     costUsd: task.costUsd ?? null,
     attempts: task.attempts ?? null,
     rationale: task.rationale || null,
+    runtimeResult: task.runtimeResult || null,
+    verification: task.runtimeResult?.verification || task.verification || null,
+    review: task.runtimeResult?.review || task.review || null,
+    workspaceMode: task.workspaceMode || null,
+    approvalPolicy: task.approvalPolicy || null,
+    fallbackReason: task.fallbackReason || null,
     workspaceReady: Boolean(task.workspace?.id),
     workspaceStats: task.workspace?.stats || null,
     sourceDisclosureConfirmedAt: task.sourceDisclosureConfirmedAt || null
@@ -495,6 +512,32 @@ async function executeLocalAgentTask(taskId, providerId, controller) {
   try {
     let task = await getLocalAgentTask({ dataDir, taskId })
     if (!task || task.status !== 'Queued') return
+    if (task.type === 'local-agent-runtime') {
+      // PHASE 6 multi-turn runtime pipeline.
+      task = await updateLocalAgentTask({ dataDir, taskId, patch: { startedAt: now() } })
+      const outcome = await executeAgentRuntimeTask({
+        task: { ...task, providerId },
+        taskStore: {
+          create: (args) => persistLocalAgentTask({ dataDir, task: args.task }),
+          get: ({ taskId: id }) => getLocalAgentTask({ dataDir, taskId: id }),
+          update: ({ taskId: id, patch, event }) => updateLocalAgentTask({ dataDir, taskId: id, patch, event }),
+          list: () => listLocalAgentTasks({ dataDir })
+        },
+        dataDir,
+        signal: controller.signal,
+        options: {
+          approvalPolicy: task.approvalPolicy || 'standard',
+          workspaceMode: task.workspaceMode || 'auto',
+          ...(task.maxIterations ? { maxIterations: task.maxIterations } : {}),
+          ...(task.maxRepairAttempts ? { maxRepairAttempts: task.maxRepairAttempts } : {})
+        },
+        audit: (action, target, result, risk, detail) => audit({ get: () => undefined }, action, target, result, risk, detail)
+      })
+      if (outcome?.adapter && task.disposeWorkspaceAfterRun !== true) {
+        // Keep the workspace for review, rollback and apply decisions.
+      }
+      return outcome
+    }
     const startedAt = now()
     task = await updateLocalAgentTask({
       dataDir,
@@ -608,42 +651,51 @@ async function recoverLocalAgentTasks() {
   }
 }
 
-async function createAndQueueLocalAgentTask({ projectId, prompt, providerId, req }) {
+async function createAndQueueLocalAgentTask({ projectId, prompt, providerId, req, taskType = 'local-agent', approvalPolicy = 'standard', workspaceMode = 'auto' }) {
   const projects = await listLocalProjects({ dataDir })
   const project = projects.find((item) => item.id === projectId && item.available)
   if (!project) throw Object.assign(new Error('Choose a registered local project that is still available.'), { code: 'LOCAL_PROJECT_NOT_AVAILABLE' })
 
-  const providers = listAIProviders()
-  const defaultProvider = providers.find((item) => item.default) || providers.find((item) => item.configured)
-  const selectedProvider = providerId ? providers.find((item) => item.id === providerId) : defaultProvider
-  if (!selectedProvider) throw Object.assign(new Error('The selected AI provider is not configured.'), { code: 'AI_NOT_CONFIGURED' })
-  if (!selectedProvider.configured) throw Object.assign(new Error('Configure this AI provider on the local service before starting an Agent task.'), { code: 'AI_NOT_CONFIGURED' })
+  // Provider resolution: the persistent provider registry (desktop) wins; the
+  // legacy env-configured providers remain the fallback for server deployments.
+  const runtimeProviders = await listPublicProviders({ dataDir })
+  const runtimeConfigured = runtimeProviders.filter((item) => item.configured)
+  const envProviders = listAIProviders()
+  const envConfigured = envProviders.filter((item) => item.configured)
+  const selected = providerId
+    ? runtimeConfigured.find((item) => item.id === providerId) || envConfigured.find((item) => item.id === providerId)
+    : runtimeConfigured[0] || envConfigured[0]
+  if (!selected) throw Object.assign(new Error('Configure an AI provider with an API key and model before starting an Agent task.'), { code: 'AI_NOT_CONFIGURED' })
 
   if (localAgentQueue.length + localAgentControllers.size >= LOCAL_AGENT_MAX_QUEUED_TASKS) {
     throw Object.assign(new Error(`The local Agent queue is limited to ${LOCAL_AGENT_MAX_QUEUED_TASKS} pending tasks.`), { code: 'LOCAL_AGENT_QUEUE_FULL' })
   }
   const safePrompt = redactSecrets(prompt.trim())
   const taskId = `nexus_agent_${crypto.randomUUID()}`
+  const policy = APPROVAL_POLICIES.includes(approvalPolicy) ? approvalPolicy : 'standard'
+  const mode = ['auto', 'worktree', 'copy'].includes(workspaceMode) ? workspaceMode : 'auto'
   const task = await persistLocalAgentTask({
     dataDir,
     task: {
       id: taskId,
-      type: 'local-agent',
+      type: taskType,
       label: safePrompt.split(/\r?\n/)[0].slice(0, 120) || 'Local Agent task',
       projectId: project.id,
       projectName: project.name,
       prompt: safePrompt,
-      providerId: selectedProvider.id,
+      providerId: selected.id,
       status: 'Queued',
+      approvalPolicy: policy,
+      workspaceMode: mode,
       sourceDisclosureConfirmedAt: now(),
       disclosedPaths: [],
       changedFiles: []
     }
   })
-  audit(req, 'local_agent_task_created', `${project.name} (${project.id})`, 'queued', 'medium', { taskId, providerId: selectedProvider.id, sourceDisclosureConfirmed: true })
+  audit(req, 'local_agent_task_created', `${project.name} (${project.id})`, 'queued', 'medium', { taskId, providerId: selected.id, taskType, approvalPolicy: policy, workspaceMode: mode, sourceDisclosureConfirmed: true })
   await saveState()
-  enqueueLocalAgentTask(taskId, selectedProvider.id)
-  return { task, provider: selectedProvider }
+  enqueueLocalAgentTask(taskId, selected.id)
+  return { task, provider: selected }
 }
 
 function integrationLog(job, task, message) {
@@ -898,15 +950,34 @@ function localAgentErrorStatus(error) {
   return 400
 }
 
-app.get('/api/local-agent/config', (_req, res) => {
+app.get('/api/local-agent/config', async (_req, res) => {
   if (!requireDesktopLocalAgent(res)) return
-  const providers = listAIProviders()
+  const providers = await listPublicProviders({ dataDir })
+  const legacyProviders = listAIProviders()
+  const configured = providers.some((provider) => provider.configured) || legacyProviders.some((provider) => provider.configured)
   res.json({
-    configured: providers.some((provider) => provider.configured),
-    defaultProviderId: providers.find((provider) => provider.default)?.id || null,
+    configured,
+    defaultProviderId: providers.find((provider) => provider.configured)?.id || legacyProviders.find((provider) => provider.configured)?.id || null,
     providers,
-    limits: { maxPromptBytes: LOCAL_AGENT_MAX_PROMPT_BYTES, maxContextFiles: 20, maxProviderSourceBytesAfterRedaction: 120 * 1024, maxOperationCount: 20, operations: ['create', 'replace'] },
-    capabilities: { isolatedWorkspace: true, originalProjectWrites: false, commandExecution: false, buildAndTest: false, gitApply: false }
+    legacyProviders,
+    approvalPolicies: APPROVAL_POLICIES,
+    taskTypes: ['local-agent-runtime', 'local-agent'],
+    limits: { maxPromptBytes: LOCAL_AGENT_MAX_PROMPT_BYTES, maxContextFiles: 24, maxContextBytes: 120 * 1024, maxIterations: 40, maxRepairAttempts: 4 },
+    capabilities: {
+      isolatedWorkspace: true,
+      workspaceModes: ['auto', 'worktree', 'copy'],
+      originalProjectWrites: 'explicit-apply-only',
+      commandExecution: true,
+      commandAllowlist: true,
+      buildAndTest: true,
+      gitApply: true,
+      gitPush: false,
+      multiTurnRuntime: true,
+      approvals: true,
+      rollback: true,
+      projectInsights: true,
+      costTracking: true
+    }
   })
 })
 
@@ -924,13 +995,16 @@ app.post('/api/local-agent/tasks', async (req, res) => {
   const projectId = typeof req.body?.projectId === 'string' ? req.body.projectId : ''
   const prompt = typeof req.body?.prompt === 'string' ? req.body.prompt : ''
   const providerId = req.body?.providerId === undefined || req.body.providerId === null || req.body.providerId === '' ? null : typeof req.body.providerId === 'string' ? req.body.providerId : ''
+  const taskType = req.body?.taskType === 'local-agent-runtime' ? 'local-agent-runtime' : 'local-agent'
+  const approvalPolicy = typeof req.body?.approvalPolicy === 'string' ? req.body.approvalPolicy : 'standard'
+  const workspaceMode = typeof req.body?.workspaceMode === 'string' ? req.body.workspaceMode : 'auto'
   if (!projectId || !/^[0-9a-f-]{36}$/i.test(projectId)) return res.status(400).json({ code: 'LOCAL_PROJECT_ID_INVALID', message: 'Choose a registered local project.' })
   if (!prompt.trim()) return res.status(400).json({ code: 'AI_PROMPT_REQUIRED', message: 'Enter a task request.' })
   if (Buffer.byteLength(prompt, 'utf8') > LOCAL_AGENT_MAX_PROMPT_BYTES) return res.status(413).json({ code: 'AI_PROMPT_TOO_LARGE', message: `Task prompts are limited to ${LOCAL_AGENT_MAX_PROMPT_BYTES} bytes.` })
   if (providerId === '') return res.status(400).json({ code: 'AI_PROVIDER_INVALID', message: 'Choose a configured provider.' })
   try {
-    const { task, provider } = await createAndQueueLocalAgentTask({ projectId, prompt, providerId, req })
-    res.status(202).json({ task: localAgentPublicTask(task), provider: { id: provider.id, kind: provider.kind, host: provider.host, model: provider.model } })
+    const { task, provider } = await createAndQueueLocalAgentTask({ projectId, prompt, providerId, req, taskType, approvalPolicy, workspaceMode })
+    res.status(202).json({ task: localAgentPublicTask(task), provider: { id: provider.id, kind: provider.kind, host: provider.host || null, model: provider.model } })
   } catch (error) { res.status(localAgentErrorStatus(error)).json({ code: error.code || 'LOCAL_AGENT_TASK_CREATE_FAILED', message: safeError(error) }) }
 })
 
@@ -941,10 +1015,22 @@ app.get('/api/local-agent/tasks/:taskId', async (req, res) => {
     if (!task) return res.status(404).json({ code: 'LOCAL_AGENT_TASK_NOT_FOUND', message: 'Local Agent task was not found.' })
     let changes = []
     let changesError = null
-    const workspace = localAgentWorkspaceHandle(task)
-    if (workspace && !['Queued', 'Running'].includes(task.status)) {
-      try { changes = await listLocalAgentChanges(workspace) }
-      catch (error) { changesError = safeError(error) }
+    if (task.workspace?.id && !['Queued', 'Running'].includes(task.status)) {
+      if (task.type === 'local-agent-runtime' && task.workspace.mode) {
+        // Runtime workspaces live under agent-workspaces/agent (worktree or copy).
+        try {
+          const { listRuntimeTaskChanges } = await import('./services/agent/task-executor.mjs')
+          const result = await listRuntimeTaskChanges({ task, dataDir })
+          changes = result.changes
+          changesError = result.error
+        } catch (error) { changesError = safeError(error) }
+      } else {
+        const workspace = localAgentWorkspaceHandle(task)
+        if (workspace) {
+          try { changes = await listLocalAgentChanges(workspace) }
+          catch (error) { changesError = safeError(error) }
+        }
+      }
     }
     return res.json({ task: localAgentPublicTask(task), changes, changesError })
   } catch (error) { res.status(400).json({ code: error.code || 'LOCAL_AGENT_TASK_READ_FAILED', message: safeError(error) }) }
@@ -976,9 +1062,165 @@ app.post('/api/local-agent/tasks/:taskId/retry', async (req, res) => {
     const previous = await getLocalAgentTask({ dataDir, taskId: req.params.taskId })
     if (!previous) return res.status(404).json({ code: 'LOCAL_AGENT_TASK_NOT_FOUND', message: 'Local Agent task was not found.' })
     if (['Queued', 'Running'].includes(previous.status)) return res.status(409).json({ code: 'LOCAL_AGENT_TASK_ACTIVE', message: 'An active task cannot be retried.' })
-    const { task, provider } = await createAndQueueLocalAgentTask({ projectId: previous.projectId, prompt: previous.prompt, providerId: previous.providerId, req })
-    return res.status(202).json({ task: localAgentPublicTask(task), provider: { id: provider.id, kind: provider.kind, host: provider.host, model: provider.model } })
+    const { task, provider } = await createAndQueueLocalAgentTask({
+      projectId: previous.projectId,
+      prompt: previous.prompt,
+      providerId: previous.providerId,
+      req,
+      taskType: previous.type === 'local-agent-runtime' ? 'local-agent-runtime' : 'local-agent',
+      approvalPolicy: previous.approvalPolicy || 'standard',
+      workspaceMode: previous.workspaceMode || 'auto'
+    })
+    return res.status(202).json({ task: localAgentPublicTask(task), provider: { id: provider.id, kind: provider.kind, host: provider.host || null, model: provider.model } })
   } catch (error) { return res.status(localAgentErrorStatus(error)).json({ code: error.code || 'LOCAL_AGENT_TASK_RETRY_FAILED', message: safeError(error) }) }
+})
+
+// ---- PHASE 6: provider registry, approvals, rollback, apply, insights ----
+
+function providerErrorStatus(error) {
+  if (['PROVIDER_NOT_CONFIGURED'].includes(error.code)) return 424
+  if (['PROVIDER_STORE_LIMIT', 'PROVIDER_DUPLICATE_ID'].includes(error.code)) return 409
+  if (['PROVIDER_ID_INVALID', 'PROVIDER_NAME_INVALID', 'PROVIDER_KIND_INVALID', 'PROVIDER_BASE_URL_INVALID', 'PROVIDER_MODEL_INVALID', 'PROVIDER_MODELS_INVALID', 'PROVIDER_INVALID', 'PROVIDER_KEYS_INVALID'].includes(error.code)) return 400
+  return 500
+}
+
+app.get('/api/local-agent/providers', async (_req, res) => {
+  if (!requireDesktopLocalAgent(res)) return
+  try {
+    const providers = await listPublicProviders({ dataDir })
+    res.json({ providers, defaultProviderId: providers.find((provider) => provider.configured)?.id || null })
+  } catch (error) { res.status(providerErrorStatus(error)).json({ code: error.code || 'PROVIDERS_FAILED', message: safeError(error) }) }
+})
+
+app.post('/api/local-agent/providers', async (req, res) => {
+  if (!requireDesktopLocalAgent(res)) return
+  try {
+    const provider = await createProviderRecord({ dataDir, provider: req.body })
+    audit(req, 'provider_created', provider.id, 'success', 'medium', {})
+    res.status(201).json({ provider })
+  } catch (error) { res.status(providerErrorStatus(error)).json({ code: error.code || 'PROVIDER_CREATE_FAILED', message: safeError(error) }) }
+})
+
+app.patch('/api/local-agent/providers/:providerId', async (req, res) => {
+  if (!requireDesktopLocalAgent(res)) return
+  try {
+    const provider = await updateProviderRecord({ dataDir, providerId: req.params.providerId, patch: req.body })
+    if (!provider) return res.status(404).json({ code: 'PROVIDER_NOT_FOUND', message: 'Provider was not found.' })
+    res.json({ provider })
+  } catch (error) { res.status(providerErrorStatus(error)).json({ code: error.code || 'PROVIDER_UPDATE_FAILED', message: safeError(error) }) }
+})
+
+app.delete('/api/local-agent/providers/:providerId', async (req, res) => {
+  if (!requireDesktopLocalAgent(res)) return
+  try {
+    const result = await deleteProviderRecord({ dataDir, providerId: req.params.providerId })
+    if (!result.deleted) return res.status(404).json({ code: 'PROVIDER_NOT_FOUND', message: 'Provider was not found.' })
+    audit(req, 'provider_deleted', req.params.providerId, 'success', 'medium', {})
+    res.json(result)
+  } catch (error) { res.status(providerErrorStatus(error)).json({ code: error.code || 'PROVIDER_DELETE_FAILED', message: safeError(error) }) }
+})
+
+app.post('/api/local-agent/providers/:providerId/test', async (req, res) => {
+  if (!requireDesktopLocalAgent(res)) return
+  try {
+    const result = await testProviderRecord({ dataDir, providerId: req.params.providerId, timeoutMs: Number(req.body?.timeoutMs) || undefined })
+    audit(req, 'provider_tested', req.params.providerId, result.ok ? 'success' : 'failure', 'low', { latencyMs: result.latencyMs })
+    res.json(result)
+  } catch (error) { res.status(providerErrorStatus(error)).json({ code: error.code || 'PROVIDER_TEST_FAILED', message: safeError(error) }) }
+})
+
+// Provider API keys arrive only from the Electron main process (decrypted from
+// Windows DPAPI via safeStorage) over the authenticated local loopback API.
+app.post('/api/local-agent/provider-keys', async (req, res) => {
+  if (!requireDesktopLocalAgent(res)) return
+  try {
+    const result = setRuntimeProviderKeys(req.body?.keys)
+    audit(req, 'provider_keys_synced', Object.keys(req.body?.keys || {}).join(','), 'success', 'high', { count: result.ids.length })
+    res.json({ synced: result.ids })
+  } catch (error) { res.status(400).json({ code: error.code || 'PROVIDER_KEYS_INVALID', message: safeError(error) }) }
+})
+
+app.post('/api/local-agent/tasks/:taskId/approvals/:approvalId/resolve', async (req, res) => {
+  if (!requireDesktopLocalAgent(res)) return
+  const decision = req.body?.decision === 'approved' ? 'approved' : req.body?.decision === 'denied' ? 'denied' : null
+  if (!decision) return res.status(400).json({ code: 'APPROVAL_DECISION_INVALID', message: 'Decision must be approved or denied.' })
+  try {
+    const task = await getLocalAgentTask({ dataDir, taskId: req.params.taskId })
+    if (!task) return res.status(404).json({ code: 'LOCAL_AGENT_TASK_NOT_FOUND', message: 'Local Agent task was not found.' })
+    const resolved = resolveApprovalInTask(task, req.params.approvalId, decision, 'user')
+    if (!resolved) return res.status(409).json({ code: 'APPROVAL_NOT_PENDING', message: 'This approval is not pending.' })
+    const patch = { approvals: task.approvals }
+    if (task.pendingApprovalId === resolved.id) patch.pendingApprovalId = null
+    const updated = await updateLocalAgentTask({ dataDir, taskId: task.id, patch, event: { type: 'approval_resolved', detail: `${resolved.tool} ${decision} by the user.`, metadata: { approvalId: resolved.id, decision } } })
+    audit(req, 'approval_resolved', `${task.id}/${resolved.id}`, decision === 'approved' ? 'success' : 'blocked', 'high', { tool: resolved.tool, decision })
+    res.json({ task: localAgentPublicTask(updated) })
+  } catch (error) { res.status(400).json({ code: error.code || 'APPROVAL_RESOLVE_FAILED', message: safeError(error) }) }
+})
+
+app.post('/api/local-agent/tasks/:taskId/rollback', async (req, res) => {
+  if (!requireDesktopLocalAgent(res)) return
+  try {
+    const task = await getLocalAgentTask({ dataDir, taskId: req.params.taskId })
+    if (!task) return res.status(404).json({ code: 'LOCAL_AGENT_TASK_NOT_FOUND', message: 'Local Agent task was not found.' })
+    if (['Queued', 'Running'].includes(task.status)) return res.status(409).json({ code: 'LOCAL_AGENT_TASK_ACTIVE', message: 'Wait for the task to finish before rolling it back.' })
+    const result = await rollbackAgentTask({ task, dataDir })
+    await updateLocalAgentTask({ dataDir, taskId: task.id, patch: {}, event: { type: 'rolled_back', detail: `Workspace rolled back (${result.mode}). No project files were touched.`, metadata: { workspace: result.workspace, mode: result.mode } } })
+    audit(req, 'agent_task_rolled_back', task.id, 'success', 'medium', { mode: result.mode })
+    res.json(result)
+  } catch (error) {
+    const status = error.code === 'AGENT_WORKSPACE_MISSING' || error.code === 'AGENT_WORKSPACE_GONE' ? 404 : 400
+    res.status(status).json({ code: error.code || 'AGENT_ROLLBACK_FAILED', message: safeError(error) })
+  }
+})
+
+app.post('/api/local-agent/tasks/:taskId/apply', async (req, res) => {
+  if (!requireDesktopLocalAgent(res)) return
+  try {
+    const task = await getLocalAgentTask({ dataDir, taskId: req.params.taskId })
+    if (!task) return res.status(404).json({ code: 'LOCAL_AGENT_TASK_NOT_FOUND', message: 'Local Agent task was not found.' })
+    if (['Queued', 'Running'].includes(task.status)) return res.status(409).json({ code: 'LOCAL_AGENT_TASK_ACTIVE', message: 'Wait for the task to finish before applying its changes.' })
+    const result = await applyAgentTaskToProject({ task, dataDir, confirm: req.body?.confirm === true })
+    if (result.applied) {
+      await updateLocalAgentTask({ dataDir, taskId: task.id, patch: {}, event: { type: 'applied_to_project', detail: result.note, metadata: { appliedPaths: result.appliedPaths } } })
+      audit(req, 'agent_task_applied', `${task.projectName} (${task.projectId})`, 'success', 'high', { appliedPaths: result.appliedPaths })
+    }
+    res.json(result)
+  } catch (error) {
+    const status = error.code === 'AGENT_APPLY_DIRTY_PROJECT' ? 409 : error.code === 'AGENT_APPLY_CONFIRMATION_REQUIRED' ? 400 : 400
+    res.status(status).json({ code: error.code || 'AGENT_APPLY_FAILED', message: safeError(error) })
+  }
+})
+
+app.post('/api/local-agent/projects/:projectId/insights', async (req, res) => {
+  if (!requireDesktopLocalAgent(res)) return
+  try {
+    const projects = await listLocalProjects({ dataDir })
+    const project = projects.find((item) => item.id === req.params.projectId && item.available)
+    if (!project) return res.status(404).json({ code: 'LOCAL_PROJECT_NOT_AVAILABLE', message: 'The local project is not registered or available.' })
+    const cacheFile = path.join(dataDir, 'agent-indexes', `${project.id}.json`)
+    const built = await buildProjectIndex({ root: project.path, cacheFile })
+    const { index } = built
+    const insights = {
+      projectId: project.id,
+      projectName: project.name,
+      cached: built.cached,
+      reindexed: built.reindexed,
+      changedFiles: built.changed.slice(0, 50),
+      stats: index.stats,
+      languages: index.files.reduce((counts, file) => {
+        if (file.language) counts[file.language] = (counts[file.language] || 0) + 1
+        return counts
+      }, {}),
+      manifests: (index.manifests || []).map((manifest) => ({ path: manifest.path, kind: manifest.kind, name: manifest.name || null, scripts: manifest.scripts || null, dependencies: manifest.dependencies || null })),
+      entryPoints: index.entryPoints,
+      testPaths: (index.testPaths || []).slice(0, 40),
+      routeCandidates: (index.routeCandidates || []).slice(0, 20),
+      apiCandidates: (index.apiCandidates || []).slice(0, 20),
+      topSymbols: Object.entries(index.symbols || {}).slice(0, 40).map(([filePath, symbols]) => ({ path: filePath, symbols: symbols.slice(0, 8) }))
+    }
+    audit(req, 'project_insights_built', `${project.name} (${project.id})`, 'success', 'low', { files: index.stats.files, cached: built.cached })
+    res.json(insights)
+  } catch (error) { res.status(500).json({ code: error.code || 'PROJECT_INSIGHTS_FAILED', message: safeError(error) }) }
 })
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'project-nexus', time: now() }))

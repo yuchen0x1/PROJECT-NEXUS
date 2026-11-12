@@ -20,8 +20,14 @@
     "disclosureBody": "Der Start dieser Aufgabe sendet Ihre Anfrage und bis zu {{maxFiles}} geeignete UTF-8-Dateien aus einer begrenzten isolierten Kopie an den ausgewählten Anbieter. Quelltext wird geschwärzt und nach der Schwärzung auf {{maxKiB}} KiB begrenzt. Geheimnisartige Pfade und eingebaute Abhängigkeits-/Build-Ordner werden übersprungen. Unterstützte .gitignore-Regeln des Projekts werden angewendet; fehlerhafte oder nicht unterstützte Muster stoppen die Erstellung des Arbeitsbereichs.",
     "consent": "Ich habe diese Offenlegung geprüft und autorisiere das Senden des begrenzten Quellkontexts dieser Aufgabe an den ausgewählten Anbieter.",
     "footerNote": "Kandidatenänderungen bleiben unter dem Aufgabenarbeitsbereich in den App-Daten.",
-    "submit": "Isolierte Änderungen erzeugen",
-    "submitting": "Aufgabe wird in Warteschlange gestellt…"
+    "submit": "Agent-Aufgabe starten",
+    "submitting": "Aufgabe wird in Warteschlange gestellt…",
+    "taskTypeLabel": "Task-Engine",
+    "taskTypeRuntime": "Autonomer Agent (mehrstufige Tool-Aufrufe)",
+    "taskTypeLegacy": "Einmalvorschlag (veraltet)",
+    "approvalPolicyLabel": "Genehmigungsrichtlinie",
+    "workspaceModeLabel": "Workspace-Isolation",
+    "runtimeNote": "Der Agent plant, ruft echte Tools in einem isolierten Workspace auf, führt Build/Tests aus, repariert Fehler und prüft sein eigenes Diff. Hochriskante Aktionen pausieren für Ihre Genehmigung."
   },
   "history": {
     "title": "Aufgabenverlauf",
@@ -29,7 +35,9 @@
     "cancelAria": "Aufgabe {{label}} abbrechen",
     "cancelTitle": "Aufgabe abbrechen",
     "emptyTitle": "Keine lokalen Agent-Aufgaben",
-    "emptyDetail": "Neue Vorschläge und ihr gespeicherter Zustand erscheinen hier."
+    "emptyDetail": "Neue Vorschläge und ihr gespeicherter Zustand erscheinen hier.",
+    "runtimeTag": "Autonomer Lauf",
+    "toolCalls": "{{count}} Tool-Aufrufe"
   },
   "review": {
     "title": "Prüfung isolierter Änderungen",
@@ -51,11 +59,27 @@
     "noDiff": "Für diese Aufgabe wurden keine Dateiänderungen erzeugt.",
     "eventsSummary": "Aufgabenereignisse ({{count}})",
     "retryNote": "Ein erneuter Versuch erstellt eine neue isolierte Aufgabe und erfordert eine erneute Quellenoffenlegung.",
-    "retryAction": "Aufgabe erneut ausführen"
+    "retryAction": "Aufgabe erneut ausführen",
+    "approvalsTitle": "{{count}} Aktion(en) awaiting your approval",
+    "approve": "Genehmigen",
+    "deny": "Ablehnen",
+    "planSummary": "Plan ({{count}} Schritte)",
+    "verificationTitle": "Build- & Test-Verifikation",
+    "verifyLog": "{{label}}: {{ok}}",
+    "noOutput": "(keine Ausgabe)",
+    "reviewTitle": "Unabhängige Diff-Prüfung",
+    "finalMessageLabel": "Agent-Zusammenfassung",
+    "rollback": "Workspace zurücksetzen",
+    "rollingBack": "Zurücksetzen…",
+    "apply": "Auf Projekt anwenden",
+    "applying": "Anwenden…"
   },
   "meta": {
     "tokens": "{{value}} Token",
-    "cost": "{{value}}"
+    "cost": "{{value}}",
+    "workspaceMode": "Workspace: {{mode}}",
+    "iterations": "Iterationen: {{value}}",
+    "toolCalls": "Tool-Aufrufe: {{value}}"
   },
   "status": {
     "Queued": "In Warteschlange",
@@ -75,10 +99,90 @@
     "failed": "Aufgabe fehlgeschlagen",
     "cancelled": "Aufgabe abgebrochen",
     "interrupted": "Aufgabe unterbrochen",
-    "rawDetail": "{{detail}}"
+    "rawDetail": "{{detail}}",
+    "started": "Agent-Laufzeit gestartet",
+    "plan": "Plan erstellt",
+    "tool_call": "Tool ausgeführt",
+    "model_retry": "Modellausgabe wiederholt",
+    "repair_start": "Automatischer Reparaturversuch",
+    "repair_tool": "Reparatur-Tool ausgeführt",
+    "verification": "Build/Test-Verifikation",
+    "review": "Unabhängige Prüfung",
+    "review_skipped": "Prüfung übersprungen",
+    "final": "Abschließende Zusammenfassung",
+    "phase": "Phase geändert",
+    "index": "Projektindex erstellt",
+    "index_failed": "Projektindizierung fehlgeschlagen",
+    "context": "Aufgabenkontext ausgewählt",
+    "context_failed": "Kontextauswahl fehlgeschlagen",
+    "approval_requested": "Genehmigung angefordert",
+    "approval_settled": "Genehmigung entschieden",
+    "approval_resolved": "Genehmigung entschieden",
+    "approval_expired": "Genehmigung abgelaufen",
+    "rolled_back": "Workspace zurückgesetzt",
+    "applied_to_project": "Änderungen auf das Projekt angewendet"
   },
   "capabilityNote": "Diese Version zeichnet den Aufgabenstatus auf und erzeugt überprüfbare Änderungen in einer isolierten Kopie. Sie wendet keine Änderungen auf den registrierten Ordner an, führt keine Befehle aus, startet keine Tests und bietet keine Git-Apply-/Rollback-Steuerung.",
   "replyLanguage": {
     "instruction": "Bitte schreiben Sie Ihre Erläuterungen in {{language}}. Lassen Sie sämtlichen Code, Befehle, Bezeichner und Dateipfade unverändert."
+  },
+  "policy": {
+    "supervised": "Überwacht — jede Schreibaktion genehmigen",
+    "standard": "Standard — Workspace-Schreibaktionen automatisch, riskante Aktionen genehmigen",
+    "workspace-auto": "Workspace automatisch — nur außerhalb des Workspace nachfragen"
+  },
+  "workspaceMode": {
+    "auto": "Automatisch (wenn möglich Git-Worktree)",
+    "worktree": "Git-Worktree",
+    "copy": "Begrenzte Snapshot-Kopie"
+  },
+  "insights": {
+    "load": "Projekt analysieren",
+    "loading": "Analyse…",
+    "summary": "{{files}} Dateien · {{languages}} Sprachen · {{entries}} Einstiegspunkte",
+    "detailsSummary": "Details des Projektverständnisses",
+    "entryPoints": "Einstiegspunkte",
+    "scripts": "Build- & Test-Skripte",
+    "languages": "Sprachen",
+    "tests": "Testdateien"
+  },
+  "providers": {
+    "title": "KI-Anbieter & Schlüssel",
+    "add": "Anbieter hinzufügen",
+    "empty": "Noch keine Anbieter registriert. Fügen Sie einen hinzu, um echte Agent-Läufe zu ermöglichen.",
+    "encryptionUnavailable": "Betriebssystem-Schlüsselverschlüsselung nicht verfügbar — Schlüssel können nicht gespeichert werden",
+    "keySaved": "Schlüssel gespeichert",
+    "keyMissing": "Kein Schlüssel",
+    "keyPlaceholder": "API-Schlüssel einfügen (verschlüsselt gespeichert, nie wieder angezeigt)",
+    "saveKey": "Schlüssel speichern",
+    "deleteKey": "Schlüssel löschen",
+    "test": "Verbindung testen",
+    "testOk": "Verbunden in {{latency}} ms",
+    "testFail": "Fehlgeschlagen: {{message}}",
+    "deleteAria": "Anbieter {{name}} löschen",
+    "keyNote": "API-Schlüssel werden mit dem Betriebssystem-Anmeldedatenspeicher verschlüsselt, nie wieder angezeigt, nie in Protokolle oder Projektdateien geschrieben und nur an den lokalen Dienstprozess übermittelt.",
+    "formIncomplete": "Name, Basis-URL und Modell sind erforderlich.",
+    "form": {
+      "name": "Anzeigename",
+      "kind": "API-Format",
+      "model": "Standardmodell",
+      "baseUrl": "Basis-URL",
+      "capabilities": "Nur verifizierte Fähigkeiten",
+      "inputPrice": "Eingabepreis / 1M Token",
+      "outputPrice": "Ausgabepreis / 1M Token"
+    },
+    "source": {
+      "stored": "registriert",
+      "env": "Umgebung"
+    }
+  },
+  "risk": {
+    "high": "Hohes Risiko",
+    "medium": "Mittleres Risiko",
+    "low": "Geringes Risiko"
+  },
+  "decision": {
+    "approved": "genehmigt",
+    "denied": "abgelehnt"
   }
 }

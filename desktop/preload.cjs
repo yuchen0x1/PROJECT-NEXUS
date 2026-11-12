@@ -10,6 +10,9 @@ contextBridge.exposeInMainWorld('nexusDesktop', Object.freeze({
   addProject: (dialogTitle) => invoke('desktop:projects:add', dialogTitle),
   removeProject: (projectId, projectName, dialogText) => invoke('desktop:projects:remove', projectId, projectName, dialogText),
   scanProject: (projectId) => invoke('desktop:projects:scan', projectId),
+  setProviderKey: (providerId, apiKey) => invoke('desktop:provider-keys:set', providerId, apiKey),
+  deleteProviderKey: (providerId) => invoke('desktop:provider-keys:delete', providerId),
+  getProviderKeyStatus: () => invoke('desktop:provider-keys:status'),
   setAutoStart: (enabled) => invoke('desktop:settings:auto-start', enabled),
   getSettings: () => invoke('desktop:settings:get'),
   updateSettings: (partial) => invoke('desktop:settings:update', partial)

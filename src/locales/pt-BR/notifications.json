@@ -59,6 +59,21 @@
     "autoStartDisabled": {
       "label": "Iniciar com o Windows desativado",
       "detail": "Esta configuração só é alterada após a sua confirmação."
+    },
+    "agentApprovalResolved": {
+      "label": "Aprovação do agente decidida",
+      "detail": "{{tool}} foi {{decision}}."
+    },
+    "agentRolledBack": {
+      "label": "Espaço de trabalho do agente revertido",
+      "detail": "Modo de isolamento: {{mode}}. Nenhum arquivo do projeto foi alterado."
+    },
+    "agentApplied": {
+      "label": "Alterações do agente aplicadas",
+      "detail": "{{count}} alteração(ões) de arquivo gravada(s) no projeto."
+    },
+    "agentApplyFailed": {
+      "label": "Falha ao aplicar as alterações do agente"
     }
   },
   "toast": {
@@ -66,6 +81,9 @@
     "themeChanged": "Tema atualizado",
     "settingsSaved": "Configurações salvas",
     "projectAdded": "Projeto adicionado",
-    "scanQueued": "Verificação enfileirada"
+    "scanQueued": "Verificação enfileirada",
+    "agentRolledBack": "O espaço de trabalho voltou ao estado original.",
+    "agentApplied": "As alterações do agente foram aplicadas ao seu projeto.",
+    "providerSaved": "Provedor salvo."
   }
 }

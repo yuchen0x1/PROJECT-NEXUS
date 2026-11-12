@@ -20,8 +20,14 @@
     "disclosureBody": "Le démarrage de cette tâche envoie votre requête et jusqu'à {{maxFiles}} fichiers UTF-8 éligibles depuis une copie isolée de taille limitée vers le fournisseur sélectionné. Le texte des sources est expurgé et plafonné à {{maxKiB}} KiB après expurgation. Les chemins à forme de secret et les dossiers intégrés de dépendances/build sont ignorés. Les règles .gitignore prises en charge du projet sont appliquées ; les motifs mal formés ou non pris en charge interrompent la création de l'espace de travail.",
     "consent": "J'ai examiné cette divulgation et j'autorise l'envoi du contexte de sources limité de cette tâche au fournisseur sélectionné.",
     "footerNote": "Les modifications candidates restent sous l'espace de travail de la tâche dans les données de l'application.",
-    "submit": "Générer des modifications isolées",
-    "submitting": "Mise en file d'attente de la tâche…"
+    "submit": "Démarrer la tâche d’agent",
+    "submitting": "Mise en file d'attente de la tâche…",
+    "taskTypeLabel": "Moteur de tâche",
+    "taskTypeRuntime": "Agent autonome (outils multi-tours)",
+    "taskTypeLegacy": "Proposition en une passe (historique)",
+    "approvalPolicyLabel": "Politique d’approbation",
+    "workspaceModeLabel": "Isolation de l’espace de travail",
+    "runtimeNote": "L’agent planifie, appelle de vrais outils dans un espace de travail isolé, exécute build/tests, répare les échecs et relit son propre diff. Les actions à haut risque s’arrêtent pour votre approbation."
   },
   "history": {
     "title": "Historique des tâches",
@@ -29,7 +35,9 @@
     "cancelAria": "Annuler la tâche {{label}}",
     "cancelTitle": "Annuler la tâche",
     "emptyTitle": "Aucune tâche locale de l'agent",
-    "emptyDetail": "Les nouvelles propositions et leur état enregistré s'afficheront ici."
+    "emptyDetail": "Les nouvelles propositions et leur état enregistré s'afficheront ici.",
+    "runtimeTag": "Exécution autonome",
+    "toolCalls": "{{count}} appels d’outils"
   },
   "review": {
     "title": "Revue des modifications isolées",
@@ -51,11 +59,27 @@
     "noDiff": "Aucune modification de fichier n'a été générée pour cette tâche.",
     "eventsSummary": "Événements de la tâche ({{count}})",
     "retryNote": "Une nouvelle tentative crée une nouvelle tâche isolée et exige une nouvelle divulgation des sources.",
-    "retryAction": "Relancer la tâche"
+    "retryAction": "Relancer la tâche",
+    "approvalsTitle": "{{count}} action(s) en attente d’approbation",
+    "approve": "Approuver",
+    "deny": "Refuser",
+    "planSummary": "Plan ({{count}} étapes)",
+    "verificationTitle": "Vérification build & tests",
+    "verifyLog": "{{label}} : {{ok}}",
+    "noOutput": "(aucune sortie)",
+    "reviewTitle": "Revue indépendante du diff",
+    "finalMessageLabel": "Résumé de l’agent",
+    "rollback": "Restaurer l’espace de travail",
+    "rollingBack": "Restauration…",
+    "apply": "Appliquer au projet",
+    "applying": "Application…"
   },
   "meta": {
     "tokens": "{{value}} jetons",
-    "cost": "{{value}}"
+    "cost": "{{value}}",
+    "workspaceMode": "Espace de travail : {{mode}}",
+    "iterations": "Itérations : {{value}}",
+    "toolCalls": "Appels d’outils : {{value}}"
   },
   "status": {
     "Queued": "En file d'attente",
@@ -75,10 +99,90 @@
     "failed": "Échec de la tâche",
     "cancelled": "Tâche annulée",
     "interrupted": "Tâche interrompue",
-    "rawDetail": "{{detail}}"
+    "rawDetail": "{{detail}}",
+    "started": "Agent démarré",
+    "plan": "Plan créé",
+    "tool_call": "Outil exécuté",
+    "model_retry": "Sortie du modèle réessayée",
+    "repair_start": "Tentative de réparation automatique",
+    "repair_tool": "Outil de réparation exécuté",
+    "verification": "Vérification build/tests",
+    "review": "Revue indépendante",
+    "review_skipped": "Revue ignorée",
+    "final": "Résumé final",
+    "phase": "Changement de phase",
+    "index": "Index du projet créé",
+    "index_failed": "Échec de l’indexation",
+    "context": "Contexte de tâche sélectionné",
+    "context_failed": "Échec de la sélection de contexte",
+    "approval_requested": "Approbation demandée",
+    "approval_settled": "Approbation traitée",
+    "approval_resolved": "Approbation décidée",
+    "approval_expired": "Approbation expirée",
+    "rolled_back": "Espace de travail restauré",
+    "applied_to_project": "Modifications appliquées au projet"
   },
   "capabilityNote": "Cette version enregistre l'état des tâches et crée des modifications vérifiables dans une copie isolée. Elle n'applique pas les modifications au dossier enregistré, n'exécute pas de commandes, ne lance pas de tests et ne fournit pas de contrôles Git apply/rollback.",
   "replyLanguage": {
     "instruction": "Veuillez rédiger vos explications en {{language}}. Conservez inchangés tout le code, les commandes, les identifiants et les chemins de fichiers."
+  },
+  "policy": {
+    "supervised": "Supervisé — approuver chaque écriture",
+    "standard": "Standard — écritures automatiques dans l’espace de travail, actions risquées approuvées",
+    "workspace-auto": "Espace auto — seulement hors espace de travail"
+  },
+  "workspaceMode": {
+    "auto": "Auto (git worktree si possible)",
+    "worktree": "Git worktree",
+    "copy": "Copie instantané délimitée"
+  },
+  "insights": {
+    "load": "Analyser le projet",
+    "loading": "Analyse…",
+    "summary": "{{files}} fichiers · {{languages}} langages · {{entries}} points d’entrée",
+    "detailsSummary": "Détails de la compréhension du projet",
+    "entryPoints": "Points d’entrée",
+    "scripts": "Scripts de build & test",
+    "languages": "Langages",
+    "tests": "Fichiers de test"
+  },
+  "providers": {
+    "title": "Fournisseurs IA & clés",
+    "add": "Ajouter un fournisseur",
+    "empty": "Aucun fournisseur enregistré. Ajoutez-en un pour activer les exécutions réelles de l’agent.",
+    "encryptionUnavailable": "Chiffrement des clés indisponible — impossible d’enregistrer les clés",
+    "keySaved": "Clé enregistrée",
+    "keyMissing": "Aucune clé",
+    "keyPlaceholder": "Collez la clé API (stockée chiffrée, plus jamais affichée)",
+    "saveKey": "Enregistrer la clé",
+    "deleteKey": "Supprimer la clé",
+    "test": "Tester la connexion",
+    "testOk": "Connecté en {{latency}} ms",
+    "testFail": "Échec : {{message}}",
+    "deleteAria": "Supprimer le fournisseur {{name}}",
+    "keyNote": "Les clés API sont chiffrées via le magasin d’identifiants du système, ne sont plus jamais affichées, jamais écrites dans les journaux ou fichiers de projet, et transmises uniquement au processus de service local.",
+    "formIncomplete": "Le nom, l’URL de base et le modèle sont obligatoires.",
+    "form": {
+      "name": "Nom affiché",
+      "kind": "Format d’API",
+      "model": "Modèle par défaut",
+      "baseUrl": "URL de base",
+      "capabilities": "Capacités vérifiées uniquement",
+      "inputPrice": "Prix d’entrée / 1M jetons",
+      "outputPrice": "Prix de sortie / 1M jetons"
+    },
+    "source": {
+      "stored": "enregistré",
+      "env": "environnement"
+    }
+  },
+  "risk": {
+    "high": "Risque élevé",
+    "medium": "Risque moyen",
+    "low": "Risque faible"
+  },
+  "decision": {
+    "approved": "approuvée",
+    "denied": "refusée"
   }
 }

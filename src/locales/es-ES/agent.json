@@ -20,8 +20,14 @@
     "disclosureBody": "Iniciar esta tarea envía tu solicitud y hasta {{maxFiles}} archivos UTF-8 elegibles desde una copia aislada y acotada al proveedor seleccionado. El texto fuente se depura y se limita a {{maxKiB}} KiB tras la depuración. Las rutas con forma de secreto y las carpetas integradas de dependencias/compilación se omiten. Se aplican las reglas de .gitignore del proyecto; los patrones malformados o no compatibles detienen la creación del espacio de trabajo aislado.",
     "consent": "He revisado esta divulgación y autorizo el envío del contexto de código fuente acotado de esta tarea al proveedor seleccionado.",
     "footerNote": "Las ediciones candidatas permanecen bajo el espacio de trabajo aislado de la tarea en los datos de la aplicación.",
-    "submit": "Generar cambios aislados",
-    "submitting": "Poniendo la tarea en cola…"
+    "submit": "Iniciar tarea del agente",
+    "submitting": "Poniendo la tarea en cola…",
+    "taskTypeLabel": "Motor de tareas",
+    "taskTypeRuntime": "Agente autónomo (herramientas multipaso)",
+    "taskTypeLegacy": "Propuesta de una pasada (heredado)",
+    "approvalPolicyLabel": "Política de aprobación",
+    "workspaceModeLabel": "Aislamiento del espacio de trabajo",
+    "runtimeNote": "El agente planifica, invoca herramientas reales en un espacio de trabajo aislado, ejecuta build/pruebas, repara fallos y revisa su propio diff. Las acciones de alto riesgo se pausan para su aprobación."
   },
   "history": {
     "title": "Historial de tareas",
@@ -29,7 +35,9 @@
     "cancelAria": "Cancelar tarea {{label}}",
     "cancelTitle": "Cancelar tarea",
     "emptyTitle": "Sin tareas locales del agente",
-    "emptyDetail": "Las nuevas propuestas y su estado guardado aparecerán aquí."
+    "emptyDetail": "Las nuevas propuestas y su estado guardado aparecerán aquí.",
+    "runtimeTag": "Ejecución autónoma",
+    "toolCalls": "{{count}} llamadas a herramientas"
   },
   "review": {
     "title": "Revisión de cambios aislados",
@@ -51,11 +59,27 @@
     "noDiff": "No se generaron cambios de archivos para esta tarea.",
     "eventsSummary": "Eventos de la tarea ({{count}})",
     "retryNote": "Reintentar crea una nueva tarea aislada y requiere una nueva divulgación de código fuente.",
-    "retryAction": "Reintentar tarea"
+    "retryAction": "Reintentar tarea",
+    "approvalsTitle": "{{count}} acción(es) en espera de tu aprobación",
+    "approve": "Aprobar",
+    "deny": "Denegar",
+    "planSummary": "Plan ({{count}} pasos)",
+    "verificationTitle": "Verificación de build y pruebas",
+    "verifyLog": "{{label}}: {{ok}}",
+    "noOutput": "(sin salida)",
+    "reviewTitle": "Revisión independiente del diff",
+    "finalMessageLabel": "Resumen del agente",
+    "rollback": "Restaurar espacio de trabajo",
+    "rollingBack": "Restaurando…",
+    "apply": "Aplicar al proyecto",
+    "applying": "Aplicando…"
   },
   "meta": {
     "tokens": "{{value}} tokens",
-    "cost": "{{value}}"
+    "cost": "{{value}}",
+    "workspaceMode": "Espacio de trabajo: {{mode}}",
+    "iterations": "Iteraciones: {{value}}",
+    "toolCalls": "Llamadas a herramientas: {{value}}"
   },
   "status": {
     "Queued": "En cola",
@@ -75,10 +99,90 @@
     "failed": "Tarea con error",
     "cancelled": "Tarea cancelada",
     "interrupted": "Tarea interrumpida",
-    "rawDetail": "{{detail}}"
+    "rawDetail": "{{detail}}",
+    "started": "Runtime del agente iniciado",
+    "plan": "Plan creado",
+    "tool_call": "Herramienta ejecutada",
+    "model_retry": "Salida del modelo reintentada",
+    "repair_start": "Intento de reparación automática",
+    "repair_tool": "Herramienta de reparación ejecutada",
+    "verification": "Verificación de build/pruebas",
+    "review": "Revisión independiente",
+    "review_skipped": "Revisión omitida",
+    "final": "Resumen final",
+    "phase": "Cambio de fase",
+    "index": "Índice del proyecto creado",
+    "index_failed": "Falló la indexación del proyecto",
+    "context": "Contexto de la tarea seleccionado",
+    "context_failed": "Falló la selección de contexto",
+    "approval_requested": "Aprobación solicitada",
+    "approval_settled": "Aprobación resuelta",
+    "approval_resolved": "Aprobación decidida",
+    "approval_expired": "Aprobación expirada",
+    "rolled_back": "Espacio de trabajo restaurado",
+    "applied_to_project": "Cambios aplicados al proyecto"
   },
   "capabilityNote": "Esta versión registra el estado de las tareas y crea cambios revisables en una copia aislada. No aplica cambios a la carpeta registrada, no ejecuta comandos, no ejecuta pruebas ni proporciona controles de Git apply/rollback.",
   "replyLanguage": {
     "instruction": "Escribe tus explicaciones en {{language}}. Mantén sin cambios todo el código, los comandos, los identificadores y las rutas de archivos."
+  },
+  "policy": {
+    "supervised": "Supervisado — aprobar cada escritura",
+    "standard": "Estándar — escrituras automáticas en el espacio de trabajo, acciones riesgosas requieren aprobación",
+    "workspace-auto": "Espacio automático — solo fuera del espacio de trabajo"
+  },
+  "workspaceMode": {
+    "auto": "Automático (git worktree si es posible)",
+    "worktree": "Git worktree",
+    "copy": "Copia instantánea delimitada"
+  },
+  "insights": {
+    "load": "Analizar proyecto",
+    "loading": "Analizando…",
+    "summary": "{{files}} archivos · {{languages}} lenguajes · {{entries}} puntos de entrada",
+    "detailsSummary": "Detalles de la comprensión del proyecto",
+    "entryPoints": "Puntos de entrada",
+    "scripts": "Scripts de build y pruebas",
+    "languages": "Lenguajes",
+    "tests": "Archivos de prueba"
+  },
+  "providers": {
+    "title": "Proveedores de IA y claves",
+    "add": "Añadir proveedor",
+    "empty": "Aún no hay proveedores registrados. Añade uno para permitir ejecuciones reales del agente.",
+    "encryptionUnavailable": "Cifrado de claves del SO no disponible — no se pueden guardar claves",
+    "keySaved": "Clave guardada",
+    "keyMissing": "Sin clave",
+    "keyPlaceholder": "Pega la clave API (guardada cifrada, no se vuelve a mostrar)",
+    "saveKey": "Guardar clave",
+    "deleteKey": "Eliminar clave",
+    "test": "Probar conexión",
+    "testOk": "Conectado en {{latency}} ms",
+    "testFail": "Falló: {{message}}",
+    "deleteAria": "Eliminar el proveedor {{name}}",
+    "keyNote": "Las claves API se cifran con el almacén de credenciales del sistema operativo, no se vuelven a mostrar, nunca se escriben en registros ni archivos del proyecto, y solo se reenvían al proceso del servicio local.",
+    "formIncomplete": "El nombre, la URL base y el modelo son obligatorios.",
+    "form": {
+      "name": "Nombre visible",
+      "kind": "Formato de API",
+      "model": "Modelo predeterminado",
+      "baseUrl": "URL base",
+      "capabilities": "Solo capacidades verificadas",
+      "inputPrice": "Precio de entrada / 1M tokens",
+      "outputPrice": "Precio de salida / 1M tokens"
+    },
+    "source": {
+      "stored": "registrado",
+      "env": "entorno"
+    }
+  },
+  "risk": {
+    "high": "Riesgo alto",
+    "medium": "Riesgo medio",
+    "low": "Riesgo bajo"
+  },
+  "decision": {
+    "approved": "aprobada",
+    "denied": "denegada"
   }
 }

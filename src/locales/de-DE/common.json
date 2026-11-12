@@ -52,7 +52,9 @@
     "none": "Keine",
     "yes": "Ja",
     "no": "Nein",
-    "guarded": "Geschützt"
+    "guarded": "Geschützt",
+    "pass": "ERFOLGREICH",
+    "fail": "FEHLGESCHLAGEN"
   },
   "status": {
     "Pending": "Ausstehend",

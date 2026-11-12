@@ -20,8 +20,14 @@
     "disclosureBody": "开始此任务会将您的提示词以及来自有边界隔离副本的最多 {{maxFiles}} 个符合条件的 UTF-8 文件发送给所选提供商。源文本会被脱敏，脱敏后上限为 {{maxKiB}} KiB。疑似密钥的路径和内置依赖/构建目录会被跳过。将应用项目支持的 .gitignore 规则；格式错误或不支持的模式会阻止工作区创建。",
     "consent": "我已阅读此披露，并授权将本任务的有边界源代码上下文发送给所选提供商。",
     "footerNote": "候选变更仅保存在应用数据中的任务工作区里。",
-    "submit": "生成隔离变更",
-    "submitting": "正在将任务加入队列…"
+    "submit": "启动 Agent 任务",
+    "submitting": "正在将任务加入队列…",
+    "taskTypeLabel": "任务引擎",
+    "taskTypeRuntime": "自主 Agent（多轮工具调用）",
+    "taskTypeLegacy": "单轮提案（旧版）",
+    "approvalPolicyLabel": "审批策略",
+    "workspaceModeLabel": "工作区隔离",
+    "runtimeNote": "Agent 会规划任务、在隔离工作区中调用真实工具、运行构建与测试、自动修复失败并审查自己的差异。高风险操作会暂停等待您的批准。"
   },
   "history": {
     "title": "任务历史",
@@ -29,7 +35,9 @@
     "cancelAria": "取消任务 {{label}}",
     "cancelTitle": "取消任务",
     "emptyTitle": "暂无本地智能体任务",
-    "emptyDetail": "新的提案及其保存的状态会显示在这里。"
+    "emptyDetail": "新的提案及其保存的状态会显示在这里。",
+    "runtimeTag": "自主运行",
+    "toolCalls": "{{count}} 次工具调用"
   },
   "review": {
     "title": "隔离变更审查",
@@ -51,11 +59,27 @@
     "noDiff": "此任务未生成文件变更。",
     "eventsSummary": "任务事件（{{count}}）",
     "retryNote": "重试会创建新的隔离任务，并需要重新确认源代码披露。",
-    "retryAction": "重试任务"
+    "retryAction": "重试任务",
+    "approvalsTitle": "{{count}} 项操作等待您的批准",
+    "approve": "批准",
+    "deny": "拒绝",
+    "planSummary": "任务计划（{{count}} 步）",
+    "verificationTitle": "构建与测试验证",
+    "verifyLog": "{{label}}：{{ok}}",
+    "noOutput": "（无输出）",
+    "reviewTitle": "独立差异审查",
+    "finalMessageLabel": "Agent 总结",
+    "rollback": "回滚工作区",
+    "rollingBack": "回滚中…",
+    "apply": "应用到项目",
+    "applying": "应用中…"
   },
   "meta": {
     "tokens": "{{value}} 个 Token",
-    "cost": "{{value}}"
+    "cost": "{{value}}",
+    "workspaceMode": "工作区：{{mode}}",
+    "iterations": "迭代次数：{{value}}",
+    "toolCalls": "工具调用：{{value}}"
   },
   "status": {
     "Queued": "排队中",
@@ -75,10 +99,90 @@
     "failed": "任务失败",
     "cancelled": "任务已取消",
     "interrupted": "任务已中断",
-    "rawDetail": "{{detail}}"
+    "rawDetail": "{{detail}}",
+    "started": "Agent 运行时已启动",
+    "plan": "已生成计划",
+    "tool_call": "工具已执行",
+    "model_retry": "模型输出已重试",
+    "repair_start": "自动修复尝试",
+    "repair_tool": "修复工具已执行",
+    "verification": "构建/测试验证",
+    "review": "独立审查",
+    "review_skipped": "审查已跳过",
+    "final": "最终总结",
+    "phase": "阶段变更",
+    "index": "项目索引已建立",
+    "index_failed": "项目索引失败",
+    "context": "任务上下文已选定",
+    "context_failed": "上下文选择失败",
+    "approval_requested": "请求批准",
+    "approval_settled": "批准已处理",
+    "approval_resolved": "批准已决定",
+    "approval_expired": "批准已过期",
+    "rolled_back": "工作区已回滚",
+    "applied_to_project": "修改已应用到项目"
   },
   "capabilityNote": "本版本会记录任务状态并在隔离副本中创建可审查的变更。它不会将变更应用到已注册文件夹，不会执行命令、运行测试，也不提供 Git apply/回滚控制。",
   "replyLanguage": {
     "instruction": "请使用{{language}}撰写说明文字。保持所有代码、命令、标识符和文件路径不变。"
+  },
+  "policy": {
+    "supervised": "监督模式 — 每次写入都需批准",
+    "standard": "标准模式 — 工作区写入自动执行，风险操作需批准",
+    "workspace-auto": "工作区自动 — 仅工作区外操作需批准"
+  },
+  "workspaceMode": {
+    "auto": "自动（优先 Git worktree）",
+    "worktree": "Git worktree",
+    "copy": "受限快照副本"
+  },
+  "insights": {
+    "load": "分析项目",
+    "loading": "分析中…",
+    "summary": "{{files}} 个文件 · {{languages}} 种语言 · {{entries}} 个入口",
+    "detailsSummary": "项目理解详情",
+    "entryPoints": "入口文件",
+    "scripts": "构建与测试脚本",
+    "languages": "语言构成",
+    "tests": "测试文件"
+  },
+  "providers": {
+    "title": "AI Provider 与密钥",
+    "add": "添加 Provider",
+    "empty": "尚未注册任何 Provider。添加一个以启用真实的 Agent 运行。",
+    "encryptionUnavailable": "操作系统密钥加密不可用 — 无法保存密钥",
+    "keySaved": "密钥已保存",
+    "keyMissing": "未配置密钥",
+    "keyPlaceholder": "粘贴 API 密钥（加密存储，之后不再显示）",
+    "saveKey": "保存密钥",
+    "deleteKey": "删除密钥",
+    "test": "测试连接",
+    "testOk": "连接成功（{{latency}} 毫秒）",
+    "testFail": "失败：{{message}}",
+    "deleteAria": "删除 Provider {{name}}",
+    "keyNote": "API 密钥使用操作系统凭据库加密保存，不会再次显示，不会写入日志或项目文件，仅转发给本地服务进程。",
+    "formIncomplete": "名称、Base URL 和模型为必填项。",
+    "form": {
+      "name": "显示名称",
+      "kind": "API 格式",
+      "model": "默认模型",
+      "baseUrl": "Base URL",
+      "capabilities": "仅勾选已验证的能力",
+      "inputPrice": "输入价格 / 每百万 Token",
+      "outputPrice": "输出价格 / 每百万 Token"
+    },
+    "source": {
+      "stored": "已注册",
+      "env": "环境变量"
+    }
+  },
+  "risk": {
+    "high": "高风险",
+    "medium": "中风险",
+    "low": "低风险"
+  },
+  "decision": {
+    "approved": "批准",
+    "denied": "拒绝"
   }
 }

@@ -20,8 +20,14 @@
     "disclosureBody": "이 작업을 시작하면 프롬프트와 함께, 제한된 격리 복사본에서 최대 {{maxFiles}}개의 대상 UTF-8 파일이 선택된 공급자로 전송됩니다. 소스 텍스트는 마스킹되며 마스킹 후 {{maxKiB}} KiB로 제한됩니다. 비밀정보로 보이는 경로와 내장된 종속성/빌드 폴더는 건너뜁니다. 지원되는 프로젝트 .gitignore 규칙이 적용되며, 잘못되었거나 지원되지 않는 패턴이 있으면 워크스페이스 생성이 중단됩니다.",
     "consent": "이 공개 내용을 검토했으며, 이 작업의 제한된 소스 컨텍스트를 선택된 공급자에게 전송할 것을 승인합니다.",
     "footerNote": "후보 편집 내용은 앱 데이터의 작업 워크스페이스 아래에 유지됩니다.",
-    "submit": "격리된 변경 생성",
-    "submitting": "작업 대기열에 추가 중…"
+    "submit": "에이전트 작업 시작",
+    "submitting": "작업 대기열에 추가 중…",
+    "taskTypeLabel": "작업 엔진",
+    "taskTypeRuntime": "자율 에이전트(다중 턴 도구 실행)",
+    "taskTypeLegacy": "단일 패스 제안(레거시)",
+    "approvalPolicyLabel": "승인 정책",
+    "workspaceModeLabel": "작업 공간 격리",
+    "runtimeNote": "에이전트가 계획을 세우고 격리된 작업 공간에서 실제 도구를 호출하며, 빌드와 테스트를 실행하고, 실패를 자동 복구하고, 자체 diff를 검토합니다. 고위험 작업은 승인을 위해 일시 중지됩니다."
   },
   "history": {
     "title": "작업 기록",
@@ -29,7 +35,9 @@
     "cancelAria": "작업 {{label}} 취소",
     "cancelTitle": "작업 취소",
     "emptyTitle": "로컬 에이전트 작업 없음",
-    "emptyDetail": "새로운 제안과 저장된 상태가 여기에 표시됩니다."
+    "emptyDetail": "새로운 제안과 저장된 상태가 여기에 표시됩니다.",
+    "runtimeTag": "자율 실행",
+    "toolCalls": "{{count}}회 도구 호출"
   },
   "review": {
     "title": "격리된 변경 검토",
@@ -51,11 +59,27 @@
     "noDiff": "이 작업에 대해 생성된 파일 변경이 없습니다.",
     "eventsSummary": "작업 이벤트 ({{count}})",
     "retryNote": "재시도는 새로운 격리 작업을 생성하며 새로운 소스 공개가 필요합니다.",
-    "retryAction": "작업 재시도"
+    "retryAction": "작업 재시도",
+    "approvalsTitle": "{{count}}개 작업이 승인 대기 중",
+    "approve": "승인",
+    "deny": "거부",
+    "planSummary": "계획({{count}}단계)",
+    "verificationTitle": "빌드 & 테스트 검증",
+    "verifyLog": "{{label}}: {{ok}}",
+    "noOutput": "(출력 없음)",
+    "reviewTitle": "독립 diff 검토",
+    "finalMessageLabel": "에이전트 요약",
+    "rollback": "작업 공간 복원",
+    "rollingBack": "복원 중…",
+    "apply": "프로젝트에 적용",
+    "applying": "적용 중…"
   },
   "meta": {
     "tokens": "{{value}}토큰",
-    "cost": "{{value}}"
+    "cost": "{{value}}",
+    "workspaceMode": "작업 공간: {{mode}}",
+    "iterations": "반복: {{value}}",
+    "toolCalls": "도구 호출: {{value}}"
   },
   "status": {
     "Queued": "대기 중",
@@ -75,10 +99,90 @@
     "failed": "작업이 실패했습니다",
     "cancelled": "작업이 취소되었습니다",
     "interrupted": "작업이 중단되었습니다",
-    "rawDetail": "{{detail}}"
+    "rawDetail": "{{detail}}",
+    "started": "에이전트 런타임 시작",
+    "plan": "계획 생성됨",
+    "tool_call": "도구 실행됨",
+    "model_retry": "모델 출력 재시도",
+    "repair_start": "자동 복구 시도",
+    "repair_tool": "복구 도구 실행됨",
+    "verification": "빌드/테스트 검증",
+    "review": "독립 검토",
+    "review_skipped": "검토 건너뜀",
+    "final": "최종 요약",
+    "phase": "단계 변경",
+    "index": "프로젝트 인덱스 생성됨",
+    "index_failed": "인덱스 생성 실패",
+    "context": "작업 컨텍스트 선택됨",
+    "context_failed": "컨텍스트 선택 실패",
+    "approval_requested": "승인 요청됨",
+    "approval_settled": "승인 처리됨",
+    "approval_resolved": "승인 결정됨",
+    "approval_expired": "승인 만료됨",
+    "rolled_back": "작업 공간 복원됨",
+    "applied_to_project": "변경 사항이 프로젝트에 적용됨"
   },
   "capabilityNote": "이 버전은 작업 상태를 기록하고 격리된 복사본에 검토 가능한 변경을 생성합니다. 등록된 폴더에 변경을 적용하거나, 명령을 실행하거나, 테스트를 수행하거나, Git 적용/롤백 컨트롤을 제공하지 않습니다.",
   "replyLanguage": {
     "instruction": "설명은 {{language}}(으)로 작성해 주세요. 모든 코드, 명령, 식별자, 파일 경로는 변경하지 않고 그대로 유지해 주세요."
+  },
+  "policy": {
+    "supervised": "감독 모드 — 모든 쓰기 승인 필요",
+    "standard": "표준 모드 — 작업 공간 쓰기 자동, 위험 작업 승인",
+    "workspace-auto": "작업 공간 자동 — 작업 공간 외부만 승인"
+  },
+  "workspaceMode": {
+    "auto": "자동(가능하면 Git worktree)",
+    "worktree": "Git worktree",
+    "copy": "제한된 스냅샷 복사"
+  },
+  "insights": {
+    "load": "프로젝트 분석",
+    "loading": "분석 중…",
+    "summary": "{{files}}개 파일 · {{languages}}개 언어 · {{entries}}개 진입점",
+    "detailsSummary": "프로젝트 이해 상세",
+    "entryPoints": "진입점",
+    "scripts": "빌드 & 테스트 스크립트",
+    "languages": "언어 구성",
+    "tests": "테스트 파일"
+  },
+  "providers": {
+    "title": "AI 공급자 및 키",
+    "add": "공급자 추가",
+    "empty": "등록된 공급자가 없습니다. 추가하면 실제 에이전트 실행이 가능합니다.",
+    "encryptionUnavailable": "OS 키 암호화를 사용할 수 없음 — 키를 저장할 수 없습니다",
+    "keySaved": "키 저장됨",
+    "keyMissing": "키 없음",
+    "keyPlaceholder": "API 키 붙여넣기(암호화 저장, 다시 표시 안 함)",
+    "saveKey": "키 저장",
+    "deleteKey": "키 삭제",
+    "test": "연결 테스트",
+    "testOk": "연결 성공({{latency}}ms)",
+    "testFail": "실패: {{message}}",
+    "deleteAria": "공급자 {{name}} 삭제",
+    "keyNote": "API 키는 OS 자격 증명 저장소로 암호화되어 저장되며, 다시 표시되지 않고, 로그나 프로젝트 파일에 기록되지 않으며, 로컬 서비스 프로세스에만 전달됩니다.",
+    "formIncomplete": "이름, Base URL, 모델은 필수입니다.",
+    "form": {
+      "name": "표시 이름",
+      "kind": "API 형식",
+      "model": "기본 모델",
+      "baseUrl": "Base URL",
+      "capabilities": "검증된 기능만 선택",
+      "inputPrice": "입력 가격 / 백만 토큰",
+      "outputPrice": "출력 가격 / 백만 토큰"
+    },
+    "source": {
+      "stored": "등록됨",
+      "env": "환경 변수"
+    }
+  },
+  "risk": {
+    "high": "고위험",
+    "medium": "중위험",
+    "low": "저위험"
+  },
+  "decision": {
+    "approved": "승인",
+    "denied": "거부"
   }
 }

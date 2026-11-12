@@ -13,5 +13,11 @@
   "agentTaskCancel": "Impossible d'annuler la tâche de l'agent.",
   "agentTaskRetry": "Impossible de relancer la tâche de l'agent.",
   "workstationData": "Impossible de charger les données locales de la station de travail.",
-  "serviceUnavailable": "Le service local ne répond pas. Redémarrez PROJECT NEXUS et réessayez."
+  "serviceUnavailable": "Le service local ne répond pas. Redémarrez PROJECT NEXUS et réessayez.",
+  "agentApprovalResolve": "La décision d’approbation n’a pas pu être enregistrée.",
+  "agentRollback": "L’espace de travail n’a pas pu être restauré.",
+  "agentApply": "Les modifications n’ont pas pu être appliquées au projet.",
+  "providerKeySave": "La clé API n’a pas pu être stockée de manière sécurisée.",
+  "providerSave": "Le fournisseur n’a pas pu être enregistré.",
+  "agentInsights": "Le projet n’a pas pu être analysé."
 }

@@ -13,5 +13,11 @@
   "agentTaskCancel": "Could not cancel the Agent task.",
   "agentTaskRetry": "Could not retry the Agent task.",
   "workstationData": "Could not load local workstation data.",
-  "serviceUnavailable": "The local service is not responding. Restart PROJECT NEXUS and try again."
+  "serviceUnavailable": "The local service is not responding. Restart PROJECT NEXUS and try again.",
+  "agentApprovalResolve": "The approval decision could not be saved.",
+  "agentRollback": "The workspace could not be rolled back.",
+  "agentApply": "The changes could not be applied to the project.",
+  "providerKeySave": "The API key could not be stored securely.",
+  "providerSave": "The provider could not be saved.",
+  "agentInsights": "The project could not be analyzed."
 }

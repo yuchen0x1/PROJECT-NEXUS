@@ -59,6 +59,21 @@
     "autoStartDisabled": {
       "label": "„Mit Windows starten“ deaktiviert",
       "detail": "Diese Einstellung ändert sich erst nach Ihrer Bestätigung."
+    },
+    "agentApprovalResolved": {
+      "label": "Agent-Genehmigung entschieden",
+      "detail": "{{tool}} wurde {{decision}}."
+    },
+    "agentRolledBack": {
+      "label": "Agent-Workspace zurückgesetzt",
+      "detail": "Isolationsmodus: {{mode}}. Keine Projektdateien geändert."
+    },
+    "agentApplied": {
+      "label": "Agent-Änderungen angewendet",
+      "detail": "{{count}} Dateiänderung(en) in das Projekt geschrieben."
+    },
+    "agentApplyFailed": {
+      "label": "Anwenden der Agent-Änderungen fehlgeschlagen"
     }
   },
   "toast": {
@@ -66,6 +81,9 @@
     "themeChanged": "Design aktualisiert",
     "settingsSaved": "Einstellungen gespeichert",
     "projectAdded": "Projekt hinzugefügt",
-    "scanQueued": "Scan in Warteschlange gestellt"
+    "scanQueued": "Scan in Warteschlange gestellt",
+    "agentRolledBack": "Der Workspace wurde auf seinen ursprünglichen Zustand zurückgesetzt.",
+    "agentApplied": "Die Agent-Änderungen wurden auf Ihr Projekt angewendet.",
+    "providerSaved": "Anbieter gespeichert."
   }
 }

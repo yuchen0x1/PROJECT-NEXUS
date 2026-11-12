@@ -138,7 +138,9 @@ describe('authenticated local Agent API', () => {
     const config = await getJson(service.base, token, '/api/local-agent/config')
     expect(config.response.status).toBe(200)
     expect(config.body.configured).toBe(true)
-    expect(config.body.capabilities).toMatchObject({ originalProjectWrites: false, commandExecution: false, buildAndTest: false, gitApply: false })
+    // PHASE 6 contract: runtime capabilities on; original-project writes are
+    // gated behind an explicit, confirmed apply step (never silent).
+    expect(config.body.capabilities).toMatchObject({ originalProjectWrites: 'explicit-apply-only', commandExecution: true, buildAndTest: true, gitApply: true, multiTurnRuntime: true, approvals: true, rollback: true })
 
     const missingDisclosure = await fetch(`${service.base}/api/local-agent/tasks`, {
       method: 'POST',

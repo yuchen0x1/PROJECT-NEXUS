@@ -4,7 +4,7 @@ import fs from 'node:fs/promises'
 import { release as osRelease } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, screen, Tray } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, safeStorage, screen, Tray } from 'electron'
 import { detectDevelopmentEnvironment } from '../server/services/local-environment.mjs'
 import { listLocalProjects, registerLocalProject, scanLocalProject, unregisterLocalProject } from '../server/services/local-projects.mjs'
 
@@ -52,6 +52,7 @@ const logsPath = path.join(userDataPath, 'logs')
 const cachePath = app.getPath('sessionData')
 const settingsPath = path.join(userDataPath, 'desktop-settings.json')
 const windowStatePath = path.join(userDataPath, 'window-state.json')
+const providerKeysPath = path.join(userDataPath, 'provider-keys.json')
 const apiToken = crypto.randomBytes(32).toString('hex')
 let apiOrigin = ''
 let apiProcess = null
@@ -199,7 +200,104 @@ function registerIpc(channel, handler) {
   })
 }
 
+// ---- Provider API key vault (PHASE 6) ----
+// Keys are encrypted with the OS-level safeStorage backend (DPAPI on Windows),
+// stored outside any project directory, never sent to the renderer (only
+// written/deleted), and forwarded in memory to the local service over the
+// authenticated loopback API.
+function providerKeyId(value) {
+  if (typeof value !== 'string' || !/^[a-z0-9][a-z0-9_-]{1,63}$/i.test(value)) throw new Error('Provider id is invalid.')
+  return value.toLowerCase()
+}
+
+async function readProviderKeyVault() {
+  try {
+    const parsed = JSON.parse(await fs.readFile(providerKeysPath, 'utf8'))
+    if (parsed && typeof parsed === 'object' && parsed.schemaVersion === 1 && parsed.keys && typeof parsed.keys === 'object') return parsed
+  } catch { /* first run or unreadable: start empty */ }
+  return { schemaVersion: 1, keys: {} }
+}
+
+async function writeProviderKeyVault(vault) {
+  const temporary = `${providerKeysPath}.${process.pid}.${crypto.randomUUID()}.tmp`
+  await fs.mkdir(path.dirname(providerKeysPath), { recursive: true })
+  await fs.writeFile(temporary, JSON.stringify(vault, null, 2), { encoding: 'utf8', flag: 'wx' })
+  await fs.rename(temporary, providerKeysPath).catch(async (error) => {
+    await fs.rm(temporary, { force: true }).catch(() => {})
+    throw error
+  })
+}
+
+async function decryptVaultKeys(vault) {
+  const keys = {}
+  for (const [id, encrypted] of Object.entries(vault.keys || {})) {
+    if (typeof encrypted !== 'string' || !encrypted) continue
+    try {
+      const buffer = Buffer.from(encrypted, 'latin1')
+      if (!safeStorage.isEncrypted(buffer)) continue
+      keys[id] = safeStorage.decryptString(buffer)
+    } catch { /* skip undecryptable entries instead of failing startup */ }
+  }
+  return keys
+}
+
+async function syncProviderKeysToService(keys) {
+  if (!apiOrigin) return { synced: false, reason: 'service-not-ready' }
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 10_000)
+  try {
+    const response = await fetch(`${apiOrigin}/api/local-agent/provider-keys`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiToken}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ keys }),
+      signal: controller.signal
+    })
+    const body = await response.json().catch(() => ({}))
+    return { synced: response.ok, status: response.status, body }
+  } catch (error) {
+    return { synced: false, reason: String(error?.message || 'sync failed').slice(0, 120) }
+  } finally { clearTimeout(timeout) }
+}
+
+async function syncStoredProviderKeys() {
+  try {
+    const vault = await readProviderKeyVault()
+    const keys = await decryptVaultKeys(vault)
+    if (Object.keys(keys).length) {
+      const result = await syncProviderKeysToService(keys)
+      await writeLog('info', 'provider-keys-synced', { count: Object.keys(keys).length, synced: Boolean(result.synced) })
+      return result
+    }
+  } catch (error) {
+    await writeLog('error', 'provider-keys-sync-failed', {})
+  }
+  return { synced: false }
+}
+
 function registerLocalCapabilities() {
+  registerIpc('desktop:provider-keys:set', async (providerId, apiKey) => {
+    const id = providerKeyId(providerId)
+    if (typeof apiKey !== 'string' || !apiKey.trim() || apiKey.length > 4096) throw new Error('The API key must be a non-empty string.')
+    if (!safeStorage.isEncryptionAvailable()) throw new Error('The operating system refused secure credential encryption; the key was NOT saved.')
+    const vault = await readProviderKeyVault()
+    vault.keys[id] = safeStorage.encryptString(apiKey.trim()).toString('latin1')
+    await writeProviderKeyVault(vault)
+    await writeLog('info', 'provider-key-set', { providerId: id })
+    return { providerId: id, saved: true, sync: await syncProviderKeysToService(await decryptVaultKeys(vault)) }
+  })
+  registerIpc('desktop:provider-keys:delete', async (providerId) => {
+    const id = providerKeyId(providerId)
+    const vault = await readProviderKeyVault()
+    delete vault.keys[id]
+    await writeProviderKeyVault(vault)
+    await writeLog('info', 'provider-key-deleted', { providerId: id })
+    return { providerId: id, deleted: true, sync: await syncProviderKeysToService(await decryptVaultKeys(vault)) }
+  })
+  registerIpc('desktop:provider-keys:status', async () => {
+    const vault = await readProviderKeyVault()
+    return { providerIds: Object.keys(vault.keys || {}), encryptionAvailable: safeStorage.isEncryptionAvailable() }
+  })
+
   registerIpc('desktop:api:request', async (request) => {
     if (!request || typeof request.url !== 'string' || request.url.length > 4096) throw new Error('Invalid local API request.')
     const method = String(request.method || 'GET').toUpperCase()
@@ -443,6 +541,7 @@ async function startDesktop() {
     const port = await startApiProcess()
     traceSmoke('local-service-ready')
     apiOrigin = `http://127.0.0.1:${port}`
+    void syncStoredProviderKeys()
     createTray()
     traceSmoke('tray-ready')
     await createMainWindow()

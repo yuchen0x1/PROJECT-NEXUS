@@ -1,13 +1,15 @@
 # Windows desktop workstation and local Agent
 
-1. Install the Windows x64 NSIS package. The Phase 4 package is unsigned; review [the install report](PHASE4_WINDOWS_INSTALL.md) before distributing it.
+1. Install the Windows x64 NSIS package. The package is unsigned; review [the install report](PHASE6_DELIVERY_REPORT.md) before distributing it.
 2. Launch PROJECT NEXUS. The native app starts its packaged local service and stores settings, logs, project registration, task state and Agent workspaces under `%LOCALAPPDATA%\PROJECT NEXUS`.
 3. Open **Local projects** and choose a project folder. Registration and marker scanning do not modify project files.
 4. Open **Environment** to inspect detected tools. The scanner checks executable paths and selected version probes; it does not install tools or change `PATH`.
-5. To use **AI Agent**, configure `AI_BASE_URL`, `AI_API_KEY` and `AI_MODEL` in the environment inherited by the local service, then restart the application. Provider registry/routing options are in `.env.example`.
-6. Select a registered project, write the request, inspect the source disclosure and confirm before sending. The configured provider receives the prompt plus up to 20 eligible UTF-8 files, with the UI-disclosed 120 KiB post-redaction cap. Redaction is heuristic; inspect project content and provider policy first.
-7. Review the proposed diff in the task-private workspace. **Succeeded** means a proposal was generated in that workspace; it does not mean the selected source project changed or that the code passed tests.
-8. Use Cancel for a queued/running task. Retry creates a new task and requires fresh disclosure consent.
+5. To use **AI Agent**, configure a provider on the AI Agent page: add a provider (name, API format, base URL, model), paste the API key once (it is encrypted with Windows DPAPI and never shown again), and press **Test connection**. Legacy environment variables (`AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL`) still work for server deployments.
+6. Select a registered project, write the request, inspect the source disclosure and confirm before sending. The configured provider receives the prompt plus a bounded, redacted context selection (up to 24 files / 120 KiB). Redaction is heuristic; inspect project content and provider policy first.
+7. **Task engine** — "Autonomous agent" runs a real multi-turn loop: it plans, reads and edits files inside an isolated git worktree (bounded snapshot copy for non-git projects), runs the project's own build/test scripts, repairs bounded failures, and has its diff independently reviewed. "Single-pass proposal" is the Phase 4 engine (a proposal only, no commands).
+8. **Approval policy** — Supervised asks before every write; Standard auto-runs workspace writes and asks for risky actions (deletes, dependency installs, non-allowlisted commands); Workspace-auto only asks for actions outside the workspace. High-risk actions always pause the task with an approval card — the model can never approve itself.
+9. When the task finishes: review the **plan, tool timeline, verification output and review findings**, then either **Roll back workspace** (everything returns to the start state) or **Apply to project** (requires a clean project tree, confirms explicitly, backs up every overwritten original, and never commits — you review in your own git).
+10. Use Cancel for a queued/running task. Retry creates a new task and requires fresh disclosure consent. If the app exits mid-task, it is recorded as Interrupted and the workspace is kept for you to re-run, roll back, or apply.
 
 ## Appearance, language and settings (Phase 5)
 
@@ -19,7 +21,7 @@
 6. **Start with Windows** can be toggled under Settings → Startup.
 7. Press `Ctrl+K` anywhere to open the **command palette**: search pages, projects, actions and languages, then run them with Enter. The bell icon opens the **notification center** with unread activity and Agent task results. The bottom **activity log** drawer can be expanded and resized by dragging its top edge. The activity bar collapses to icons with the button at its bottom.
 
-The current desktop Agent cannot apply the diff to the selected folder, run commands/builds/tests, use Docker for this local task, perform automatic repair, commit Git changes or publish. See [Phase 4 Agent engine status](PHASE4_AGENT_ENGINE.md) and [delivery gaps](PHASE4_DELIVERY_REPORT.md).
+**Troubleshooting the Agent**: "Provider required" means no provider has a saved key — add one on the AI Agent page. A `Failed` task is honest: open its events to see the failing tool/verification output; tests are never faked and the review flags verification failures as CRITICAL. Model quality matters — small local models may loop; the runtime detects repetition and enforces budgets. See [Phase 6 security](PHASE6_SECURITY.md) and [architecture](PHASE6_ARCHITECTURE.md).
 
 ---
 # User guide

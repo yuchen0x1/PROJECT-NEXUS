@@ -59,6 +59,21 @@
     "autoStartDisabled": {
       "label": "Démarrer avec Windows désactivé",
       "detail": "Ce réglage ne change qu'après votre confirmation."
+    },
+    "agentApprovalResolved": {
+      "label": "Approbation d’agent décidée",
+      "detail": "{{tool}} a été {{decision}}."
+    },
+    "agentRolledBack": {
+      "label": "Espace de travail de l’agent restauré",
+      "detail": "Mode d’isolation : {{mode}}. Aucun fichier de projet modifié."
+    },
+    "agentApplied": {
+      "label": "Modifications de l’agent appliquées",
+      "detail": "{{count}} modification(s) de fichier écrite(s) dans le projet."
+    },
+    "agentApplyFailed": {
+      "label": "Échec de l’application des modifications de l’agent"
     }
   },
   "toast": {
@@ -66,6 +81,9 @@
     "themeChanged": "Thème mis à jour",
     "settingsSaved": "Paramètres enregistrés",
     "projectAdded": "Projet ajouté",
-    "scanQueued": "Analyse mise en file d'attente"
+    "scanQueued": "Analyse mise en file d'attente",
+    "agentRolledBack": "L’espace de travail a été restauré à son état d’origine.",
+    "agentApplied": "Les modifications de l’agent ont été appliquées à votre projet.",
+    "providerSaved": "Fournisseur enregistré."
   }
 }

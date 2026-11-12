@@ -46,6 +46,14 @@ function providerUrl(value, label = 'AI provider URL') {
   return url.toString().replace(/\/$/, '')
 }
 
+// Gateways disagree on whether the base URL already includes the version
+// segment (/v1). Normalize: strip a trailing /v1 so the request builders can
+// append their canonical versioned path without doubling it.
+function providerApiBase(value, label = 'AI provider URL') {
+  const normalized = providerUrl(value, label)
+  return normalized.replace(/\/v1$/, '')
+}
+
 function redactSecrets(content) {
   return String(content)
     .replace(/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g, '[REDACTED PRIVATE KEY]')
@@ -189,7 +197,7 @@ function buildRequest(provider, messages, { temperature = 0.1, responseFormat = 
     const system = messages.filter((message) => message.role === 'system').map((message) => message.content).join('\n')
     const rest = messages.filter((message) => message.role !== 'system')
     return {
-      url: `${providerUrl(provider.baseUrl)}/v1/messages`,
+      url: `${providerApiBase(provider.baseUrl)}/v1/messages`,
       headers: { 'x-api-key': provider.apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: { model: provider.model, max_tokens: maxTokens || 4096, temperature, ...(system ? { system } : {}), messages: rest }
     }
@@ -197,7 +205,7 @@ function buildRequest(provider, messages, { temperature = 0.1, responseFormat = 
   if (provider.kind === 'gemini') {
     const contents = messages.filter((message) => message.role !== 'system').map((message) => ({ role: message.role === 'assistant' ? 'model' : 'user', parts: [{ text: String(message.content) }] }))
     const system = messages.filter((message) => message.role === 'system').map((message) => message.content).join('\n')
-    const url = new URL(`${providerUrl(provider.baseUrl)}/v1beta/models/${encodeURIComponent(provider.model)}:generateContent`)
+    const url = new URL(`${providerApiBase(provider.baseUrl)}/v1beta/models/${encodeURIComponent(provider.model)}:generateContent`)
     return {
       url: url.toString(),
       headers: { 'x-goog-api-key': provider.apiKey, 'content-type': 'application/json' },
@@ -205,14 +213,25 @@ function buildRequest(provider, messages, { temperature = 0.1, responseFormat = 
     }
   }
   return {
-    url: `${providerUrl(provider.baseUrl)}/v1/chat/completions`,
+    url: `${providerApiBase(provider.baseUrl)}/v1/chat/completions`,
     headers: { ...(provider.apiKey ? { Authorization: `Bearer ${provider.apiKey}` } : {}), 'content-type': 'application/json' },
     body: { model: provider.model, temperature, ...(responseFormat ? { response_format: responseFormat } : {}), ...(maxTokens ? { max_tokens: maxTokens } : {}), messages }
   }
 }
 
-export async function invokeAIProvider({ taskType = 'general', providerId = null, messages, signal, temperature = 0.1, responseFormat = null, maxTokens = null, timeoutMs = DEFAULT_TIMEOUT_MS, maxRetries = null } = {}) {
-  const provider = selectAIProvider(taskType, providerId)
+function looksLikeResolvedProvider(value) {
+  return Boolean(value && typeof value === 'object' && typeof value.baseUrl === 'string' && value.baseUrl &&
+    typeof value.model === 'string' && value.model && typeof value.kind === 'string' && value.kind)
+}
+
+export async function invokeAIProvider({ taskType = 'general', providerId = null, providerOverride = null, messages, signal, temperature = 0.1, responseFormat = null, maxTokens = null, timeoutMs = DEFAULT_TIMEOUT_MS, maxRetries = null } = {}) {
+  let provider
+  if (providerOverride) {
+    if (!looksLikeResolvedProvider(providerOverride)) throw Object.assign(new Error('A resolved provider override requires kind, baseUrl, and model.'), { code: 'AI_NOT_CONFIGURED' })
+    provider = { ...providerOverride, configured: true }
+  } else {
+    provider = selectAIProvider(taskType, providerId)
+  }
   if (!provider?.configured) throw Object.assign(new Error('AI provider requires a configured base URL, API key, and model.'), { code: 'AI_NOT_CONFIGURED' })
   const request = buildRequest(provider, messages, { temperature, responseFormat, maxTokens })
   const retries = Math.min(MAX_RETRIES, Math.max(0, Math.floor(numberFrom(maxRetries, numberFrom(process.env.AI_MAX_RETRIES, 2)))))
@@ -387,4 +406,4 @@ export async function generateLocalAgentOperations({ prompt, project, sourceFile
   }
 }
 
-export { assertTrustedProviderUrl, redactSecrets, normalizeUsage, estimateCost }
+export { assertTrustedProviderUrl, providerUrl, redactSecrets, normalizeUsage, estimateCost }

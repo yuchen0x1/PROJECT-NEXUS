@@ -52,7 +52,9 @@
     "none": "なし",
     "yes": "はい",
     "no": "いいえ",
-    "guarded": "保護されています"
+    "guarded": "保護されています",
+    "pass": "合格",
+    "fail": "失敗"
   },
   "status": {
     "Pending": "保留中",

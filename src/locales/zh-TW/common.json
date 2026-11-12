@@ -52,7 +52,9 @@
     "none": "無",
     "yes": "是",
     "no": "否",
-    "guarded": "受防護"
+    "guarded": "受防護",
+    "pass": "通過",
+    "fail": "失敗"
   },
   "status": {
     "Pending": "等待中",

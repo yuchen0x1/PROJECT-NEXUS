@@ -131,29 +131,107 @@ export type AIProviderSummary = {
 
 export type LocalAgentTask = {
   id: string
-  type: 'local-agent'
+  type: string
   label: string
   projectId: string
   projectName: string
   providerId: string | null
   prompt: string
   status: string
+  phase: string | null
   createdAt: string
   updatedAt: string
   startedAt: string | null
   finishedAt: string | null
   error: string | null
   events: { at: string; type: string; status?: string; fromStatus?: string; detail: string; metadata?: Record<string, unknown> }[]
+  plan: { description: string; status: string }[] | null
+  approvals: { id: string; tool: string; risk: string; reason: string; action: string; argsSummary: string; status: 'pending' | 'approved' | 'denied' | 'expired'; createdAt: string; resolvedAt: string | null; resolvedBy: string | null }[]
+  pendingApprovalId: string | null
   disclosedPaths: string[]
   changedFiles: string[]
+  changeCount: number
+  toolCallCount: number
+  iterations: number | null
   provider: { id: string; kind: string; host: string | null; model: string } | null
   usage: { inputTokens: number; outputTokens: number; totalTokens: number } | null
   costUsd: number | null
   attempts: number | null
   rationale: string | null
+  runtimeResult: {
+    status: string
+    iterations: number
+    repairAttempts: number
+    providerCalls: number
+    usage: { inputTokens: number; outputTokens: number; totalTokens: number }
+    costUsd: number | null
+    verification: AgentVerification | null
+    review: AgentReview | null
+    finalMessage: string
+    runtimeVersion: string
+    timedOut: boolean
+    tokenExhausted: boolean
+  } | null
+  verification: AgentVerification | null
+  review: AgentReview | null
+  workspaceMode: 'auto' | 'worktree' | 'copy' | null
+  approvalPolicy: string | null
+  fallbackReason: string | null
   workspaceReady: boolean
   workspaceStats: { entries: number; files: number; bytes: number; skippedSymlinks: number } | null
   sourceDisclosureConfirmedAt: string | null
+}
+
+export type AgentVerification = {
+  attempted: boolean
+  passed: boolean
+  summary: string
+  results: { label: string; script: string | null; attempted: boolean; ok?: boolean; exitCode?: number | null; stdoutTail?: string; stderrTail?: string; durationMs?: number }[]
+}
+
+export type AgentReview = {
+  findings: { severity: string; path: string; line: number | null; issue: string; suggestion: string }[]
+  overall: string
+  verdict: 'approve' | 'request_changes' | string
+  note?: string
+}
+
+export type AgentProvider = {
+  id: string
+  name: string
+  kind: string
+  baseUrl: string
+  host: string | null
+  model: string
+  models: string[]
+  contextWindow: number | null
+  maxOutputTokens: number | null
+  temperature: number
+  timeoutMs: number
+  priority: number
+  capabilities: string[]
+  pricing: { inputPer1M?: number; outputPer1M?: number }
+  routing: Record<string, string>
+  enabled: boolean
+  source: string
+  configured: boolean
+  hasApiKey: boolean
+}
+
+export type AgentInsights = {
+  projectId: string
+  projectName: string
+  cached: boolean
+  reindexed: number
+  changedFiles: string[]
+  stats: { entries: number; files: number; totalBytes: number; symbolFiles: number; truncated: boolean }
+  languages: Record<string, number>
+  manifests: { path: string; kind: string; name: string | null; scripts: Record<string, string> | null; dependencies: string[] | null }[]
+  entryPoints: { path: string; reason: string }[]
+  testPaths: string[]
+  routeCandidates: string[]
+  apiCandidates: string[]
+  topSymbols: { path: string; symbols: { kind: string; name: string; line: number }[] }[]
 }
 
 export type LocalAgentChange = { action: 'added' | 'modified' | 'deleted'; path: string; before: string | null; after: string | null; contentStatus: string }
@@ -187,12 +265,21 @@ export const api = {
   integrationScanAll: (projectIds: string[] = []) => request<{ jobs: { job: IntegrationJob; task: Task; reused: boolean }[]; blocked: { projectId: string; fullName: string; status: string; reason: string }[] }>('/api/integrations/scans', { method: 'POST', body: JSON.stringify({ projectIds }) }),
   integrationAdapters: () => request<{ adapters: IntegrationAdapter[]; ai: { configured: boolean; baseUrl: string | null; model: string | null }; remoteWritesEnabled: boolean; supportedWorkflows: Record<string, boolean> }>('/api/integrations/adapters'),
   aiProviders: () => request<{ providers: AIProviderSummary[]; configured: boolean; defaultProviderId: string | null; defaultModel: string | null }>('/api/ai/providers'),
-  localAgentConfig: () => request<{ configured: boolean; defaultProviderId: string | null; providers: AIProviderSummary[]; limits: { maxPromptBytes: number; maxContextFiles: number; maxProviderSourceBytesAfterRedaction: number; maxOperationCount: number; operations: string[] }; capabilities: { isolatedWorkspace: boolean; originalProjectWrites: boolean; commandExecution: boolean; buildAndTest: boolean; gitApply: boolean } }>('/api/local-agent/config'),
+  localAgentConfig: () => request<{ configured: boolean; defaultProviderId: string | null; providers: AgentProvider[]; legacyProviders: AIProviderSummary[]; approvalPolicies: string[]; taskTypes: string[]; limits: { maxPromptBytes: number; maxContextFiles: number; maxContextBytes: number; maxIterations: number; maxRepairAttempts: number }; capabilities: Record<string, unknown> }>('/api/local-agent/config'),
   localAgentTasks: () => request<{ tasks: LocalAgentTask[] }>('/api/local-agent/tasks'),
   localAgentTask: (id: string) => request<{ task: LocalAgentTask; changes: LocalAgentChange[]; changesError: string | null }>(`/api/local-agent/tasks/${encodeURIComponent(id)}`),
-  createLocalAgentTask: (payload: { projectId: string; prompt: string; providerId?: string | null; confirmSourceDisclosure: boolean }) => request<{ task: LocalAgentTask }>('/api/local-agent/tasks', { method: 'POST', body: JSON.stringify(payload) }),
+  createLocalAgentTask: (payload: { projectId: string; prompt: string; providerId?: string | null; confirmSourceDisclosure: boolean; taskType?: string; approvalPolicy?: string; workspaceMode?: string }) => request<{ task: LocalAgentTask }>('/api/local-agent/tasks', { method: 'POST', body: JSON.stringify(payload) }),
   cancelLocalAgentTask: (id: string) => request<{ task: LocalAgentTask; cancellationRequested?: boolean }>(`/api/local-agent/tasks/${encodeURIComponent(id)}/cancel`, { method: 'POST', body: '{}' }),
   retryLocalAgentTask: (id: string, confirmSourceDisclosure: boolean) => request<{ task: LocalAgentTask }>(`/api/local-agent/tasks/${encodeURIComponent(id)}/retry`, { method: 'POST', body: JSON.stringify({ confirmSourceDisclosure }) }),
+  resolveAgentApproval: (taskId: string, approvalId: string, decision: 'approved' | 'denied') => request<{ task: LocalAgentTask }>(`/api/local-agent/tasks/${encodeURIComponent(taskId)}/approvals/${encodeURIComponent(approvalId)}/resolve`, { method: 'POST', body: JSON.stringify({ decision }) }),
+  rollbackAgentTask: (id: string) => request<{ rolledBack: boolean; mode: string; workspace: string }>(`/api/local-agent/tasks/${encodeURIComponent(id)}/rollback`, { method: 'POST', body: '{}' }),
+  applyAgentTask: (id: string, confirm: boolean) => request<{ applied: boolean; note?: string; appliedPaths?: string[]; backupRoot?: string; code?: string; message?: string }>(`/api/local-agent/tasks/${encodeURIComponent(id)}/apply`, { method: 'POST', body: JSON.stringify({ confirm }) }),
+  agentProviders: () => request<{ providers: AgentProvider[]; defaultProviderId: string | null }>('/api/local-agent/providers'),
+  createAgentProvider: (provider: Partial<AgentProvider> & { id?: string; name: string; kind: string; baseUrl: string; model: string }) => request<{ provider: AgentProvider }>('/api/local-agent/providers', { method: 'POST', body: JSON.stringify(provider) }),
+  updateAgentProvider: (id: string, patch: Partial<AgentProvider>) => request<{ provider: AgentProvider }>(`/api/local-agent/providers/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(patch) }),
+  deleteAgentProvider: (id: string) => request<{ deleted: boolean }>(`/api/local-agent/providers/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  testAgentProvider: (id: string) => request<{ ok: boolean; latencyMs: number; replyPreview?: string; error?: string; model?: string }>(`/api/local-agent/providers/${encodeURIComponent(id)}/test`, { method: 'POST', body: '{}' }),
+  agentProjectInsights: (projectId: string) => request<AgentInsights>(`/api/local-agent/projects/${encodeURIComponent(projectId)}/insights`, { method: 'POST', body: '{}' }),
   aiDiagnose: (prompt: string, context?: unknown, providerId?: string) => request<{ ok: boolean; diagnosis: string; provider: { id: string; kind: string; host: string | null }; model: string; usage: { inputTokens: number; outputTokens: number; totalTokens: number }; costUsd: number | null; attempts: number }>('/api/ai/diagnose', { method: 'POST', body: JSON.stringify({ prompt, context, providerId }) }),
   integrationReports: (projectId = '') => request<{ reports: IntegrationReport[]; total: number }>(`/api/integrations/reports${projectId ? `?projectId=${encodeURIComponent(projectId)}` : ''}`),
   integrationReport: (id: string) => request<{ report: IntegrationReport }>(`/api/integrations/reports/${encodeURIComponent(id)}`),
