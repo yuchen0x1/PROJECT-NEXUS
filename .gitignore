@@ -1,0 +1,11 @@
+node_modules/
+dist/
+release/
+.env
+.env.*
+!.env.example
+data/*.json
+data/*.log
+data/agent-workspaces/
+playwright-report/
+test-results/

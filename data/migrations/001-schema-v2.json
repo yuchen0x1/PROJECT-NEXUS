@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "from": 1,
+  "description": "Add GitHub App installations, webhook event lifecycle, update checks, and audit logs without dropping existing projects or tasks.",
+  "additiveFields": [
+    "schemaVersion",
+    "githubInstallations",
+    "githubWebhookEvents",
+    "updateConfigs",
+    "auditLogs"
+  ],
+  "preserve": ["projects", "tasks", "activity", "settings"]
+}
