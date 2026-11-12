@@ -1,9 +1,10 @@
 # Changelog
 
-## Unreleased — 2026-11-12
+## 0.1.0 — 2026-11-13
 
-- Added the Ultimate audit, architecture, roadmap, implementation, test, security, deployment, and user documentation.
-- Hardened GitHub App installation callbacks with one-time, expiring state validation.
-- Fixed GitHub App-only project operations that were incorrectly blocked when no legacy token was configured.
-- Added the first extensible AI provider/router foundation and diagnostic surface; real model calls remain credential- and policy-dependent.
-- Preserved the existing Phase 1–3 behavior and live `data/state.json`; no release, push, schema migration, or production deployment was performed.
+- Delivered the Windows Electron desktop host and packaged local AI Agent proposal workflow.
+- Added the Phase 4 architecture, security, sandbox, Windows compatibility, installation, and test reports.
+- Verified the Windows x64 NSIS installer and installed-package smoke workflow on the current Windows host.
+- Preserved the existing GitHub repository operations, release, update, webhook, monitoring, task, and security surfaces.
+- Windows installer: `PROJECT-NEXUS-0.1.0-win-x64-setup.exe`.
+- Installer SHA-256: `1AB7C64C8EBEAF155E656EEF941F7B053CDF7F84469072182F09266DAFD6F85A`.
