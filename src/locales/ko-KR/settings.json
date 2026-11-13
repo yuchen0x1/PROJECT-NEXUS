@@ -37,5 +37,31 @@
     "settingsFile": "설정 파일",
     "systemLocale": "시스템 언어",
     "openLogs": "로그 폴더 열기"
+  },
+  "appUpdate": {
+    "title": "NEXUS 앱 업데이트",
+    "check": "업데이트 확인",
+    "updateNow": "지금 업데이트",
+    "working": "잠시 기다려 주세요…",
+    "later": "나중에",
+    "progress": "다운로드 진행률",
+    "restartHint": "업데이트 시 상태를 저장하고 현재 작업을 중지합니다. 설치 후 앱이 자동으로 다시 열립니다.",
+    "states": {
+      "disabled": "자동 업데이트는 설치된 Windows 앱에서 사용할 수 있습니다.",
+      "idle": "시작 후 및 4시간마다 새 버전을 확인합니다.",
+      "checking": "업데이트 확인 중…",
+      "up-to-date": "최신 버전입니다.",
+      "available": "새 버전 {{version}}을 사용할 수 있습니다.",
+      "downloading": "{{version}} 다운로드 중 · {{percent}}%",
+      "downloaded": "업데이트를 다운로드했습니다. 설치할 수 있습니다.",
+      "installing": "상태 저장 및 설치 중입니다. 완료 후 NEXUS가 자동으로 열립니다.",
+      "error": "업데이트에 실패했습니다. 다시 시도할 수 있습니다."
+    },
+    "errors": {
+      "check": "업데이트를 확인할 수 없습니다. 네트워크 확인 후 다시 시도하세요.",
+      "download": "다운로드 또는 검증에 실패하여 업데이트를 설치하지 않았습니다. 연결 후 다시 시도하세요.",
+      "install": "설치에 실패했습니다. 데이터는 보존됩니다. 다시 시도하거나 NEXUS를 재시작하세요.",
+      "bridge": "업데이트 기능에 연결할 수 없습니다. NEXUS를 다시 열고 시도하세요."
+    }
   }
 }

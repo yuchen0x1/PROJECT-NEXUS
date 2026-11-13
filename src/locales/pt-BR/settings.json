@@ -37,5 +37,31 @@
     "settingsFile": "Arquivo de configurações",
     "systemLocale": "Idioma do sistema",
     "openLogs": "Abrir pasta de logs"
+  },
+  "appUpdate": {
+    "title": "Atualização do NEXUS",
+    "check": "Buscar atualizações",
+    "updateNow": "Atualizar agora",
+    "working": "Aguarde…",
+    "later": "Mais tarde",
+    "progress": "Progresso do download",
+    "restartHint": "A atualização salva o estado e interrompe as tarefas atuais. O aplicativo será reaberto após a instalação.",
+    "states": {
+      "disabled": "As atualizações estão disponíveis no aplicativo Windows instalado.",
+      "idle": "Verifica ao iniciar e a cada 4 horas.",
+      "checking": "Buscando atualizações…",
+      "up-to-date": "Você está na versão mais recente.",
+      "available": "A versão {{version}} está disponível.",
+      "downloading": "Baixando {{version}} · {{percent}}%",
+      "downloaded": "Atualização baixada. Pronta para instalar.",
+      "installing": "Salvando e instalando. O NEXUS será reaberto automaticamente.",
+      "error": "A atualização falhou. Você pode tentar novamente."
+    },
+    "errors": {
+      "check": "Não foi possível buscar atualizações. Verifique a rede e tente novamente.",
+      "download": "Falha no download ou na verificação. A atualização não foi instalada. Tente novamente quando estiver conectado.",
+      "install": "Falha na instalação. Seus dados foram preservados; tente novamente ou reinicie o NEXUS.",
+      "bridge": "Não foi possível acessar o atualizador. Reabra o NEXUS e tente novamente."
+    }
   }
 }

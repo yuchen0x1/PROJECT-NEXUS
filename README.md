@@ -2,24 +2,22 @@
 
 Windows 桌面 AI 仓库运营中心。连接 GitHub 与 AI 网关，持续监控仓库，在独立 Worktree 中修复和验证问题，并按授权策略交付 PR 和版本。
 
-**0.8.0 开发预览版。安装包未签名，不是 v1.0 稳定版。**
+**0.8.1 开发预览版。安装包未签名，不是 v1.0 稳定版。**
 
 ## 最新更新
 
-### 0.8.0 · 新图标与协作维护（2026-11-13）
+### 0.8.1 · NEXUS 应用自动更新（2026-11-13）
 
-- 更换蓝色 N 新图标，统一 Windows 窗口、任务栏、托盘、安装包与应用侧栏，支持多尺寸和高 DPI。
-- 新增协作与维护中心，查看六角色实际分工、模型、消息、测试结果、预算和交付状态。
-- 开发与独立新增测试分别使用隔离副本；暂停后从核实的检查点续跑，不重复未知写入。
-- 批准的源码研究提案可生成隔离实施候选；自身维护有单独策略和确认门禁。
-- 项目记忆支持增量理解、来源与推测区分、执行经验、查看、导出和确认清理；资源中心显示实际系统和 Electron 指标。
-- 软件更新中心可检测版本、下载并核验哈希与发布者；严格隔离和签名安装缺少条件时阻断。
+- Windows 安装版启动后及每 4 小时检查 NEXUS 新版本，设置页也可手动检查。
+- 发现新版显示全局提示；点击「立即更新」后下载并校验、保存状态、停止当前任务、自动安装并重新打开应用。
+- 下载或安装失败显示原因并可重试；稍后更新不会退出应用，用户数据保留。
+- 发布端支持推送匹配版本的 `v*` 标签后自动构建安装包及更新清单，上传齐全后发布 GitHub Release。
 
-十种语言、深浅主题、系统主题跟随和高 DPI 已做本地验收。真实外部服务、完整原生安装回滚和 24 小时长稳尚未全部验收；候选安装包未签名。详见 [当前交付报告](docs/FINAL_DELIVERY_REPORT.md)、[验收矩阵](docs/TEST_ACCEPTANCE_REPORT.md)和[完整发布记录](docs/releases/release-notes.md)。
+**0.8.0 及更早版本没有自身自动更新，需要先手动安装 0.8.1。** 普通源码推送不构成更新发布。安装包未签名，真实跨版本安装重启尚未验收。详见[本版说明](docs/releases/v0.8.1.md)、[更新与发布说明](docs/APP_AUTO_UPDATE.md)和[完整发布记录](docs/releases/release-notes.md)。
 
 ## 安装和首次使用
 
-[下载 Windows x64 安装包](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/download/v0.8.0/PROJECT-NEXUS-0.8.0-win-x64-setup.exe)，[版本说明与校验文件](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.0)。此版本为 0.x 开发预览。
+[下载 Windows x64 安装包](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/download/v0.8.1/PROJECT-NEXUS-0.8.1-win-x64-setup.exe)，[版本说明与校验文件](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.1)。此版本为 0.x 开发预览。
 
 1. 在 Windows x64 上运行安装程序。
 2. 启动应用，点击工作台上的蓝色「一键教学」，顶部也可进入。

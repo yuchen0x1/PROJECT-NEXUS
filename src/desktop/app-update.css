@@ -1,0 +1,9 @@
+.nx-app-update { display: flex; align-items: center; gap: 12px; padding: 14px 20px; margin: 12px 20px 0; border: 1px solid var(--nx-accent-line); border-radius: var(--nx-r-md); background: var(--nx-bg-raised); color: var(--nx-text); flex-shrink: 0; }
+.nx-app-update > svg { flex-shrink: 0; color: var(--nx-accent); }
+.nx-app-update-copy { flex: 1; min-width: 0; }
+.nx-app-update-copy p { margin: 4px 0; color: var(--nx-text-2); }
+.nx-app-update-copy small { display: block; color: var(--nx-text-muted); }
+.nx-app-update-copy [role='alert'] { color: var(--nx-danger); }
+.nx-app-update-copy progress { width: min(100%, 400px); height: 6px; accent-color: var(--nx-accent); }
+.nx-app-update > button { flex-shrink: 0; }
+@media (max-width: 800px) { .nx-app-update { flex-wrap: wrap; margin: 8px; } }

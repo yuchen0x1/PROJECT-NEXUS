@@ -1,6 +1,6 @@
 {
   "name": "project-nexus",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Windows AI development and project operations workstation",
   "author": {
     "name": "PROJECT NEXUS"
@@ -14,6 +14,7 @@
     "build": "vite build",
     "desktop:dev": "npm run build && electron .",
     "desktop:package:win": "npm run build && electron-builder --win nsis --x64 --publish never",
+    "desktop:verify-update": "node scripts/verify-desktop-update.mjs",
     "test:desktop": "npm run build && node tests/desktop.smoke.mjs",
     "test:desktop:agent": "npm run build && node tests/local-agent-desktop-ui.mjs",
     "test:desktop:i18n": "npm run build && node tests/desktop-i18n.mjs",
@@ -33,6 +34,7 @@
   },
   "dependencies": {
     "cors": "latest",
+    "electron-updater": "6.8.12",
     "express": "latest"
   },
   "devDependencies": {
@@ -56,10 +58,20 @@
     "vitest": "latest"
   },
   "main": "desktop/main.mjs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yuchen0x1/PROJECT-NEXUS.git"
+  },
   "build": {
     "appId": "com.projectnexus.workstation",
     "productName": "PROJECT NEXUS",
     "asar": true,
+    "publish": {
+      "provider": "github",
+      "owner": "yuchen0x1",
+      "repo": "PROJECT-NEXUS",
+      "releaseType": "release"
+    },
     "asarUnpack": [
       "server/services/agent/windows-job-runner.ps1"
     ],
@@ -89,7 +101,6 @@
     "nsis": {
       "installerIcon": "desktop/assets/app.ico",
       "uninstallerIcon": "desktop/assets/app.ico",
-      "publish": null,
       "oneClick": false,
       "perMachine": false,
       "allowElevation": false,

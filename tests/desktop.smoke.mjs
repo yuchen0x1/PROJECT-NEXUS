@@ -8,7 +8,8 @@ import process from 'node:process'
 import { chromium } from 'playwright'
 
 const require = createRequire(import.meta.url)
-const electronExecutable = require('electron')
+const packagedExecutable = process.env.NEXUS_TEST_DESKTOP_EXECUTABLE
+const electronExecutable = packagedExecutable || require('electron')
 const appRoot = path.resolve(import.meta.dirname, '..')
 const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'project-nexus-desktop-smoke-'))
 const dataRoot = path.join(tempRoot, 'nexus-data')
@@ -64,7 +65,7 @@ try {
     '--remote-debugging-address=127.0.0.1',
     '--remote-debugging-port=0',
     `--user-data-dir=${chromiumProfile}`,
-    appRoot,
+    ...(packagedExecutable ? [] : [appRoot]),
     '--nexus-smoke-test'
   ], {
     cwd: appRoot,
@@ -111,8 +112,16 @@ try {
   assert.match(pageText, /This machine is ready for local project setup/)
   assert.match(pageText, /READ-ONLY MODE/)
 
+  const appUpdate = await page.evaluate(() => window.nexusDesktop.getAppUpdate())
+  assert.equal(appUpdate.phase, 'disabled', 'Development and smoke sessions must not download updates.')
+  await page.getByRole('button', { name: 'Settings', exact: true }).first().click()
+  await page.getByRole('region', { name: 'NEXUS app update', exact: true }).waitFor()
+  assert.equal(await page.getByRole('button', { name: 'Check for updates', exact: true }).isDisabled(), true)
+  assert.equal(await page.getByText('Updates are available in the installed Windows app.', { exact: true }).isVisible(), true)
+
   console.log('PASS: Electron launched a native BrowserWindow and rendered the Windows workstation.')
   console.log('PASS: The renderer has the narrow preload bridge; direct unauthenticated local API access is rejected.')
+  console.log('PASS: The real desktop update bridge and settings status render with development updates disabled.')
 } catch (error) {
   failed = true
   const trace = output.split(/\r?\n/).filter((line) => line.includes('NEXUS_DESKTOP_TRACE:')).join('\n')

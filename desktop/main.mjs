@@ -1,4 +1,6 @@
 import { createRestartBudget } from './service-health.mjs'
+import { createAppUpdater } from './auto-update.mjs'
+import electronUpdater from 'electron-updater'
 import { spawn } from 'node:child_process'
 import crypto from 'node:crypto'
 import fs from 'node:fs/promises'
@@ -64,6 +66,9 @@ let mainWindow = null
 let tray = null
 let windowSaveTimer = null
 let isQuitting = false
+let quitReady = false
+let quitPreparation = null
+let appUpdater = null
 let hostingPaused = false
 const serviceRestartBudget = createRestartBudget()
 let serviceRespawnAttempts = 0
@@ -339,6 +344,9 @@ async function syncStoredGitHubCredential() {
 }
 
 function registerLocalCapabilities() {
+  registerIpc('desktop:update:status', () => appUpdater.getStatus())
+  registerIpc('desktop:update:check', () => appUpdater.check())
+  registerIpc('desktop:update:install', () => appUpdater.update())
   registerIpc('desktop:provider-models:list', async (draft) => {
     const records = await listProviderRecords({ dataDir: userDataPath })
     return await listDraftProviderModels(draft, {
@@ -669,25 +677,13 @@ if (!singleInstance) {
 } else {
   app.on('second-instance', showWindow)
   registerLocalCapabilities()
-  let quitReady = false
   app.on('before-quit', (event) => {
+    // An installer spawn error may arrive before electron-updater's queued quit.
+    // Keep the application alive while its service is being restored.
+    if (appUpdater?.isRecovering()) { event.preventDefault(); return }
     if (quitReady) return
     event.preventDefault()
-    if (isQuitting) return
-    isQuitting = true
-    clearTimeout(windowSaveTimer)
-    clearTimeout(serviceRespawnTimer)
-    void (async () => {
-      await saveWindowState().catch(() => {})
-      const child = apiProcess
-      if (child && child.exitCode === null && !child.killed) await new Promise((resolve) => {
-        const timer = setTimeout(() => { child.kill(); resolve() }, 10000)
-        child.once('exit', () => { clearTimeout(timer); resolve() })
-        if (child.connected) child.send({ type: 'nexus-shutdown' }, () => {})
-        else child.kill()
-      })
-      quitReady = true; app.quit()
-    })().catch(() => { quitReady = true; app.quit() })
+    void prepareDesktopQuit().then(() => app.quit()).catch(() => { quitReady = true; app.quit() })
   })
   app.on('window-all-closed', () => {})
   app.on('activate', showWindow)
@@ -695,9 +691,62 @@ if (!singleInstance) {
   void startDesktop()
 }
 
+function prepareDesktopQuit() {
+  if (quitPreparation) return quitPreparation
+  isQuitting = true
+  clearTimeout(windowSaveTimer)
+  clearTimeout(serviceRespawnTimer)
+  appUpdater?.stopTimers()
+  quitPreparation = (async () => {
+    await saveWindowState().catch(() => {})
+    const child = apiProcess
+    if (child && child.exitCode === null && !child.killed) await new Promise((resolve) => {
+      const timer = setTimeout(() => { child.kill(); resolve() }, 10000)
+      child.once('exit', () => { clearTimeout(timer); resolve() })
+      if (child.connected) child.send({ type: 'nexus-shutdown' }, () => {})
+      else child.kill()
+    })
+    apiProcess = null
+    quitReady = true
+  })()
+  return quitPreparation
+}
+
+async function recoverFailedUpdate() {
+  await quitPreparation?.catch(() => {})
+  isQuitting = false
+  quitReady = false
+  quitPreparation = null
+  try {
+    if (!apiProcess || apiProcess.exitCode !== null || apiProcess.killed) {
+      const port = await startApiProcess()
+      apiOrigin = `http://127.0.0.1:${port}`
+    }
+    void syncStoredProviderKeys()
+    void syncHostingPauseState()
+    if (mainWindow && !mainWindow.isDestroyed()) await mainWindow.loadURL(apiOrigin)
+    else await createMainWindow()
+    appUpdater.start()
+  } catch {
+    await writeLog('error', 'update-service-recovery-failed')
+    dialog.showErrorBox('PROJECT NEXUS', 'The update could not be installed. Restart PROJECT NEXUS to restore the local service.')
+  }
+}
+
 async function startDesktop() {
   traceSmoke('waiting-for-ready')
   await app.whenReady()
+  appUpdater = createAppUpdater({
+    updater: electronUpdater.autoUpdater,
+    currentVersion: app.getVersion(),
+    enabled: app.isPackaged && process.platform === 'win32' && !smokeTest,
+    onState: (state) => {
+      if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('desktop:update:changed', state)
+    },
+    prepareInstall: prepareDesktopQuit,
+    recoverInstall: recoverFailedUpdate,
+    log: (level, event, details) => { void writeLog(level, event, details) }
+  })
   traceSmoke('app-ready')
   // The product renders its own localized chrome; the default English
   // Electron menu (and its Alt accelerator) would break that illusion.
@@ -725,6 +774,7 @@ async function startDesktop() {
     createTray()
     traceSmoke('tray-ready')
     await createMainWindow()
+    appUpdater.start()
     traceSmoke('window-created')
     await writeLog('info', 'application-ready')
   } catch (error) {

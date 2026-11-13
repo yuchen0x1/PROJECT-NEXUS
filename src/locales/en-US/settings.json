@@ -37,5 +37,31 @@
     "settingsFile": "Settings file",
     "systemLocale": "System language",
     "openLogs": "Open logs folder"
+  },
+  "appUpdate": {
+    "title": "NEXUS app update",
+    "check": "Check for updates",
+    "updateNow": "Update now",
+    "working": "Please wait…",
+    "later": "Later",
+    "progress": "Download progress",
+    "restartHint": "Updating saves state and stops current tasks. The app will install the update and reopen automatically.",
+    "states": {
+      "disabled": "Updates are available in the installed Windows app.",
+      "idle": "Checks automatically at startup and every 4 hours.",
+      "checking": "Checking for updates…",
+      "up-to-date": "You are up to date.",
+      "available": "Version {{version}} is available.",
+      "downloading": "Downloading {{version}} · {{percent}}%",
+      "downloaded": "Update downloaded. Ready to install.",
+      "installing": "Saving state and installing. NEXUS will reopen automatically.",
+      "error": "Update failed. You can retry."
+    },
+    "errors": {
+      "check": "Could not check for updates. Check your network and try again.",
+      "download": "Download or verification failed. The update was not installed. Retry when connected.",
+      "install": "Installation failed. Your data is preserved; retry or restart NEXUS.",
+      "bridge": "Could not reach the desktop updater. Reopen NEXUS and try again."
+    }
   }
 }

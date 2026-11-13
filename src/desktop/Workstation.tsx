@@ -11,6 +11,7 @@ import SetupCenter from './SetupCenter'
 import ProductTour from './ProductTour'
 import ProjectOverview from './ProjectOverview'
 import EvolutionCenter from './EvolutionCenter'
+import AppUpdate from './AppUpdate'
 import appIcon from '../../assets/branding/PROJECT-NEXUS-icon-64.png'
 import appIconRetina from '../../assets/branding/PROJECT-NEXUS-icon-128.png'
 import { api, type AgentInsights, type AgentProvider, type LocalAgentTask } from '../api'
@@ -687,6 +688,7 @@ export default function Workstation() {
         </div>
       </header>
 
+      <AppUpdate settings={page === 'settings'} />
       <div className="nx-content-grid" data-rail={showActivity && !['remote', 'settings', 'overview', 'evolution'].includes(page) ? 'open' : 'closed'}>
         <main className="nx-workarea">
           {page !== 'remote' && page !== 'overview' && page !== 'evolution' && <div className="nx-page-heading">

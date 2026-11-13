@@ -80,6 +80,10 @@ export type LocalizedDialogText = {
 }
 
 export type DesktopBridge = {
+  getAppUpdate: () => Promise<AppUpdateState>
+  checkAppUpdate: () => Promise<AppUpdateState>
+  installAppUpdate: () => Promise<AppUpdateState>
+  onAppUpdate: (callback: (state: AppUpdateState) => void) => () => void
   getMetrics: () => Promise<DesktopMetrics>
   fetchProviderModels: (draft: { kind: string; baseUrl: string; apiKey?: string; providerId?: string }) => Promise<ProviderModelsResult>
   openGitHubTokenPage: () => Promise<void>
@@ -97,6 +101,16 @@ export type DesktopBridge = {
   setAutoStart: (enabled: boolean) => Promise<{ enabled: boolean }>
   getSettings: () => Promise<DesktopSettingsPayload>
   updateSettings: (partial: Partial<Omit<UserPreferences, 'language'>> & { language?: string | null }) => Promise<UserPreferences>
+}
+
+export type AppUpdateState = {
+  revision: number
+  phase: 'disabled' | 'idle' | 'checking' | 'up-to-date' | 'available' | 'downloading' | 'downloaded' | 'installing' | 'error'
+  currentVersion: string
+  version: string | null
+  percent: number
+  errorCode: 'check' | 'download' | 'install' | null
+  retry: 'check' | 'update'
 }
 
 export type DesktopMetrics = { at: string; processes: { pid: number; type: string; cpuPercent: number; workingSetBytes: number; peakWorkingSetBytes: number; creationTime: number }[]; servicePid: number | null }

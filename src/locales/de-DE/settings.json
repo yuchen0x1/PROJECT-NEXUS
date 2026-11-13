@@ -37,5 +37,31 @@
     "settingsFile": "Einstellungsdatei",
     "systemLocale": "Systemsprache",
     "openLogs": "Protokollordner öffnen"
+  },
+  "appUpdate": {
+    "title": "NEXUS-App aktualisieren",
+    "check": "Nach Updates suchen",
+    "updateNow": "Jetzt aktualisieren",
+    "working": "Bitte warten…",
+    "later": "Später",
+    "progress": "Download-Fortschritt",
+    "restartHint": "Beim Aktualisieren wird der Zustand gespeichert und laufende Aufgaben werden gestoppt. Nach der Installation öffnet sich die App automatisch.",
+    "states": {
+      "disabled": "Updates sind in der installierten Windows-App verfügbar.",
+      "idle": "Automatische Prüfung beim Start und alle 4 Stunden.",
+      "checking": "Updates werden gesucht…",
+      "up-to-date": "Sie verwenden die aktuelle Version.",
+      "available": "Version {{version}} ist verfügbar.",
+      "downloading": "{{version}} wird heruntergeladen · {{percent}}%",
+      "downloaded": "Update heruntergeladen. Bereit zur Installation.",
+      "installing": "Zustand wird gespeichert und das Update installiert. NEXUS öffnet sich automatisch.",
+      "error": "Update fehlgeschlagen. Erneuter Versuch möglich."
+    },
+    "errors": {
+      "check": "Updates konnten nicht geprüft werden. Netzwerk prüfen und erneut versuchen.",
+      "download": "Download oder Prüfung fehlgeschlagen. Das Update wurde nicht installiert. Nach dem Verbinden erneut versuchen.",
+      "install": "Installation fehlgeschlagen. Ihre Daten bleiben erhalten. Erneut versuchen oder NEXUS neu starten.",
+      "bridge": "Update-Dienst nicht erreichbar. NEXUS erneut öffnen und wieder versuchen."
+    }
   }
 }

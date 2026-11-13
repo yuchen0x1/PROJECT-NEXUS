@@ -37,5 +37,31 @@
     "settingsFile": "設定檔",
     "systemLocale": "系統語言",
     "openLogs": "開啟日誌資料夾"
+  },
+  "appUpdate": {
+    "title": "NEXUS 應用程式更新",
+    "check": "檢查更新",
+    "updateNow": "立即更新",
+    "working": "請稍候…",
+    "later": "稍後",
+    "progress": "下載進度",
+    "restartHint": "更新時將儲存狀態並停止目前工作，自動安裝後重新開啟應用程式。",
+    "states": {
+      "disabled": "請在已安裝的 Windows 應用程式中使用自動更新。",
+      "idle": "啟動後及每 4 小時自動檢查新版本。",
+      "checking": "正在檢查更新…",
+      "up-to-date": "目前已是最新版本。",
+      "available": "發現新版本 {{version}}。",
+      "downloading": "正在下載 {{version}} · {{percent}}%",
+      "downloaded": "更新已下載，可以立即安裝。",
+      "installing": "正在儲存狀態並安裝，完成後自動開啟 NEXUS。",
+      "error": "更新失敗，可以重試。"
+    },
+    "errors": {
+      "check": "無法檢查新版本，請檢查網路後重試。",
+      "download": "下載或驗證失敗，尚未安裝更新，請連線後重試。",
+      "install": "安裝失敗，使用者資料已保留，請重試或重新啟動 NEXUS。",
+      "bridge": "無法連線至桌面更新程式，請重新開啟 NEXUS 後重試。"
+    }
   }
 }

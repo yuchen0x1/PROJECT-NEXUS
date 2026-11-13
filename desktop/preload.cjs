@@ -3,6 +3,14 @@ const { contextBridge, ipcRenderer } = require('electron')
 const invoke = (channel, ...args) => ipcRenderer.invoke(channel, ...args)
 
 contextBridge.exposeInMainWorld('nexusDesktop', Object.freeze({
+  getAppUpdate: () => invoke('desktop:update:status'),
+  checkAppUpdate: () => invoke('desktop:update:check'),
+  installAppUpdate: () => invoke('desktop:update:install'),
+  onAppUpdate: (callback) => {
+    const listener = (_event, state) => callback(state)
+    ipcRenderer.on('desktop:update:changed', listener)
+    return () => ipcRenderer.removeListener('desktop:update:changed', listener)
+  },
   requestApi: (request) => invoke('desktop:api:request', request),
   getInfo: () => invoke('desktop:info'),
   getMetrics: () => invoke('desktop:metrics'),

@@ -37,5 +37,31 @@
     "settingsFile": "Fichier de paramètres",
     "systemLocale": "Langue du système",
     "openLogs": "Ouvrir le dossier des journaux"
+  },
+  "appUpdate": {
+    "title": "Mise à jour de NEXUS",
+    "check": "Rechercher les mises à jour",
+    "updateNow": "Mettre à jour",
+    "working": "Veuillez patienter…",
+    "later": "Plus tard",
+    "progress": "Progression du téléchargement",
+    "restartHint": "La mise à jour enregistre l’état et arrête les tâches en cours. L’application se rouvrira après l’installation.",
+    "states": {
+      "disabled": "Les mises à jour sont disponibles dans l’application Windows installée.",
+      "idle": "Recherche au démarrage et toutes les 4 heures.",
+      "checking": "Recherche de mises à jour…",
+      "up-to-date": "Votre version est à jour.",
+      "available": "La version {{version}} est disponible.",
+      "downloading": "Téléchargement de {{version}} · {{percent}}%",
+      "downloaded": "Mise à jour téléchargée. Prête à être installée.",
+      "installing": "Enregistrement et installation. NEXUS se rouvrira automatiquement.",
+      "error": "Échec de la mise à jour. Vous pouvez réessayer."
+    },
+    "errors": {
+      "check": "Impossible de rechercher les mises à jour. Vérifiez votre connexion et réessayez.",
+      "download": "Échec du téléchargement ou de la vérification. La mise à jour n’a pas été installée. Réessayez une fois connecté.",
+      "install": "Échec de l’installation. Vos données sont conservées ; réessayez ou redémarrez NEXUS.",
+      "bridge": "Impossible de joindre le service de mise à jour. Rouvrez NEXUS et réessayez."
+    }
   }
 }

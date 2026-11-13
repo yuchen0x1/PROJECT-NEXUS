@@ -1,0 +1,21 @@
+{
+  "version": "0.8.1",
+  "artifactScope": "local release-v0.8.1, not remote CI binaries",
+  "fuses": {
+    "RunAsNode": "enabled",
+    "EnableCookieEncryption": "disabled",
+    "EnableNodeOptionsEnvironmentVariable": "enabled",
+    "EnableNodeCliInspectArguments": "enabled",
+    "EnableEmbeddedAsarIntegrityValidation": "disabled",
+    "OnlyLoadAppFromAsar": "disabled",
+    "LoadBrowserProcessSpecificV8Snapshot": "disabled",
+    "GrantFileProtocolExtraPrivileges": "enabled"
+  },
+  "asarEntries": 895,
+  "sourceMaps": [],
+  "credentialDataFiles": [],
+  "d3dcompilerCliDirectory": {
+    "rva": 0,
+    "size": 0
+  }
+}
