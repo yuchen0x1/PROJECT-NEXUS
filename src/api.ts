@@ -1,4 +1,5 @@
 export type Project = {
+  repositoryAvailable?: boolean
   id: string
   name: string
   fullName: string
@@ -40,6 +41,8 @@ export type ProjectOverviewSnapshot = {
 }
 
 export type Task = {
+  result?: { imported?: number; unavailable?: number; truncated?: boolean }
+  errorCode?: string
   id: string
   type: string
   label: string
@@ -430,6 +433,7 @@ export async function request<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  repositorySyncStatus: () => request<{ configured: boolean; running: boolean; lastSuccessAt: string | null; nextSyncAt: string | null; lastErrorCode: string | null; intervalMs: number }>('/api/repository-sync'),
   projectOverview: (projectId = '') => request<ProjectOverviewSnapshot>(`/api/project-overview${projectId ? `?projectId=${encodeURIComponent(projectId)}` : ''}`),
   setRemoteWrites: (enabled: boolean) => request<{ enabled: boolean }>('/api/settings/remote-writes', { method: 'PUT', body: JSON.stringify({ enabled, confirm: true }) }),
   reconcileHostedJob: (jobId: string) => request<{ job: { reconciliation: string } }>(`/api/hosting/jobs/${encodeURIComponent(jobId)}/reconcile`, { method: 'POST', body: '{}' }),
@@ -437,7 +441,7 @@ export const api = {
   overview: () => request<{ metrics: Record<string, number>; projects: Project[]; tasks: Task[]; activity: { id: string; message: string; at: string }[]; githubConfigured: boolean }>('/api/overview'),
   githubStatus: () => request<{ configured: boolean; owner: string | null; apiUrl: string; permissions: string[] }>('/api/github/status'),
   projects: (query = '') => request<{ projects: Project[]; total: number }>(`/api/projects?query=${encodeURIComponent(query)}`),
-  syncRepositories: () => request<{ task: Task }>('/api/tasks/sync-repositories', { method: 'POST', body: '{}' }),
+  syncRepositories: (automatic = false) => request<{ task?: Task; skipped?: boolean; reason?: string }>('/api/tasks/sync-repositories', { method: 'POST', body: JSON.stringify({ automatic }) }),
   scanProject: (id: string) => request<{ project: Project }>(`/api/projects/${id}/scan`, { method: 'POST', body: '{}' }),
   integrationScan: (id: string) => request<{ project: Project; job: IntegrationJob; task: Task; reused: boolean }>(`/api/projects/${id}/integration-scan`, { method: 'POST', body: '{}' }),
   integrationScanAll: (projectIds: string[] = []) => request<{ jobs: { job: IntegrationJob; task: Task; reused: boolean }[]; blocked: { projectId: string; fullName: string; status: string; reason: string }[] }>('/api/integrations/scans', { method: 'POST', body: JSON.stringify({ projectIds }) }),

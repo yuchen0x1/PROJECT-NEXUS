@@ -478,5 +478,14 @@
     "archivedHint": "Archived repositories cannot be selected for hosting. Sync GitHub to refresh archive status.",
     "noActive": "No repositories available for hosting; all are archived.",
     "selectionChanged": "Some selected repositories are archived or unavailable and were deselected. Return to the repository list to confirm before continuing."
+  },
+  "syncStatus": {
+    "running": "Syncing GitHub…",
+    "last": "Last sync: {{time}}",
+    "never": "Not synced yet",
+    "interval": "Syncs GitHub about every 60 seconds while visible; task progress uses local data.",
+    "retry": "Sync is incomplete. Retry after {{time}}.",
+    "completed": "Sync completed. Repository lists and counts are updated.",
+    "partial": "Pagination was incomplete. Received repositories were updated; other records were retained."
   }
 }

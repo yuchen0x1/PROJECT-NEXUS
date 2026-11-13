@@ -478,5 +478,14 @@
     "archivedHint": "Les dépôts archivés ne sont pas sélectionnables. Synchronisez GitHub pour actualiser leur état.",
     "noActive": "Tous les dépôts sont archivés ; aucun ne peut être sélectionné.",
     "selectionChanged": "Certains dépôts sélectionnés sont archivés ou indisponibles et ont été désélectionnés. Revenez à la liste pour confirmer."
+  },
+  "syncStatus": {
+    "running": "Synchronisation GitHub…",
+    "last": "Dernière synchronisation : {{time}}",
+    "never": "Pas encore synchronisé",
+    "interval": "Synchronise GitHub environ toutes les 60 s au premier plan ; la progression utilise les données locales.",
+    "retry": "Synchronisation incomplète. Nouvelle tentative après {{time}}.",
+    "completed": "Synchronisation terminée. Liste et nombre de dépôts actualisés.",
+    "partial": "Pagination incomplète : les autres enregistrements sont conservés."
   }
 }

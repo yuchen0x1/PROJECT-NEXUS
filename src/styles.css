@@ -25,6 +25,9 @@ body {
 }
 
 * { box-sizing: border-box; }
+.repository-sync-status { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 16px; color: var(--nx-text-muted); font-size: var(--nx-fs-xs); }
+.repository-sync-status small { font-size: inherit; color: var(--nx-text-faint); }
+.content[data-repository-syncing='true'] .page-intro .primary-button { opacity: .7; cursor: progress; }
 .capability-grid button.capability-card { width: 100%; color: inherit; text-align: left; cursor: pointer; transition: border-color .18s, background .18s; }
 .capability-grid button.capability-card:hover { border-color: var(--line-strong); background: var(--panel-2); }
 body { margin: 0; min-width: 320px; background: var(--bg); }

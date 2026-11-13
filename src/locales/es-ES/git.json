@@ -478,5 +478,14 @@
     "archivedHint": "Los repositorios archivados no se pueden seleccionar. Sincroniza GitHub para actualizar su estado.",
     "noActive": "Todos los repositorios están archivados; no hay ninguno disponible.",
     "selectionChanged": "Algunos repositorios seleccionados están archivados o no disponibles y se han desmarcado. Vuelve a la lista para confirmar."
+  },
+  "syncStatus": {
+    "running": "Sincronizando GitHub…",
+    "last": "Última sincronización: {{time}}",
+    "never": "Aún sin sincronizar",
+    "interval": "Sincroniza aproximadamente cada 60 s en primer plano; el progreso usa datos locales.",
+    "retry": "Sincronización incompleta. Se reintentará después de {{time}}.",
+    "completed": "Sincronización completada. Lista y recuento actualizados.",
+    "partial": "Paginación incompleta: se conservan los demás registros."
   }
 }

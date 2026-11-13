@@ -7,6 +7,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { buildProjectOverview } from '../../server/services/project-overview.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const children = []
@@ -53,6 +54,51 @@ afterEach(async () => {
 })
 
 describe('isolated Phase 3 API and schema migration', () => {
+  it('updates current counts after deletion, reuses concurrent syncs, validates ETags and backs off on rate limits', async () => {
+    let count = 26, requests = 0, limited = false, notModified = 0
+    const githubApiUrl = await startHttpServer((req, res) => {
+      requests++
+      if (limited) { res.writeHead(429, { 'content-type': 'application/json', 'retry-after': '120' }); return res.end('{"message":"API rate limit"}') }
+      const etag = `"repos-${count}"`
+      if (req.headers['if-none-match'] === etag) { notModified++; res.writeHead(304); return res.end() }
+      const items = Array.from({ length: count }, (_, index) => ({ id: index + 1, name: `repo-${index + 1}`, full_name: `fixture/repo-${index + 1}`, owner: { login: 'fixture' }, archived: false }))
+      setTimeout(() => { res.setHeader('content-type', 'application/json'); res.setHeader('etag', etag); res.end(JSON.stringify(items)) }, 80)
+    })
+    const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'nexus-sync-api-')); directories.push(directory)
+    const stateFile = path.join(directory, 'state.json')
+    const records = Array.from({ length: 26 }, (_, index) => ({ id: `repo_${index + 1}`, githubId: index + 1, name: `repo-${index + 1}`, fullName: `fixture/repo-${index + 1}`, owner: 'fixture', hosting: { enabled: false } }))
+    await fs.writeFile(stateFile, JSON.stringify({ schemaVersion: 4, projects: records, settings: { hostingPaused: true }, tasks: [{ id: 'history', projectId: 'repo_26', status: 'Success', logs: ['retained'] }] }))
+    const port = await freePort(); let errors = ''
+    const child = spawn(process.execPath, ['server/index.mjs'], { cwd: root, windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'], env: { ...process.env, PORT: String(port), NEXUS_STATE_FILE: stateFile, GITHUB_API_URL: githubApiUrl, GITHUB_TOKEN: 'sync-fixture', GITHUB_OWNER: '', NEXUS_ROLE: 'Administrator', NEXUS_ALLOW_ROLE_HEADER: 'false', NEXUS_ENABLE_REMOTE_WRITES: 'false', AI_API_KEY: '', AI_BASE_URL: '', AI_MODEL: '' } })
+    children.push(child); child.stderr.on('data', (chunk) => { errors += chunk })
+    const base = `http://127.0.0.1:${port}`; await waitForHealth(base, child, () => errors)
+    const post = (automatic = false) => fetch(base + '/api/tasks/sync-repositories', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ automatic }) })
+    const finish = async (task, expected = 'Success') => expect.poll(async () => (await (await fetch(base + '/api/tasks')).json()).tasks.find((item) => item.id === task.id).status).toBe(expected)
+    const first = await Promise.all([post(), post()]); const bodies = await Promise.all(first.map((response) => response.json()))
+    expect(bodies[0].task.id).toBe(bodies[1].task.id); await finish(bodies[0].task)
+    expect(requests).toBe(1)
+    count = 25
+    const second = await (await post()).json(); await finish(second.task)
+    expect((await (await fetch(base + '/api/projects')).json()).total).toBe(25)
+    expect((await (await fetch(base + '/api/overview')).json()).metrics.repositories).toBe(25)
+    const persisted = JSON.parse(await fs.readFile(stateFile, 'utf8'))
+    expect(buildProjectOverview({ state: persisted }).repositories).toHaveLength(25)
+    expect(persisted.projects).toHaveLength(26)
+    expect(persisted.projects.find((project) => project.id === 'repo_26').repositoryAvailable).toBe(false)
+    expect(persisted.tasks.find((task) => task.id === 'history').logs).toEqual(['retained'])
+    await finish((await (await post()).json()).task)
+    expect(notModified).toBe(1)
+    const before = requests
+    expect((await (await post(true)).json()).skipped).toBe(true); expect(requests).toBe(before)
+    limited = true
+    await finish((await (await post()).json()).task, 'Failed')
+    const status = await (await fetch(base + '/api/repository-sync')).json()
+    expect(status.lastErrorCode).toBe('GITHUB_RATE_LIMITED')
+    expect(Date.parse(status.nextSyncAt) - Date.now()).toBeGreaterThan(115_000)
+    expect((await post()).status).toBe(429)
+    expect((await (await fetch(base + '/api/projects')).json()).total).toBe(25)
+  })
+
   it('preserves archive metadata on sync and rejects archived or newly archived hosting selections', async () => {
     let archiveFirst = true, archiveSecond = false
     const repositories = () => [1, 2].map((number) => ({ id: number, name: `repo-${number}`, full_name: `fixture/repo-${number}`, owner: { login: 'fixture' }, default_branch: 'main', archived: number === 1 ? archiveFirst : archiveSecond }))

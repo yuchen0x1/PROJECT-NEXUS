@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { REPOSITORY_SYNC_EVENT, syncRepositoriesAndWait } from './repository-sync'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -85,17 +86,31 @@ export default function App({ embedded = false, onSetup, activePage, onNavigate,
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [syncing, setSyncing] = useState(false)
+  const [syncStatus, setSyncStatus] = useState<Awaited<ReturnType<typeof api.repositorySyncStatus>> | null>(null)
+  const refreshRevision = useRef(0)
 
-  const refresh = async () => {
-    setLoading(true)
+  const refresh = useCallback(async (quiet = false) => {
+    const revision = ++refreshRevision.current
+    if (!quiet) setLoading(true)
     try {
-      const [nextOverview, nextProjects, nextStatus, nextTasks] = await Promise.all([api.overview(), api.projects(query), api.githubStatus(), api.tasks()])
+      const [nextOverview, nextProjects, nextStatus, nextTasks, nextSync] = await Promise.all([api.overview(), api.projects(query), api.githubStatus(), api.tasks(), api.repositorySyncStatus()])
+      if (revision !== refreshRevision.current) return
       setOverview(nextOverview); setProjects(nextProjects.projects); setStatus(nextStatus); setTasks(nextTasks.tasks)
+      setSyncStatus(nextSync)
+      setSelectedProject((current) => current && !query && !nextProjects.projects.some((project) => project.id === current.id) ? null : current)
     } catch (error) { setToast(error instanceof Error ? error.message : t('git:shell.toast.loadFailed')) }
-    finally { setLoading(false) }
-  }
+    finally { if (revision === refreshRevision.current) setLoading(false) }
+  }, [query, t])
 
-  useEffect(() => { const timer = window.setTimeout(() => void refresh(), query ? 300 : 0); return () => window.clearTimeout(timer) }, [query]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { const timer = window.setTimeout(() => void refresh(), query ? 300 : 0); return () => window.clearTimeout(timer) }, [query, refresh])
+  useEffect(() => {
+    const update = () => { if (document.visibilityState !== 'hidden') void refresh(true) }
+    const timer = window.setInterval(update, 5000)
+    window.addEventListener(REPOSITORY_SYNC_EVENT, update)
+    document.addEventListener('visibilitychange', update)
+    return () => { window.clearInterval(timer); window.removeEventListener(REPOSITORY_SYNC_EVENT, update); document.removeEventListener('visibilitychange', update) }
+  }, [refresh])
   useEffect(() => {
     const handler = (event: Event) => setPage((event as CustomEvent<Page>).detail)
     window.addEventListener('navigate', handler)
@@ -104,7 +119,12 @@ export default function App({ embedded = false, onSetup, activePage, onNavigate,
   useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(null), 4200); return () => window.clearTimeout(timer) }, [toast])
 
   const openProject = (project: Project) => { setSelectedProject(project); setPage('Build Center') }
-  const sync = async () => { try { await api.syncRepositories(); setToast(t('git:shell.toast.syncQueued')); void refresh() } catch (error) { setToast(error instanceof Error ? error.message : t('git:shell.toast.syncFailed')) } }
+  const sync = async () => {
+    setSyncing(true)
+    try { const result = await syncRepositoriesAndWait(); await refresh(true); setToast(t(result.task?.result?.truncated ? 'git:syncStatus.partial' : 'git:syncStatus.completed')) }
+    catch { setToast(t('git:shell.toast.syncFailed')); void refresh(true) }
+    finally { setSyncing(false) }
+  }
   const metrics = overview?.metrics || {}
   const navLabels: Record<Page, string> = useMemo(() => Object.fromEntries(
     REMOTE_NAV_PAGES.map(({ page: target, key }) => [target, t(`git:shell.nav.${key}`)])
@@ -119,8 +139,9 @@ export default function App({ embedded = false, onSetup, activePage, onNavigate,
     </aside>
     {mobileNav && <button className="scrim" onClick={() => setMobileNav(false)} aria-label={t('common:aria.closeDialog')} />}
     <main className="main-area">
-      <header className="topbar"><button className="mobile-menu" onClick={() => setMobileNav(!mobileNav)}><Menu size={20} /></button><div className="breadcrumb"><span>PROJECT NEXUS</span><span>/</span><strong>{page === 'Overview' ? t('git:overview.title') : navLabels[page]}</strong></div><div className="top-actions"><div className="search-box"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t('git:shell.topbar.searchPlaceholder')} aria-label={t('git:shell.topbar.searchPlaceholder')} /></div><button className="icon-button" onClick={() => void refresh()} aria-label={t('git:shell.topbar.refresh')}><RefreshCw size={16} /></button><div className="avatar">{status?.owner?.slice(0, 2).toUpperCase() || <GitFork size={16} />}</div></div></header>
-      <div className="content">
+      <header className="topbar"><button className="mobile-menu" onClick={() => setMobileNav(!mobileNav)}><Menu size={20} /></button><div className="breadcrumb"><span>PROJECT NEXUS</span><span>/</span><strong>{page === 'Overview' ? t('git:overview.title') : navLabels[page]}</strong></div><div className="top-actions"><div className="search-box"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t('git:shell.topbar.searchPlaceholder')} aria-label={t('git:shell.topbar.searchPlaceholder')} /></div><button className="icon-button" onClick={() => void sync()} disabled={syncing || syncStatus?.running} aria-label={t('git:shell.topbar.refresh')}><RefreshCw size={16} /></button><div className="avatar">{status?.owner?.slice(0, 2).toUpperCase() || <GitFork size={16} />}</div></div></header>
+      <div className="content" data-repository-syncing={syncing || syncStatus?.running ? 'true' : 'false'}>
+        <div className="repository-sync-status" role="status"><span>{t(syncing || syncStatus?.running ? 'git:syncStatus.running' : 'git:syncStatus.last', { time: syncStatus?.lastSuccessAt ? formatStamp(syncStatus.lastSuccessAt) : t('git:syncStatus.never') })}</span><small>{syncStatus?.lastErrorCode ? t('git:syncStatus.retry', { time: syncStatus.nextSyncAt ? formatStamp(syncStatus.nextSyncAt) : '' }) : t('git:syncStatus.interval')}</small></div>
         {page === 'Overview' && <Overview metrics={metrics} projects={overview?.projects || []} tasks={overview?.tasks || []} activity={overview?.activity || []} configured={Boolean(status?.configured)} onSync={sync} onOpen={openProject} loading={loading} onSetup={onSetup || (() => setPage('GitHub Connections'))} />}
         {page === 'Projects' && <Projects projects={projects} query={query} onSync={sync} onOpen={openProject} onScan={(project) => api.integrationScan(project.id).then(() => { setToast(t('git:projects.scanToast', { repository: project.fullName })); void refresh() }).catch((error) => setToast(error.message))} />}
         {page === 'Build Center' && <BuildCenter projects={projects} selectedProject={selectedProject} onSelect={setSelectedProject} onToast={setToast} />}

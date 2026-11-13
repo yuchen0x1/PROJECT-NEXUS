@@ -15,7 +15,7 @@ export function buildProjectOverview({ state, localTasks = [], providers = [], g
     for (const secret of secrets) if (typeof secret === 'string' && secret.length >= 4) result = result.replaceAll(secret, '[REDACTED]')
     return redactSecrets(result).slice(0, limit)
   }
-  const projects = state.projects || []
+  const projects = (state.projects || []).filter((project) => project.repositoryAvailable !== false)
   const byId = new Map(projects.map((project) => [project.id, project]))
   const byName = new Map(projects.map((project) => [project.fullName, project.id]))
   const tasks = [], events = [], linked = new Set()

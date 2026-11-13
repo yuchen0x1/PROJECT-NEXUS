@@ -1,4 +1,5 @@
 import { upsertIssueActivity } from './services/issue-activity.mjs'
+import { createSyncGate, reconcileRepositories, repositoryAvailable, retryDeadline } from './services/repository-sync.mjs'
 import express from 'express'
 import cors from 'cors'
 import path from 'node:path'
@@ -25,7 +26,7 @@ import {
   recordHostingRun, summarizeFindings, HOSTING_STRATEGIES, HOSTING_INSPECTION_DEPTHS,
   HOSTING_MIN_INTERVAL_MINUTES, HOSTING_MAX_INTERVAL_MINUTES, defaultHostingPolicy
 } from './services/hosting.mjs'
-import { ensureRepoCache, removeRepoWorkspace, describeRepoCache, repoKeyFor, sweepStaleRepoWorkspaces } from './services/repo-workspace.mjs'
+import { ensureRepoCache, removeRepoWorkspace, describeRepoCache, repoKeyFor } from './services/repo-workspace.mjs'
 import { listRepositoryIssues, getIssue, listIssueComments, createIssueComment, updateIssueState, addIssueLabels, issuePublicSummary, isRealIssue } from './services/github-issues.mjs'
 import { classifyIssue, ACTIONABLE_CATEGORIES, ISSUE_CATEGORIES } from './services/issue-classifier.mjs'
 import { resolveProviderForInvocation } from './services/provider-store.mjs'
@@ -82,11 +83,17 @@ const installationTokens = new Map()
 const readinessEpoch = crypto.randomUUID()
 let githubAccount = null
 let stateWriteQueue = Promise.resolve()
+let repositorySyncGate
+let repositoryPollUntil = 0
+let repositoryBlockedUntil = 0
+const repositoryPages = new Map()
+const repositoryScopeRequests = new Map()
 
 const GITHUB_APP_INSTALL_STATE_TTL_MS = 10 * 60 * 1000
 
 async function loadState() {
   state = await loadStateFile(stateFile)
+  repositorySyncGate = createSyncGate({ initial: state.repositorySync || {} })
   // Migrate old plaintext installation-token records into process memory.
   for (const installation of state.githubInstallations) {
     if (installation.accessToken) installationTokens.set(String(installation.installationId), { accessToken: installation.accessToken, expiresAt: installation.expiresAt })
@@ -199,16 +206,16 @@ async function githubAppFetch(endpoint, options = {}) {
     Authorization: `Bearer ${githubAppJwt()}`,
     ...(options.headers || {})
   }
-  const response = await fetch(githubRequestUrl(endpoint), { ...options, headers })
+  const response = await fetch(githubRequestUrl(endpoint), { ...options, headers, signal: options.signal || AbortSignal.timeout(30_000) })
   const text = await response.text()
   let body = null
   try { body = text ? JSON.parse(text) : null } catch { body = response.ok ? text : { message: text } }
-  if (!response.ok) throw Object.assign(new Error(body?.message || `GitHub App API returned ${response.status}`), { status: response.status, body })
+  if (!response.ok) throw githubResponseError(response, body)
   return body
 }
 
 async function installationFetch(installationId, endpoint, options = {}) {
-  const { returnPageMetadata = false, ...fetchOptions } = options
+  const { returnPageMetadata = false, repositoryCache = false, ...fetchOptions } = options
   const installation = installationTokens.get(String(installationId))
   if (!installation?.accessToken || new Date(installation.expiresAt || 0) <= new Date(Date.now() + 60_000)) {
     if (!githubAppConfigured()) throw Object.assign(new Error('GitHub App credentials are not configured'), { code: 'GITHUB_APP_NOT_CONFIGURED' })
@@ -223,33 +230,54 @@ async function installationFetch(installationId, endpoint, options = {}) {
     return installationFetch(installationId, endpoint, options)
   }
   const headers = { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', Authorization: `Bearer ${installation.accessToken}`, ...(options.headers || {}) }
-  const response = await fetch(githubRequestUrl(endpoint), { ...fetchOptions, headers })
-  const text = await response.text()
-  let body = null
-  try { body = text ? JSON.parse(text) : null } catch { body = response.ok ? text : { message: text } }
-  if (!response.ok) throw Object.assign(new Error(body?.message || `GitHub installation API returned ${response.status}`), { status: response.status, body })
-  return returnPageMetadata ? { data: body, next: githubNextLink(response.headers.get('link'), githubApiUrl) } : body
+  return githubResponse(endpoint, fetchOptions, headers, returnPageMetadata, repositoryCache)
 }
 
 async function githubFetch(endpoint, options = {}) {
-  const { returnPageMetadata = false, ...fetchOptions } = options
+  const { returnPageMetadata = false, repositoryCache = false, ...fetchOptions } = options
   const headers = {
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
     ...(options.headers || {})
   }
   if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`
-  const response = await fetch(githubRequestUrl(endpoint), { ...fetchOptions, headers })
+  return githubResponse(endpoint, fetchOptions, headers, returnPageMetadata, repositoryCache)
+}
+
+async function githubResponse(endpoint, options, headers, pageMetadata, conditional) {
+  const key = `${crypto.createHash('sha256').update(headers.Authorization || '').digest('hex')}:${endpoint}`
+  const cached = conditional ? repositoryPages.get(key) : null
+  if (cached?.etag) headers['If-None-Match'] = cached.etag
+  const response = await fetch(githubRequestUrl(endpoint), { ...options, headers, ...(conditional && !options.signal ? { signal: AbortSignal.timeout(30_000) } : {}) })
+  if (conditional) {
+    const pollSeconds = Number(response.headers.get('x-poll-interval'))
+    if (pollSeconds > 0) repositoryPollUntil = Math.max(repositoryPollUntil, Date.now() + pollSeconds * 1000)
+    if (response.status === 304 && cached) return pageMetadata ? cached.page : cached.page.data
+  }
   const text = await response.text()
   let body = null
   try { body = text ? JSON.parse(text) : null } catch { body = response.ok ? text : { message: text } }
   if (!response.ok) {
-    const error = new Error(body?.message || `GitHub API returned ${response.status}`)
-    error.status = response.status
-    error.body = body
-    throw error
+    throw githubResponseError(response, body)
   }
-  return returnPageMetadata ? { data: body, next: githubNextLink(response.headers.get('link'), githubApiUrl) } : body
+  const page = { data: body, next: pageMetadata || conditional ? githubNextLink(response.headers.get('link'), githubApiUrl) : null }
+  if (conditional) {
+    repositoryPages.set(key, { etag: response.headers.get('etag'), page })
+    if (repositoryPages.size > 200) repositoryPages.delete(repositoryPages.keys().next().value)
+  }
+  return pageMetadata ? page : body
+}
+
+function githubResponseError(response, body) {
+  const error = Object.assign(new Error(body?.message || `GitHub API returned ${response.status}`), {
+    status: response.status, body, retryAfter: response.headers.get('retry-after'),
+    rateRemaining: response.headers.get('x-ratelimit-remaining'), rateReset: response.headers.get('x-ratelimit-reset')
+  })
+  if (response.status === 429 || response.status === 403 && (error.retryAfter || error.rateRemaining === '0' || /rate limit|abuse/i.test(error.message))) {
+    error.code = 'GITHUB_RATE_LIMITED'
+    repositoryBlockedUntil = Math.max(repositoryBlockedUntil, retryDeadline(error, 1))
+  }
+  return error
 }
 
 function githubRequestUrl(endpoint) {
@@ -449,34 +477,43 @@ async function processWebhookEvent(eventRecord) {
   await saveState()
 }
 
+async function syncRepositoryScope(installationId = null) {
+  if (Date.now() < repositoryBlockedUntil) throw Object.assign(new Error('GitHub repository sync is rate limited.'), { code: 'GITHUB_RATE_LIMITED', status: 429, retryAfter: Math.ceil((repositoryBlockedUntil - Date.now()) / 1000) })
+  const scope = installationId ? `installation:${installationId}` : 'user'
+  if (repositoryScopeRequests.has(scope)) return repositoryScopeRequests.get(scope)
+  const work = Promise.resolve().then(async () => {
+    const connection = installationId ? appConfig.id : `${process.env.GITHUB_TOKEN || ''}:${process.env.GITHUB_OWNER || ''}`
+    const endpoint = installationId ? '/installation/repositories' : process.env.GITHUB_OWNER
+      ? `/users/${encodeURIComponent(process.env.GITHUB_OWNER)}/repos?per_page=100&sort=updated`
+      : '/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member'
+    const { items, pages, truncated } = await fetchAllPages(
+      (page) => installationId ? installationFetch(installationId, page, { returnPageMetadata: true, repositoryCache: true }) : githubFetch(page, { returnPageMetadata: true, repositoryCache: true }),
+      endpoint, installationId ? { collection: 'repositories' } : {}
+    )
+    const incoming = items.map((repo) => ({ ...normalizeRepo(repo), ...(installationId ? { installationId } : {}), hosting: getHostingPolicy(null), repoMeta: null, localWorkspace: null }))
+    const currentConnection = installationId ? appConfig.id : `${process.env.GITHUB_TOKEN || ''}:${process.env.GITHUB_OWNER || ''}`
+    if (connection !== currentConnection) throw Object.assign(new Error('GitHub connection changed during sync. Retry with the current connection.'), { code: 'GITHUB_SYNC_CONTEXT_CHANGED' })
+    const result = reconcileRepositories(state.projects, incoming, { installationId, owner: installationId ? '' : process.env.GITHUB_OWNER || '', complete: !truncated })
+    await saveState()
+    return { ...result, pages, truncated, projects: incoming }
+  }).finally(() => repositoryScopeRequests.delete(scope))
+  repositoryScopeRequests.set(scope, work)
+  return work
+}
+
 async function syncRepositories() {
-  if (!githubConfigured()) {
-    const error = new Error('GITHUB_TOKEN is not configured')
-    error.code = 'GITHUB_NOT_CONFIGURED'
-    throw error
+  const scopes = [...new Set([...(githubConfigured() ? [null] : []), ...availableInstallationIds()])]
+  if (!scopes.length) throw Object.assign(new Error('GitHub connection is required.'), { code: 'GITHUB_NOT_CONFIGURED' })
+  const result = { imported: 0, unavailable: 0, pages: 0, truncated: false }
+  for (const scope of scopes) {
+    const value = await syncRepositoryScope(scope)
+    result.imported += value.imported; result.unavailable += value.unavailable; result.pages += value.pages; result.truncated ||= value.truncated
   }
-  const endpoint = process.env.GITHUB_OWNER
-    ? `/users/${encodeURIComponent(process.env.GITHUB_OWNER)}/repos?per_page=100&sort=updated`
-    : '/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member'
-  const { items: repos, pages, truncated } = await fetchAllPages((page) => githubFetch(page, { returnPageMetadata: true }), endpoint)
-  const incoming = repos.map(normalizeRepo)
-  const byFullName = new Map(state.projects.map((project) => [project.fullName, project]))
-  for (const project of incoming) {
-    const previous = byFullName.get(project.fullName)
-    if (previous) {
-      // Merge in place so concurrent per-project mutations (e.g. an in-flight
-      // scan writing project.stack) are not clobbered by the sync.
-      Object.assign(previous, project, { workflows: previous.workflows || [], hosting: previous.hosting || getHostingPolicy(null), repoMeta: previous.repoMeta ? { ...previous.repoMeta, archived: project.archived } : null, localWorkspace: previous.localWorkspace || null })
-    } else {
-      byFullName.set(project.fullName, { ...project, hosting: getHostingPolicy(null), repoMeta: null, localWorkspace: null })
-    }
-  }
-  state.projects = [...byFullName.values()].sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0))
-  void sweepStaleRepoWorkspaces({ dataDir, keepKeys: state.projects.map((project) => repoKeyFor(project.fullName)).filter(Boolean) }).catch(() => {})
-  state.activity.unshift({ id: id('activity'), type: 'repo_sync', message: `Synced ${incoming.length} repositories from GitHub across ${pages} page(s)${truncated ? ' (page limit reached)' : ''}`, at: now() })
+  state.activity.unshift({ id: id('activity'), type: 'repo_sync', message: `Synced ${result.imported} repositories; ${result.unavailable} no longer available${result.truncated ? ' (incomplete pagination)' : ''}`, at: now() })
   state.activity = state.activity.slice(0, 100)
+  // Membership reconciliation does not delete any repository workspace.
   await saveState()
-  return { imported: incoming.length, pages, truncated }
+  return result
 }
 
 async function runTask(taskId, executor) {
@@ -493,7 +530,8 @@ async function runTask(taskId, executor) {
     task.logs = [...(task.logs || []), 'Task completed successfully.']
   } catch (error) {
     task.status = error.code === 'GITHUB_NOT_CONFIGURED' ? 'Blocked' : 'Failed'
-    task.error = error.message
+    task.error = safeError(error)
+    task.errorCode = error.code || 'TASK_FAILED'
     task.finishedAt = now()
     task.logs = [...(task.logs || []), error.message]
     if (task.metadata?.deliveryId) {
@@ -1163,7 +1201,7 @@ async function runScheduledIntegrationScan() {
     const syntheticRequest = { get: () => undefined }
     const jobIds = []
     for (const schedule of due) {
-      const projects = state.projects.filter((project) => githubConfigured() || project.installationId)
+      const projects = state.projects.filter((project) => repositoryAvailable(project) && (githubConfigured() || project.installationId))
       for (const project of projects) {
         const queued = await enqueueIntegrationScan(project, syntheticRequest)
         if (!queued.reused) jobIds.push(queued.job.id)
@@ -1753,7 +1791,7 @@ function hostingDueProjects() {
   const due = []
   for (const project of state.projects) {
     const policy = getHostingPolicy(project)
-    if (!policy.enabled) continue
+    if (!repositoryAvailable(project) || !policy.enabled) continue
     if (project.hosting?.currentTaskId) continue // one active task per repository (PART 10.2)
     const last = project.hosting?.lastInspectionAt || null
     const dueAt = last ? new Date(last).getTime() + policy.intervalMinutes * 60 * 1000 : 0
@@ -1936,7 +1974,7 @@ function hostingPublicProject(project) {
 }
 
 app.get('/api/hosting/overview', (_req, res) => {
-  const hosted = state.projects.map(hostingPublicProject)
+  const hosted = state.projects.filter(repositoryAvailable).map(hostingPublicProject)
   const runs = state.hostingRuns.slice(0, 50)
   res.json({
     projects: hosted,
@@ -2041,6 +2079,7 @@ app.put('/api/projects/:projectId/hosting', async (req, res) => {
   const project = state.projects.find((item) => item.id === req.params.projectId)
   if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'Project not found.' })
   if (!requireRole(req, res, 'Operator')) return
+  if (!repositoryAvailable(project)) return res.status(409).json({ code: 'REPOSITORY_UNAVAILABLE', message: 'This repository is no longer in the current GitHub repository list.' })
   const body = req.body || {}
   if (body.strategy !== undefined && !HOSTING_STRATEGIES.includes(body.strategy)) return res.status(400).json({ code: 'HOSTING_STRATEGY_INVALID', message: `strategy must be one of ${HOSTING_STRATEGIES.join(', ')}.` })
   if (body.intervalMinutes !== undefined) {
@@ -2070,6 +2109,7 @@ app.post('/api/projects/:projectId/hosting/readiness', async (req, res) => {
   const project = state.projects.find((item) => item.id === req.params.projectId)
   if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND' })
   if (!requireRole(req, res, 'Operator')) return
+  if (!repositoryAvailable(project)) return res.status(409).json({ code: 'REPOSITORY_UNAVAILABLE', message: 'This repository is no longer in the current GitHub repository list.' })
   if (repositoryIsArchived(project)) return res.status(409).json({ code: 'REPOSITORY_ARCHIVED', message: archivedRepositoryError().message })
   try {
     const context = await setupContext(project)
@@ -2094,6 +2134,7 @@ app.post('/api/projects/:projectId/hosting/enable', async (req, res) => {
   const project = state.projects.find((item) => item.id === req.params.projectId)
   if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'Project not found.' })
   if (!requireRole(req, res, 'Operator')) return
+  if (!repositoryAvailable(project)) return res.status(409).json({ code: 'REPOSITORY_UNAVAILABLE', message: 'This repository is no longer in the current GitHub repository list.' })
   if (repositoryIsArchived(project)) return res.status(409).json({ code: 'REPOSITORY_ARCHIVED', message: archivedRepositoryError().message })
   if (!projectGithubConfigured(project)) return notConfigured(res)
   try { await checkRepositoryArchiveState(project) }
@@ -2410,21 +2451,10 @@ app.post('/api/github/app/installations/:installationId/sync', async (req, res) 
   if (!requireRole(req, res, 'Operator')) return
   try {
     const installationId = String(req.params.installationId)
-    const { items: repositories, pages, truncated } = await fetchAllPages(
-      (page) => installationFetch(installationId, page, { returnPageMetadata: true }),
-      '/installation/repositories',
-      { collection: 'repositories' }
-    )
-    const incoming = repositories.map((repo) => ({ ...normalizeRepo(repo), installationId }))
-    const byFullName = new Map(state.projects.map((project) => [project.fullName, project]))
-    for (const project of incoming) {
-      const previous = byFullName.get(project.fullName)
-      byFullName.set(project.fullName, { ...previous, ...project, hosting: getHostingPolicy(previous), repoMeta: previous?.repoMeta ? { ...previous.repoMeta, archived: project.archived } : null, localWorkspace: previous?.localWorkspace || null })
-    }
-    state.projects = [...byFullName.values()].sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0))
-    audit(req, 'github_app_repository_sync', installationId, 'success', 'low', { imported: incoming.length })
+    const result = await syncRepositoryScope(installationId)
+    audit(req, 'github_app_repository_sync', installationId, 'success', 'low', { imported: result.imported })
     await saveState()
-    res.json({ imported: incoming.length, pages, truncated, projects: incoming })
+    res.json(result)
   } catch (error) { res.status(error.status || 500).json({ code: error.code, message: error.message }) }
 })
 
@@ -2480,7 +2510,7 @@ app.get('/api/github/status', (_req, res) => {
 })
 
 app.get('/api/overview', (_req, res) => {
-  const projects = state.projects
+  const projects = state.projects.filter(repositoryAvailable)
   const tasks = state.tasks
   const running = tasks.filter((task) => ['Pending', 'Running'].includes(task.status)).length
   const failed = tasks.filter((task) => task.status === 'Failed').length
@@ -2509,17 +2539,37 @@ app.get('/api/projects', (req, res) => {
   const projects = state.projects.filter((project) => {
     const matchesQuery = !query || [project.name, project.fullName, project.description, project.language].join(' ').toLowerCase().includes(query)
     const matchesGroup = !group || project.group === group
-    return matchesQuery && matchesGroup
+    return repositoryAvailable(project) && matchesQuery && matchesGroup
   })
   res.json({ projects, total: projects.length })
 })
 
+function repositorySyncStatus() {
+  const status = repositorySyncGate.status()
+  const next = Math.max(Date.parse(status.nextSyncAt || '') || 0, repositoryPollUntil, repositoryBlockedUntil)
+  return { ...status, nextSyncAt: next ? new Date(next).toISOString() : null, configured: githubConfigured() || availableInstallationIds().length > 0 }
+}
+
+function availableInstallationIds() {
+  return state.githubInstallations.filter((item) => githubAppConfigured() || Date.parse(installationTokens.get(String(item.installationId))?.expiresAt || '') > Date.now() + 60_000).map((item) => String(item.installationId))
+}
+
+app.get('/api/repository-sync', (_req, res) => res.json(repositorySyncStatus()))
 app.post('/api/tasks/sync-repositories', async (req, res) => {
   if (!requireRole(req, res, 'Operator')) return
-  const task = createTask('repository-sync', 'Sync repositories from GitHub')
+  const automatic = req.body?.automatic === true
+  if (automatic && Date.now() < repositoryPollUntil) return res.json({ skipped: true, reason: 'not-due', ...repositorySyncStatus() })
+  const request = repositorySyncGate.request(automatic, () => createTask('repository-sync', 'Sync repositories from GitHub'))
+  if (request.skipped) return res.status(request.reason === 'backoff' && !automatic ? 429 : 200).json({ ...request, message: 'Repository sync is waiting for its retry window.' })
+  if (request.reused) return res.status(202).json(request)
+  state.repositorySync = repositorySyncGate.status()
   await saveState()
-  void runTask(task.id, async () => syncRepositories())
-  res.status(202).json({ task })
+  void runTask(request.task.id, async () => {
+    try { const result = await syncRepositories(); repositorySyncGate.finish(null, result.truncated); return result }
+    catch (error) { repositorySyncGate.finish(error); throw error }
+    finally { state.repositorySync = repositorySyncGate.status(); await saveState() }
+  })
+  res.status(202).json(request)
 })
 
 app.get('/api/integrations/adapters', (_req, res) => {

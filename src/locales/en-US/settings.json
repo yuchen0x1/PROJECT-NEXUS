@@ -101,6 +101,10 @@
         "v0_8_4": {
           "title": "Archived repository filtering and status",
           "summary": "Hide archived repositories by default and label each row Active or Archived. Archived rows cannot be selected; select-all and counts include eligible repositories only, and sync removes newly archived selections."
+        },
+        "v0_8_5": {
+          "title": "Repository reconciliation and scheduled refresh",
+          "summary": "Fix stale counts after repository deletion. Wait for sync completion, sync about every 60 seconds while visible, pause when hidden, share requests and respect rate-limit retries. Keep history and workspaces."
         }
       }
     }

@@ -4,6 +4,7 @@ import { BookOpen, CheckCircle2, ChevronLeft, ChevronRight, ExternalLink, GitFor
 import { api, type AgentProvider, type Project } from '../api'
 import ProviderModelPicker from './ProviderModelPicker'
 import { runSetupBatch, type SetupBatchItem } from './setup-batch'
+import { syncRepositoriesAndWait } from '../repository-sync'
 
 type BatchPhase = 'policy' | 'inspect' | 'enable' | 'issues'
 
@@ -294,7 +295,7 @@ export default function SetupCenter({ onClose, guided = false, onNavigate, onCom
         {step === 1 && <>{done.has(1) && <p className="nx-setup-reuse">{t('git:guide.reuseAI', { model: provider?.model || model })}</p>}<label>{t('agent:providers.form.kind')}<select disabled={busy} value={kind} onChange={(event) => { setKind(event.target.value); invalidate(1) }}>{['openai-compatible', 'openai', 'anthropic', 'gemini'].map((value) => <option key={value}>{value}</option>)}</select></label><label>{t('agent:providers.form.baseUrl')}<input disabled={busy} value={baseUrl} onChange={(event) => { setBaseUrl(event.target.value); invalidate(1) }} /></label><label>{t('agent:providers.keyPlaceholder')}<input disabled={busy} type="password" autoComplete="off" value={apiKey} onChange={(event) => { setApiKey(event.target.value); invalidate(1) }} /></label><ProviderModelPicker kind={kind} baseUrl={baseUrl} apiKey={apiKey} providerId={provider?.id} value={model} disabled={busy} onChange={(value) => { setModel(value); invalidate(1) }} /><button className="nx-primary" disabled={busy || !canRun} onClick={() => void act(configure)}><KeyRound size={15} />{t('git:setup.saveTest')}</button></>}
         {step === 2 && <>
           <div className="nx-repo-toolbar">
-            <button className="nx-secondary" disabled={busy} onClick={() => void act(async () => { await api.syncRepositories(); setResult(t('git:shell.toast.syncQueued')) }, false)}>{t('git:overview.syncGithub')}</button>
+            <button className="nx-secondary" disabled={busy} onClick={() => void act(async () => { const result = await syncRepositoriesAndWait(); setResult(t(result.task?.result?.truncated ? 'git:syncStatus.partial' : 'git:syncStatus.completed')) }, false)}>{t(busy ? 'git:syncStatus.running' : 'git:overview.syncGithub')}</button>
             <button className="nx-secondary nx-repo-select-all" disabled={busy || !eligibleProjects.length || selectedIds.length === eligibleProjects.length} onClick={() => changeSelection(eligibleProjects.map((item) => item.id))}>{t('git:batch.selectAll')}</button>
             <button className="nx-secondary nx-repo-select-none" disabled={busy || !selectedIds.length} onClick={() => changeSelection([])}>{t('git:batch.selectNone')}</button>
           </div>

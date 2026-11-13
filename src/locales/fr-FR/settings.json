@@ -101,6 +101,10 @@
         "v0_8_4": {
           "title": "Filtrage et état des dépôts archivés",
           "summary": "Masque les dépôts archivés par défaut et affiche leur état. Ils ne sont pas sélectionnables ; la sélection globale et le compteur ne concernent que les dépôts disponibles. La synchronisation retire les nouvelles archives de la sélection."
+        },
+        "v0_8_5": {
+          "title": "Synchronisation et actualisation des dépôts",
+          "summary": "Corrige les compteurs après suppression. Attend la fin, synchronise environ toutes les 60 s au premier plan, suspend en arrière-plan, partage les requêtes et respecte les limites. Historique et espaces conservés."
         }
       }
     }

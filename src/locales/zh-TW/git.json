@@ -478,5 +478,14 @@
     "archivedHint": "已封存儲存庫不參與託管選取。同步 GitHub 後會更新封存狀態。",
     "noActive": "目前的儲存庫均已封存，沒有可託管的項目。",
     "selectionChanged": "部分已選儲存庫已封存或無法使用，已取消選取。請返回清單確認後繼續。"
+  },
+  "syncStatus": {
+    "running": "正在同步 GitHub…",
+    "last": "最近同步：{{time}}",
+    "never": "尚未同步",
+    "interval": "前景約每 60 秒同步 GitHub；任務進度讀取本機資料。",
+    "retry": "同步尚未完成，預計 {{time}} 後重試。",
+    "completed": "同步完成，已更新儲存庫清單與數量。",
+    "partial": "分頁未全部取得：已更新取得的儲存庫，其餘記錄保留。"
   }
 }

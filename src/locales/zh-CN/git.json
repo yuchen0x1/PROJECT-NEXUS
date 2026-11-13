@@ -478,5 +478,14 @@
     "archivedHint": "已归档仓库不参与托管选择。归档状态会在同步 GitHub 后刷新。",
     "noActive": "没有可托管的仓库；当前仓库均已归档。",
     "selectionChanged": "所选仓库中有项目已归档或不可用，已取消选择。请返回仓库列表确认后继续。"
+  },
+  "syncStatus": {
+    "running": "正在同步 GitHub…",
+    "last": "最近同步：{{time}}",
+    "never": "尚未同步",
+    "interval": "前台约每 60 秒同步 GitHub；任务进度读取本地数据。",
+    "retry": "同步暂未完成，预计 {{time}} 后重试。",
+    "completed": "同步完成，仓库列表和数量已更新。",
+    "partial": "分页未取全：已更新已获取的仓库，保留其余记录。"
   }
 }
