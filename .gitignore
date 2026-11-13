@@ -24,4 +24,4 @@ release-batch-repositories/
 release-project-overview/
 
 # Installer payloads belong in GitHub Release assets.
-release*/
+/release*/

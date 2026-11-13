@@ -2,7 +2,7 @@
 
 > 本报告记录图标发布前的功能演进验收快照。用户随后明确授权替换新图标并推送发布 0.8.0，后续发布记录见 [0.8.0 说明](releases/v0.8.0.md)。历史“未发布”描述不替代该新授权，发布也不意味着全部验收已完成。
 
-> 新图标源码的长稳已于 2026-11-13 20:52:50（Asia/Shanghai）重新计时，状态文件为 `test-results/soak/2026-11-13T12-52-48-723Z/status.json`；下文 20:33 的会话属于历史源码，已中断，不累计时长。
+> v0.8.0 已公开发布，三个附件的大小和摘要复核一致，源提交为 `a4e10c968617fa4635c4ca888bd55b325dafb28e`。最终 main 工作区的长稳于 2026-11-13 21:03:22（Asia/Shanghai）重新计时，状态文件为 `test-results/soak/2026-11-13T13-03-20-082Z/status.json`；下文旧会话已中断，不累计时长。[发布凭据](releases/v0.8.0-publication.json)保留实际结果；本次没有安装到用户原有目录。
 
 日期：2026-11-13。总体 **PARTIAL，尚未达到正式最终交付条件**。本文件按用户指定名称提供可复核的交付状态，不把报告存在当作任务完成。
 
@@ -35,7 +35,7 @@
 
 ## 后续门禁
 
-继续核对真实 24h 结果，再决定是否能够封板。严格隔离配置、证书配置、真实重启、候选安装及远程推送/发布均需要本次范围下的单独明确授权；不能沿用此前 v0.7.0 的发布授权。申请授权前应先提供具体安装/隔离方案和验收计划，不要求用户盲批。
+继续核对真实 24h 结果，再决定是否能够封板。用户已明确授权并完成本次 v0.8.0 推送/发布。严格隔离配置、证书配置、真实重启和候选安装仍需对应操作的明确授权；本次发布不包含这些操作。申请授权前应先提供具体安装/隔离方案和验收计划，不要求用户盲批。
 
 文档索引：[基线审计](ULTIMATE_EVOLUTION_AUDIT.md)、[源码研究](COMPETITOR_RESEARCH.md)、[架构](ARCHITECTURE_EVOLUTION.md)、[协作](MULTI_AGENT_REPORT.md)、[安全](SECURITY_HARDENING_REPORT.md)、[自我维护](SELF_MAINTENANCE_REPORT.md)、[可靠性](RELIABILITY_REPORT.md)、[性能](PERFORMANCE_REPORT.md)、[验收](TEST_ACCEPTANCE_REPORT.md)、[持续进度](ULTIMATE_EVOLUTION_PROGRESS.md)。
 

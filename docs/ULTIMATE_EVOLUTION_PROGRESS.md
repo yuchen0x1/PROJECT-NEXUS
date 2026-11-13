@@ -19,8 +19,10 @@
 
 最终维护中回归：55 文件 / 286 项 PASS，156.72 秒，`test-results/ultimate-regression-evidence-lock.log`。TypeScript、ESLint、生产构建、NSIS x64 打包通过。源码中文暗色、英文浅色和打包 exe 原生 fixture 流程均通过，包括真实原有/独立新增测试、暂停续跑、记忆下载导出和进程指标。
 
-新图标 0.8.0 源码的 24h 会话于 **2026-11-13 20:52:50（Asia/Shanghai）** 启动，最早次日 20:52:50 满足时长；仍须检查采样连续性和错误，当前不能记为 PASS。实时状态：`test-results/soak/2026-11-13T12-52-48-723Z/status.json`。固定源码 SHA-256：`272476b72a06961ef4277e517c7faf9d0d1c22cfef37edd61fc513a7c5b2e19e`。图标变更前的旧会话已记 Interrupted，旧时长不累计。
+最终 main 工作区的 24h 会话于 **2026-11-13 21:03:22（Asia/Shanghai）** 启动，最早次日 21:03:22 满足时长；仍须检查采样连续性和错误，当前不能记为 PASS。实时状态：`test-results/soak/2026-11-13T13-03-20-082Z/status.json`。固定源码 SHA-256：`58a48ba4bd653de17cf533d506387b816d54810e58cb1284264f361f40ed9025`。图标更改及 Git 检出导致的换行字节归一化已在本次计时前完成，旧会话记 Interrupted，不累计时长。
 
 首次短测的父仓库边界错误已修复；此前未取得采样的隐藏 Renderer IPC 测试记录为 FAIL，没有计入正式 24h。改用受认证直连 API 与 Electron 主进程采样后，72 秒后台预检取得 2 次真实采样、1 次完成工作流、9 次 fixture 模型请求，仅标 PARTIAL。
 
 十份指定报告均已创建，详细功能边界见 [当前交付报告](FINAL_DELIVERY_REPORT.md)。0.8.0 图标发布单独按用户新授权执行，见 [版本说明](releases/v0.8.0.md)与[发布审计](releases/v0.8.0-audit.md)；本次不执行安装。
+
+发布结果已核对：[v0.8.0](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.0) 为公开、非草稿 Release，源提交 `a4e10c968617fa4635c4ca888bd55b325dafb28e` 已推送 main 与标签，三个资产的 GitHub 摘要/大小均与本地一致。机器记录见 [发布凭据](releases/v0.8.0-publication.json)，其中不包含密钥或用户运行数据。
