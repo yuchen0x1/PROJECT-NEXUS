@@ -51,8 +51,20 @@ jobs:
         run: |
           @'
           import { spawnSync } from 'node:child_process'
+          import fs from 'node:fs'
+          import path from 'node:path'
           import { runCommand } from './server/services/agent/executor.mjs'
           console.log('Direct Git:', spawnSync('git', ['--version'], { encoding: 'utf8', timeout: 15000 }).stdout)
+          const ps = path.join(process.env.SystemRoot, 'System32/WindowsPowerShell/v1.0/powershell.exe')
+          const boot = spawnSync(ps, ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', "[Console]::Error.WriteLine('PS_READY'); Add-Type -TypeDefinition 'public class NexusProbe {}'; [Console]::Error.WriteLine('TYPE_READY')"], { encoding: 'utf8', timeout: 20000 })
+          console.log('PowerShell boot:', JSON.stringify({status:boot.status,error:boot.error?.code,stdout:boot.stdout,stderr:boot.stderr}))
+          const traced = path.join(process.env.RUNNER_TEMP, 'nexus-job-traced.ps1')
+          const original = fs.readFileSync('server/services/agent/windows-job-runner.ps1', 'utf8')
+          fs.writeFileSync(traced, original.replace('Add-Type -TypeDefinition', "[Console]::Error.WriteLine('BEFORE_COMPILE')\nAdd-Type -TypeDefinition").replace('exit [NexusJobRunner]::Run', "[Console]::Error.WriteLine('BEFORE_RUN')\nexit [NexusJobRunner]::Run"))
+          const git = spawnSync('where.exe', ['git'], { encoding: 'utf8' }).stdout.trim().split(/\r?\n/)[0]
+          const spec = Buffer.from(JSON.stringify({file:git,arguments:'--version',cwd:process.cwd(),parentPid:process.pid})).toString('base64')
+          const tracedResult = spawnSync(ps, ['-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', traced, '-SpecBase64', spec], {encoding:'utf8',timeout:20000})
+          console.log('Full-environment job runner:', JSON.stringify({status:tracedResult.status,error:tracedResult.error?.code,stdout:tracedResult.stdout,stderr:tracedResult.stderr}))
           for (const command of ['git --version', 'node --version']) {
             const result = await runCommand({ cwd: process.cwd(), command, timeoutMs: 15000 })
             console.log(JSON.stringify(result))
