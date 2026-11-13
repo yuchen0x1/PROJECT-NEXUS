@@ -58,4 +58,4 @@ npx electron-builder --win nsis --x64 --publish never --config.directories.outpu
 
 本次本地验收候选为 `release-v0.8.6/PROJECT-NEXUS-0.8.6-win-x64-setup.exe`，122,859,854 字节，SHA256 `ecef51e09048fc48acb143060ad3646a8e9a1496c62a778bafe66559bb1dc9ad`。此摘要不能替代后续 Windows CI 生成的公开资产摘要。
 
-旧版未保存教学状态的用户升级后会看到教学一次，未提前伪造为已完成。本记录描述本地交付时的状态，后续公开发布与实际通道验证另行记录；当前下载入口见 [v0.8.6](../releases/v0.8.6.md)。
+旧版未保存教学状态的用户升级后会看到教学一次，未提前伪造为已完成。本记录描述本地交付时的状态，后续公开发布与实际通道验证见 [2026-11-14 发布记录](2026-11-14-publication.md)；当前下载入口见 [v0.8.6](../releases/v0.8.6.md)。

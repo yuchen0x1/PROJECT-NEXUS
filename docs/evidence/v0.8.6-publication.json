@@ -1,0 +1,53 @@
+{
+  "tag": "v0.8.6",
+  "releaseUrl": "https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.6",
+  "publishedAt": "2026-11-13T16:16:06Z",
+  "draft": false,
+  "prerelease": false,
+  "sourceCommit": "0deed0e16eec01dcb4cc5d096a656c4a71981ad6",
+  "ci": {
+    "runId": 43459735920,
+    "attempt": 2,
+    "url": "https://github.com/yuchen0x1/PROJECT-NEXUS/actions/runs/43459735920",
+    "conclusion": "success",
+    "testFiles": 59,
+    "tests": 316
+  },
+  "assets": [
+    {
+      "name": "PROJECT-NEXUS-0.8.6-win-x64-setup.exe",
+      "size": 122858987,
+      "digest": "sha256:bc343b27df6a3825eca27d2611e4084beac140431f2b29f4ff9a0a87f655e7d3",
+      "url": "https://github.com/yuchen0x1/PROJECT-NEXUS/releases/download/v0.8.6/PROJECT-NEXUS-0.8.6-win-x64-setup.exe"
+    },
+    {
+      "name": "PROJECT-NEXUS-0.8.6-win-x64-setup.exe.blockmap",
+      "size": 130309,
+      "digest": "sha256:9de9838f075762d19c5b93a4d71c8ed1d4989d8fb065abf2ac9aa26a313d624f",
+      "url": "https://github.com/yuchen0x1/PROJECT-NEXUS/releases/download/v0.8.6/PROJECT-NEXUS-0.8.6-win-x64-setup.exe.blockmap"
+    },
+    {
+      "name": "latest.yml",
+      "size": 371,
+      "digest": "sha256:48d12ba18bdf159cdabf516edbf173dd10ea48ccc056f4d94f6628889081544c",
+      "url": "https://github.com/yuchen0x1/PROJECT-NEXUS/releases/download/v0.8.6/latest.yml"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 104,
+      "digest": "sha256:b6b0d18d7f638449a3d61e57216f7a17681c1e84ac9fd7caf22a9a2516edcac5",
+      "url": "https://github.com/yuchen0x1/PROJECT-NEXUS/releases/download/v0.8.6/SHA256SUMS.txt"
+    }
+  ],
+  "verification": {
+    "latestPointsToThisRelease": true,
+    "allAssetsFullyDownloadedAndSha256Matched": true,
+    "installerSizeAndSha512MatchManifest": true,
+    "installerSha256MatchesChecksums": true,
+    "manifestAnonymousPublicDownloadMatched": true,
+    "crossVersionInstallAndRelaunch": false,
+    "installerVersion": "0.8.6",
+    "codeSigned": false,
+    "oldClientRealFeedDiscovery": true
+  }
+}

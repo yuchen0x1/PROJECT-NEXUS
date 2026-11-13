@@ -2,22 +2,22 @@
 
 Windows 桌面 AI 仓库运营中心。连接 GitHub 与 AI 网关，持续监控仓库，在独立 Worktree 中修复和验证问题，并按授权策略交付 PR 和版本。
 
-**v0.8.6 本地开发预览；GitHub 最新公开安装版仍为 v0.8.2。安装包未签名，不是 v1.0 稳定版。**
+**v0.8.6 已发布为 Windows x64 开发预览，并进入自动更新通道。安装包未签名，不是 v1.0 稳定版。**
 
 ## 最新更新
 
-### v0.8.6 · 首次启动自动教学（2026-11-14，本地预览）
+### v0.8.6 · 首次启动自动教学（2026-11-14）
 
 - 新用户首次启动会自动进入教学，逐步说明连接 GitHub、配置 AI、选择仓库、检查工具和开启托管的方法。
 - 每一步显示操作说明、功能位置和完成后的结果，完成配置后继续介绍托管、任务中心、Issue 和研究的位置。
 - 可点击「稍后继续」；未完成时下次启动再次引导。全部教学完成后保存状态，后续启动不再自动弹出。
 - 工作台与顶部保留「一键教学」，随时重看。仅打开教学不会自动授予脚本执行或远程写入权限。
 
-本版包含此前的更新栏布局、日志、归档筛选和仓库同步修复。尚未公开发布，现有客户端暂时不会收到本次更新。说明见 [v0.8.6](docs/releases/v0.8.6.md)，历史见 [完整发布记录](docs/releases/release-notes.md)。
+本版包含此前的更新栏布局、日志、归档筛选和仓库同步修复，已设为 GitHub Latest。0.8.2 及更高安装版可在设置中点击「检查更新」，再选择「立即更新」。说明见 [v0.8.6](docs/releases/v0.8.6.md)，历史见 [完整发布记录](docs/releases/release-notes.md)。
 
 ## 安装和首次使用
 
-[下载当前公开版 Windows x64 安装包](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/download/v0.8.2/PROJECT-NEXUS-0.8.2-win-x64-setup.exe)，[版本说明与校验文件](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.2)。此版本为 0.x 开发预览。
+[下载当前公开版 Windows x64 安装包](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/download/v0.8.6/PROJECT-NEXUS-0.8.6-win-x64-setup.exe)，[版本说明与校验文件](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.6)。此版本为 0.x 开发预览。
 
 1. 在 Windows x64 上运行安装程序。
 2. 首次启动自动打开教学；之后也可从工作台或顶部的「一键教学」重新进入。
@@ -27,7 +27,7 @@ Windows 桌面 AI 仓库运营中心。连接 GitHub 与 AI 网关，持续监�
 6. 需要远程交付时，明确允许应用按各仓库策略写入 GitHub。
 7. 如果全局巡检暂停，先明确恢复，再开启托管。完成后可跟随定位教学，或立即检查 Issue。
 
-用户不需要手工创建密钥目录；缺少工具只检测，不自动安装 Ollama、Docker 或本地模型。安装包未签名，大小、SHA256 和验收结果见 [本版说明](docs/releases/v0.8.2.md)。
+用户不需要手工创建密钥目录；缺少工具只检测，不自动安装 Ollama、Docker 或本地模型。安装包未签名，大小、SHA256 和验收结果见 [本版说明](docs/releases/v0.8.6.md)。
 
 窗口关闭后可留在托盘运行。退出应用或关闭电脑后本机任务无法继续；开机启动由用户在设置中启用。后台是 Electron 管理的 Node 子进程，没有安装 Windows 系统服务。
 
