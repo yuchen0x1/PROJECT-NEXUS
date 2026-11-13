@@ -9,3 +9,19 @@ data/*.log
 data/agent-workspaces/
 playwright-report/
 test-results/
+release-v1-preview/
+data/repositories/
+data/agent-indexes/
+data/*.bak
+
+release-ordered-upgrade/
+data/*.lock
+data/leases/
+
+release-guided-setup/
+release-model-picker/
+release-batch-repositories/
+release-project-overview/
+
+# Installer payloads belong in GitHub Release assets.
+release*/

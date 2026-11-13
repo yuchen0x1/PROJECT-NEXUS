@@ -1,0 +1,116 @@
+{
+  "repository": "yuchen0x1/nexus-acceptance-20261113-1120",
+  "startedAt": "2026-11-13T03:33:20.471Z",
+  "temporaryWorkspace": "C:\\Users\\lenmo\\AppData\\Local\\Temp\\nexus-v1-live-PBHqfX",
+  "checks": [
+    {
+      "name": "A: real GitHub identity and repository permissions",
+      "status": "PASS",
+      "detail": "yuchen0x1; push=true",
+      "at": "2026-11-13T03:33:21.587Z"
+    },
+    {
+      "name": "C: original bug reproduced by real test",
+      "status": "PASS",
+      "detail": "add(2, 3) returned -1 instead of 5",
+      "at": "2026-11-13T03:33:25.507Z"
+    },
+    {
+      "name": "B: live monitoring performs no clone",
+      "status": "PASS",
+      "at": "2026-11-13T03:33:27.660Z"
+    },
+    {
+      "name": "C: AI fix, regression test, build, review, push and PR",
+      "status": "PASS",
+      "detail": "PR #2",
+      "at": "2026-11-13T03:38:41.454Z"
+    },
+    {
+      "name": "B/G: original project preserved and task worktree isolated",
+      "status": "PASS",
+      "at": "2026-11-13T03:38:41.535Z"
+    },
+    {
+      "name": "D: release assets and verified issue closure",
+      "status": "PASS",
+      "detail": "v0.1.1; 1 asset(s)",
+      "at": "2026-11-13T03:38:42.824Z"
+    }
+  ],
+  "activity": {
+    "number": 1,
+    "title": "Bug: add(2, 3) returns -1 instead of 5",
+    "state": "open",
+    "htmlUrl": "https://github.com/yuchen0x1/nexus-acceptance-20261113-1120/issues/1",
+    "labels": [
+      "nexus/bug"
+    ],
+    "updatedAt": "2026-11-13T03:27:37Z",
+    "seenAt": "2026-11-13T03:33:42.616Z",
+    "source": "poll",
+    "classification": {
+      "category": "BUG",
+      "severity": "P2",
+      "confidence": 0.99,
+      "source": "ai",
+      "suggestedAction": "fix",
+      "problemSummary": "The calculator's add function subtracts its operands instead of returning their sum.",
+      "reproductionSteps": "Run npm test, or call add(2, 3).",
+      "actualBehavior": "add(2, 3) returns -1.",
+      "expectedBehavior": "add(2, 3) should return 5, with correct behavior also covered for negative numbers and zero.",
+      "errorLogExcerpt": "Expected add(2, 3) === 5, actual -1.",
+      "affectedVersions": null,
+      "affectedModules": [
+        "src/calc.mjs"
+      ]
+    },
+    "triggerFix": true,
+    "fixTaskId": "nexus_issue_1_c966b3fc",
+    "fixState": "succeeded",
+    "fixSummary": {
+      "changedPaths": [
+        "package.json",
+        "src/calc.mjs",
+        "test/calc.test.mjs",
+        "dist/"
+      ],
+      "branch": "nexus-fix/issue-1-c966b3fc",
+      "pullRequest": {
+        "number": 2,
+        "url": "https://github.com/yuchen0x1/nexus-acceptance-20261113-1120/pull/2",
+        "headSha": "71d721882d65a242b23ed626b4da553a85cdf8ba",
+        "createdAt": "2026-11-13T03:38:19.629Z"
+      },
+      "issueCommented": true,
+      "verification": "build: PASS (node build.mjs), test: PASS (node --test)",
+      "skippedReason": null,
+      "merged": {
+        "merged": true,
+        "reason": "merged by hosting policy"
+      },
+      "released": {
+        "published": true,
+        "tag": "v0.1.1",
+        "releaseUrl": "https://github.com/yuchen0x1/nexus-acceptance-20261113-1120/releases/tag/v0.1.1",
+        "assets": 1,
+        "reason": null
+      },
+      "issueClosed": {
+        "closed": true,
+        "reason": "all delivery gates passed"
+      }
+    }
+  },
+  "release": {
+    "tag": "v0.1.1",
+    "assets": [
+      {
+        "name": "acceptance.txt",
+        "size": 43,
+        "digest": "sha256:956f1b84aa9e6488203e663dce16b8428f4925dfc309df37fdd3a13cf025695b"
+      }
+    ]
+  },
+  "finishedAt": "2026-11-13T03:38:42.833Z"
+}

@@ -1,0 +1,28 @@
+npm warn Unknown env config "store-dir". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> project-nexus@0.3.0 test
+> vitest run --reporter=dot
+
+
+ RUN  v5.1.0 C:/Users/lenmo/Desktop/PROJECT NEXUS
+
+warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src.txt', LF will be replaced by CRLF the next time Git touches it
+············································································································································stdout | tests/unit/i18n-format.test.mjs > formatting service
+🌐 i18next is made possible by our own product, Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙
+
+To C:\Users\lenmo\AppData\Local\Temp\nexus-repo-bare-MJldfo
+ * [new branch]      main -> main
+warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src.txt', LF will be replaced by CRLF the next time Git touches it
+To C:\Users\lenmo\AppData\Local\Temp\nexus-repo-bare-MJldfo
+   7c7391d..47b4f09  main -> main
+Preparing worktree (new branch 'nexus-fix/task-1')
+Preparing worktree (new branch 'nexus-fix/task-2')
+···································································
+
+ Test Files  35 passed (35)
+      Tests  207 passed (207)
+   Start at  12:04:04
+   Duration  14.94s (tests 86%, transform 10%, import 3%, worker 1%)
+

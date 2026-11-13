@@ -9,7 +9,7 @@
     "finished": "finished {{time}}",
     "emptyTitle": "Task history is empty",
     "emptyDetail": "Repository syncs and build dispatches will appear here with their own status.",
-    "jobsKicker": "Phase 3 execution",
+    "jobsKicker": "Repository operations",
     "jobsTitle": "Repository jobs",
     "cancelToast": "Cancellation requested for {{repository}}",
     "retryToast": "Retry queued for {{repository}}",
@@ -18,7 +18,7 @@
     "logSummary_other": "Job log ({{count}})",
     "noLogs": "No log messages recorded.",
     "viewReport": "View report",
-    "emptyJobsTitle": "No Phase 3 jobs",
+    "emptyJobsTitle": "No repository jobs",
     "emptyJobsDetail": "Repository scans and local integration proposals will appear with their current step and result."
   },
   "history": {

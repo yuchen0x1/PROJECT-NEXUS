@@ -9,7 +9,7 @@
     "finished": "於 {{time}} 完成",
     "emptyTitle": "任務歷史記錄為空",
     "emptyDetail": "儲存庫同步與建置派送會在這裡顯示各自的狀態。",
-    "jobsKicker": "第三階段執行",
+    "jobsKicker": "倉庫操作",
     "jobsTitle": "儲存庫作業",
     "cancelToast": "已請求取消 {{repository}}",
     "retryToast": "{{repository}} 的重試已排入佇列",
@@ -18,7 +18,7 @@
     "logSummary_other": "作業日誌（{{count}}）",
     "noLogs": "尚未記錄任何日誌訊息。",
     "viewReport": "檢視報告",
-    "emptyJobsTitle": "沒有第三階段作業",
+    "emptyJobsTitle": "暫無倉庫任務",
     "emptyJobsDetail": "儲存庫掃描與本機整合提案會在這裡顯示目前的步驟與結果。"
   },
   "history": {

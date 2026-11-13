@@ -54,7 +54,9 @@
     "no": "否",
     "guarded": "受防护",
     "pass": "通过",
-    "fail": "失败"
+    "fail": "失败",
+    "neverRun": "尚未运行",
+    "completed": "已完成"
   },
   "status": {
     "Pending": "等待中",
@@ -75,7 +77,19 @@
     "success": "成功",
     "failure": "失败",
     "in_progress": "运行中",
-    "queued": "排队中"
+    "queued": "排队中",
+    "Succeeded": "成功",
+    "NotStarted": "未开始",
+    "NotRequested": "未要求交付",
+    "Incomplete": "交付未完成",
+    "Interrupted": "已中断",
+    "Confirmed": "已确认",
+    "Uncertain": "待核对",
+    "Prepared": "已准备",
+    "Approved": "已批准",
+    "Rejected": "已拒绝",
+    "ReceiptsConfirmed": "远端回执已确认",
+    "NeedsReview": "需要人工核对"
   },
   "mode": {
     "readOnly": "只读模式"

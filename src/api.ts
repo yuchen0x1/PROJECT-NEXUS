@@ -18,6 +18,25 @@ export type Project = {
   latestRelease?: { tag_name?: string; published_at?: string } | null
 }
 
+export type OverviewStatus = 'idle' | 'queued' | 'running' | 'blocked' | 'failed' | 'success' | 'cancelled'
+export type OverviewStage = 'inspection' | 'analysis' | 'execution' | 'verification' | 'delivery' | 'research'
+export type OverviewTask = {
+  id: string; source: string; taskId: string; localTaskId?: string | null; projectId: string | null
+  label: string; status: OverviewStatus; stage: OverviewStage; providerId: string | null
+  at: string; error: string | null; executionStatus?: string; deliveryStatus?: string
+}
+export type ProjectOverviewSnapshot = {
+  updatedAt: string; paused: boolean; warnings: string[]
+  account: { login: string | null; configured: boolean }
+  repositories: { id: string; name: string; fullName: string; owner: string; enabled: boolean; strategy: string; intervalMinutes: number; openIssues: number; status: OverviewStatus; stage: OverviewStage | null; latestTaskId: string | null; lastInspectionAt: string | null }[]
+  providers: { id: string; name: string; model: string; kind: string; configured: boolean }[]
+  tasks: OverviewTask[]
+  events: { id: string; taskId: string; projectId: string | null; at: string; stage: OverviewStage; status: OverviewStatus; detail: string }[]
+  eventsScope: string | null; eventsTruncated: boolean
+  services: { id: OverviewStage; running: number; total: number }[]
+  stats: { repositories: number; enabled: number; running: number; queued: number; attention: number }
+}
+
 export type Task = {
   id: string
   type: string
@@ -114,6 +133,159 @@ export type IntegrationJob = {
 }
 
 export type IntegrationAdapter = { id: string; name: string; capabilities: string[] }
+
+export type HostingPolicy = {
+  enabled: boolean
+  strategy: 'observe' | 'maintain' | 'autonomous' | string
+  intervalMinutes: number
+  autoPush: boolean
+  autoPullRequest: boolean
+  autoMerge: boolean
+  autoPublish: boolean
+  closeIssueAfterRelease: boolean
+  allowNoCI?: boolean
+  requiredChecks?: string[]
+  allowUnsignedArtifacts?: boolean
+  executionMode?: 'blocked' | 'trusted-local'
+  requireApprovalForHighRisk: boolean
+  updatedAt: string | null
+}
+
+export type HostingProject = {
+  id: string
+  fullName: string
+  name: string
+  owner: string
+  defaultBranch: string
+  installationId: string | null
+  hosting: {
+    enabled: boolean
+    strategy: string
+    intervalMinutes: number
+    lastInspectionAt: string | null
+    lastLightScanAt: string | null
+    lastFullScanAt: string | null
+    lastOutcome: Record<string, unknown> | null
+    currentTaskId: string | null
+    workspace: Record<string, unknown> | null
+  }
+  policy: HostingPolicy
+  repoMeta: Record<string, unknown> | null
+  githubConfigured: boolean
+}
+
+export type HostingRun = {
+  id: string
+  projectId: string
+  repository: string
+  depth: string
+  status: string
+  findings: { key: string; priority: string; summary: string; detail?: string | null }[]
+  startedAt: string
+  finishedAt: string | null
+  error: string | null
+  triggeredBy?: string
+  integrationJobId?: string
+  securityStatus?: string
+}
+
+export type IssueClassification = {
+  category: string
+  severity: string
+  confidence: number
+  source: string
+  suggestedAction?: string | null
+  problemSummary?: string | null
+  reproductionSteps?: string | null
+  actualBehavior?: string | null
+  expectedBehavior?: string | null
+  errorLogExcerpt?: string | null
+  affectedVersions?: string | null
+  affectedModules?: string[] | null
+}
+
+export type IssueActivity = {
+  projectId: string
+  repository: string
+  number: number
+  title: string
+  state: string
+  htmlUrl: string | null
+  labels: string[]
+  updatedAt: string | null
+  seenAt: string
+  source: string
+  classification: IssueClassification
+  triggerFix: boolean
+  fixTaskId?: string | null
+  fixState?: string | null
+  fixSummary?: {
+    changedPaths?: string[]
+    branch?: string | null
+    pullRequest?: { number: number; url: string; draft?: boolean } | null
+    issueCommented?: boolean
+    verification?: string | null
+    skippedReason?: string | null
+    merged?: { merged: boolean; reason?: string | null } | null
+    released?: { published: boolean; tag?: string | null; releaseUrl?: string | null; assets?: number; reason?: string | null } | null
+    issueClosed?: { closed: boolean; reason?: string | null } | null
+    error?: string
+  }
+}
+
+export type SecurityFinding = {
+  id: string
+  projectId: string
+  repository: string
+  scanId: string
+  key: string
+  priority: string
+  summary: string
+  detail: string | null
+  path?: string | null
+  recordedAt: string
+}
+
+export type ResearchCandidate = {
+  fullName: string
+  url: string
+  stars: number
+  license: string | { spdx: string | null; name: string | null } | null
+  pushedAt: string | null
+  recentCommits: { sha?: string | null; message?: string; date?: string | null }[]
+  releases: number | { tagName?: string | null; name?: string | null; publishedAt?: string | null }[]
+  description: string
+  forks?: number
+  openIssues?: number
+  rootEntries?: string[]
+  readmeExcerpt?: string
+}
+
+export type ResearchAnalysis = {
+  source: string
+  candidates: { repository: string; summary: string; notableFeatures: string[]; worthAdopting: { feature: string; rationale: string; licenseSafe: boolean; effort: string }[]; risksObserved: string[] }[]
+  gapAnalysis: { dimension: string; self: string; peer: string; recommendation: string }[]
+  upgradeProposals: { title: string; priority: string; rationale: string; effort: string; licenseNotes: string }[]
+  noActionRequired: boolean
+  metricComparison?: Record<string, unknown>[]
+}
+
+export type UpgradeProposal = { id: string; title: string; rationale: string; priority: string; status: string; blockedReason?: string; evidence: { repository: string; path: string; sha: string }[]; applied: boolean }
+
+export type ResearchReport = {
+  upgradeProposals?: UpgradeProposal[]
+  id: string
+  projectId: string
+  repository: string
+  query: string
+  candidates: ResearchCandidate[]
+  analysis: ResearchAnalysis
+  usage: { inputTokens?: number; outputTokens?: number; totalTokens?: number } | null
+  costUsd: number | null
+  status: string
+  createdAt: string
+}
+
 
 export type AIProviderSummary = {
   id: string
@@ -256,6 +428,10 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  projectOverview: (projectId = '') => request<ProjectOverviewSnapshot>(`/api/project-overview${projectId ? `?projectId=${encodeURIComponent(projectId)}` : ''}`),
+  setRemoteWrites: (enabled: boolean) => request<{ enabled: boolean }>('/api/settings/remote-writes', { method: 'PUT', body: JSON.stringify({ enabled, confirm: true }) }),
+  reconcileHostedJob: (jobId: string) => request<{ job: { reconciliation: string } }>(`/api/hosting/jobs/${encodeURIComponent(jobId)}/reconcile`, { method: 'POST', body: '{}' }),
+  hostedJobs: () => request<{ jobs: { id: string; projectId: string; repository: string; issueNumber: number; status: string; priority: string; createdAt: string; executionStatus?: string; deliveryStatus?: string; missing?: string[]; reconciliation?: string; releasePlan?: { status: string; adapter: string; tag: string; blockedReason?: string }; operations?: { key: string; endpoint: string; status: string }[]; error?: string; events: { type: string; detail: string; at: string }[] }[]; queued: number; running: number; concurrency: number }>('/api/hosting/jobs'),
   overview: () => request<{ metrics: Record<string, number>; projects: Project[]; tasks: Task[]; activity: { id: string; message: string; at: string }[]; githubConfigured: boolean }>('/api/overview'),
   githubStatus: () => request<{ configured: boolean; owner: string | null; apiUrl: string; permissions: string[] }>('/api/github/status'),
   projects: (query = '') => request<{ projects: Project[]; total: number }>(`/api/projects?query=${encodeURIComponent(query)}`),
@@ -305,5 +481,28 @@ export const api = {
   appInstallUrl: () => request<{ url: string; callback: string }>('/api/github/app/install-url'),
   auditLogs: () => request<{ logs: { id: string; actor: string; action: string; target: string; result: string; risk: string; at: string }[] }>('/api/audit-logs'),
   tasks: () => request<{ tasks: Task[] }>('/api/tasks'),
-  settings: () => request<{ github: { configured: boolean; owner: string | null; apiUrl: string }; ai: { configured: boolean; baseUrl: string | null; model: string | null }; tasks: { concurrency: number; notifications: boolean } }>('/api/settings')
+  settings: () => request<{ github: { configured: boolean; owner: string | null; apiUrl: string }; ai: { configured: boolean; baseUrl: string | null; model: string | null }; tasks: { concurrency: number; notifications: boolean } }>('/api/settings'),
+  hostingOverview: () => request<{ projects: HostingProject[]; enabledCount: number; runs: HostingRun[]; scheduler: { dueNow: number; strategies: string[]; paused: boolean } }>('/api/hosting/overview'),
+  hostingRuns: (projectId = '') => request<{ runs: HostingRun[]; total: number }>(`/api/hosting/runs${projectId ? `?projectId=${encodeURIComponent(projectId)}` : ''}`),
+  hostingProject: (projectId: string) => request<{ project: HostingProject; runs: HostingRun[] }>(`/api/projects/${encodeURIComponent(projectId)}/hosting`),
+  updateHostingPolicy: (projectId: string, patch: Partial<HostingPolicy> & { applyPreset?: boolean }) => request<{ project: HostingProject }>(`/api/projects/${encodeURIComponent(projectId)}/hosting`, { method: 'PUT', body: JSON.stringify(patch) }),
+  hostingReadiness: (projectId: string) => request<{ readinessId: string; expiresAt: string }>(`/api/projects/${encodeURIComponent(projectId)}/hosting/readiness`, { method: 'POST', body: '{}' }),
+  enableHosting: async (projectId: string, readinessId?: string) => {
+    const ready = readinessId ? { readinessId } : await api.hostingReadiness(projectId)
+    return request<{ project: HostingProject }>(`/api/projects/${encodeURIComponent(projectId)}/hosting/enable`, { method: 'POST', body: JSON.stringify(ready) })
+  },
+  disableHosting: (projectId: string) => request<{ project: HostingProject }>(`/api/projects/${encodeURIComponent(projectId)}/hosting/disable`, { method: 'POST', body: '{}' }),
+  inspectHosting: (projectId: string, depth: 'light' | 'full') => request<{ project: HostingProject; run: HostingRun }>(`/api/projects/${encodeURIComponent(projectId)}/hosting/inspect`, { method: 'POST', body: JSON.stringify({ depth }) }),
+  pauseHosting: (paused: boolean) => request<{ paused: boolean }>('/api/hosting/pause', { method: 'POST', body: JSON.stringify({ paused }) }),
+  issueActivity: (options: { actionable?: boolean; limit?: number } = {}) => request<{ issues: IssueActivity[]; total: number }>(`/api/issues/activity?${new URLSearchParams({ ...(options.actionable ? { actionable: 'true' } : {}), ...(options.limit ? { limit: String(options.limit) } : {}) }).toString()}`),
+  projectIssues: (projectId: string, options: { actionable?: boolean; category?: string } = {}) => request<{ issues: Omit<IssueActivity, 'projectId' | 'repository'>[]; total: number; lastSyncedAt: string | null; categories: string[] }>(`/api/projects/${encodeURIComponent(projectId)}/issues?${new URLSearchParams({ ...(options.actionable ? { actionable: 'true' } : {}), ...(options.category ? { category: options.category } : {}) }).toString()}`),
+  syncProjectIssues: (projectId: string) => request<{ scanned: number; classified: number; newlyActionable: number }>(`/api/projects/${encodeURIComponent(projectId)}/issues/sync`, { method: 'POST', body: '{}' }),
+  classifyIssue: (projectId: string, number: number) => request<{ issue: Record<string, unknown>; classification: IssueClassification; entry: IssueActivity; commentsCount: number }>(`/api/projects/${encodeURIComponent(projectId)}/issues/${number}/classify`, { method: 'POST', body: '{}' }),
+  fixIssue: (projectId: string, number: number, classification?: IssueClassification | null) => request<{ queued: boolean; issueNumber: number; repository: string }>(`/api/projects/${encodeURIComponent(projectId)}/issues/${number}/fix`, { method: 'POST', body: JSON.stringify({ classification: classification || null }) }),
+  securityFindings: (options: { projectId?: string; priority?: string; limit?: number } = {}) => request<{ findings: SecurityFinding[]; total: number }>(`/api/security/findings?${new URLSearchParams({ ...(options.projectId ? { projectId: options.projectId } : {}), ...(options.priority ? { priority: options.priority } : {}), ...(options.limit ? { limit: String(options.limit) } : {}) }).toString()}`),
+  securityScan: (projectId: string) => request<{ scan: { scannedAt: string; status: string; counts: Record<string, number>; dependencyAuditRan: boolean; findings: { key: string; priority: string; summary: string; detail: string | null; path?: string | null }[] }; summary: Record<string, unknown> }>(`/api/projects/${encodeURIComponent(projectId)}/security-scan`, { method: 'POST', body: '{}' }),
+  researchReports: (projectId = '') => request<{ reports: ResearchReport[]; total: number }>(`/api/research/reports${projectId ? `?projectId=${encodeURIComponent(projectId)}` : ''}`),
+  researchReport: (reportId: string) => request<{ report: ResearchReport }>(`/api/research/reports/${encodeURIComponent(reportId)}`),
+  reviewUpgradeProposal: (reportId: string, proposalId: string, decision: 'approve' | 'reject', licenseReviewed: boolean) => request<{ proposal: UpgradeProposal }>(`/api/research/reports/${encodeURIComponent(reportId)}/proposals/${encodeURIComponent(proposalId)}/review`, { method: 'POST', body: JSON.stringify({ decision, confirm: true, licenseReviewed }) }),
+  runResearch: (projectId: string) => request<{ report: ResearchReport }>(`/api/projects/${encodeURIComponent(projectId)}/research`, { method: 'POST', body: '{}' })
 }

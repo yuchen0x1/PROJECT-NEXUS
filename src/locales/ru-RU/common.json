@@ -54,7 +54,9 @@
     "no": "Нет",
     "guarded": "Под защитой",
     "pass": "ПРОЙДЕНО",
-    "fail": "СБОЙ"
+    "fail": "СБОЙ",
+    "neverRun": "Ещё не запускалось",
+    "completed": "Завершено"
   },
   "status": {
     "Pending": "Ожидание",
@@ -75,7 +77,19 @@
     "success": "Успешно",
     "failure": "Сбой",
     "in_progress": "Выполняется",
-    "queued": "В очереди"
+    "queued": "В очереди",
+    "Succeeded": "Успешно",
+    "NotStarted": "Не начато",
+    "NotRequested": "Не запрошено",
+    "Incomplete": "Не завершено",
+    "Interrupted": "Прервано",
+    "Confirmed": "Подтверждено",
+    "Uncertain": "Нужна сверка",
+    "Prepared": "Подготовлено",
+    "Approved": "Одобрено",
+    "Rejected": "Отклонено",
+    "ReceiptsConfirmed": "Удалённые результаты подтверждены",
+    "NeedsReview": "Требуется проверка"
   },
   "mode": {
     "readOnly": "РЕЖИМ ТОЛЬКО ДЛЯ ЧТЕНИЯ"

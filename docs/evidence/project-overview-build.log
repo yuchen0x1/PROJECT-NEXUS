@@ -1,0 +1,146 @@
+npm warn Unknown env config "store-dir". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> project-nexus@0.7.0 build
+> vite build
+
+vite v8.3.8 building client environment for production...
+transforming...
+✓ 2265 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                          0.57 kB │ gzip:   0.34 kB
+dist/assets/index-Co7QMy3v.css          99.39 kB │ gzip:  17.31 kB
+dist/assets/build-DDsAGdr3.js            1.02 kB │ gzip:   0.60 kB
+dist/assets/build-DeiH1dMF.js            1.08 kB │ gzip:   0.60 kB
+dist/assets/environment-DhUjpCt-.js      1.14 kB │ gzip:   0.80 kB
+dist/assets/environment-B0FEZ0GA.js      1.15 kB │ gzip:   0.80 kB
+dist/assets/build-CAqf-uzl.js            1.18 kB │ gzip:   0.57 kB
+dist/assets/build-65E9b9qC.js            1.26 kB │ gzip:   0.59 kB
+dist/assets/environment-C9YiMbsX.js      1.27 kB │ gzip:   0.78 kB
+dist/assets/build-GqvQxnf8.js            1.30 kB │ gzip:   0.58 kB
+dist/assets/settings-BMjO2XJk.js         1.31 kB │ gzip:   0.87 kB
+dist/assets/environment-Bb9zkJ9U.js      1.31 kB │ gzip:   0.74 kB
+dist/assets/build-DOjD4BbE.js            1.31 kB │ gzip:   0.56 kB
+dist/assets/settings-CGBkkrUj.js         1.32 kB │ gzip:   0.88 kB
+dist/assets/environment-jRAtDhSp.js      1.33 kB │ gzip:   0.70 kB
+dist/assets/projects-DYAAlaRC.js         1.33 kB │ gzip:   0.81 kB
+dist/assets/projects-B_z9prxZ.js         1.34 kB │ gzip:   0.82 kB
+dist/assets/build-qQ7Svi3H.js            1.37 kB │ gzip:   0.69 kB
+dist/assets/environment-CLHruAKV.js      1.38 kB │ gzip:   0.72 kB
+dist/assets/projects-CzuohiVm.js         1.40 kB │ gzip:   0.72 kB
+dist/assets/environment-D4uePAoB.js      1.41 kB │ gzip:   0.77 kB
+dist/assets/build-DCChCapy.js            1.47 kB │ gzip:   0.69 kB
+dist/assets/projects-2J6N1UN0.js         1.47 kB │ gzip:   0.72 kB
+dist/assets/projects-C8W89PH7.js         1.47 kB │ gzip:   0.73 kB
+dist/assets/projects-DpUciXkh.js         1.47 kB │ gzip:   0.73 kB
+dist/assets/settings-z8OBpkwG.js         1.51 kB │ gzip:   0.81 kB
+dist/assets/errors-BQqgaCbk.js           1.52 kB │ gzip:   0.80 kB
+dist/assets/environment-B_EWAdJH.js      1.53 kB │ gzip:   0.87 kB
+dist/assets/errors-C12ic1yR.js           1.54 kB │ gzip:   0.81 kB
+dist/assets/projects-D8DqQ27E.js         1.54 kB │ gzip:   0.84 kB
+dist/assets/settings-Bc16yS_1.js         1.54 kB │ gzip:   0.81 kB
+dist/assets/settings-B4OHa3LQ.js         1.55 kB │ gzip:   0.80 kB
+dist/assets/settings-Bxxmddpn.js         1.59 kB │ gzip:   0.82 kB
+dist/assets/settings-C28jK5TX.js         1.59 kB │ gzip:   0.95 kB
+dist/assets/navigation-xBP7xDkv.js       1.71 kB │ gzip:   1.06 kB
+dist/assets/navigation-C_mtilbb.js       1.72 kB │ gzip:   1.07 kB
+dist/assets/settings-C4yHojcN.js         1.81 kB │ gzip:   0.99 kB
+dist/assets/errors-CVGCzt1k.js           1.82 kB │ gzip:   0.75 kB
+dist/assets/build-YMlzE_CZ.js            1.86 kB │ gzip:   0.76 kB
+dist/assets/projects-CNXziyKn.js         1.87 kB │ gzip:   0.91 kB
+dist/assets/environment-DFu6gTRG.js      1.92 kB │ gzip:   0.95 kB
+dist/assets/navigation-D5abxF4K.js       1.93 kB │ gzip:   1.05 kB
+dist/assets/errors-0JgLF2Jp.js           1.94 kB │ gzip:   0.82 kB
+dist/assets/navigation-2udxn6Dx.js       1.94 kB │ gzip:   0.98 kB
+dist/assets/errors-aiTR9F-5.js           1.96 kB │ gzip:   0.77 kB
+dist/assets/navigation-CZ8n_joR.js       1.98 kB │ gzip:   0.97 kB
+dist/assets/navigation-B_0P0HHY.js       2.00 kB │ gzip:   0.99 kB
+dist/assets/errors-Cyvz-fRy.js           2.00 kB │ gzip:   0.89 kB
+dist/assets/errors-CmryMu2u.js           2.02 kB │ gzip:   0.82 kB
+dist/assets/projects-CBs_ZlHd.js         2.07 kB │ gzip:   0.96 kB
+dist/assets/navigation-CGX-I84e.js       2.07 kB │ gzip:   1.01 kB
+dist/assets/notifications-BGQO5cFW.js    2.10 kB │ gzip:   0.97 kB
+dist/assets/settings-B3nCDrd3.js         2.10 kB │ gzip:   1.04 kB
+dist/assets/notifications-B5ynsDvP.js    2.11 kB │ gzip:   0.96 kB
+dist/assets/navigation-CZLkVB7R.js       2.26 kB │ gzip:   1.12 kB
+dist/assets/errors-DA5k-yQH.js           2.27 kB │ gzip:   0.93 kB
+dist/assets/tasks-Cax5Lt9t.js            2.32 kB │ gzip:   1.24 kB
+dist/assets/notifications-Z0bp1ns_.js    2.39 kB │ gzip:   0.92 kB
+dist/assets/tasks-BpWEcCGs.js            2.44 kB │ gzip:   1.32 kB
+dist/assets/errors-ctnP0b7k.js           2.46 kB │ gzip:   0.97 kB
+dist/assets/notifications-BjIJG96X.js    2.46 kB │ gzip:   0.94 kB
+dist/assets/notifications-5ElqOJap.js    2.47 kB │ gzip:   0.97 kB
+dist/assets/notifications-BJ-NZkTU.js    2.51 kB │ gzip:   0.99 kB
+dist/assets/release-BMT6lAVQ.js          2.65 kB │ gzip:   1.45 kB
+dist/assets/common-DIkGYGH0.js           2.70 kB │ gzip:   1.49 kB
+dist/assets/release-B-a7A6hv.js          2.71 kB │ gzip:   1.48 kB
+dist/assets/common-BM12pWNS.js           2.72 kB │ gzip:   1.52 kB
+dist/assets/notifications-BLCW4Dxp.js    2.75 kB │ gzip:   1.05 kB
+dist/assets/tasks-C5ZNK-CP.js            2.79 kB │ gzip:   1.24 kB
+dist/assets/tasks-BIxCFJ0i.js            2.84 kB │ gzip:   1.37 kB
+dist/assets/common-Cx5H5Vi1.js           2.86 kB │ gzip:   1.34 kB
+dist/assets/common-AHVCCptI.js           2.86 kB │ gzip:   1.34 kB
+dist/assets/navigation-BPchTzvC.js       2.87 kB │ gzip:   1.28 kB
+dist/assets/common-CTCvo8QI.js           2.90 kB │ gzip:   1.51 kB
+dist/assets/tasks-DhnxMfxU.js            2.93 kB │ gzip:   1.21 kB
+dist/assets/common-BAKkcVxd.js           2.93 kB │ gzip:   1.41 kB
+dist/assets/tasks-CzG7KDxx.js            2.97 kB │ gzip:   1.24 kB
+dist/assets/common-CX0lH3kC.js           2.98 kB │ gzip:   1.43 kB
+dist/assets/tasks-CtM6M3SQ.js            3.00 kB │ gzip:   1.29 kB
+dist/assets/notifications-BcDe_5aw.js    3.14 kB │ gzip:   1.11 kB
+dist/assets/tasks-CaPRCfU-.js            3.21 kB │ gzip:   1.45 kB
+dist/assets/common-BJb1-SDW.js           3.21 kB │ gzip:   1.65 kB
+dist/assets/release-qRbscM-p.js          3.34 kB │ gzip:   1.46 kB
+dist/assets/release-DupFH1Ub.js          3.41 kB │ gzip:   1.60 kB
+dist/assets/release-DF9ppLUj.js          3.43 kB │ gzip:   1.45 kB
+dist/assets/release-BAMXGipT.js          3.49 kB │ gzip:   1.44 kB
+dist/assets/release-C5U0ZRP3.js          3.50 kB │ gzip:   1.49 kB
+dist/assets/notifications-pXXuBxAU.js    3.51 kB │ gzip:   1.19 kB
+dist/assets/release-DuIXCZBc.js          3.82 kB │ gzip:   1.70 kB
+dist/assets/workstation-BlTtJMBy.js      4.17 kB │ gzip:   2.33 kB
+dist/assets/workstation-CNpLsXEj.js      4.20 kB │ gzip:   2.33 kB
+dist/assets/common-xwqzjYVR.js           4.38 kB │ gzip:   1.82 kB
+dist/assets/tasks-CPwvdkNf.js            4.53 kB │ gzip:   1.61 kB
+dist/assets/workstation-DNKzUdit.js      4.74 kB │ gzip:   2.20 kB
+dist/assets/workstation-BnEzMy0-.js      4.82 kB │ gzip:   2.34 kB
+dist/assets/workstation-DGQ2qUP3.js      4.90 kB │ gzip:   2.15 kB
+dist/assets/workstation-g6-PHkOy.js      4.94 kB │ gzip:   2.18 kB
+dist/assets/workstation-BfkHTeZz.js      4.99 kB │ gzip:   2.24 kB
+dist/assets/release-G4rxEVr8.js          5.12 kB │ gzip:   1.88 kB
+dist/assets/workstation-D4pEG0Cx.js      5.49 kB │ gzip:   2.47 kB
+dist/assets/workstation-dqBi2tpe.js      7.19 kB │ gzip:   2.73 kB
+dist/assets/automation-bCzL9ERi.js       7.81 kB │ gzip:   3.66 kB
+dist/assets/automation-y9ZAYEKi.js       8.11 kB │ gzip:   3.73 kB
+dist/assets/agent-BRqXevKL.js            8.48 kB │ gzip:   4.15 kB
+dist/assets/agent-BGiohsXj.js            8.64 kB │ gzip:   4.20 kB
+dist/assets/automation-B3vebNHu.js       9.36 kB │ gzip:   3.68 kB
+dist/assets/agent-CjhsNv6W.js            9.80 kB │ gzip:   4.08 kB
+dist/assets/agent-Bko1vgZ4.js            9.80 kB │ gzip:   3.97 kB
+dist/assets/automation-CrXd1rBo.js       9.84 kB │ gzip:   3.90 kB
+dist/assets/agent-BX7_T_kc.js            9.89 kB │ gzip:   4.00 kB
+dist/assets/automation-Batm9hoZ.js      10.00 kB │ gzip:   3.58 kB
+dist/assets/agent-tjJn1B_t.js           10.03 kB │ gzip:   4.20 kB
+dist/assets/automation-Cbd2NeVm.js      10.04 kB │ gzip:   3.58 kB
+dist/assets/automation-BCcuIeWG.js      10.04 kB │ gzip:   3.66 kB
+dist/assets/agent-Bk7LbFyO.js           10.13 kB │ gzip:   4.12 kB
+dist/assets/agent-D9M9vO0r.js           11.40 kB │ gzip:   4.44 kB
+dist/assets/automation-Bz5ipBl9.js      11.52 kB │ gzip:   4.12 kB
+dist/assets/agent-DUFkoC2A.js           14.23 kB │ gzip:   4.80 kB
+dist/assets/automation-BWOCyUUL.js      15.38 kB │ gzip:   4.45 kB
+dist/assets/git-DT21gI1I.js             17.52 kB │ gzip:   7.69 kB
+dist/assets/git-C2EAwaYM.js             17.54 kB │ gzip:   7.75 kB
+dist/assets/git-WuuVIBUP.js             20.05 kB │ gzip:   7.30 kB
+dist/assets/git-1XT4wqqr.js             20.23 kB │ gzip:   7.30 kB
+dist/assets/git-B4yjTIDq.js             20.36 kB │ gzip:   7.54 kB
+dist/assets/git-BmljVma3.js             20.64 kB │ gzip:   7.78 kB
+dist/assets/git-BQVH-0SN.js             20.69 kB │ gzip:   7.54 kB
+dist/assets/git-DL0qUqza.js             22.58 kB │ gzip:   8.08 kB
+dist/assets/git-DYGKr-zF.js             29.20 kB │ gzip:   8.68 kB
+dist/assets/index-nJfB_Zne.js          575.89 kB │ gzip: 157.58 kB
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.21s

@@ -6,6 +6,7 @@ import path from 'node:path'
 import process from 'node:process'
 import { spawn, spawnSync } from 'node:child_process'
 import { chromium } from 'playwright'
+import { pathToFileURL } from 'node:url'
 
 const executablePath = process.env.NEXUS_INSTALLED_EXE?.trim()
 if (!executablePath) throw new Error('Set NEXUS_INSTALLED_EXE to the full path of the freshly installed PROJECT NEXUS.exe.')
@@ -137,6 +138,36 @@ try {
   assert.equal(typeof persistedState.schemaVersion, 'number', 'The app should initialize its per-user persisted state.')
   const logStat = await fs.stat(logPath)
   assert.ok(logStat.isFile() && logStat.size > 0, 'The desktop should write its startup log under the temporary profile.')
+
+  const screenshotDir = path.resolve(import.meta.dirname, '../docs/screenshots/v1')
+  await fs.mkdir(screenshotDir, { recursive: true })
+  await page.screenshot({ path: path.join(screenshotDir, 'installed-workbench.png') })
+  await page.locator('.nx-setup-entry').click()
+  await page.locator('.nx-setup').waitFor()
+  assert.equal(await page.locator('.nx-setup nav button').count(), 7)
+  await page.locator('.nx-setup nav button').nth(6).click()
+  assert.equal(await page.getByRole('button', { name: 'Enable hosting', exact: true }).isDisabled(), true, 'Hosting must wait for actual prerequisites.')
+  assert.equal(await page.locator('.nx-setup-consent input').isChecked(), false, 'Remote delivery must require an explicit selection.')
+  await page.screenshot({ path: path.join(screenshotDir, 'installed-setup.png') })
+  await page.keyboard.press('Escape')
+  await page.locator('.nx-setup').waitFor({ state: 'detached' })
+  console.log('PASS: Seven-step setup renders; prerequisites and remote-delivery default stay guarded; Escape closes the dialog.')
+
+  // PowerShell cannot read scripts inside ASAR: verify the physical unpacked runner and execute it.
+  const resources = path.join(path.dirname(installedExe), 'resources')
+  assert.ok((await fs.stat(path.join(resources, 'app.asar.unpacked/server/services/agent/windows-job-runner.ps1'))).isFile())
+  const executorUrl = pathToFileURL(path.join(resources, 'app.asar/server/services/agent/executor.mjs')).href
+  const probeCode = `import(${JSON.stringify(executorUrl)}).then(async ({runCommand}) => { const result = await runCommand({cwd:${JSON.stringify(expectedDataPath)},command:'node -v'}); console.log(JSON.stringify({ok:result.ok,exitCode:result.exitCode,stdout:result.stdout,stderr:result.stderr})); process.exitCode = result.ok ? 0 : 1 }).catch(() => {process.exitCode=1})`
+  const probe = await new Promise((resolve, reject) => {
+    const runner = spawn(installedExe, ['-e', probeCode], { windowsHide: true, env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, stdio: ['ignore', 'pipe', 'pipe'] })
+    let output = ''
+    runner.stdout.on('data', (chunk) => { output += chunk })
+    runner.on('error', reject)
+    runner.on('exit', (code) => resolve({ code, output }))
+  })
+  assert.equal(probe.code, 0, `Installed command runner failed: ${probe.output}`)
+  assert.equal(JSON.parse(probe.output.trim()).ok, true)
+  console.log('PASS: Installed ASAR invokes the unpacked Windows Job Object command runner successfully.')
 
   console.log('PASS: Freshly installed executable rendered the Windows workstation.')
   console.log('PASS: Desktop preload bridge reports dataPath under the disposable LOCALAPPDATA profile.')

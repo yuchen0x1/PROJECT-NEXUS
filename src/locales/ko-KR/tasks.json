@@ -9,7 +9,7 @@
     "finished": "{{time}}에 완료",
     "emptyTitle": "작업 기록이 비어 있습니다",
     "emptyDetail": "리포지토리 동기화와 빌드 전송이 각각의 상태와 함께 여기에 표시됩니다.",
-    "jobsKicker": "3단계 실행",
+    "jobsKicker": "저장소 작업 실행",
     "jobsTitle": "리포지토리 작업",
     "cancelToast": "{{repository}}의 취소가 요청되었습니다",
     "retryToast": "{{repository}}의 재시도가 대기열에 추가되었습니다",
@@ -18,7 +18,7 @@
     "logSummary_other": "작업 로그 ({{count}})",
     "noLogs": "기록된 로그 메시지가 없습니다.",
     "viewReport": "보고서 보기",
-    "emptyJobsTitle": "3단계 작업 없음",
+    "emptyJobsTitle": "저장소 작업 없음",
     "emptyJobsDetail": "리포지토리 스캔과 로컬 통합 제안이 현재 단계와 결과와 함께 표시됩니다."
   },
   "history": {

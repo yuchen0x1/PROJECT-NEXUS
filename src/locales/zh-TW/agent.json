@@ -174,6 +174,31 @@
     "source": {
       "stored": "已註冊",
       "env": "環境變數"
+    },
+    "discovery": {
+      "fetch": "取得模型",
+      "loading": "正在取得…",
+      "select": "請選擇模型",
+      "hint": "可取得模型清單，也可直接輸入模型名稱。",
+      "loaded": "已取得 {{total}} 個模型，選擇後填入上方。",
+      "empty": "介面未傳回可選模型，請手動輸入。",
+      "truncated": "清單較長，已顯示部分模型；也可手動輸入。",
+      "errors": {
+        "invalid-kind": "請檢查 API 類型、位址與金鑰格式。",
+        "invalid-url": "請檢查 API 類型、位址與金鑰格式。",
+        "invalid-key": "請檢查 API 類型、位址與金鑰格式。",
+        "key-required": "請填寫 API 金鑰；修改位址或類型後需重新填寫。",
+        "key-unavailable": "無法讀取已儲存的金鑰，請重新填寫。",
+        "unsupported": "此介面不支援取得模型，請手動輸入。",
+        "unauthorized": "金鑰無效或沒有讀取模型的權限，請檢查後重試。",
+        "rate-limit": "請求過於頻繁，請稍後重試。",
+        "http-error": "模型介面請求失敗，請稍後重試或手動輸入。",
+        "response-too-large": "模型清單回應過大，請手動輸入。",
+        "invalid-response": "介面未傳回有效的模型清單，請手動輸入。",
+        "timeout": "取得逾時，請重試或手動輸入。",
+        "network-error": "無法連線至模型介面，請檢查位址與網路後重試。",
+        "desktop-required": "請在桌面應用程式中取得模型。"
+      }
     }
   },
   "risk": {

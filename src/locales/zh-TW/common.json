@@ -54,7 +54,9 @@
     "no": "否",
     "guarded": "受防護",
     "pass": "通過",
-    "fail": "失敗"
+    "fail": "失敗",
+    "neverRun": "尚未執行",
+    "completed": "已完成"
   },
   "status": {
     "Pending": "等待中",
@@ -75,7 +77,19 @@
     "success": "成功",
     "failure": "失敗",
     "in_progress": "執行中",
-    "queued": "已排入佇列"
+    "queued": "已排入佇列",
+    "Succeeded": "成功",
+    "NotStarted": "未開始",
+    "NotRequested": "未要求交付",
+    "Incomplete": "交付未完成",
+    "Interrupted": "已中斷",
+    "Confirmed": "已確認",
+    "Uncertain": "待核對",
+    "Prepared": "已準備",
+    "Approved": "已核准",
+    "Rejected": "已拒絕",
+    "ReceiptsConfirmed": "遠端回執已確認",
+    "NeedsReview": "需要人工核對"
   },
   "mode": {
     "readOnly": "唯讀模式"

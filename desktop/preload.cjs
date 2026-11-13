@@ -13,6 +13,9 @@ contextBridge.exposeInMainWorld('nexusDesktop', Object.freeze({
   setProviderKey: (providerId, apiKey) => invoke('desktop:provider-keys:set', providerId, apiKey),
   deleteProviderKey: (providerId) => invoke('desktop:provider-keys:delete', providerId),
   getProviderKeyStatus: () => invoke('desktop:provider-keys:status'),
+  fetchProviderModels: (draft) => invoke('desktop:provider-models:list', draft),
+  connectGitHub: (token) => invoke('desktop:github:connect', token),
+  openGitHubTokenPage: () => invoke('desktop:github:open-token-page'),
   setAutoStart: (enabled) => invoke('desktop:settings:auto-start', enabled),
   getSettings: () => invoke('desktop:settings:get'),
   updateSettings: (partial) => invoke('desktop:settings:update', partial)

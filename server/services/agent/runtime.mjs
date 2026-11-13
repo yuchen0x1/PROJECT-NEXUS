@@ -260,12 +260,17 @@ export async function runAgentTask({
     return result
   }
 
+  const appendApprovalRecord = async (record) => {
+    const latest = await taskStore.get({ taskId: task.id }).catch(() => null)
+    return [...(latest?.approvals || task.approvals || []), record].slice(-50)
+  }
+
   const requestUserApproval = async ({ tool, args, permission, reason, action }) => {
     const record = createApprovalRecord({ tool, args, risk: permission, reason: reason || `${tool} requires approval under the ${config.approvalPolicy} policy`, action: action || clampObservation(args, 400) })
     await persist({
       status: 'Paused',
       pendingApprovalId: record.id,
-      approvals: [...(task.approvals || []), record].slice(-50)
+      approvals: await appendApprovalRecord(record)
     }, { type: 'approval_requested', detail: `${tool} [${permission}] is awaiting user approval.`, metadata: { approvalId: record.id, tool, risk: permission } })
     state.awaitingApprovalId = record.id
     const deadline = Date.now() + config.approvalTimeoutMs
@@ -298,7 +303,27 @@ export async function runAgentTask({
     }
   }
 
+  const autoApproveTools = config.autoApproveTools instanceof Set
+    ? config.autoApproveTools
+    : Array.isArray(config.autoApproveTools) ? new Set(config.autoApproveTools) : null
+
+  const recordAutoApproval = async ({ tool, args, permission, reason }) => {
+    const record = createApprovalRecord({ tool, args, risk: permission, reason: reason || `Auto-approved under the autonomous hosting policy (${config.approvalPolicy}).`, action: args?.command ? String(args.command).slice(0, 500) : JSON.stringify(args).slice(0, 500) })
+    record.status = 'approved'
+    record.resolvedBy = 'hosting-policy'
+    record.resolvedAt = new Date().toISOString()
+    await persist({ approvals: await appendApprovalRecord(record) }, { type: 'approval_auto_approved', detail: `${tool} [${permission}] auto-approved by the hosting policy and recorded for audit.`, metadata: { approvalId: record.id, tool, risk: permission } })
+    try {
+      audit('agent_approval_auto_approved', task.id, 'approved', permission, { approvalId: record.id, tool })
+    } catch { /* Audit persistence must not block the task runtime. */ }
+    return record
+  }
+
   toolCtx.requestApproval = async ({ tool, reason, action }) => {
+    if (tool !== 'request_approval' && autoApproveTools?.has(tool)) {
+      await recordAutoApproval({ tool, args: { reason, action }, permission: 'medium', reason })
+      return { approved: true, note: 'Auto-approved under the autonomous hosting policy and recorded for audit.' }
+    }
     const approved = await requestUserApproval({ tool, args: { reason, action }, permission: 'medium', reason, action })
     return { approved, note: approved ? 'User approved the request.' : 'User did not approve the request.' }
   }
@@ -307,8 +332,16 @@ export async function runAgentTask({
     const tool = toolCatalog.find((item) => item.name === toolCall.name)
     if (!tool) return { tool: toolCall.name, error: `Unknown tool "${toolCall.name}". Use one of the listed tools.`, ok: false }
     const permission = typeof tool.permissionFor === 'function' ? tool.permissionFor(toolCall.args) : tool.permission
-    const needsApproval = approvalRequired({ permission, policy: config.approvalPolicy || 'standard' })
-    if (needsApproval) {
+    const policyAutoApproved = autoApproveTools?.has(tool.name) === true
+    const needsApproval = approvalRequired({ permission, policy: config.approvalPolicy || 'standard', tool: tool.name, autoApproveTools })
+    if (policyAutoApproved && !needsApproval && tool.name !== 'request_approval') {
+      await recordAutoApproval({
+        tool: tool.name,
+        args: toolCall.args,
+        permission,
+        reason: `Agent requested ${tool.name} (risk: ${permission}); allowed by the hosting policy allowlist.`
+      })
+    } else if (needsApproval) {
       const approved = await requestUserApproval({
         tool: tool.name,
         args: toolCall.args,
@@ -551,7 +584,8 @@ export async function runAgentTask({
   }
 
   const verificationPassed = !state.verification || !state.verification.attempted || state.verification.passed
-  const status = verificationPassed ? 'Succeeded' : 'Failed'
+  const reviewPassed = !state.changes?.length || (state.review?.verdict === 'approve' && !state.review.findings.some((finding) => ['CRITICAL', 'HIGH'].includes(finding.severity)))
+  const status = verificationPassed && reviewPassed ? 'Succeeded' : 'Failed'
   return finalize(status, state, task, adapter, state.finalMessage)
 }
 
@@ -609,6 +643,7 @@ async function reviewDiff({ provider, changes, adapter, signal, taskPrompt, time
   const result = await invokeAIProvider({ providerOverride: provider, messages, signal, temperature: 0.1, maxTokens: 3_000, timeoutMs, maxRetries: 1 })
   let parsed
   try { parsed = JSON.parse(String(result.text || '').replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()) } catch { parsed = null }
+  if (!parsed || !Array.isArray(parsed.findings) || !['approve', 'request_changes'].includes(parsed.verdict)) throw new Error('Independent review did not return a valid verdict.')
   let findings = Array.isArray(parsed?.findings)
     ? parsed.findings.slice(0, 20).map((finding) => ({
         severity: ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'].includes(String(finding?.severity).toUpperCase()) ? String(finding.severity).toUpperCase() : 'INFO',

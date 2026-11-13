@@ -1,0 +1,45 @@
+npm warn Unknown env config "store-dir". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> project-nexus@0.6.0 test
+> vitest run --maxWorkers=2 --testTimeout=15000
+
+
+ RUN  v5.1.0 C:/Users/lenmo/Desktop/PROJECT NEXUS
+
+warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src.txt', LF will be replaced by CRLF the next time Git touches it
+To C:\Users\lenmo\AppData\Local\Temp\nexus-repo-bare-hNydOw
+ * [new branch]      main -> main
+warning: in the working copy of 'src.txt', LF will be replaced by CRLF the next time Git touches it
+To C:\Users\lenmo\AppData\Local\Temp\nexus-repo-bare-hNydOw
+   a748817..b259905  main -> main
+Preparing worktree (new branch 'nexus-fix/task-1')
+Preparing worktree (new branch 'nexus-fix/task-2')
+ ❯ tests/unit/local-agent-tasks.test.mjs (5 tests | 1 failed) 15489ms
+   ❯ local Agent task JSON persistence (5)
+     × keeps task and event counts bounded without discarding recent task records 15040ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/local-agent-tasks.test.mjs > local Agent task JSON persistence > keeps task and event counts bounded without discarding recent task records
+Error: Test timed out in 15000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/unit/local-agent-tasks.test.mjs:74:3
+     72|   })
+     73|
+     74|   it('keeps task and event counts bounded without discarding recent ta…
+       |   ^
+     75|     const dataDir = await tempDirectory()
+     76|     const created = await Promise.all(Array.from({ length: MAX_LOCAL_A…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 43 passed (44)
+      Tests  1 failed | 243 passed (244)
+   Start at  14:37:19
+   Duration  251.16s (tests 99%, import 1%)
+
+    Isolate  44 workers spawned · ~527ms startup each (spawn + environment, per file)
+             at least ~11.06s faster with isolate: false — reuses workers across files instead of one per file
+

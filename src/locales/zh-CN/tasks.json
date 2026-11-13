@@ -9,7 +9,7 @@
     "finished": "完成于 {{time}}",
     "emptyTitle": "任务历史为空",
     "emptyDetail": "仓库同步和构建派发会在这里显示各自的状态。",
-    "jobsKicker": "第三阶段执行",
+    "jobsKicker": "仓库操作",
     "jobsTitle": "仓库任务",
     "cancelToast": "已请求取消 {{repository}}",
     "retryToast": "{{repository}} 的重试已加入队列",
@@ -18,7 +18,7 @@
     "logSummary_other": "任务日志（{{count}}）",
     "noLogs": "没有记录日志消息。",
     "viewReport": "查看报告",
-    "emptyJobsTitle": "暂无第三阶段任务",
+    "emptyJobsTitle": "暂无仓库任务",
     "emptyJobsDetail": "仓库扫描和本地集成提案会在这里显示当前步骤和结果。"
   },
   "history": {

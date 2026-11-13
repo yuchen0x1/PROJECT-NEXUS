@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  Activity, AlertTriangle, Bell, Bot, Boxes, Check, ChevronDown, ChevronRight, CircleDot, Code2,
-  Command, Computer, FolderPlus, GitBranch, HardDrive, KeyRound, Languages, LayoutDashboard, ListChecks,
+  Activity, AlertTriangle, Bell, BookOpen, Bot, Boxes, Check, ChevronDown, ChevronRight, CircleDot, Code2,
+  Command, Computer, FolderPlus, GitBranch, HardDrive, KeyRound, Languages, LayoutDashboard, ListChecks, Network,
   Moon, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, RefreshCw, ScanSearch, Search,
   Settings2, ShieldCheck, Sun, TerminalSquare, Trash2, Undo2, Upload, Wrench, X, Zap
 } from 'lucide-react'
-import App from '../App'
+import App, { REMOTE_NAV_PAGES, type RemotePage } from '../App'
+import SetupCenter from './SetupCenter'
+import ProductTour from './ProductTour'
+import ProjectOverview from './ProjectOverview'
 import { api, type AgentInsights, type AgentProvider, type LocalAgentTask } from '../api'
 import { useSettings } from '../i18n/settings'
 import { LANGUAGES } from '../i18n/languages'
@@ -14,7 +17,7 @@ import { formatCurrency, formatRelative, formatStamp, formatTime, formatTokens }
 import './workstation.css'
 import type { EnvironmentReport, LocalProject, WorkstationInfo } from './types'
 
-type Page = 'workstation' | 'projects' | 'environment' | 'agent' | 'remote' | 'settings'
+type Page = 'workstation' | 'projects' | 'environment' | 'agent' | 'overview' | 'remote' | 'settings'
 
 type ActivityEntry = {
   id: string
@@ -28,6 +31,7 @@ type ActivityEntry = {
   detailText?: string
   /** Workstation page a notification click should open. */
   page?: Page
+  remotePage?: RemotePage
 }
 
 type ToastEntry = { id: string; messageKey: string; params?: Record<string, unknown> }
@@ -54,6 +58,15 @@ export default function Workstation() {
   const { t } = useTranslation()
   const { preferences, resolvedTheme, setLanguage, setTheme, systemLocale } = useSettings()
   const [page, setPage] = useState<Page>('workstation')
+  const [remotePage, setRemotePage] = useState<RemotePage>('Overview')
+  const [setupOpen, setSetupOpen] = useState(false)
+  const [guidedSetup, setGuidedSetup] = useState(false)
+  const [tourOpen, setTourOpen] = useState(false)
+  const [guideProjectId, setGuideProjectId] = useState('')
+  const [remoteRefreshKey, setRemoteRefreshKey] = useState(0)
+  const openGuide = () => { setTourOpen(false); setGuidedSetup(true); setSetupOpen(true) }
+  const navigateRemote = (next: RemotePage) => { setRemotePage(next); setPage('remote') }
+  const remoteLabels = Object.fromEntries(REMOTE_NAV_PAGES.map(({ page: target, key }) => [target, target === 'Projects' ? t('git:guide.repoNav') : target === 'Overview' ? t('git:guide.overviewNav') : target === 'Settings' ? t('git:guide.connectionsNav') : t(`git:shell.nav.${key}`)])) as Record<RemotePage, string>
   const [info, setInfo] = useState<WorkstationInfo | null>(null)
   const [projects, setProjects] = useState<LocalProject[]>([])
   const [environment, setEnvironment] = useState<EnvironmentReport | null>(null)
@@ -214,6 +227,35 @@ export default function Workstation() {
     return () => { active = false; clearInterval(timer) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasActiveAgentTasks, refreshAgentTasks, selectedAgentTaskId])
+
+  // Also discover tasks started by the background scheduler, not only UI-created work.
+  useEffect(() => {
+    let active = true
+    const seenJobs = new Map<string, string>()
+    const seenApprovals = new Set<string>()
+    const poll = async () => {
+      const results = await Promise.allSettled([api.hostedJobs(), api.localAgentTasks()])
+      if (!active) return
+      const [hosted, local] = results
+      if (hosted.status === 'fulfilled') for (const job of hosted.value.jobs) {
+        const status = `${job.status}:${job.executionStatus}:${job.deliveryStatus}`
+        if (seenJobs.has(job.id) && seenJobs.get(job.id) !== status) addActivity({ kind: job.status === 'Succeeded' ? 'ok' : 'warning', labelKey: 'git:upgrade.taskChanged', detailText: `${job.repository} #${job.issueNumber}: ${job.status}`, page: 'remote', remotePage: 'Task Center' })
+        seenJobs.set(job.id, status)
+      }
+      if (local.status === 'fulfilled') {
+        setAgentTasks(local.value.tasks)
+        for (const task of local.value.tasks) for (const approval of task.approvals || []) {
+          if (approval.status === 'pending' && !seenApprovals.has(approval.id)) {
+            seenApprovals.add(approval.id)
+            addActivity({ kind: 'warning', labelKey: 'git:upgrade.approvalPending', detailText: `${task.projectName}: ${approval.tool}`, page: 'agent' })
+          }
+        }
+      }
+    }
+    void poll()
+    const timer = window.setInterval(() => void poll(), 8000)
+    return () => { active = false; window.clearInterval(timer) }
+  }, [addActivity])
 
   // Detect Agent task completion so the notification center can announce it.
   // Paused is deliberately not a completion: it resumes later.
@@ -521,7 +563,8 @@ export default function Workstation() {
     projects: t('projects:page.title'),
     environment: t('environment:page.title'),
     agent: t('agent:page.title'),
-    remote: t('navigation:rail.remote'),
+    overview: t('workstation:overview.title'),
+    remote: remoteLabels[remotePage],
     settings: t('settings:page.title')
   })[target]
 
@@ -530,6 +573,7 @@ export default function Workstation() {
     projects: t('workstation:sectionSubtitle.projects'),
     environment: t('workstation:sectionSubtitle.environment'),
     agent: t('workstation:sectionSubtitle.agent'),
+    overview: t('workstation:overview.subtitle'),
     remote: t('workstation:sectionSubtitle.remote'),
     settings: t('settings:page.subtitle')
   })[target]
@@ -550,7 +594,11 @@ export default function Workstation() {
     pushPage('projects', t('navigation:rail.projects'), <Boxes size={15} />)
     pushPage('environment', t('navigation:rail.environment'), <Wrench size={15} />)
     pushPage('agent', t('navigation:rail.agent'), <Bot size={15} />)
-    pushPage('remote', t('navigation:rail.remote'), <GitBranch size={15} />)
+    pushPage('overview', t('workstation:overview.title'), <Network size={15} />)
+    for (const entry of REMOTE_NAV_PAGES) {
+      items.push({ id: `page:remote:${entry.page}`, group: 'pages', label: remoteLabels[entry.page], icon: <entry.icon size={15} />, run: () => { navigateRemote(entry.page); setPaletteOpen(false) } })
+    }
+    items.push({ id: 'action:guide', group: 'actions', label: t('git:guide.entry'), icon: <BookOpen size={15} />, run: () => { setPaletteOpen(false); openGuide() } })
     pushPage('settings', t('navigation:rail.settings'), <Settings2 size={15} />)
     items.push({ id: 'action:addProject', group: 'actions', label: t('navigation:commandPalette.actions.addProject'), icon: <FolderPlus size={15} />, run: () => { setPaletteOpen(false); void handleAddProject() } })
     items.push({ id: 'action:recheckEnvironment', group: 'actions', label: t('navigation:commandPalette.actions.recheckEnvironment'), icon: <Wrench size={15} />, run: () => { setPaletteOpen(false); void refreshEnvironment() } })
@@ -576,10 +624,17 @@ export default function Workstation() {
 
   const activeAgentTask = agentTasks.find((task) => AGENT_ACTIVE_STATUSES.includes(task.status)) || null
 
+  useEffect(() => {
+    document.querySelector<HTMLElement>('.nx-rail [aria-current="page"]')?.scrollIntoView({ block: 'nearest', behavior: 'auto' })
+  }, [page, remotePage])
+
   return <div className="nx-shell" data-page={page}>
     <ActivityBar
       page={page}
       onNavigate={setPage}
+      remotePage={remotePage}
+      onRemoteNavigate={navigateRemote}
+      remoteLabels={remoteLabels}
       collapsed={railCollapsed}
       onToggleCollapse={() => setRailCollapsed((value) => !value)}
       projectCount={projects.length}
@@ -594,6 +649,7 @@ export default function Workstation() {
           <strong>{sectionTitle(page)}</strong>
         </div>
         <div className="nx-top-actions">
+          <button className="nx-guide-trigger nx-secondary" onClick={openGuide} title={t('git:guide.entry')}><BookOpen size={15} /><span>{t('git:guide.entry')}</span></button>
           <button className="nx-command-trigger" onClick={() => setPaletteOpen(true)} aria-label={t('common:aria.commandPalette')}>
             <Search size={14} />
             <span>{t('navigation:topbar.searchPlaceholder')}</span>
@@ -607,6 +663,7 @@ export default function Workstation() {
             onMarkAllRead={() => setUnreadIds(new Set())}
             onOpenActivity={(entry) => {
               if (entry.page) setPage(entry.page)
+              if (entry.remotePage) setRemotePage(entry.remotePage)
               setUnreadIds((current) => {
                 const next = new Set(current)
                 next.delete(entry.id)
@@ -624,23 +681,27 @@ export default function Workstation() {
         </div>
       </header>
 
-      <div className="nx-content-grid" data-rail={showActivity && page !== 'remote' && page !== 'settings' ? 'open' : 'closed'}>
+      <div className="nx-content-grid" data-rail={showActivity && !['remote', 'settings', 'overview'].includes(page) ? 'open' : 'closed'}>
         <main className="nx-workarea">
-          <div className="nx-page-heading">
+          {page !== 'remote' && page !== 'overview' && <div className="nx-page-heading">
             <div>
               <p className="nx-overline">{t('workstation:overline')}</p>
               <h1>{sectionTitle(page)}</h1>
               <p className="nx-subtitle">{sectionSubtitle(page)}</p>
             </div>
-            {page !== 'environment' && page !== 'remote' && page !== 'settings' && (
+            {page !== 'environment' && page !== 'settings' && (
               <button className="nx-primary" onClick={() => void handleAddProject()} disabled={busy === 'add'}>
                 <FolderPlus size={15} />{busy === 'add' ? t('common:states.working') : t('common:actions.addFolder')}
               </button>
             )}
           </div>
 
+          }
           {error && <div className="nx-alert" role="alert"><AlertTriangle size={16} /><span>{error}</span><button aria-label={t('common:aria.dismissError')} onClick={() => setError(null)}><X size={14} /></button></div>}
 
+          {page === 'workstation' && <div className="nx-start-actions"><button className="nx-guide-entry" onClick={openGuide}><BookOpen size={21} /><span><strong>{t('git:guide.entry')}</strong><small>{t('git:guide.entryDetail')}</small></span><ChevronRight size={17} /></button><button className="nx-setup-entry nx-secondary" onClick={() => { setGuidedSetup(false); setSetupOpen(true) }}><GitBranch size={17} />{t('git:setup.title')}<ChevronRight size={17} /></button></div>}
+          {setupOpen && <SetupCenter guided={guidedSetup} onNavigate={(destination, projectId) => { if (projectId) setGuideProjectId(projectId); if (destination === 'environment' || destination === 'agent') setPage(destination); else navigateRemote(destination) }} onComplete={(projectId) => { setGuideProjectId(projectId); setRemoteRefreshKey((current) => current + 1); setSetupOpen(false); setTourOpen(true); void refreshAgentTasks() }} onClose={() => { setSetupOpen(false); void refreshAgentTasks() }} />}
+          {tourOpen && <ProductTour onNavigate={navigateRemote} onClose={() => setTourOpen(false)} onFinish={() => { setTourOpen(false); navigateRemote('Hosting') }} />}
           {page === 'workstation' && <WorkbenchPage
             projects={projects}
             environment={environment}
@@ -659,6 +720,11 @@ export default function Workstation() {
             onOpenEnvironment={() => setPage('environment')}
             onOpenAgent={() => setPage('agent')}
           />}
+
+          {page === 'overview' && <ProjectOverview onNavigate={(destination, projectId, taskId) => {
+            if (destination === 'agent') { if (taskId) setSelectedAgentTaskId(taskId); setPage('agent') }
+            else { if (projectId) setGuideProjectId(projectId); navigateRemote(destination) }
+          }} />}
 
           {page === 'projects' && <section className="nx-section-block nx-project-page">
             <div className="nx-section-heading">
@@ -717,12 +783,12 @@ export default function Workstation() {
             onLoadInsights={(projectId) => void handleLoadInsights(projectId)}
           />}
 
-          {page === 'remote' && <div className="nx-remote-content"><App embedded /></div>}
+          {page === 'remote' && <div className="nx-remote-content"><App key={remoteRefreshKey} embedded activePage={remotePage} onNavigate={setRemotePage} focusProjectId={guideProjectId} onSetup={() => { setGuidedSetup(false); setSetupOpen(true) }} /></div>}
 
           {page === 'settings' && <WorkstationSettings info={info} systemLocale={systemLocale} onAutoStartChange={toggleAutoStart} />}
         </main>
 
-        {showActivity && page !== 'remote' && page !== 'settings' && <aside className="nx-activity-pane" aria-label={t('common:aria.notifications')}>
+        {showActivity && !['remote', 'settings', 'overview'].includes(page) && <aside className="nx-activity-pane" aria-label={t('common:aria.notifications')}>
           <div className="nx-side-heading">
             <div><Activity size={15} /><h2>{t('navigation:notifications.title')}</h2></div>
             <button className="nx-icon-button" aria-label={t('common:aria.collapsePanel')} onClick={() => setShowActivity(false)}><PanelRightClose size={14} /></button>
@@ -753,7 +819,7 @@ export default function Workstation() {
         </aside>}
       </div>
 
-      {!showActivity && page !== 'remote' && page !== 'settings' && (
+      {!showActivity && !['remote', 'settings', 'overview'].includes(page) && (
         <button className="nx-reopen-activity" onClick={() => setShowActivity(true)} aria-label={t('common:aria.expandPanel')}><PanelRightOpen size={16} /></button>
       )}
 
@@ -810,9 +876,12 @@ function ActivityRow({ entry, compact = false }: { entry: ActivityEntry; compact
   </div>
 }
 
-function ActivityBar({ page, onNavigate, collapsed, onToggleCollapse, projectCount, agentActive }: {
+function ActivityBar({ page, onNavigate, remotePage, onRemoteNavigate, remoteLabels, collapsed, onToggleCollapse, projectCount, agentActive }: {
   page: Page
   onNavigate: (page: Page) => void
+  remotePage: RemotePage
+  onRemoteNavigate: (page: RemotePage) => void
+  remoteLabels: Record<RemotePage, string>
   collapsed: boolean
   onToggleCollapse: () => void
   projectCount: number
@@ -844,10 +913,14 @@ function ActivityBar({ page, onNavigate, collapsed, onToggleCollapse, projectCou
       {item('projects', t('navigation:rail.projects'), <Boxes size={16} />, { count: projectCount })}
       {item('environment', t('navigation:rail.environment'), <Wrench size={16} />)}
       {item('agent', t('navigation:rail.agent'), <Bot size={16} />, { badge: agentActive })}
+      {item('overview', t('workstation:overview.title'), <Network size={16} />)}
     </div>
     {!collapsed && <div className="nx-rail-label nx-rail-lower">{t('navigation:rail.management')}</div>}
-    <div className="nx-rail-group">
-      {item('remote', t('navigation:rail.remote'), <GitBranch size={16} />, { arrow: true })}
+    <div className="nx-rail-scroll"><div className="nx-rail-group">
+      {REMOTE_NAV_PAGES.map(({ page: target, icon: Icon }) => <button key={target} data-management-page={target} className={`nx-nav-item ${page === 'remote' && remotePage === target ? 'active' : ''}`} aria-current={page === 'remote' && remotePage === target ? 'page' : undefined} onClick={() => onRemoteNavigate(target)} title={remoteLabels[target]}><Icon size={16} />{!collapsed && <span className="nx-nav-label">{remoteLabels[target]}</span>}</button>)}
+    </div>
+    </div>
+    <div className="nx-rail-group nx-rail-settings">
       {item('settings', t('navigation:rail.settings'), <Settings2 size={16} />)}
     </div>
     <button className="nx-rail-collapse" onClick={onToggleCollapse} aria-label={collapsed ? t('navigation:rail.expand') : t('navigation:rail.collapse')}>

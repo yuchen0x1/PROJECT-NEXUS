@@ -174,6 +174,31 @@
     "source": {
       "stored": "registered",
       "env": "environment"
+    },
+    "discovery": {
+      "fetch": "Fetch models",
+      "loading": "Fetching…",
+      "select": "Choose a model",
+      "hint": "Fetch the model list or type a model name directly.",
+      "loaded": "Loaded {{total}} models. Select one to fill in the field above.",
+      "empty": "No selectable models returned. Enter a model manually.",
+      "truncated": "Showing part of a long list. You can also type a model name.",
+      "errors": {
+        "invalid-kind": "Check the API type, URL and key format.",
+        "invalid-url": "Check the API type, URL and key format.",
+        "invalid-key": "Check the API type, URL and key format.",
+        "key-required": "Enter an API key. Enter it again after changing the URL or API type.",
+        "key-unavailable": "The saved key is unavailable. Enter the key again.",
+        "unsupported": "This endpoint does not support listing models. Enter a model manually.",
+        "unauthorized": "Invalid key or missing permission to list models. Check and retry.",
+        "rate-limit": "Too many requests. Try again later.",
+        "http-error": "Model listing failed. Retry later or enter a model manually.",
+        "response-too-large": "The model response is too large. Enter a model manually.",
+        "invalid-response": "The endpoint returned an invalid model list. Enter a model manually.",
+        "timeout": "The request timed out. Retry or enter a model manually.",
+        "network-error": "Cannot reach the model endpoint. Check the URL and network, then retry.",
+        "desktop-required": "Fetch models in the desktop app."
+      }
     }
   },
   "risk": {

@@ -10,6 +10,7 @@ import {
   restoreLocalAgentFile,
   restoreAllLocalAgentFiles
 } from '../local-agent-workspace.mjs'
+import { repoWorktreePath } from '../repo-workspace.mjs'
 
 // Unified agent workspace adapters.
 //
@@ -38,6 +39,15 @@ function validateTaskId(taskId) {
 function validateAbsolutePath(value, label) {
   if (typeof value !== 'string' || !path.isAbsolute(value)) throw workspaceError('AGENT_WORKSPACE_INVALID_PATH', `${label} must be an absolute path.`)
   return path.resolve(value)
+}
+
+function validateWorkspacePath(value, rootBase) {
+  const target = validateAbsolutePath(value, 'workspacePath')
+  const relative = path.relative(rootBase, target)
+  if (relative === '' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    throw workspaceError('AGENT_WORKSPACE_INVALID_PATH', 'workspacePath must be a child of workspaceRoot.')
+  }
+  return target
 }
 
 function gitQuote(value) {
@@ -87,12 +97,14 @@ function parsePorcelain(output) {
 
 // ---- Worktree adapter ----
 
-export async function createWorktreeWorkspace({ projectPath, taskId, workspaceRoot, signal = null } = {}) {
+export async function createWorktreeWorkspace({ projectPath, taskId, workspaceRoot, workspacePath = null, signal = null } = {}) {
   const id = validateTaskId(taskId)
   const source = validateAbsolutePath(projectPath, 'projectPath')
   const rootBase = validateAbsolutePath(workspaceRoot, 'workspaceRoot')
   const branch = `nexus-agent/${id.replace(/[._]/g, '-')}`
-  const root = path.join(rootBase, 'worktree', branch.replace(/\//g, '__'))
+  const root = workspacePath
+    ? validateWorkspacePath(workspacePath, rootBase)
+    : path.join(rootBase, 'worktree', branch.replace(/\//g, '__'))
   await fs.mkdir(path.dirname(root), { recursive: true })
   const existing = await fs.lstat(root).catch(() => null)
   if (existing) throw workspaceError('AGENT_WORKSPACE_EXISTS', `A worktree directory already exists for this task: ${root}`)
@@ -316,12 +328,12 @@ function simpleLineDiff(before, after) {
 
 // ---- Factory ----
 
-export async function createAgentWorkspace({ project, taskId, mode = 'auto', workspaceRoot, dataDir, limits, signal = null } = {}) {
+export async function createAgentWorkspace({ project, taskId, mode = 'auto', workspaceRoot, workspacePath = null, dataDir, limits, signal = null } = {}) {
   const id = validateTaskId(taskId)
   const requestedMode = ['auto', 'worktree', 'copy'].includes(mode) ? mode : 'auto'
   if (requestedMode === 'worktree' || requestedMode === 'auto') {
     try {
-      const adapter = worktreeAdapter(await createWorktreeWorkspace({ projectPath: project.path, taskId: id, workspaceRoot, signal }))
+      const adapter = worktreeAdapter(await createWorktreeWorkspace({ projectPath: project.path, taskId: id, workspaceRoot, workspacePath, signal }))
       return { adapter, mode: 'worktree', fallbackReason: null }
     } catch (error) {
       if (requestedMode === 'worktree') throw error
@@ -336,11 +348,13 @@ export async function createAgentWorkspace({ project, taskId, mode = 'auto', wor
 
 // Rebuild an adapter for an existing workspace after the runtime finished
 // (rollback / apply endpoints). Throws when the workspace is gone.
-export async function reconstructAdapter({ taskId, projectId, mode, dataDir, workspaceRoot }) {
+export async function reconstructAdapter({ taskId, projectId, repository = null, mode, dataDir, workspaceRoot }) {
   const id = validateTaskId(taskId)
   if (mode === 'worktree') {
     const rootBase = validateAbsolutePath(workspaceRoot, 'workspaceRoot')
-    const root = path.join(rootBase, 'worktree', `nexus-agent__${id.replace(/[._]/g, '-')}`)
+    const root = repository
+      ? repoWorktreePath(dataDir, repository, id)
+      : path.join(rootBase, 'worktree', `nexus-agent__${id.replace(/[._]/g, '-')}`)
     const info = await fs.lstat(root).catch(() => null)
     if (!info?.isDirectory()) throw workspaceError('AGENT_WORKSPACE_GONE', `The worktree for this task no longer exists: ${root}`)
     const projectPath = await readWorktreeProjectPath(root)

@@ -82,7 +82,8 @@ describe('agent task executor pipeline', () => {
     const server = await scriptedProvider([
       { thought: 'plan', plan: ['read main.js', 'set answer to 42', 'verify'], first_tool: { name: 'read_file', args: { path: 'src/main.js' } } },
       { thought: 'editing', tool: { name: 'edit_file', args: { path: 'src/main.js', oldText: 'answer = 41', newText: 'answer = 42' } } },
-      { thought: 'finished', final: 'Set answer to 42. Verification runs automatically.' }
+      { thought: 'finished', final: 'Set answer to 42. Verification runs automatically.' },
+      { findings: [], verdict: 'approve', overall: 'The focused change passes its self-check.' }
     ])
     servers.push(server)
     await providerRecord(server)
@@ -94,6 +95,7 @@ describe('agent task executor pipeline', () => {
 
     expect(result.status).toBe('Succeeded')
     expect(result.verification.passed).toBe(true)
+    expect(result.review.verdict).toBe('approve')
 
     const persisted = await getLocalAgentTask({ dataDir, taskId: task.id })
     expect(persisted.status).toBe('Succeeded')
@@ -170,6 +172,24 @@ describe('agent task executor pipeline', () => {
     const backup = await fs.readFile(path.join(applied.backupRoot, 'src', 'main.js'), 'utf8')
     expect(backup).toContain('answer = 41')
   }, 120_000)
+
+  it('reconstructs hosted worktree handles for repository project ids', async () => {
+    const repository = 'fixture/hosted-repo'
+    const task = {
+      id: 'nexus_issue_17_ab12cd34',
+      type: 'issue-fix-runtime',
+      projectId: 'repo_123',
+      projectName: repository,
+      issue: { repository },
+      status: 'Succeeded',
+      workspace: { id: 'nexus_issue_17_ab12cd34', mode: 'worktree', branch: 'nexus-agent/nexus_issue_17_ab12cd34' }
+    }
+    const handle = agentWorkspaceHandleFor(task, dataDir)
+    expect(handle).toMatchObject({ repository, mode: 'worktree' })
+    expect(handle.root).toContain(path.join('repositories', 'fixture__hosted-repo', 'worktrees', task.id))
+    expect(agentWorkspaceHandleFor({ ...task, workspace: { ...task.workspace, mode: 'copy' } }, dataDir)).toBeNull()
+    expect(agentWorkspaceHandleFor({ ...task, issue: { repository: '../escape' } }, dataDir)).toBeNull()
+  })
 
   it('reports provider-not-configured as a blocked task', async () => {
     await setupGitProject()

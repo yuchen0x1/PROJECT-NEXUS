@@ -1,0 +1,18 @@
+npm warn Unknown env config "store-dir". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+  • electron-builder  version=26.18.0 os=10.0.26340
+  • loaded configuration  file=package.json ("build" field)
+  • executing @electron/rebuild  electronVersion=45.3.1 arch=x64 buildFromSource=false workspaceRoot=C:\Users\lenmo\Desktop\PROJECT NEXUS projectDir=./ appDir=./
+  • installing native dependencies  arch=x64
+  • completed installing native dependencies
+  • packaging       platform=win32 arch=x64 electron=45.3.1 appOutDir=release-batch-repositories\win-unpacked
+  • using custom unpacked Electron distribution  electronDist=node_modules\electron\dist
+  • copying unpacked Electron  source=C:\Users\lenmo\Desktop\PROJECT NEXUS\node_modules\electron\dist destination=C:\Users\lenmo\Desktop\PROJECT NEXUS\release-batch-repositories\win-unpacked
+  • searching for node modules  pm=npm searchDir=C:\Users\lenmo\Desktop\PROJECT NEXUS
+  • duplicate dependency references  dependencies=["mime-types@3.0.2","debug@4.4.3","http-errors@2.0.1","on-finished@2.4.2","qs@6.17.1","http-errors@2.0.1","iconv-lite@0.7.3","type-is@2.1.0","debug@4.4.3","on-finished@2.4.2","get-intrinsic@1.3.0","call-bind-apply-helpers@1.0.2","call-bind-apply-helpers@1.0.2","es-object-atoms@1.1.2","call-bound@1.0.4","get-intrinsic@1.3.0","side-channel-map@1.0.1","debug@4.4.3","debug@4.4.3","http-errors@2.0.1","mime-types@3.0.2","on-finished@2.4.2","send@1.2.1","mime-types@3.0.2"]
+  • updating asar integrity executable resource  executablePath=release-batch-repositories\win-unpacked\PROJECT NEXUS.exe
+  • no code signing certificate configured, signing is skipped  path=release-batch-repositories\win-unpacked\PROJECT NEXUS.exe
+  • building        target=nsis file=release-batch-repositories\PROJECT-NEXUS-0.6.0-win-x64-setup.exe archs=x64 oneClick=false perMachine=false
+  • no code signing certificate configured, signing is skipped  path=C:\Users\lenmo\AppData\Local\Temp\t-VQJ9YL\elevate-staging-1\resources\elevate.exe
+  • no code signing certificate configured, signing is skipped  path=release-batch-repositories\PROJECT-NEXUS-0.6.0-win-x64-setup.__uninstaller.exe
+  • no code signing certificate configured, signing is skipped  path=release-batch-repositories\PROJECT-NEXUS-0.6.0-win-x64-setup.exe
+  • building block map  blockMapFile=release-batch-repositories\PROJECT-NEXUS-0.6.0-win-x64-setup.exe.blockmap

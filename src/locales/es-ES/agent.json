@@ -174,6 +174,31 @@
     "source": {
       "stored": "registrado",
       "env": "entorno"
+    },
+    "discovery": {
+      "fetch": "Obtener modelos",
+      "loading": "Obteniendo…",
+      "select": "Elegir un modelo",
+      "hint": "Obtén la lista o escribe directamente el nombre del modelo.",
+      "loaded": "Se obtuvieron {{total}} modelos. Selecciona uno para rellenar el campo superior.",
+      "empty": "No se recibieron modelos disponibles. Introduce uno manualmente.",
+      "truncated": "Se muestra parte de la lista. También puedes escribir el nombre del modelo.",
+      "errors": {
+        "invalid-kind": "Revisa el tipo de API, la URL y el formato de la clave.",
+        "invalid-url": "Revisa el tipo de API, la URL y el formato de la clave.",
+        "invalid-key": "Revisa el tipo de API, la URL y el formato de la clave.",
+        "key-required": "Introduce una clave API. Vuelve a introducirla si cambias la URL o el tipo de API.",
+        "key-unavailable": "La clave guardada no está disponible. Introdúcela de nuevo.",
+        "unsupported": "Este servicio no permite listar modelos. Introduce uno manualmente.",
+        "unauthorized": "Clave no válida o sin permiso para listar modelos. Revisa e inténtalo de nuevo.",
+        "rate-limit": "Demasiadas solicitudes. Inténtalo más tarde.",
+        "http-error": "Error al obtener los modelos. Reintenta o introduce uno manualmente.",
+        "response-too-large": "La respuesta es demasiado grande. Introduce un modelo manualmente.",
+        "invalid-response": "El servicio devolvió una lista no válida. Introduce un modelo manualmente.",
+        "timeout": "Se agotó el tiempo de espera. Reintenta o introduce un modelo manualmente.",
+        "network-error": "No se puede conectar. Revisa la URL y la red e inténtalo de nuevo.",
+        "desktop-required": "Obtén los modelos desde la aplicación de escritorio."
+      }
     }
   },
   "risk": {

@@ -3,7 +3,7 @@ import path from 'node:path'
 import crypto from 'node:crypto'
 
 export const emptyState = Object.freeze({
-  schemaVersion: 3,
+  schemaVersion: 4,
   projects: [],
   tasks: [],
   activity: [],
@@ -14,8 +14,18 @@ export const emptyState = Object.freeze({
   auditLogs: [],
   integrationReports: [],
   integrationJobs: [],
-  integrationSchedules: []
+  integrationSchedules: [],
+  hostingRuns: [],
+  securityFindings: [],
+  researchReports: [],
+  hostedJobs: []
 })
+
+function persistedState(value) {
+  const safe = structuredClone(value)
+  for (const installation of safe.githubInstallations || []) delete installation.accessToken
+  return safe
+}
 
 export function migrateState(input) {
   if (input !== undefined && (!input || typeof input !== 'object' || Array.isArray(input))) {
@@ -23,18 +33,26 @@ export function migrateState(input) {
   }
   const source = input || {}
   const sourceVersion = Number(source.schemaVersion || 1)
-  if (!Number.isInteger(sourceVersion) || sourceVersion < 1 || sourceVersion > 3) {
+  if (!Number.isInteger(sourceVersion) || sourceVersion < 1 || sourceVersion > 4) {
     throw Object.assign(new Error(`Unsupported state schema version: ${source.schemaVersion}`), { code: 'STATE_SCHEMA_UNSUPPORTED' })
   }
   const next = { ...structuredClone(emptyState), ...structuredClone(source) }
-  next.schemaVersion = 3
+  next.schemaVersion = 4
   for (const key of [
     'projects', 'tasks', 'activity', 'githubInstallations', 'githubWebhookEvents',
-    'updateConfigs', 'auditLogs', 'integrationReports', 'integrationJobs', 'integrationSchedules'
+    'updateConfigs', 'auditLogs', 'integrationReports', 'integrationJobs', 'integrationSchedules',
+    'hostingRuns', 'securityFindings', 'researchReports', 'hostedJobs'
   ]) {
     if (!Array.isArray(next[key])) next[key] = []
   }
-  next.settings = { ...emptyState.settings, ...(next.settings && typeof next.settings === 'object' ? next.settings : {}) }
+  next.settings = { ...emptyState.settings, ...(next.settings && typeof next.settings === 'object' ? next.settings : {}), ...(next.settings?.hostingPaused === undefined ? {} : { hostingPaused: next.settings.hostingPaused === true }) }
+  // v3 → v4: per-project hosting policy/repo-meta/workspace records are added
+  // lazily by the hosting service; the migration only reserves the collection.
+  for (const project of next.projects) {
+    if (project && typeof project === 'object' && !project.hosting) project.hosting = null
+    if (project && typeof project === 'object' && !project.repoMeta) project.repoMeta = null
+    if (project && typeof project === 'object' && !project.localWorkspace) project.localWorkspace = null
+  }
   return next
 }
 
@@ -55,7 +73,8 @@ export async function loadStateFile(file) {
     throw Object.assign(new Error(`State file is not valid JSON; refusing to replace it: ${error.message}`), { code: 'STATE_INVALID', cause: error })
   }
   const migrated = migrateState(parsed)
-  if (Number(parsed?.schemaVersion || 1) < 3) await saveStateFile(file, migrated)
+  if (Number(parsed?.schemaVersion || 1) < 4) await fs.writeFile(`${file}.pre-v4.bak`, JSON.stringify(persistedState(parsed), null, 2), { flag: 'wx', mode: 0o600 }).catch((error) => { if (error.code !== 'EEXIST') throw error })
+  if (Number(parsed?.schemaVersion || 1) < 4) await saveStateFile(file, migrated)
   return migrated
 }
 
@@ -64,7 +83,15 @@ export async function saveStateFile(file, value) {
   await fs.mkdir(directory, { recursive: true })
   const temporary = `${file}.${process.pid}.${crypto.randomUUID()}.tmp`
   try {
-    await fs.writeFile(temporary, JSON.stringify(value, null, 2), { encoding: 'utf8', flag: 'wx' })
+    const handle = await fs.open(temporary, 'wx', 0o600)
+    try { await handle.writeFile(JSON.stringify(persistedState(value), null, 2), 'utf8'); await handle.sync() } finally { await handle.close() }
+    // Retain the last valid document. Never replace this backup with corrupt
+    // input, and never silently restore it over the user's live state.
+    const previous = await fs.readFile(file, 'utf8').catch((error) => { if (error.code !== 'ENOENT') throw error; return null })
+    if (previous !== null) {
+      try { const parsed = JSON.parse(previous); await fs.writeFile(`${file}.bak`, JSON.stringify(persistedState(parsed), null, 2), { encoding: 'utf8', mode: 0o600 }) }
+      catch (error) { if (!(error instanceof SyntaxError)) throw error }
+    }
     await fs.rename(temporary, file)
   } catch (error) {
     await fs.rm(temporary, { force: true }).catch(() => {})

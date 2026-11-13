@@ -6,13 +6,14 @@ import {
   GitFork, GitPullRequest, Hammer, LayoutDashboard, ListChecks, Loader2, Menu, PackageCheck, Plus, Radio, RefreshCw,
   Rocket, Search, Settings2, ShieldCheck, Sparkles, TerminalSquare, Webhook, XCircle
 } from 'lucide-react'
-import { api, IntegrationJob, IntegrationReport, Project, Task } from './api'
+import { api, HostingProject, HostingRun, IntegrationJob, IntegrationReport, IssueActivity, Project, ResearchReport, UpgradeProposal, SecurityFinding, Task } from './api'
 import { formatStamp } from './i18n/format'
 
-type Page = 'Overview' | 'Projects' | 'Build Center' | 'Release Center' | 'Auto Update' | 'Repository Scanner' | 'AI Pipeline' | 'Adapter Center' | 'Update Security' | 'Integration History' | 'GitHub Connections' | 'Monitoring' | 'AI Operations' | 'Task Center' | 'Security Center' | 'Settings'
+export type RemotePage = 'Overview' | 'Projects' | 'Build Center' | 'Release Center' | 'Auto Update' | 'Repository Scanner' | 'AI Pipeline' | 'Adapter Center' | 'Update Security' | 'Integration History' | 'GitHub Connections' | 'Monitoring' | 'AI Operations' | 'Task Center' | 'Security Center' | 'Hosting' | 'Issues' | 'Security Findings' | 'Research' | 'Settings'
 
 // Internal page identifiers stay stable; labels are resolved through i18n.
-const NAV_PAGES: { page: Page; key: string; icon: typeof LayoutDashboard }[] = [
+type Page = RemotePage
+export const REMOTE_NAV_PAGES: { page: Page; key: string; icon: typeof LayoutDashboard }[] = [
   { page: 'Overview', key: 'overview', icon: LayoutDashboard },
   { page: 'Projects', key: 'projects', icon: Boxes },
   { page: 'Build Center', key: 'buildCenter', icon: Hammer },
@@ -28,6 +29,10 @@ const NAV_PAGES: { page: Page; key: string; icon: typeof LayoutDashboard }[] = [
   { page: 'AI Operations', key: 'aiOperations', icon: Bot },
   { page: 'Task Center', key: 'taskCenter', icon: ListChecks },
   { page: 'Security Center', key: 'securityCenter', icon: ShieldCheck },
+  { page: 'Hosting', key: 'hosting', icon: Radio },
+  { page: 'Issues', key: 'issues', icon: CircleDot },
+  { page: 'Security Findings', key: 'securityFindings', icon: ShieldCheck },
+  { page: 'Research', key: 'research', icon: Search },
   { page: 'Settings', key: 'serverSettings', icon: Settings2 }
 ]
 
@@ -45,7 +50,7 @@ const METRICS: { key: string; labelKey: string; icon: typeof Boxes; tone: string
 function StatusPill({ status }: { status: string }) {
   const { t } = useTranslation()
   const normalized = status.toLowerCase()
-  const tone = normalized.includes('success') || normalized === 'completed' ? 'success' : normalized.includes('fail') ? 'danger' : normalized.includes('block') ? 'warning' : normalized.includes('run') || normalized.includes('pend') ? 'info' : 'muted'
+  const tone = normalized.includes('success') || normalized === 'succeeded' || normalized === 'completed' ? 'success' : normalized.includes('fail') ? 'danger' : normalized.includes('block') || ['incomplete', 'uncertain', 'interrupted'].includes(normalized) ? 'warning' : normalized.includes('run') || normalized.includes('pend') ? 'info' : 'muted'
   // Server and GitHub enum values map onto dictionary keys when available;
   // unknown external values stay as-is (raw data is never invented).
   return <span className={`status-pill ${tone}`}><span className="status-dot" />{t(`common:status.${status}`, { defaultValue: status })}</span>
@@ -66,9 +71,11 @@ function ProjectCard({ project, onOpen }: { project: Project; onOpen: () => void
   </button>
 }
 
-export default function App({ embedded = false }: { embedded?: boolean } = {}) {
+export default function App({ embedded = false, onSetup, activePage, onNavigate, focusProjectId }: { embedded?: boolean; onSetup?: () => void; activePage?: RemotePage; onNavigate?: (page: RemotePage) => void; focusProjectId?: string } = {}) {
   const { t } = useTranslation()
-  const [page, setPage] = useState<Page>('Overview')
+  const [internalPage, setInternalPage] = useState<Page>('Overview')
+  const page = activePage || internalPage
+  const setPage = (next: Page) => { setInternalPage(next); onNavigate?.(next) }
   const [mobileNav, setMobileNav] = useState(false)
   const [overview, setOverview] = useState<Awaited<ReturnType<typeof api.overview>> | null>(null)
   const [projects, setProjects] = useState<Project[]>([])
@@ -88,7 +95,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
     finally { setLoading(false) }
   }
 
-  useEffect(() => { void refresh() }, [query]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { const timer = window.setTimeout(() => void refresh(), query ? 300 : 0); return () => window.clearTimeout(timer) }, [query]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const handler = (event: Event) => setPage((event as CustomEvent<Page>).detail)
     window.addEventListener('navigate', handler)
@@ -100,21 +107,21 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
   const sync = async () => { try { await api.syncRepositories(); setToast(t('git:shell.toast.syncQueued')); void refresh() } catch (error) { setToast(error instanceof Error ? error.message : t('git:shell.toast.syncFailed')) } }
   const metrics = overview?.metrics || {}
   const navLabels: Record<Page, string> = useMemo(() => Object.fromEntries(
-    NAV_PAGES.map(({ page: target, key }) => [target, t(`git:shell.nav.${key}`)])
+    REMOTE_NAV_PAGES.map(({ page: target, key }) => [target, t(`git:shell.nav.${key}`)])
   ) as Record<Page, string>, [t])
 
   return <div className={`app-shell ${embedded ? 'embedded-console' : ''}`}>
     <aside className={`sidebar ${mobileNav ? 'open' : ''}`}>
       <div className="brand"><div className="brand-glyph"><span /></div><div><strong>NEXUS</strong><small>{t('common:app.remoteTagline')}</small></div></div>
       <div className="sidebar-section-label">{t('git:shell.sections.workspace')}</div>
-      <nav>{NAV_PAGES.map(({ page: target, icon: Icon }) => <button key={target} className={page === target ? 'nav-item active' : 'nav-item'} onClick={() => { setPage(target); setMobileNav(false) }}><Icon size={17} /><span>{navLabels[target]}</span>{target === 'Task Center' && tasks.some((task) => ['Pending', 'Running'].includes(task.status)) && <span className="nav-count">{tasks.filter((task) => ['Pending', 'Running'].includes(task.status)).length}</span>}</button>)}</nav>
+      <nav>{REMOTE_NAV_PAGES.map(({ page: target, icon: Icon }) => <button key={target} className={page === target ? 'nav-item active' : 'nav-item'} onClick={() => { setPage(target); setMobileNav(false) }}><Icon size={17} /><span>{navLabels[target]}</span>{target === 'Task Center' && tasks.some((task) => ['Pending', 'Running'].includes(task.status)) && <span className="nav-count">{tasks.filter((task) => ['Pending', 'Running'].includes(task.status)).length}</span>}</button>)}</nav>
       <div className="sidebar-bottom"><div className="connection-card"><div className={`connection-led ${status?.configured ? 'live' : ''}`} /><div><strong>{status?.configured ? t('git:shell.connection.connected') : t('git:shell.connection.notConnected')}</strong><span>{status?.configured ? status.owner || t('git:shell.connection.authenticated') : t('git:shell.connection.addToken')}</span></div></div><div className="sidebar-foot"><ShieldCheck size={14} /> {t('git:shell.foot')}</div></div>
     </aside>
     {mobileNav && <button className="scrim" onClick={() => setMobileNav(false)} aria-label={t('common:aria.closeDialog')} />}
     <main className="main-area">
-      <header className="topbar"><button className="mobile-menu" onClick={() => setMobileNav(!mobileNav)}><Menu size={20} /></button><div className="breadcrumb"><span>PROJECT NEXUS</span><span>/</span><strong>{page === 'Overview' ? t('git:overview.title') : navLabels[page]}</strong></div><div className="top-actions"><div className="search-box"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t('git:shell.topbar.searchPlaceholder')} aria-label={t('git:shell.topbar.searchPlaceholder')} /></div><button className="icon-button" onClick={() => void refresh()} aria-label={t('git:shell.topbar.refresh')}><RefreshCw size={16} /></button><div className="avatar">LN</div></div></header>
+      <header className="topbar"><button className="mobile-menu" onClick={() => setMobileNav(!mobileNav)}><Menu size={20} /></button><div className="breadcrumb"><span>PROJECT NEXUS</span><span>/</span><strong>{page === 'Overview' ? t('git:overview.title') : navLabels[page]}</strong></div><div className="top-actions"><div className="search-box"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t('git:shell.topbar.searchPlaceholder')} aria-label={t('git:shell.topbar.searchPlaceholder')} /></div><button className="icon-button" onClick={() => void refresh()} aria-label={t('git:shell.topbar.refresh')}><RefreshCw size={16} /></button><div className="avatar">{status?.owner?.slice(0, 2).toUpperCase() || <GitFork size={16} />}</div></div></header>
       <div className="content">
-        {page === 'Overview' && <Overview metrics={metrics} projects={overview?.projects || []} tasks={overview?.tasks || []} activity={overview?.activity || []} configured={Boolean(status?.configured)} onSync={sync} onOpen={openProject} loading={loading} />}
+        {page === 'Overview' && <Overview metrics={metrics} projects={overview?.projects || []} tasks={overview?.tasks || []} activity={overview?.activity || []} configured={Boolean(status?.configured)} onSync={sync} onOpen={openProject} loading={loading} onSetup={onSetup || (() => setPage('GitHub Connections'))} />}
         {page === 'Projects' && <Projects projects={projects} query={query} onSync={sync} onOpen={openProject} onScan={(project) => api.integrationScan(project.id).then(() => { setToast(t('git:projects.scanToast', { repository: project.fullName })); void refresh() }).catch((error) => setToast(error.message))} />}
         {page === 'Build Center' && <BuildCenter projects={projects} selectedProject={selectedProject} onSelect={setSelectedProject} onToast={setToast} />}
         {page === 'Release Center' && <ReleaseCenter projects={projects} onToast={setToast} />}
@@ -127,8 +134,12 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
         {page === 'GitHub Connections' && <GitHubConnections onToast={setToast} />}
         {page === 'Monitoring' && <Monitoring projects={projects} tasks={tasks} metrics={metrics} />}
         {page === 'AI Operations' && <AIOperations configured={Boolean(status?.configured)} />}
-        {page === 'Task Center' && <TaskCenter tasks={tasks} onRefresh={refresh} onToast={setToast} />}
+        {page === 'Task Center' && <><HostedTimeline onToast={setToast} /><TaskCenter tasks={tasks} onRefresh={refresh} onToast={setToast} /></>}
         {page === 'Security Center' && <SecurityCenter onToast={setToast} />}
+        {page === 'Hosting' && <HostingCenter projects={projects} onToast={setToast} initialProjectId={focusProjectId} />}
+        {page === 'Issues' && <IssuesCenter projects={projects} onToast={setToast} />}
+        {page === 'Security Findings' && <SecurityFindings projects={projects} onToast={setToast} />}
+        {page === 'Research' && <ResearchCenter projects={projects} onToast={setToast} initialProjectId={focusProjectId} />}
         {page === 'Settings' && <SettingsPage status={status} />}
       </div>
     </main>
@@ -140,10 +151,10 @@ function PageIntro({ eyebrow, title, detail, action }: { eyebrow: string; title:
   return <div className="page-intro"><div><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{detail}</p></div>{action}</div>
 }
 
-function Overview({ metrics, projects, tasks, activity, configured, onSync, onOpen, loading }: { metrics: Record<string, number>; projects: Project[]; tasks: Task[]; activity: { id: string; message: string; at: string }[]; configured: boolean; onSync: () => void; onOpen: (p: Project) => void; loading: boolean }) {
+function Overview({ metrics, projects, tasks, activity, configured, onSync, onOpen, loading, onSetup }: { metrics: Record<string, number>; projects: Project[]; tasks: Task[]; activity: { id: string; message: string; at: string }[]; configured: boolean; onSync: () => void; onOpen: (p: Project) => void; loading: boolean; onSetup: () => void }) {
   const { t } = useTranslation()
   return <><PageIntro eyebrow={t('git:overview.eyebrow')} title={t('git:overview.title')} detail={t('git:overview.subtitle')} action={<button className="primary-button" onClick={onSync}><RefreshCw size={16} /> {t('git:overview.syncGithub')}</button>} />
-    {!configured && <div className="notice-banner"><div className="notice-icon"><GitFork size={17} /></div><div><strong>{t('git:overview.connectTitle')}</strong><span>{t('git:overview.connectDetail')}</span></div><button className="text-button">{t('git:overview.openSetup')} <ArrowUpRight size={14} /></button></div>}
+    {!configured && <div className="notice-banner"><div className="notice-icon"><GitFork size={17} /></div><div><strong>{t('git:overview.connectTitle')}</strong><span>{t('git:overview.connectDetail')}</span></div><button className="text-button" onClick={onSetup}>{t('git:overview.openSetup')} <ArrowUpRight size={14} /></button></div>}
     <section className="metric-grid">{METRICS.map(({ key, labelKey, icon: Icon, tone }) => <div className={`metric-card ${tone}`} key={key}><div className="metric-icon"><Icon size={17} /></div><div className="metric-label">{t(`git:overview.metrics.${labelKey}`)}</div><div className="metric-value">{metrics[key] ?? 0}</div><div className="metric-foot">{key === 'alerts' ? t('git:overview.metricFoot.needsReview') : configured ? t('git:overview.metricFoot.live') : t('git:overview.metricFoot.waiting')}</div></div>)}</section>
     <section className="overview-grid"><div className="panel projects-panel"><div className="panel-head"><div><div className="panel-kicker">{t('git:overview.projectsPanel.kicker')}</div><h2>{t('git:overview.projectsPanel.title')}</h2></div><button className="ghost-button" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'Projects' }))}>{t('common:actions.viewAll')} <ArrowUpRight size={14} /></button></div>{loading ? <div className="loading-row"><Loader2 className="spin" size={18} /> {t('git:overview.projectsPanel.loading')}</div> : projects.length ? <div className="project-grid">{projects.slice(0, 4).map((project) => <ProjectCard key={project.id} project={project} onOpen={() => onOpen(project)} />)}</div> : <EmptyState title={t('git:overview.empty.projectsTitle')} detail={t('git:overview.empty.projectsDetail')} action={<button className="secondary-button" onClick={onSync}>{t('git:overview.empty.syncButton')}</button>} />}</div>
       <div className="panel activity-panel"><div className="panel-head"><div><div className="panel-kicker">{t('git:overview.activityPanel.kicker')}</div><h2>{t('git:overview.activityPanel.title')}</h2></div><Activity size={17} className="muted-icon" /></div>{activity.length ? <div className="activity-list">{activity.map((item) => <div className="activity-row" key={item.id}><div className="activity-dot" /><div><strong>{item.message}</strong><span>{formatStamp(item.at)}</span></div></div>)}</div> : <EmptyState title={t('git:overview.activityPanel.emptyTitle')} detail={t('git:overview.activityPanel.emptyDetail')} />}</div></section>
@@ -302,7 +313,7 @@ function AdapterCenter({ onToast }: { onToast: (message: string) => void }) {
       : id === 'python' ? t('automation:adapters.pythonDetail')
         : id === 'dotnet' ? t('automation:adapters.dotnetDetail')
           : t('automation:adapters.webDetail')
-  return <><PageIntro eyebrow={t('automation:adapters.eyebrow')} title={t('automation:adapters.title')} detail={t('automation:adapters.subtitle')} /><div className="adapter-grid">{loading ? <div className="panel loading-row"><Loader2 className="spin" size={18} /> {t('automation:adapters.loading')}</div> : adapters.map((adapter) => <article className="panel adapter-card" key={adapter.id}><div className="adapter-icon"><Code2 size={18} /></div><h2>{adapter.name}</h2><p>{adapterDetail(adapter.id)}</p><div className="adapter-capabilities">{adapter.capabilities.map((capability) => <span key={capability}>{capability.replaceAll('-', ' ')}</span>)}</div><StatusPill status={t('automation:adapters.evidenceBadge')} /></article>)}</div><div className="notice-banner"><div className="notice-icon"><AlertTriangle size={16} /></div><div><strong>{t('automation:adapters.heuristicTitle')}</strong><span>{t('automation:adapters.heuristicDetail')}</span></div></div></>
+  return <><PageIntro eyebrow={t('automation:adapters.eyebrow')} title={t('automation:adapters.title')} detail={t('automation:adapters.subtitle')} /><div className="adapter-grid">{loading ? <div className="panel loading-row"><Loader2 className="spin" size={18} /> {t('automation:adapters.loading')}</div> : adapters.map((adapter: { id: string; name: string; capabilities: string[] }) => <article className="panel adapter-card" key={adapter.id}><div className="adapter-icon"><Code2 size={18} /></div><h2>{adapter.name}</h2><p>{adapterDetail(adapter.id)}</p><div className="adapter-capabilities">{adapter.capabilities.map((capability) => <span key={capability}>{capability.replaceAll('-', ' ')}</span>)}</div><StatusPill status={t('automation:adapters.evidenceBadge')} /></article>)}</div><div className="notice-banner"><div className="notice-icon"><AlertTriangle size={16} /></div><div><strong>{t('automation:adapters.heuristicTitle')}</strong><span>{t('automation:adapters.heuristicDetail')}</span></div></div></>
 }
 
 function UpdateSecurity({ onToast }: { onToast: (message: string) => void }) {
@@ -373,7 +384,7 @@ function AIOperations({ configured }: { configured: boolean }) {
     { title: t('automation:operations.capabilities.localChecksTitle'), detail: t('automation:operations.capabilities.localChecksDetail'), status: t('common:states.guarded'), page: 'Task Center' },
     { title: t('automation:operations.capabilities.prTitle'), detail: provider?.remoteWritesEnabled ? t('automation:operations.capabilities.prEnabled') : t('automation:operations.capabilities.prDisabled'), status: provider?.remoteWritesEnabled ? t('common:states.ready') : t('common:states.disabled'), page: 'AI Pipeline' }
   ]
-  return <><PageIntro eyebrow={t('automation:operations.eyebrow')} title={t('automation:operations.title')} detail={t('automation:operations.subtitle')} /><div className="ai-hero"><div className="ai-orb"><Sparkles size={27} /></div><div><div className="eyebrow purple">{t('automation:operations.providerEyebrow')}</div><h2>{provider?.configured ? t('automation:operations.providerConfigured', { model: provider.model || '' }) : t('automation:operations.providerRequired')}</h2><p>{provider?.configured ? t('automation:operations.providerDetail') : t('automation:operations.providerMissingDetail')}</p></div><StatusPill status={provider?.configured ? t('common:states.ready') : t('common:states.blocked')} /></div><div className="panel"><div className="panel-head"><div><div className="panel-kicker">{t('automation:operations.registryKicker')}</div><h2>{t('automation:operations.registryTitle', { count: registry?.providers.length || 0 })}</h2></div><span className="helper-copy">{t('automation:operations.keysNote')}</span></div>{registry?.providers.length ? <div className="finding-list">{registry.providers.map((item) => <div className="finding-row" key={item.id}><div><strong>{item.id} · {item.kind}</strong><span>{item.host || t('automation:operations.noEndpoint')} · {item.models.join(', ') || t('automation:operations.noModel')}{item.routedTasks.length ? ` · ${t('automation:operations.routes', { routes: item.routedTasks.join(', ') })}` : ''}</span></div><StatusPill status={item.configured ? item.default ? t('automation:operations.default') : t('common:states.ready') : t('common:states.blocked')} /></div>)}</div> : <EmptyState title={t('automation:operations.noProvidersTitle')} detail={t('automation:operations.noProvidersDetail')} />}</div><div className="capability-grid">{capabilities.map(({ title, detail, status, page }) => <button className="capability-card" key={title} onClick={() => open(page)}><div className="capability-icon"><Bot size={17} /></div><h3>{title}</h3><p>{detail}</p><span>{t('automation:operations.capabilities.open', { status, page: t(`git:shell.nav.${NAV_PAGES.find((entry) => entry.page === page)?.key || page}`) })}</span></button>)}</div></>
+  return <><PageIntro eyebrow={t('automation:operations.eyebrow')} title={t('automation:operations.title')} detail={t('automation:operations.subtitle')} /><div className="ai-hero"><div className="ai-orb"><Sparkles size={27} /></div><div><div className="eyebrow purple">{t('automation:operations.providerEyebrow')}</div><h2>{provider?.configured ? t('automation:operations.providerConfigured', { model: provider.model || '' }) : t('automation:operations.providerRequired')}</h2><p>{provider?.configured ? t('automation:operations.providerDetail') : t('automation:operations.providerMissingDetail')}</p></div><StatusPill status={provider?.configured ? t('common:states.ready') : t('common:states.blocked')} /></div><div className="panel"><div className="panel-head"><div><div className="panel-kicker">{t('automation:operations.registryKicker')}</div><h2>{t('automation:operations.registryTitle', { count: registry?.providers.length || 0 })}</h2></div><span className="helper-copy">{t('automation:operations.keysNote')}</span></div>{registry?.providers.length ? <div className="finding-list">{registry.providers.map((item) => <div className="finding-row" key={item.id}><div><strong>{item.id} · {item.kind}</strong><span>{item.host || t('automation:operations.noEndpoint')} · {item.models.join(', ') || t('automation:operations.noModel')}{item.routedTasks.length ? ` · ${t('automation:operations.routes', { routes: item.routedTasks.join(', ') })}` : ''}</span></div><StatusPill status={item.configured ? item.default ? t('automation:operations.default') : t('common:states.ready') : t('common:states.blocked')} /></div>)}</div> : <EmptyState title={t('automation:operations.noProvidersTitle')} detail={t('automation:operations.noProvidersDetail')} />}</div><div className="capability-grid">{capabilities.map(({ title, detail, status, page }) => <button className="capability-card" key={title} onClick={() => open(page)}><div className="capability-icon"><Bot size={17} /></div><h3>{title}</h3><p>{detail}</p><span>{t('automation:operations.capabilities.open', { status, page: t(`git:shell.nav.${REMOTE_NAV_PAGES.find((entry) => entry.page === page)?.key || page}`) })}</span></button>)}</div></>
 }
 
 function TaskCenter({ tasks, onRefresh, onToast }: { tasks: Task[]; onRefresh: () => void; onToast: (message: string) => void }) {
@@ -393,7 +404,146 @@ function TaskCenter({ tasks, onRefresh, onToast }: { tasks: Task[]; onRefresh: (
   </>
 }
 
+function HostingCenter({ projects, onToast, initialProjectId }: { projects: Project[]; onToast: (message: string) => void; initialProjectId?: string }) {
+  const { t } = useTranslation()
+  const [data, setData] = useState<Awaited<ReturnType<typeof api.hostingOverview>> | null>(null)
+  const [selectedId, setSelectedId] = useState(initialProjectId || '')
+  useEffect(() => { if (initialProjectId) setSelectedId(initialProjectId) }, [initialProjectId])
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState('')
+  const load = async () => {
+    try {
+      const next = await api.hostingOverview()
+      setData(next)
+      setSelectedId((current) => current || next.projects[0]?.id || '')
+    } catch (error) { onToast(error instanceof Error ? error.message : t('git:hosting.loadFailed')) }
+    finally { setLoading(false) }
+  }
+  useEffect(() => { void load(); const timer = window.setInterval(() => void load(), 6000); return () => window.clearInterval(timer) }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const selected = data?.projects.find((project) => project.id === selectedId) || null
+  const runs = data?.runs.filter((run) => !selected || run.projectId === selected.id).slice(0, 20) || []
+  const update = async (action: string, operation: () => Promise<unknown>) => {
+    setBusy(action)
+    try { await operation(); await load(); onToast(t('git:hosting.updated')) }
+    catch (error) { onToast(error instanceof Error ? error.message : t('git:hosting.updateFailed')) }
+    finally { setBusy('') }
+  }
+  const setStrategy = (strategy: string) => selected && void update('policy', () => api.updateHostingPolicy(selected.id, { strategy, applyPreset: true }))
+  const toggleEnabled = () => selected && void update('enabled', () => selected.policy.enabled ? api.disableHosting(selected.id) : api.enableHosting(selected.id))
+  const inspect = (depth: 'light' | 'full') => selected && void update(depth, () => api.inspectHosting(selected.id, depth))
+  const togglePaused = () => void update('pause', () => api.pauseHosting(!Boolean(data?.scheduler.paused)))
+  return <><PageIntro eyebrow={t('git:hosting.eyebrow')} title={t('git:hosting.title')} detail={t('git:hosting.subtitle')} action={<div className="page-actions"><button className="secondary-button" onClick={() => void load()}><RefreshCw size={15} /> {t('common:actions.refresh')}</button><button className="primary-button" onClick={togglePaused} disabled={busy === 'pause'}>{data?.scheduler.paused ? t('git:hosting.resume') : t('git:hosting.pause')}</button></div>} />
+    <div className="update-summary"><div><span>{t('git:hosting.summary.repositories')}</span><strong>{data?.projects.length || projects.length}</strong></div><div><span>{t('git:hosting.summary.enabled')}</span><strong className="success-text">{data?.enabledCount || 0}</strong></div><div><span>{t('git:hosting.summary.due')}</span><strong className="warning-text">{data?.scheduler.dueNow || 0}</strong></div><div><span>{t('git:hosting.summary.scheduler')}</span><StatusPill status={data?.scheduler.paused ? t('common:states.paused') : t('common:states.enabled')} /></div></div>
+    <div className="hosting-layout"><div className="panel project-picker"><div className="panel-kicker">{t('git:hosting.repositoriesKicker')}</div><h2>{t('git:hosting.repositoriesTitle')}</h2><div className="select-list">{loading ? <div className="loading-row"><Loader2 className="spin" size={17} /></div> : data?.projects.length ? data.projects.map((project) => <button key={project.id} className={selected?.id === project.id ? 'select-row selected' : 'select-row'} onClick={() => setSelectedId(project.id)}><div className="repo-mark"><GitFork size={15} /></div><div><strong>{project.fullName}</strong><span>{t(`git:setup.strategies.${project.policy.strategy}`)} · {project.policy.intervalMinutes}m</span></div><StatusPill status={project.policy.enabled ? t('common:states.enabled') : t('common:states.disabled')} /></button>) : <EmptyState title={t('git:hosting.noRepositoriesTitle')} detail={t('git:hosting.noRepositoriesDetail')} />}</div></div>
+      <div className="hosting-main">{selected ? <><div className="panel hosting-policy"><div className="panel-head"><div><div className="panel-kicker">{t('git:hosting.policyKicker')}</div><h2>{selected.fullName}</h2></div><StatusPill status={selected.policy.enabled ? t('common:states.enabled') : t('common:states.disabled')} /></div><div className="hosting-policy-controls"><label>{t('git:hosting.strategy')}<select value={selected.policy.strategy} onChange={(event) => setStrategy(event.target.value)} disabled={Boolean(busy)}>{['observe', 'maintain', 'autonomous'].map((strategy) => <option key={strategy} value={strategy}>{t(`git:setup.strategies.${strategy}`)}</option>)}</select></label><label>{t('git:hosting.interval')}<input type="number" min="5" max="1440" value={selected.policy.intervalMinutes} onChange={(event) => void update('interval', () => api.updateHostingPolicy(selected.id, { intervalMinutes: Number(event.target.value), applyPreset: false }))} disabled={Boolean(busy)} /></label><button className="secondary-button" onClick={toggleEnabled} disabled={Boolean(busy)}>{selected.policy.enabled ? t('git:hosting.disable') : t('git:hosting.enable')}</button></div><div className="hosting-gates"><div><span>{t('git:hosting.gates.push')}</span><input type="checkbox" aria-label={t('git:hosting.gates.push')} disabled={Boolean(busy)} checked={selected.policy.autoPush} onChange={(event) => void update('permission', () => api.updateHostingPolicy(selected.id, { autoPush: event.target.checked }))} /></div><div><span>{t('git:hosting.gates.pullRequest')}</span><input type="checkbox" aria-label={t('git:hosting.gates.pullRequest')} disabled={Boolean(busy)} checked={selected.policy.autoPullRequest} onChange={(event) => void update('permission', () => api.updateHostingPolicy(selected.id, { autoPullRequest: event.target.checked }))} /></div><div><span>{t('git:hosting.gates.merge')}</span><input type="checkbox" aria-label={t('git:hosting.gates.merge')} disabled={Boolean(busy)} checked={selected.policy.autoMerge} onChange={(event) => void update('permission', () => api.updateHostingPolicy(selected.id, { autoMerge: event.target.checked }))} /></div><div><span>{t('git:hosting.gates.release')}</span><input type="checkbox" aria-label={t('git:hosting.gates.release')} disabled={Boolean(busy)} checked={selected.policy.autoPublish} onChange={(event) => void update('permission', () => api.updateHostingPolicy(selected.id, { autoPublish: event.target.checked }))} /></div></div><div className="hosting-gates hosting-script-consent"><label><input type="checkbox" disabled={Boolean(busy)} checked={selected.policy.executionMode === 'trusted-local'} onChange={(event) => void update('trust', () => api.updateHostingPolicy(selected.id, { executionMode: event.target.checked ? 'trusted-local' : 'blocked' }))} />{t('git:setup.trustedExecution')}</label><label><input type="checkbox" disabled={Boolean(busy)} checked={selected.policy.allowNoCI === true} onChange={(event) => void update('ci', () => api.updateHostingPolicy(selected.id, { allowNoCI: event.target.checked }))} />{t('git:upgrade.allowNoCI')}</label></div><div className="hosting-actions"><button className="secondary-button compact" onClick={() => inspect('light')} disabled={Boolean(busy)}><RefreshCw size={14} /> {t('git:hosting.inspectLight')}</button><button className="secondary-button compact" onClick={() => inspect('full')} disabled={Boolean(busy)}><ShieldCheck size={14} /> {t('git:hosting.inspectFull')}</button></div><div className="signal-row"><span>{t('git:hosting.lastInspection')}</span><strong>{formatStamp(selected.hosting.lastInspectionAt || undefined)}</strong></div><div className="signal-row"><span>{t('git:hosting.lastOutcome')}</span><StatusPill status={String(selected.hosting.lastOutcome?.status || t('common:states.neverRun'))} /></div></div><div className="panel hosting-runs"><div className="panel-head"><div><div className="panel-kicker">{t('git:hosting.runsKicker')}</div><h2>{t('git:hosting.runsTitle')}</h2></div><Activity size={17} className="muted-icon" /></div>{runs.length ? <div className="finding-list">{runs.map((run) => <div className="finding-row" key={run.id}><div><strong>{run.repository}</strong><span>{run.depth} · {formatStamp(run.startedAt)} · {run.findings.length} {t('git:hosting.findings')}</span></div><StatusPill status={run.status} /></div>)}</div> : <EmptyState title={t('git:hosting.noRunsTitle')} detail={t('git:hosting.noRunsDetail')} />}</div></> : <div className="panel"><EmptyState title={t('git:hosting.selectTitle')} detail={t('git:hosting.selectDetail')} /></div>}</div></div>
+  </>
+}
+
+function IssuesCenter({ projects, onToast }: { projects: Project[]; onToast: (message: string) => void }) {
+  const { t } = useTranslation()
+  const [issues, setIssues] = useState<IssueActivity[]>([])
+  const [selectedProjectId, setSelectedProjectId] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState<string | null>(null)
+  const load = async () => {
+    try { setIssues((await api.issueActivity({ limit: 300 })).issues) }
+    catch (error) { onToast(error instanceof Error ? error.message : t('git:issues.loadFailed')) }
+    finally { setLoading(false) }
+  }
+  useEffect(() => { void load(); const timer = window.setInterval(() => void load(), 7000); return () => window.clearInterval(timer) }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const visible = selectedProjectId ? issues.filter((issue) => issue.projectId === selectedProjectId) : issues
+  const sync = async (projectId: string) => {
+    setBusy(`sync:${projectId}`)
+    try { const result = await api.syncProjectIssues(projectId); onToast(t('git:issues.syncResult', result)); await load() }
+    catch (error) { onToast(error instanceof Error ? error.message : t('git:issues.syncFailed')) }
+    finally { setBusy(null) }
+  }
+  const classify = async (issue: IssueActivity) => {
+    setBusy(`classify:${issue.projectId}:${issue.number}`)
+    try { await api.classifyIssue(issue.projectId, issue.number); onToast(t('git:issues.classified')); await load() }
+    catch (error) { onToast(error instanceof Error ? error.message : t('git:issues.classifyFailed')) }
+    finally { setBusy(null) }
+  }
+  const fix = async (issue: IssueActivity) => {
+    setBusy(`fix:${issue.projectId}:${issue.number}`)
+    try { await api.fixIssue(issue.projectId, issue.number, issue.classification); onToast(t('git:issues.fixQueued')); await load() }
+    catch (error) { onToast(error instanceof Error ? error.message : t('git:issues.fixFailed')) }
+    finally { setBusy(null) }
+  }
+  return <>
+    <PageIntro eyebrow={t('git:issues.eyebrow')} title={t('git:issues.title')} detail={t('git:issues.subtitle')} action={<button className="secondary-button" onClick={() => void load()}><RefreshCw size={15} /> {t('common:actions.refresh')}</button>} />
+    <div className="filter-bar"><div className="filter-summary"><span className="data-count">{visible.length}</span><span>{t('git:issues.visible')}</span></div><div className="group-chips"><button className={!selectedProjectId ? 'chip active' : 'chip'} onClick={() => setSelectedProjectId('')}>{t('git:issues.allRepositories')}</button>{projects.map((project) => <button className={selectedProjectId === project.id ? 'chip active' : 'chip'} key={project.id} onClick={() => setSelectedProjectId(project.id)}>{project.fullName}</button>)}</div></div>
+    <div className="panel issues-panel">
+      <div className="panel-head"><div><div className="panel-kicker">{t('git:issues.queueKicker')}</div><h2>{t('git:issues.queueTitle')}</h2></div><div className="issue-project-actions">{projects.map((project) => <button className="secondary-button compact" key={project.id} onClick={() => void sync(project.id)} disabled={busy === `sync:${project.id}`}><RefreshCw size={13} /> {project.name}</button>)}</div></div>
+      {loading ? <div className="loading-row"><Loader2 className="spin" size={18} /> {t('common:states.loading')}</div> : visible.length ? <div className="issue-list">{visible.map((issue) => <article className="issue-card" key={`${issue.projectId}:${issue.number}`}>
+        <div className="issue-card-head"><div><a href={issue.htmlUrl || '#'} target="_blank" rel="noreferrer"><strong>#{issue.number} · {issue.title}</strong></a><span>{issue.repository} · {formatStamp(issue.updatedAt || issue.seenAt)}</span></div><StatusPill status={issue.fixState || issue.state} /></div>
+        <div className="issue-meta"><StatusPill status={issue.classification.category} /><StatusPill status={issue.classification.severity} /><span>{t('git:issues.confidence', { value: Math.round(issue.classification.confidence * 100) })}</span><span>{issue.classification.source}</span></div>
+        {issue.classification.problemSummary && <p className="helper-copy">{issue.classification.problemSummary}</p>}
+        <div className="issue-card-actions"><button className="ghost-button" onClick={() => void classify(issue)} disabled={Boolean(busy)}>{t('git:issues.reclassify')}</button>{issue.triggerFix && !['queued', 'running', 'succeeded'].includes(issue.fixState || '') && <button className="secondary-button compact" onClick={() => void fix(issue)} disabled={Boolean(busy)}><Bot size={14} /> {t('git:issues.queueFix')}</button>}{issue.fixSummary?.pullRequest && <a className="secondary-button compact" href={issue.fixSummary.pullRequest.url} target="_blank" rel="noreferrer"><GitPullRequest size={14} /> {t('git:issues.openPr', { number: issue.fixSummary.pullRequest.number })}</a>}</div>
+        {issue.fixSummary && <div className="delivery-line"><span>{t('git:issues.delivery.verification')}: {issue.fixSummary.verification || '—'}</span><span>{t('git:issues.delivery.push')}: {issue.fixSummary.branch || '—'}</span><span>{t('git:issues.delivery.merge')}: {issue.fixSummary.merged?.merged ? t('common:states.completed') : issue.fixSummary.merged?.reason || '—'}</span><span>{t('git:issues.delivery.release')}: {issue.fixSummary.released?.tag || issue.fixSummary.released?.reason || '—'}</span><span>{t('git:issues.delivery.close')}: {issue.fixSummary.issueClosed?.closed ? t('common:states.completed') : issue.fixSummary.issueClosed?.reason || '—'}</span></div>}
+      </article>)}</div> : <EmptyState title={t('git:issues.emptyTitle')} detail={t('git:issues.emptyDetail')} />}
+    </div>
+  </>
+}
+
+function SecurityFindings({ projects, onToast }: { projects: Project[]; onToast: (message: string) => void }) {
+  const { t } = useTranslation()
+  const [findings, setFindings] = useState<SecurityFinding[]>([])
+  const [selectedProjectId, setSelectedProjectId] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [scanning, setScanning] = useState('')
+  const load = async () => { try { setFindings((await api.securityFindings({ projectId: selectedProjectId || undefined, limit: 500 })).findings) } catch (error) { onToast(error instanceof Error ? error.message : t('git:securityFindings.loadFailed')) } finally { setLoading(false) } }
+  useEffect(() => { void load() }, [selectedProjectId]) // eslint-disable-line react-hooks/exhaustive-deps
+  const scan = async (projectId: string) => { setScanning(projectId); try { const result = await api.securityScan(projectId); onToast(t('git:securityFindings.scanResult', { status: result.scan.status })); await load() } catch (error) { onToast(error instanceof Error ? error.message : t('git:securityFindings.scanFailed')) } finally { setScanning('') } }
+  const counts = ['P0', 'P1', 'P2', 'P3', 'P4'].map((priority) => [priority, findings.filter((finding) => finding.priority === priority).length] as const)
+  return <><PageIntro eyebrow={t('git:securityFindings.eyebrow')} title={t('git:securityFindings.title')} detail={t('git:securityFindings.subtitle')} action={<button className="secondary-button" onClick={() => void load()}><RefreshCw size={15} /> {t('common:actions.refresh')}</button>} /><div className="update-summary">{counts.map(([priority, count]) => <div key={priority}><span>{priority}</span><strong className={priority === 'P0' || priority === 'P1' ? 'danger-text' : ''}>{count}</strong></div>)}</div><div className="panel security-findings"><div className="panel-head"><div><div className="panel-kicker">{t('git:securityFindings.projectsKicker')}</div><h2>{t('git:securityFindings.projectsTitle')}</h2></div><select className="inline-select" value={selectedProjectId} onChange={(event) => setSelectedProjectId(event.target.value)}><option value="">{t('git:securityFindings.allProjects')}</option>{projects.map((project) => <option value={project.id} key={project.id}>{project.fullName}</option>)}</select></div><div className="security-scan-actions">{projects.map((project) => <button className="secondary-button compact" key={project.id} onClick={() => void scan(project.id)} disabled={Boolean(scanning)}><ShieldCheck size={13} /> {scanning === project.id ? t('git:securityFindings.scanning') : t('git:securityFindings.scan', { project: project.name })}</button>)}</div>{loading ? <div className="loading-row"><Loader2 className="spin" size={18} /> {t('common:states.loading')}</div> : findings.length ? <div className="finding-list">{findings.map((finding) => <div className="finding-row" key={finding.id}><div><strong>{finding.repository}</strong><span>{finding.key} · {finding.summary}{finding.path ? ` · ${finding.path}` : ''}</span><small>{formatStamp(finding.recordedAt)}</small></div><StatusPill status={finding.priority} /></div>)}</div> : <EmptyState title={t('git:securityFindings.emptyTitle')} detail={t('git:securityFindings.emptyDetail')} />}</div></>
+}
+
+function ResearchCenter({ projects, onToast, initialProjectId }: { projects: Project[]; onToast: (message: string) => void; initialProjectId?: string }) {
+  const { t } = useTranslation()
+  const [reports, setReports] = useState<ResearchReport[]>([])
+  const [selected, setSelected] = useState<ResearchReport | null>(null)
+  const [projectId, setProjectId] = useState(initialProjectId || projects[0]?.id || '')
+  const [loading, setLoading] = useState(true)
+  const [running, setRunning] = useState(false)
+  const load = async () => { try { const result = await api.researchReports(); setReports(result.reports); setSelected((current) => current ? result.reports.find((report) => report.id === current.id) || current : result.reports[0] || null) } catch (error) { onToast(error instanceof Error ? error.message : t('git:research.loadFailed')) } finally { setLoading(false) } }
+  useEffect(() => { void load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const run = async () => { if (!projectId) return onToast(t('git:research.chooseProject')); setRunning(true); try { const result = await api.runResearch(projectId); setReports((current) => [result.report, ...current.filter((report) => report.id !== result.report.id)]); setSelected(result.report); onToast(t('git:research.completed', { source: result.report.analysis.source })) } catch (error) { onToast(error instanceof Error ? error.message : t('git:research.runFailed')) } finally { setRunning(false) } }
+  return <><PageIntro eyebrow={t('git:research.eyebrow')} title={t('git:research.title')} detail={t('git:research.subtitle')} action={<div className="page-actions"><select className="inline-select" value={projectId} onChange={(event) => setProjectId(event.target.value)}><option value="">{t('git:research.chooseProject')}</option>{projects.map((project) => <option value={project.id} key={project.id}>{project.fullName}</option>)}</select><button className="primary-button" onClick={() => void run()} disabled={running || !projectId}><Search size={15} /> {running ? t('git:research.running') : t('git:research.run')}</button></div>} /><div className="history-columns"><div className="panel"><div className="panel-head"><div><div className="panel-kicker">{t('git:research.reportsKicker')}</div><h2>{t('git:research.reportsTitle', { count: reports.length })}</h2></div><button className="ghost-button" onClick={() => void load()}>{t('common:actions.refresh')}</button></div>{loading ? <div className="loading-row"><Loader2 className="spin" size={18} /> {t('common:states.loading')}</div> : reports.length ? <div className="history-list">{reports.map((report) => <button className={`history-row ${selected?.id === report.id ? 'selected' : ''}`} key={report.id} onClick={() => setSelected(report)}><div><strong>{report.repository}</strong><span>{report.analysis.source} · {formatStamp(report.createdAt)} · {report.candidates.length} {t('git:research.candidates')}</span></div><StatusPill status={report.status} /></button>)}</div> : <EmptyState title={t('git:research.emptyTitle')} detail={t('git:research.emptyDetail')} />}</div><div className="panel history-detail"><div className="panel-head"><div><div className="panel-kicker">{t('git:research.detailKicker')}</div><h2>{selected?.repository || t('git:research.detailEmptyTitle')}</h2></div>{selected && <StatusPill status={selected.analysis.source} />}</div>{selected ? <><div className="signal-row"><span>{t('git:research.query')}</span><strong>{selected.query}</strong></div><div className="signal-row"><span>{t('git:research.candidates')}</span><strong>{selected.candidates.length}</strong></div><div className="signal-row"><span>{t('git:research.gaps')}</span><strong>{selected.analysis.gapAnalysis.length}</strong></div><div className="signal-row"><span>{t('git:research.proposals')}</span><strong>{selected.analysis.upgradeProposals.length}</strong></div><div className="change-files"><strong>{t('git:research.candidateEvidence')}</strong><ul>{selected.candidates.map((candidate) => <li key={candidate.fullName}><a href={candidate.url} target="_blank" rel="noreferrer"><code>{candidate.fullName}</code></a> · {candidate.stars} ★ · {(typeof candidate.license === 'string' ? candidate.license : candidate.license?.spdx) || t('git:research.licenseUnknown')} · {candidate.description || t('git:research.noDescription')}</li>)}</ul></div>{selected.analysis.gapAnalysis.length > 0 && <div className="change-files"><strong>{t('git:research.gapTitle')}</strong><ul>{selected.analysis.gapAnalysis.map((gap) => <li key={gap.dimension}><strong>{gap.dimension}</strong>: {gap.recommendation} — {gap.peer}</li>)}</ul></div>}{selected.upgradeProposals?.length ? <UpgradeProposalReviews report={selected} onChanged={load} onToast={onToast} /> : null}{selected.analysis.upgradeProposals.length > 0 && <div className="change-files"><strong>{t('git:research.proposalTitle')}</strong><ul>{selected.analysis.upgradeProposals.map((proposal) => <li key={proposal.title}><strong>{proposal.priority} · {proposal.title}</strong>: {proposal.rationale}</li>)}</ul></div>}</> : <EmptyState title={t('git:research.detailChooseTitle')} detail={t('git:research.detailChooseDetail')} />}</div></div></>
+}
+
 function SettingsPage({ status }: { status: { configured: boolean; owner: string | null; apiUrl: string; permissions: string[] } | null }) {
   const { t } = useTranslation()
   return <><PageIntro eyebrow={t('git:serverSettings.eyebrow')} title={t('git:serverSettings.title')} detail={t('git:serverSettings.subtitle')} /><div className="settings-grid"><div className="panel settings-panel"><div className="panel-kicker">{t('git:serverSettings.githubKicker')}</div><h2>{t('git:serverSettings.githubTitle')}</h2><div className="setting-line"><span>{t('git:serverSettings.fields.status')}</span><StatusPill status={status?.configured ? t('git:serverSettings.fields.connected') : t('common:states.blocked')} /></div><div className="setting-line"><span>{t('git:serverSettings.fields.owner')}</span><strong>{status?.owner || t('git:serverSettings.fields.notConfigured')}</strong></div><div className="setting-line"><span>{t('git:serverSettings.fields.apiEndpoint')}</span><code>{status?.apiUrl || '—'}</code></div><div className="setting-line"><span>{t('git:serverSettings.fields.grantedSurface')}</span><strong>{status?.permissions?.length ? status.permissions.join(', ') : t('git:serverSettings.fields.noToken')}</strong></div></div><div className="panel settings-panel"><div className="panel-kicker">{t('git:serverSettings.safetyKicker')}</div><h2>{t('git:serverSettings.safetyTitle')}</h2><div className="guardrail"><ShieldCheck size={16} /><div><strong>{t('git:serverSettings.credentialsTitle')}</strong><span>{t('git:serverSettings.credentialsDetail')}</span></div></div><div className="guardrail"><GitBranch size={16} /><div><strong>{t('git:serverSettings.refTitle')}</strong><span>{t('git:serverSettings.refDetail')}</span></div></div><div className="guardrail"><AlertTriangle size={16} /><div><strong>{t('git:serverSettings.guardsTitle')}</strong><span>{t('git:serverSettings.guardsDetail')}</span></div></div></div></div></>
+}
+
+function HostedTimeline({ onToast }: { onToast: (message: string) => void }) {
+  const { t } = useTranslation()
+  const [jobs, setJobs] = useState<Awaited<ReturnType<typeof api.hostedJobs>>['jobs']>([])
+  const [checking, setChecking] = useState('')
+  useEffect(() => {
+    let active = true
+    const load = () => api.hostedJobs().then((data) => { if (active) setJobs(data.jobs) }).catch((cause) => { if (active) onToast(cause.message) })
+    void load(); const timer = window.setInterval(() => void load(), 5000)
+    return () => { active = false; window.clearInterval(timer) }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  return <section className="panel hosted-timeline"><h2>{t('git:upgrade.jobsTitle')}</h2>{jobs.length ? jobs.map((job) => <details key={job.id} className="hosting-run-row"><summary>{job.priority} · {job.repository} #{job.issueNumber} <StatusPill status={job.status} /></summary><p>{formatStamp(job.createdAt)}</p><div className="signal-row"><span>{t('git:upgrade.execution')}</span><StatusPill status={job.executionStatus || 'NotStarted'} /></div><div className="signal-row"><span>{t('git:upgrade.delivery')}</span><StatusPill status={job.deliveryStatus || 'NotStarted'} /></div>{job.releasePlan && <p>{job.releasePlan.adapter} · {job.releasePlan.tag} · <StatusPill status={job.releasePlan.status} /> {job.releasePlan.blockedReason}</p>}{job.operations?.length ? <details><summary>{t('git:upgrade.receipts')} ({job.operations.length})</summary><ul>{job.operations.map((operation) => <li key={operation.key}><code>{operation.endpoint}</code> <StatusPill status={operation.status} /></li>)}</ul></details> : null}{['Interrupted', 'Blocked'].includes(job.status) && <button className="secondary-button" disabled={checking === job.id} onClick={async () => { setChecking(job.id); try { const result = await api.reconcileHostedJob(job.id); onToast(t(`common:status.${result.job.reconciliation}`, { defaultValue: result.job.reconciliation })); const next = await api.hostedJobs(); setJobs(next.jobs) } catch (error) { onToast(error instanceof Error ? error.message : String(error)) } finally { setChecking('') } }}>{t('git:upgrade.reconcile')}</button>}{job.error && <p role="alert">{job.error}</p>}<ol>{job.events.map((event, index) => <li key={index}><time>{formatStamp(event.at)}</time> {event.detail}</li>)}</ol></details>) : <p>{t('git:issues.emptyTitle')}</p>}</section>
+}
+
+function UpgradeProposalReviews({ report, onChanged, onToast }: { report: ResearchReport; onChanged: () => Promise<void>; onToast: (message: string) => void }) {
+  const { t } = useTranslation()
+  const [reviewed, setReviewed] = useState<Set<string>>(new Set())
+  const [busy, setBusy] = useState('')
+  const decide = async (proposal: UpgradeProposal, decision: 'approve' | 'reject') => {
+    setBusy(proposal.id)
+    try { await api.reviewUpgradeProposal(report.id, proposal.id, decision, reviewed.has(proposal.id)); await onChanged() }
+    catch (error) { onToast(error instanceof Error ? error.message : String(error)) }
+    finally { setBusy('') }
+  }
+  return <div className="change-files">{report.upgradeProposals?.map((proposal) => <section key={proposal.id}>
+    <h3>{proposal.priority} · {proposal.title}</h3><StatusPill status={proposal.status} /><p>{proposal.rationale}</p>
+    {proposal.evidence.map((item) => <p key={`${item.repository}:${item.path}`}><code>{item.repository}/{item.path} @ {item.sha}</code></p>)}
+    {proposal.blockedReason && <p role="alert">{proposal.blockedReason}</p>}
+    {proposal.status === 'Draft' && <><label><input type="checkbox" checked={reviewed.has(proposal.id)} onChange={(event) => setReviewed((current) => { const next = new Set(current); if (event.target.checked) next.add(proposal.id); else next.delete(proposal.id); return next })} />{t('git:upgrade.licenseReviewed')}</label><div className="page-actions"><button className="secondary-button" disabled={Boolean(busy) || !reviewed.has(proposal.id)} onClick={() => void decide(proposal, 'approve')}>{t('agent:review.approve')}</button><button className="secondary-button" disabled={Boolean(busy)} onClick={() => void decide(proposal, 'reject')}>{t('agent:review.deny')}</button></div></>}
+  </section>)}</div>
 }

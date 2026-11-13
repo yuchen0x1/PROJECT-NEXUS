@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url'
+import { assertExecutionAllowed } from '../execution-policy.mjs'
 import { spawn } from 'node:child_process'
 import fs from 'node:fs/promises'
 import path from 'node:path'
@@ -109,7 +111,10 @@ function buildChildEnv() {
     if (envDenyPatterns.some((pattern) => pattern.test(upper))) continue
     if (allowPrefixes.some((prefix) => upper.startsWith(prefix))) childEnv[key] = value
   }
-  childEnv.NEXUS_AGENT_SANDBOX = '1'
+  delete childEnv.NODE_OPTIONS
+  delete childEnv.NODE_PATH
+  delete childEnv.NODE_EXTRA_CA_CERTS
+  childEnv.NEXUS_AGENT_EXECUTION_MODE = 'trusted-local'
   childEnv.NO_COLOR = '1'
   childEnv.CI = '1'
   if (process.platform === 'win32' && !childEnv.ComSpec) childEnv.ComSpec = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'cmd.exe')
@@ -133,6 +138,7 @@ export function isProgramAllowed(command, allowedPrograms = DEFAULT_ALLOWED_PROG
 
 export async function runCommand({ cwd, command, timeoutMs = EXECUTOR_DEFAULTS.timeoutMs, outputLimitBytes = EXECUTOR_DEFAULTS.outputLimitBytes, signal = null, allowedPrograms = DEFAULT_ALLOWED_PROGRAMS } = {}) {
   if (!cwd || !path.isAbsolute(cwd)) throw executorError('COMMAND_CWD_INVALID', 'Command execution requires an absolute working directory inside the task workspace.')
+  assertExecutionAllowed()
   const info = await fs.stat(cwd).catch(() => null)
   if (!info?.isDirectory()) throw executorError('COMMAND_CWD_MISSING', `The working directory does not exist: ${cwd}`)
 
@@ -164,6 +170,16 @@ export async function runCommand({ cwd, command, timeoutMs = EXECUTOR_DEFAULTS.t
     } else {
       file = resolved
     }
+  }
+
+  if (process.platform === 'win32') {
+    // Resource containment and parent-death cleanup; trusted code only, not an OS security sandbox.
+    const quote = (arg) => !arg || /[\s"]/.test(arg) ? '"' + arg.replace(/(\\*)"/g, '$1$1\\"').replace(/(\\+)$/g, '$1$1') + '"' : arg
+    const spec = Buffer.from(JSON.stringify({ file, arguments: usedShellWrapper ? spawnArgs.map((arg) => arg).join(' ') : spawnArgs.map(quote).join(' '), cwd, parentPid: process.pid })).toString('base64')
+    file = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe')
+    const runnerFile = fileURLToPath(new URL('./windows-job-runner.ps1', import.meta.url)).replace(/([\\/])app\.asar([\\/])/, '$1app.asar.unpacked$2')
+    spawnArgs = ['-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', runnerFile, '-SpecBase64', spec]
+    usedShellWrapper = false
   }
 
   return await new Promise((resolve) => {
@@ -226,7 +242,7 @@ export async function runCommand({ cwd, command, timeoutMs = EXECUTOR_DEFAULTS.t
       clearTimeout(timer)
       if (signal) signal.removeEventListener('abort', onAbort)
       resolve({
-        ok: !timedOut && !signal?.aborted && exitCode === 0,
+        ok: !timedOut && !truncated && !signal?.aborted && exitCode === 0,
         exitCode,
         signal: signalName || null,
         timedOut,

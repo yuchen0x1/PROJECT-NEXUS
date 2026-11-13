@@ -54,7 +54,9 @@
     "no": "いいえ",
     "guarded": "保護されています",
     "pass": "合格",
-    "fail": "失敗"
+    "fail": "失敗",
+    "neverRun": "未実行",
+    "completed": "完了"
   },
   "status": {
     "Pending": "保留中",
@@ -75,7 +77,19 @@
     "success": "成功",
     "failure": "失敗",
     "in_progress": "実行中",
-    "queued": "キュー待ち"
+    "queued": "キュー待ち",
+    "Succeeded": "成功",
+    "NotStarted": "未開始",
+    "NotRequested": "配信の指定なし",
+    "Incomplete": "未完了",
+    "Interrupted": "中断",
+    "Confirmed": "確認済み",
+    "Uncertain": "要照合",
+    "Prepared": "準備済み",
+    "Approved": "承認済み",
+    "Rejected": "却下",
+    "ReceiptsConfirmed": "リモート結果を確認しました",
+    "NeedsReview": "確認が必要です"
   },
   "mode": {
     "readOnly": "読み取り専用モード"

@@ -1,12 +1,15 @@
+import { createRestartBudget } from './service-health.mjs'
 import { spawn } from 'node:child_process'
 import crypto from 'node:crypto'
 import fs from 'node:fs/promises'
 import { release as osRelease } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, safeStorage, screen, Tray } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, safeStorage, screen, shell, Tray } from 'electron'
 import { detectDevelopmentEnvironment } from '../server/services/local-environment.mjs'
 import { listLocalProjects, registerLocalProject, scanLocalProject, unregisterLocalProject } from '../server/services/local-projects.mjs'
+import { listProviderRecords, resolveProviderForInvocation } from '../server/services/provider-store.mjs'
+import { listDraftProviderModels } from '../server/services/provider-models.mjs'
 
 // Languages shipped in src/i18n/languages.ts. Kept in sync manually; the
 // renderer validates as well, this is the durable boundary.
@@ -14,16 +17,16 @@ const SUPPORTED_LANGUAGES = Object.freeze(['zh-CN', 'zh-TW', 'en-US', 'ja-JP', '
 const THEMES = Object.freeze(['dark', 'light', 'system'])
 
 const TRAY_STRINGS = {
-  'zh-CN': { open: '打开 PROJECT NEXUS', exit: '退出 PROJECT NEXUS', tooltip: 'PROJECT NEXUS — Windows 工作站' },
-  'zh-TW': { open: '開啟 PROJECT NEXUS', exit: '結束 PROJECT NEXUS', tooltip: 'PROJECT NEXUS — Windows 工作站' },
-  'en-US': { open: 'Open PROJECT NEXUS', exit: 'Exit PROJECT NEXUS', tooltip: 'PROJECT NEXUS — Windows Workstation' },
-  'ja-JP': { open: 'PROJECT NEXUS を開く', exit: 'PROJECT NEXUS を終了', tooltip: 'PROJECT NEXUS — Windows ワークステーション' },
-  'ko-KR': { open: 'PROJECT NEXUS 열기', exit: 'PROJECT NEXUS 종료', tooltip: 'PROJECT NEXUS — Windows 워크스테이션' },
-  'fr-FR': { open: 'Ouvrir PROJECT NEXUS', exit: 'Quitter PROJECT NEXUS', tooltip: 'PROJECT NEXUS — Station de travail Windows' },
-  'de-DE': { open: 'PROJECT NEXUS öffnen', exit: 'PROJECT NEXUS beenden', tooltip: 'PROJECT NEXUS — Windows-Arbeitsbereich' },
-  'es-ES': { open: 'Abrir PROJECT NEXUS', exit: 'Salir de PROJECT NEXUS', tooltip: 'PROJECT NEXUS — Estación de trabajo Windows' },
-  'pt-BR': { open: 'Abrir PROJECT NEXUS', exit: 'Encerrar PROJECT NEXUS', tooltip: 'PROJECT NEXUS — Estação de trabalho Windows' },
-  'ru-RU': { open: 'Открыть PROJECT NEXUS', exit: 'Выйти из PROJECT NEXUS', tooltip: 'PROJECT NEXUS — рабочая станция Windows' }
+  'zh-CN': { open: '打开 PROJECT NEXUS', exit: '退出 PROJECT NEXUS', pause: '暂停自动维护', resume: '恢复自动维护', tooltip: 'PROJECT NEXUS — Windows 工作站' },
+  'zh-TW': { open: '開啟 PROJECT NEXUS', exit: '結束 PROJECT NEXUS', pause: '暫停自動維護', resume: '恢復自動維護', tooltip: 'PROJECT NEXUS — Windows 工作站' },
+  'en-US': { open: 'Open PROJECT NEXUS', exit: 'Exit PROJECT NEXUS', pause: 'Pause autonomous maintenance', resume: 'Resume autonomous maintenance', tooltip: 'PROJECT NEXUS — Windows Workstation' },
+  'ja-JP': { open: 'PROJECT NEXUS を開く', exit: 'PROJECT NEXUS を終了', pause: '自動メンテナンスを一時停止', resume: '自動メンテナンスを再開', tooltip: 'PROJECT NEXUS — Windows ワークステーション' },
+  'ko-KR': { open: 'PROJECT NEXUS 열기', exit: 'PROJECT NEXUS 종료', pause: '자동 유지 관리 일시 중지', resume: '자동 유지 관리 재개', tooltip: 'PROJECT NEXUS — Windows 워크스테이션' },
+  'fr-FR': { open: 'Ouvrir PROJECT NEXUS', exit: 'Quitter PROJECT NEXUS', pause: 'Suspendre la maintenance automatique', resume: 'Reprendre la maintenance automatique', tooltip: 'PROJECT NEXUS — Station de travail Windows' },
+  'de-DE': { open: 'PROJECT NEXUS öffnen', exit: 'PROJECT NEXUS beenden', pause: 'Automatische Wartung pausieren', resume: 'Automatische Wartung fortsetzen', tooltip: 'PROJECT NEXUS — Windows-Arbeitsbereich' },
+  'es-ES': { open: 'Abrir PROJECT NEXUS', exit: 'Salir de PROJECT NEXUS', pause: 'Pausar mantenimiento automático', resume: 'Reanudar mantenimiento automático', tooltip: 'PROJECT NEXUS — Estación de trabajo Windows' },
+  'pt-BR': { open: 'Abrir PROJECT NEXUS', exit: 'Encerrar PROJECT NEXUS', pause: 'Pausar manutenção automática', resume: 'Retomar manutenção automática', tooltip: 'PROJECT NEXUS — Estação de trabalho Windows' },
+  'ru-RU': { open: 'Открыть PROJECT NEXUS', exit: 'Выйти из PROJECT NEXUS', pause: 'Приостановить автообслуживание', resume: 'Возобновить автообслуживание', tooltip: 'PROJECT NEXUS — рабочая станция Windows' }
 }
 
 function trayLanguage(preferences) {
@@ -53,6 +56,7 @@ const cachePath = app.getPath('sessionData')
 const settingsPath = path.join(userDataPath, 'desktop-settings.json')
 const windowStatePath = path.join(userDataPath, 'window-state.json')
 const providerKeysPath = path.join(userDataPath, 'provider-keys.json')
+const githubCredentialsPath = path.join(userDataPath, 'github-credentials.json')
 const apiToken = crypto.randomBytes(32).toString('hex')
 let apiOrigin = ''
 let apiProcess = null
@@ -60,6 +64,10 @@ let mainWindow = null
 let tray = null
 let windowSaveTimer = null
 let isQuitting = false
+let hostingPaused = false
+const serviceRestartBudget = createRestartBudget()
+let serviceRespawnAttempts = 0
+let serviceRespawnTimer = null
 let preferences = { autoStart: false, language: null, theme: 'dark', reduceMotion: false, agentReplyLanguage: 'ui' }
 
 process.env.NEXUS_LOCAL_API_TOKEN = apiToken
@@ -117,6 +125,7 @@ async function startApiProcess() {
       NEXUS_DATA_DIR: userDataPath,
       NEXUS_STATE_FILE: path.join(userDataPath, 'state.json'),
       NEXUS_AGENT_WORKSPACE_ROOT: path.join(userDataPath, 'agent-workspaces'),
+      NEXUS_REPO_WORKSPACE_ROOT: path.join(userDataPath, 'repositories'),
       NEXUS_LOG_DIR: logsPath
     }
     const child = spawn(process.execPath, [serverEntry], {
@@ -155,11 +164,44 @@ async function startApiProcess() {
     child.on('exit', (code) => {
       if (!settled) finish(Object.assign(new Error(`The local service exited during startup (${code ?? 'unknown'}).`), { code: 'LOCAL_SERVICE_EARLY_EXIT', exitCode: Number(code ?? -1) }))
       else if (!isQuitting) {
+        // PART 2.2: the background service must survive crashes — respawn with
+        // exponential backoff instead of giving up.
         void writeLog('error', 'local-service-exited', { code: Number(code ?? -1) })
-        if (mainWindow && !mainWindow.isDestroyed()) dialog.showErrorBox('Local service stopped', `PROJECT NEXUS local services stopped unexpectedly. Check the logs under ${logsPath}.`)
+        void respawnApiService()
       }
     })
   })
+}
+
+// PART 2.2: crash auto-recovery for the background service. Exponential
+// backoff capped at 30 s; after 5 consecutive failures the user is informed
+// instead of silently retrying forever.
+async function respawnApiService() {
+  if (isQuitting) return
+  const restart = serviceRestartBudget.next()
+  if (!restart) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      dialog.showErrorBox('Local service stopped', `PROJECT NEXUS local services stopped repeatedly and were not restarted automatically. Check the logs under ${logsPath}.`)
+    }
+    return
+  }
+  serviceRespawnAttempts = restart.attempt
+  const delay = restart.delay
+  await writeLog('warning', 'local-service-respawn-scheduled', { attempt: serviceRespawnAttempts })
+  clearTimeout(serviceRespawnTimer)
+  serviceRespawnTimer = setTimeout(async () => {
+    if (isQuitting) return
+    try {
+      const port = await startApiProcess()
+      apiOrigin = `http://127.0.0.1:${port}`
+      void syncStoredProviderKeys()
+      void syncHostingPauseState()
+      await writeLog('info', 'local-service-respawned')
+    } catch (error) {
+      await writeLog('error', 'local-service-respawn-failed', { code: typeof error?.code === 'string' ? error.code.slice(0, 80) : 'UNKNOWN' })
+      void respawnApiService()
+    }
+  }, delay)
 }
 
 async function loadWindowState() {
@@ -214,7 +256,8 @@ async function readProviderKeyVault() {
   try {
     const parsed = JSON.parse(await fs.readFile(providerKeysPath, 'utf8'))
     if (parsed && typeof parsed === 'object' && parsed.schemaVersion === 1 && parsed.keys && typeof parsed.keys === 'object') return parsed
-  } catch { /* first run or unreadable: start empty */ }
+    throw new Error('Credential vault format is invalid; existing credentials were preserved.')
+  } catch (error) { if (error.code !== 'ENOENT') throw error }
   return { schemaVersion: 1, keys: {} }
 }
 
@@ -234,7 +277,6 @@ async function decryptVaultKeys(vault) {
     if (typeof encrypted !== 'string' || !encrypted) continue
     try {
       const buffer = Buffer.from(encrypted, 'latin1')
-      if (!safeStorage.isEncrypted(buffer)) continue
       keys[id] = safeStorage.decryptString(buffer)
     } catch { /* skip undecryptable entries instead of failing startup */ }
   }
@@ -260,6 +302,7 @@ async function syncProviderKeysToService(keys) {
 }
 
 async function syncStoredProviderKeys() {
+  await syncStoredGitHubCredential()
   try {
     const vault = await readProviderKeyVault()
     const keys = await decryptVaultKeys(vault)
@@ -274,7 +317,52 @@ async function syncStoredProviderKeys() {
   return { synced: false }
 }
 
+async function syncGitHubCredential(token) {
+  const response = await fetch(`${apiOrigin}/api/github/credentials`, {
+    method: 'POST', headers: { Authorization: `Bearer ${apiToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token }), signal: AbortSignal.timeout(20_000)
+  })
+  const body = await response.json()
+  if (!response.ok) throw new Error(body.message || 'GitHub connection failed.')
+  return body
+}
+
+async function syncStoredGitHubCredential() {
+  try {
+    const record = JSON.parse(await fs.readFile(githubCredentialsPath, 'utf8'))
+    if (record.schemaVersion !== 1 || typeof record.encrypted !== 'string') throw new Error('Invalid GitHub credential vault.')
+    await syncGitHubCredential(safeStorage.decryptString(Buffer.from(record.encrypted, 'base64')))
+  } catch (error) {
+    if (error.code !== 'ENOENT') await writeLog('warning', 'github-credential-sync-failed', {})
+  }
+}
+
 function registerLocalCapabilities() {
+  registerIpc('desktop:provider-models:list', async (draft) => {
+    const records = await listProviderRecords({ dataDir: userDataPath })
+    return await listDraftProviderModels(draft, {
+      records,
+      getSavedKey: async (provider) => {
+        if (provider.source === 'env') return (await resolveProviderForInvocation({ dataDir: userDataPath, providerId: provider.id }))?.apiKey || ''
+        const keys = await decryptVaultKeys(await readProviderKeyVault())
+        return keys[provider.id] || ''
+      }
+    })
+  })
+  registerIpc('desktop:github:open-token-page', async () => {
+    await shell.openExternal('https://github.com/settings/tokens/new')
+  })
+  registerIpc('desktop:github:connect', async (token) => {
+    if (typeof token !== 'string' || !token.trim() || token.length > 4096) throw new Error('Enter a GitHub access token.')
+    if (!safeStorage.isEncryptionAvailable()) throw new Error('Secure credential encryption is unavailable.')
+    const result = await syncGitHubCredential(token.trim())
+    const temporary = `${githubCredentialsPath}.${crypto.randomUUID()}.tmp`
+    try {
+      await fs.writeFile(temporary, JSON.stringify({ schemaVersion: 1, encrypted: safeStorage.encryptString(token.trim()).toString('base64') }), { flag: 'wx', mode: 0o600 })
+      await fs.rename(temporary, githubCredentialsPath)
+    } finally { await fs.rm(temporary, { force: true }).catch(() => {}) }
+    return result
+  })
   registerIpc('desktop:provider-keys:set', async (providerId, apiKey) => {
     const id = providerKeyId(providerId)
     if (typeof apiKey !== 'string' || !apiKey.trim() || apiKey.length > 4096) throw new Error('The API key must be a non-empty string.')
@@ -312,7 +400,9 @@ function registerLocalCapabilities() {
       body = request.body
     }
     const abortController = new AbortController()
-    const timeout = setTimeout(() => abortController.abort(), 30_000)
+    // Readiness performs bounded GitHub, provider and tool probes in sequence.
+    const requestTimeout = /\/hosting\/readiness$/.test(target.pathname) ? 75_000 : 30_000
+    const timeout = setTimeout(() => abortController.abort(), requestTimeout)
     try {
       const response = await fetch(target, {
         method,
@@ -384,7 +474,8 @@ function registerLocalCapabilities() {
   })
   registerIpc('desktop:settings:auto-start', async (enabled) => {
     if (typeof enabled !== 'boolean') throw new Error('Auto-start setting must be enabled or disabled explicitly.')
-    app.setLoginItemSettings({ openAtLogin: enabled, path: app.getPath('exe') })
+    // PART 2.2: boot launches restore the background service silently to the tray.
+    app.setLoginItemSettings({ openAtLogin: enabled, path: app.getPath('exe'), args: ['--hidden'] })
     preferences = { ...preferences, autoStart: enabled }
     await writeJson(settingsPath, preferences)
     await writeLog('info', 'auto-start-setting-changed', { enabled })
@@ -453,6 +544,12 @@ async function createMainWindow() {
     }
   })
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+  mainWindow.webContents.on('render-process-gone', (event, details) => {
+    void writeLog('error', 'renderer-gone', { reason: String(details?.reason || 'unknown').slice(0, 80) })
+    // The window destroyed itself; recreate it so the tray keeps working.
+    mainWindow = null
+    setTimeout(() => { if (!isQuitting) void createMainWindow().catch(() => {}) }, 1_000)
+  })
   mainWindow.webContents.on('will-navigate', (event, target) => {
     try { if (new URL(target).origin !== apiOrigin) event.preventDefault() }
     catch { event.preventDefault() }
@@ -476,10 +573,68 @@ async function createMainWindow() {
 }
 
 function showWindow() {
-  if (!mainWindow || mainWindow.isDestroyed()) return
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    // A destroyed window (renderer crash) no longer leaves a dead tray item:
+    // the window is recreated against the running background service.
+    void createMainWindow().catch((error) => void writeLog('error', 'window-recreate-failed', {}))
+    return
+  }
   if (mainWindow.isMinimized()) mainWindow.restore()
   mainWindow.show()
   mainWindow.focus()
+}
+
+async function syncHostingPauseState() {
+  if (!apiOrigin) return { synced: false, paused: hostingPaused }
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 10_000)
+  try {
+    const response = await fetch(`${apiOrigin}/api/hosting/overview`, {
+      headers: { Authorization: `Bearer ${apiToken}` },
+      signal: controller.signal
+    })
+    const body = await response.json().catch(() => ({}))
+    if (!response.ok || typeof body?.scheduler?.paused !== 'boolean') return { synced: false, paused: hostingPaused }
+    hostingPaused = body.scheduler.paused
+    rebuildTrayMenu()
+    return { synced: true, paused: hostingPaused }
+  } catch {
+    return { synced: false, paused: hostingPaused }
+  } finally { clearTimeout(timeout) }
+}
+
+async function setHostingPaused(paused) {
+  if (!apiOrigin) return { paused: hostingPaused }
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 10_000)
+  try {
+    const response = await fetch(`${apiOrigin}/api/hosting/pause`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiToken}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ paused: Boolean(paused) }),
+      signal: controller.signal
+    })
+    if (response.ok) hostingPaused = Boolean(paused)
+    rebuildTrayMenu()
+    await writeLog('info', 'hosting-pause-toggled', { paused: hostingPaused })
+    return { paused: hostingPaused }
+  } catch (error) {
+    await writeLog('error', 'hosting-pause-failed', {})
+    return { paused: hostingPaused }
+  } finally { clearTimeout(timeout) }
+}
+
+function rebuildTrayMenu() {
+  if (!tray) return
+  const strings = TRAY_STRINGS[trayLanguage(preferences)] || TRAY_STRINGS['en-US']
+  tray.setContextMenu(Menu.buildFromTemplate([
+    { label: strings.open, click: showWindow },
+    { type: 'separator' },
+    { label: hostingPaused ? strings.resume : strings.pause, click: () => void setHostingPaused(!hostingPaused) },
+    { type: 'separator' },
+    { label: strings.exit, click: () => app.quit() }
+  ]))
+  tray.setToolTip(hostingPaused ? `${strings.tooltip} (${strings.resume})` : strings.tooltip)
 }
 
 function createTray() {
@@ -489,13 +644,14 @@ function createTray() {
   tray = new Tray(icon)
   const strings = TRAY_STRINGS[trayLanguage(preferences)] || TRAY_STRINGS['en-US']
   tray.setToolTip(strings.tooltip)
-  tray.setContextMenu(Menu.buildFromTemplate([
-    { label: strings.open, click: showWindow },
-    { type: 'separator' },
-    { label: strings.exit, click: () => app.quit() }
-  ]))
+  rebuildTrayMenu()
   tray.on('double-click', showWindow)
 }
+
+// PART 2.2: unexpected exceptions must not silently kill the workstation
+// (the background service dies with the Electron process). Log and continue.
+process.on('uncaughtException', (error) => { void writeLog('error', 'uncaught-exception', { message: String(error?.message || '').slice(0, 300) }) })
+process.on('unhandledRejection', (reason) => { void writeLog('error', 'unhandled-rejection', { message: String(reason?.message || reason || '').slice(0, 300) }) })
 
 const singleInstance = app.requestSingleInstanceLock()
 traceSmoke(`single-instance:${singleInstance}`)
@@ -534,7 +690,7 @@ async function startDesktop() {
     reduceMotion: typeof stored.reduceMotion === 'boolean' ? stored.reduceMotion : false,
     agentReplyLanguage: (stored.agentReplyLanguage === 'ui' || stored.agentReplyLanguage === 'input' || SUPPORTED_LANGUAGES.includes(stored.agentReplyLanguage)) ? stored.agentReplyLanguage : 'ui'
   }
-  if (preferences.autoStart) app.setLoginItemSettings({ openAtLogin: true, path: app.getPath('exe') })
+  if (preferences.autoStart) app.setLoginItemSettings({ openAtLogin: true, path: app.getPath('exe'), args: ['--hidden'] })
   await writeLog('info', 'application-starting', { version: app.getVersion(), platform: process.platform, arch: process.arch })
 
   try {
@@ -542,6 +698,7 @@ async function startDesktop() {
     traceSmoke('local-service-ready')
     apiOrigin = `http://127.0.0.1:${port}`
     void syncStoredProviderKeys()
+    void syncHostingPauseState()
     createTray()
     traceSmoke('tray-ready')
     await createMainWindow()

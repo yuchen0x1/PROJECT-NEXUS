@@ -1,3 +1,4 @@
+import { upsertIssueActivity } from './services/issue-activity.mjs'
 import express from 'express'
 import cors from 'cors'
 import path from 'node:path'
@@ -15,11 +16,35 @@ import { beginAgentAttempt, createAgentRun, transitionAgentRun } from './service
 import { listLocalProjects } from './services/local-projects.mjs'
 import { createLocalAgentTask as persistLocalAgentTask, getLocalAgentTask, listLocalAgentTasks, recoverLocalAgentTaskStore, updateLocalAgentTask } from './services/local-agent-tasks.mjs'
 import { applyLocalAgentOperations, createLocalAgentWorkspace, listLocalAgentChanges, readLocalAgentFiles } from './services/local-agent-workspace.mjs'
-import { executeAgentRuntimeTask, rollbackAgentTask, applyAgentTaskToProject } from './services/agent/task-executor.mjs'
+import { executeAgentRuntimeTask, rollbackAgentTask, applyAgentTaskToProject, agentWorkspaceHandleFor } from './services/agent/task-executor.mjs'
 import { listPublicProviders, createProviderRecord, updateProviderRecord, deleteProviderRecord, testProviderRecord, setRuntimeProviderKeys } from './services/provider-store.mjs'
 import { resolveApprovalInTask, expireStaleApprovals, APPROVAL_POLICIES } from './services/agent/approval.mjs'
 import { buildProjectIndex } from './services/agent/indexer.mjs'
+import {
+  getHostingPolicy, hostingStatus, normalizeHostingPolicy, applyStrategyPreset,
+  recordHostingRun, summarizeFindings, HOSTING_STRATEGIES, HOSTING_INSPECTION_DEPTHS,
+  HOSTING_MIN_INTERVAL_MINUTES, HOSTING_MAX_INTERVAL_MINUTES, defaultHostingPolicy
+} from './services/hosting.mjs'
+import { ensureRepoCache, removeRepoWorkspace, describeRepoCache, repoKeyFor, sweepStaleRepoWorkspaces } from './services/repo-workspace.mjs'
+import { listRepositoryIssues, getIssue, listIssueComments, createIssueComment, updateIssueState, addIssueLabels, issuePublicSummary, isRealIssue } from './services/github-issues.mjs'
+import { classifyIssue, ACTIONABLE_CATEGORIES, ISSUE_CATEGORIES } from './services/issue-classifier.mjs'
+import { resolveProviderForInvocation } from './services/provider-store.mjs'
+import { runIssueFixPipeline } from './services/issue-fix-pipeline.mjs'
+import { runSecurityScan, summarizeFindingsByPriority } from './services/security-scan.mjs'
+import { runCompetitorResearch, RESEARCH_MAX_CANDIDATES } from './services/competitor-research.mjs'
+import { maybeMergePullRequest, maybePublishRelease, maybeCloseIssue } from './services/delivery-stage.mjs'
 import fs from 'node:fs/promises'
+import { buildUpgradeProposals, reviewUpgradeProposal } from './services/upgrade-proposals.mjs'
+import { withExecutionPolicy, assertTrustedRepository } from './services/execution-policy.mjs'
+import { durableEffect, reconcileEffect } from './services/durable-effects.mjs'
+import { acquireFileLease } from './services/file-lease.mjs'
+import { readinessFingerprint, validateReadiness } from './services/setup-readiness.mjs'
+import { detectDevelopmentEnvironment } from './services/local-environment.mjs'
+import { assertHostingWrite, hostingOperation, hostedResult, automaticFixDecision } from './services/hosting-gates.mjs'
+import { queueHostedJob, nextHostedJobIndex, recoverHostedJobs } from './services/hosted-queue.mjs'
+import { buildProjectOverview } from './services/project-overview.mjs'
+
+const activeOverviewResearch = new Map()
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')
@@ -48,14 +73,21 @@ const integrationControllers = new Map()
 const agentWorkspacePaths = new Map()
 const localAgentControllers = new Map()
 const localAgentQueue = []
-let localAgentWorkerRunning = false
 const pendingGitHubAppInstallStates = new Map()
+const installationTokens = new Map()
+const readinessEpoch = crypto.randomUUID()
+let githubAccount = null
 let stateWriteQueue = Promise.resolve()
 
 const GITHUB_APP_INSTALL_STATE_TTL_MS = 10 * 60 * 1000
 
 async function loadState() {
   state = await loadStateFile(stateFile)
+  // Migrate old plaintext installation-token records into process memory.
+  for (const installation of state.githubInstallations) {
+    if (installation.accessToken) installationTokens.set(String(installation.installationId), { accessToken: installation.accessToken, expiresAt: installation.expiresAt })
+    delete installation.accessToken
+  }
 }
 
 async function saveState() {
@@ -102,6 +134,10 @@ function githubConfigured() {
   return Boolean(process.env.GITHUB_TOKEN)
 }
 
+function remoteWritesEnabled() {
+  return typeof state.settings.remoteWritesEnabled === 'boolean' ? state.settings.remoteWritesEnabled : process.env.NEXUS_ENABLE_REMOTE_WRITES === 'true'
+}
+
 function projectGithubConfigured(project) {
   return githubConfigured() || Boolean(project?.installationId)
 }
@@ -111,7 +147,7 @@ function githubAppConfigured() {
 }
 
 function currentRole(req) {
-  if (allowRoleHeader && req.get('x-nexus-role')) return req.get('x-nexus-role')
+  if (allowRoleHeader && req?.get('x-nexus-role')) return req.get('x-nexus-role')
   return activeRole
 }
 
@@ -162,21 +198,23 @@ async function githubAppFetch(endpoint, options = {}) {
   const response = await fetch(githubRequestUrl(endpoint), { ...options, headers })
   const text = await response.text()
   let body = null
-  try { body = text ? JSON.parse(text) : null } catch { body = { message: text } }
+  try { body = text ? JSON.parse(text) : null } catch { body = response.ok ? text : { message: text } }
   if (!response.ok) throw Object.assign(new Error(body?.message || `GitHub App API returned ${response.status}`), { status: response.status, body })
   return body
 }
 
 async function installationFetch(installationId, endpoint, options = {}) {
   const { returnPageMetadata = false, ...fetchOptions } = options
-  const installation = state.githubInstallations.find((item) => String(item.installationId) === String(installationId))
+  const installation = installationTokens.get(String(installationId))
   if (!installation?.accessToken || new Date(installation.expiresAt || 0) <= new Date(Date.now() + 60_000)) {
     if (!githubAppConfigured()) throw Object.assign(new Error('GitHub App credentials are not configured'), { code: 'GITHUB_APP_NOT_CONFIGURED' })
     const token = await githubAppFetch(`/app/installations/${encodeURIComponent(installationId)}/access_tokens`, { method: 'POST' })
     const updated = { ...(installation || { installationId: String(installationId) }), accessToken: token.token, expiresAt: token.expires_at, updatedAt: now() }
+    installationTokens.set(String(installationId), updated)
     const index = state.githubInstallations.findIndex((item) => String(item.installationId) === String(installationId))
-    if (index >= 0) state.githubInstallations[index] = updated
-    else state.githubInstallations.push(updated)
+    const { accessToken: _secret, ...metadata } = updated
+    if (index >= 0) state.githubInstallations[index] = { ...state.githubInstallations[index], ...metadata }
+    else state.githubInstallations.push(metadata)
     await saveState()
     return installationFetch(installationId, endpoint, options)
   }
@@ -184,7 +222,7 @@ async function installationFetch(installationId, endpoint, options = {}) {
   const response = await fetch(githubRequestUrl(endpoint), { ...fetchOptions, headers })
   const text = await response.text()
   let body = null
-  try { body = text ? JSON.parse(text) : null } catch { body = { message: text } }
+  try { body = text ? JSON.parse(text) : null } catch { body = response.ok ? text : { message: text } }
   if (!response.ok) throw Object.assign(new Error(body?.message || `GitHub installation API returned ${response.status}`), { status: response.status, body })
   return returnPageMetadata ? { data: body, next: githubNextLink(response.headers.get('link'), githubApiUrl) } : body
 }
@@ -200,7 +238,7 @@ async function githubFetch(endpoint, options = {}) {
   const response = await fetch(githubRequestUrl(endpoint), { ...fetchOptions, headers })
   const text = await response.text()
   let body = null
-  try { body = text ? JSON.parse(text) : null } catch { body = { message: text } }
+  try { body = text ? JSON.parse(text) : null } catch { body = response.ok ? text : { message: text } }
   if (!response.ok) {
     const error = new Error(body?.message || `GitHub API returned ${response.status}`)
     error.status = response.status
@@ -227,11 +265,11 @@ async function githubFetchForProject(project, endpoint, options = {}) {
 
 async function githubTokenForProject(project) {
   if (!project?.installationId) return process.env.GITHUB_TOKEN || ''
-  const installation = state.githubInstallations.find((item) => String(item.installationId) === String(project.installationId))
+  const installation = installationTokens.get(String(project.installationId))
   if (!installation?.accessToken || new Date(installation.expiresAt || 0) <= new Date(Date.now() + 60_000)) {
     await installationFetch(project.installationId, '/installation/repositories?per_page=1')
   }
-  return state.githubInstallations.find((item) => String(item.installationId) === String(project.installationId))?.accessToken || ''
+  return installationTokens.get(String(project.installationId))?.accessToken || ''
 }
 
 function notConfigured(res) {
@@ -361,14 +399,47 @@ async function processWebhookEvent(eventRecord) {
   const payload = eventRecord.payload || {}
   const repoName = payload.repository?.full_name
   const project = state.projects.find((item) => item.fullName === repoName)
+  let handled = 'metadata'
   if (project) {
     project.lastWebhookAt = now()
     if (eventRecord.event === 'release' && payload.release) project.latestRelease = payload.release
-    if (eventRecord.event === 'push' && payload.after) project.latestCommit = payload.after
+    if (eventRecord.event === 'push' && payload.after) {
+      project.latestCommit = payload.after
+      if (project.repoMeta) project.repoMeta.pushedAt = now()
+    }
+    try {
+      if (eventRecord.event === 'issues' && ['opened', 'edited', 'reopened', 'labeled'].includes(payload.action)) {
+        const entry = await handleIssueEvent({ project, issue: payload.issue, source: 'webhook' })
+        handled = 'issue-classified'
+        if (entry?.triggerFix) {
+          try {
+            await enqueueIssueFixTask({ project, issueNumber: entry.number, source: 'webhook', classification: entry.classification })
+            handled = 'issue-fix-queued'
+          } catch (queueError) { handled = `fix-queue-rejected: ${queueError.code || 'unknown'}` }
+        }
+      } else if (eventRecord.event === 'issue_comment' && payload.action === 'created') {
+        const entry = await handleIssueEvent({ project, issue: payload.issue, source: 'webhook', comment: payload.comment })
+        handled = 'issue-comment-classified'
+        if (entry?.triggerFix) {
+          try {
+            await enqueueIssueFixTask({ project, issueNumber: entry.number, source: 'webhook', classification: entry.classification })
+            handled = 'issue-fix-queued'
+          } catch (queueError) { handled = `fix-queue-rejected: ${queueError.code || 'unknown'}` }
+        }
+      } else if (eventRecord.event === 'issues' && payload.action === 'closed') {
+        const store = normalizeIssueStore(project)
+        if (payload.issue && store.known[String(payload.issue.number)]) store.known[String(payload.issue.number)].state = 'closed'
+        handled = 'issue-closed'
+      }
+    } catch (error) {
+      eventRecord.processingError = safeError(error)
+      handled = `error: ${safeError(error).slice(0, 200)}`
+    }
   }
-  state.activity.unshift({ id: id('activity'), type: 'webhook', message: `${eventRecord.event} event received${repoName ? ` for ${repoName}` : ''}`, at: now() })
+  state.activity.unshift({ id: id('activity'), type: 'webhook', message: `${eventRecord.event} event received${repoName ? ` for ${repoName}` : ''} (${handled})`, at: now() })
   state.activity = state.activity.slice(0, 100)
   eventRecord.status = 'COMPLETED'
+  eventRecord.handled = handled
   eventRecord.completedAt = now()
   await saveState()
 }
@@ -387,9 +458,16 @@ async function syncRepositories() {
   const byFullName = new Map(state.projects.map((project) => [project.fullName, project]))
   for (const project of incoming) {
     const previous = byFullName.get(project.fullName)
-    byFullName.set(project.fullName, { ...previous, ...project, workflows: previous?.workflows || [] })
+    if (previous) {
+      // Merge in place so concurrent per-project mutations (e.g. an in-flight
+      // scan writing project.stack) are not clobbered by the sync.
+      Object.assign(previous, project, { workflows: previous.workflows || [], hosting: previous.hosting || getHostingPolicy(null), repoMeta: previous.repoMeta || null, localWorkspace: previous.localWorkspace || null })
+    } else {
+      byFullName.set(project.fullName, { ...project, hosting: getHostingPolicy(null), repoMeta: null, localWorkspace: null })
+    }
   }
   state.projects = [...byFullName.values()].sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0))
+  void sweepStaleRepoWorkspaces({ dataDir, keepKeys: state.projects.map((project) => repoKeyFor(project.fullName)).filter(Boolean) }).catch(() => {})
   state.activity.unshift({ id: id('activity'), type: 'repo_sync', message: `Synced ${incoming.length} repositories from GitHub across ${pages} page(s)${truncated ? ' (page limit reached)' : ''}`, at: now() })
   state.activity = state.activity.slice(0, 100)
   await saveState()
@@ -479,6 +557,7 @@ function localAgentPublicTask(task) {
     workspaceMode: task.workspaceMode || null,
     approvalPolicy: task.approvalPolicy || null,
     fallbackReason: task.fallbackReason || null,
+    issue: task.issue || null,
     workspaceReady: Boolean(task.workspace?.id),
     workspaceStats: task.workspace?.stats || null,
     sourceDisclosureConfirmedAt: task.sourceDisclosureConfirmedAt || null
@@ -615,26 +694,242 @@ async function executeLocalAgentTask(taskId, providerId, controller) {
   }
 }
 
+// The local Agent queue runs different projects in parallel (bounded) while
+// tasks for the SAME project stay strictly serial, so two agents never edit
+// one project at once (PART 10.2/10.3) and a task paused on approval no
+// longer blocks unrelated repositories (audit finding, fixed).
+const LOCAL_AGENT_MAX_RUNNING = Math.min(Math.max(Number(process.env.NEXUS_LOCAL_AGENT_CONCURRENCY) || 2, 1), 4)
+const localAgentActiveByProject = new Map()
+let localAgentRunningCount = 0
+
 async function pumpLocalAgentQueue() {
-  if (localAgentWorkerRunning) return
-  localAgentWorkerRunning = true
-  try {
-    while (localAgentQueue.length) {
-      const queued = localAgentQueue.shift()
-      const controller = new AbortController()
-      localAgentControllers.set(queued.taskId, controller)
-      try { await executeLocalAgentTask(queued.taskId, queued.providerId, controller) }
-      finally { localAgentControllers.delete(queued.taskId) }
-    }
-  } finally {
-    localAgentWorkerRunning = false
-    if (localAgentQueue.length) queueMicrotask(() => void pumpLocalAgentQueue())
+  while (localAgentQueue.length) {
+    if (localAgentRunningCount >= LOCAL_AGENT_MAX_RUNNING) return
+    const index = localAgentQueue.findIndex((item) => !localAgentActiveByProject.get(item.projectId))
+    if (index === -1) return
+    const [queued] = localAgentQueue.splice(index, 1)
+    void runLocalAgentTask(queued).finally(() => queueMicrotask(() => void pumpLocalAgentQueue()))
   }
 }
 
-function enqueueLocalAgentTask(taskId, providerId) {
-  localAgentQueue.push({ taskId, providerId })
+async function runLocalAgentTask(queued) {
+  localAgentRunningCount += 1
+  localAgentActiveByProject.set(queued.projectId, (localAgentActiveByProject.get(queued.projectId) || 0) + 1)
+  const controller = new AbortController()
+  localAgentControllers.set(queued.taskId, controller)
+  try {
+    await executeLocalAgentTask(queued.taskId, queued.providerId, controller)
+  } finally {
+    localAgentControllers.delete(queued.taskId)
+    localAgentRunningCount -= 1
+    const remaining = (localAgentActiveByProject.get(queued.projectId) || 1) - 1
+    if (remaining <= 0) localAgentActiveByProject.delete(queued.projectId)
+    else localAgentActiveByProject.set(queued.projectId, remaining)
+  }
+}
+
+function enqueueLocalAgentTask(taskId, providerId, projectId) {
+  localAgentQueue.push({ taskId, providerId, projectId })
   queueMicrotask(() => void pumpLocalAgentQueue())
+}
+
+// ---- PHASE 3: hosted-repository issue-fix queue ----
+// Different repositories run in parallel (bounded); the same repository is
+// strictly serial so two agents never touch one repo's code at once (PART 10).
+
+const HOSTED_MAX_RUNNING = Math.min(Math.max(Number(process.env.NEXUS_HOSTED_TASK_CONCURRENCY) || 2, 1), 6)
+const HOSTED_MAX_QUEUED = 16
+const hostedPending = []
+const hostedActive = new Map()
+let hostedRunningCount = 0
+let hostedPumpScheduled = false
+
+function scheduleHostedPump() {
+  if (hostedPumpScheduled) return
+  hostedPumpScheduled = true
+  queueMicrotask(() => {
+    hostedPumpScheduled = false
+    void pumpHostedTasks()
+  })
+}
+
+async function pumpHostedTasks() {
+  if (hostingPaused()) return
+  while (hostedPending.length) {
+    if (hostedRunningCount >= HOSTED_MAX_RUNNING) return
+    const index = nextHostedJobIndex(hostedPending, hostedActive)
+    if (index === -1) return
+    const [item] = hostedPending.splice(index, 1)
+    void runHostedIssueFix(item).finally(() => scheduleHostedPump())
+  }
+}
+
+async function runHostedIssueFix(item) {
+  return withExecutionPolicy({ assertAllowed: () => { assertTrustedRepository(item.project); if (!getHostingPolicy(item.project).enabled || hostingPaused()) throw Object.assign(new Error('Repository execution disabled or paused.'), { code: 'HOSTING_POLICY_FORBIDS_FIX' }) } }, () => runHostedIssueFixOwned(item))
+}
+
+async function runHostedIssueFixOwned(item) {
+  const { project, issueNumber, repoKey } = item
+  hostedRunningCount += 1
+  hostedActive.set(repoKey, { project, issueNumber, taskId: null })
+  const controller = new AbortController()
+  let repositoryLease = null
+  const guardedRequest = (endpoint, options = {}) => {
+    const operation = hostingOperation(endpoint, options)
+    const guard = () => assertHostingWrite({ project, enabled: remoteWritesEnabled(), paused: hostingPaused(), operation })
+    const perform = () => githubFetchForProject(project, endpoint, options)
+    return operation && item.job ? durableEffect({ job: item.job, endpoint, options, save: saveState, guard, perform }) : perform()
+  }
+  const store = normalizeIssueStore(project)
+  const entry = store.activity.find((candidate) => candidate.number === Number(issueNumber))
+  if (entry) entry.fixState = 'running'
+  project.hosting.currentTaskId = `pending:${repoKey}`
+  try {
+    repositoryLease = await acquireFileLease(path.join(dataDir, 'leases', `${repoKey}.lock`))
+    if (item.job) { item.job.status = 'Running'; item.job.startedAt = now(); item.job.leaseToken = repositoryLease.token }
+    await saveState()
+    const token = await githubTokenForProject(project)
+    if (!token) throw Object.assign(new Error('A GitHub token is required to run automated fixes.'), { code: 'GITHUB_NOT_CONFIGURED' })
+    const policy = getHostingPolicy(project)
+    assertTrustedRepository(project)
+    const outcome = await runIssueFixPipeline({
+      project,
+      policy,
+      issueNumber,
+      classification: entry?.classification || null,
+      comments: null,
+      dataDir,
+      request: guardedRequest,
+      token,
+      signal: controller.signal,
+      helpers: {
+        now,
+        onCheckpoint: async (checkpoint) => { if (item.job) { item.job.checkpoint = structuredClone(checkpoint); item.job.executionStatus = checkpoint.status; item.job.outcome = structuredClone(checkpoint.delivery); await saveState() } },
+        performPush: async (metadata, perform) => durableEffect({ job: item.job, endpoint: `git:${project.fullName}:${metadata.branch}:${metadata.commitSha}`, options: { body: JSON.stringify(metadata) }, save: saveState, guard: () => assertHostingWrite({ project, enabled: remoteWritesEnabled(), paused: hostingPaused(), operation: 'push' }), perform }),
+        canWrite: (operation = 'push') => { assertHostingWrite({ project, enabled: remoteWritesEnabled(), paused: hostingPaused(), operation }); return true },
+        audit: (action, target, result, risk, detail) => audit(item.req, action, target, result, risk, detail),
+        onEvent: (event) => {
+          if (item.job) { item.job.events.push({ ...event, at: now() }); item.job.events = item.job.events.slice(-500) }
+          if (event.type === 'task_created' && event.metadata?.taskId) {
+            hostedActive.get(repoKey).taskId = event.metadata.taskId
+            project.hosting.currentTaskId = event.metadata.taskId
+            if (entry) { entry.fixTaskId = event.metadata.taskId; entry.fixState = 'running' }
+            void saveState().catch(() => {})
+          }
+        }
+      }
+    })
+    // PHASE 6 delivery stage: merge → release → close, each gated by the
+    // hosting policy and the genuine verification/review results (PART 8/9).
+    if (outcome.status === 'Succeeded' && outcome.delivery?.pushed && remoteWritesEnabled() && getHostingPolicy(project).enabled) {
+      const deliveryRequest = guardedRequest
+      const deliveryPolicy = getHostingPolicy(project)
+      outcome.delivery.merged = await maybeMergePullRequest({
+        request: deliveryRequest, repository: project.fullName, pullRequest: outcome.delivery.pullRequest,
+        policy: deliveryPolicy, verification: outcome.runtime.verification, review: outcome.runtime.review,
+        signal: controller.signal
+      }).catch((error) => ({ merged: false, reason: safeError(error) }))
+      if (outcome.delivery.merged?.merged) {
+        outcome.delivery.released = await maybePublishRelease({
+          request: deliveryRequest, repository: project.fullName, token, policy: deliveryPolicy,
+          issue: { number: outcome.issue.number, title: outcome.issue.title, url: outcome.issue.url, analysis: outcome.runtime.finalMessage },
+          delivery: outcome.delivery, verification: outcome.runtime.verification, review: outcome.runtime.review,
+          worktreePath: outcome.workspace.path, dataDir, signal: controller.signal,
+          helpers: { onPlan: async (plan) => { if (item.job) { item.job.releasePlan = plan; await saveState() } }, beforeUpload: async (metadata, perform) => durableEffect({ job: item.job, endpoint: `upload:${metadata.releaseId}:${metadata.name}`, options: { body: JSON.stringify(metadata) }, save: saveState, guard: () => assertHostingWrite({ project, enabled: remoteWritesEnabled(), paused: hostingPaused(), operation: 'upload' }), perform }), onEvent: (event) => { void saveState().catch(() => {}) } }
+        }).catch((error) => ({ published: false, reason: safeError(error) }))
+        if (outcome.delivery.released?.published) {
+          project.latestRelease = { tag_name: outcome.delivery.released.tag, html_url: outcome.delivery.released.releaseUrl, publishedAt: now() }
+        }
+      }
+      // Post the actual final delivery outcome before considering closure.
+      outcome.delivery.issueCommented = false
+      const report = [
+        `PROJECT NEXUS delivery report for issue #${issueNumber}.`,
+        `PR: ${outcome.delivery.pullRequest?.url || 'not created'}`,
+        `Commit: ${outcome.delivery.commitSha}`,
+        `Tests: ${outcome.runtime.verification?.summary || 'not verified'}`,
+        `Review: ${outcome.runtime.review?.verdict || 'not verified'}`,
+        `Merge: ${outcome.delivery.merged?.merged ? 'confirmed' : outcome.delivery.merged?.reason || 'not merged'}`,
+        `Release: ${outcome.delivery.released?.published ? outcome.delivery.released.releaseUrl : outcome.delivery.released?.reason || 'not published'}`
+      ].join('\n\n')
+      const reply = await createIssueComment(deliveryRequest, project.fullName, issueNumber, redactSecrets(report))
+      outcome.delivery.issueCommented = true
+      outcome.delivery.issueCommentUrl = reply.html_url || null
+      outcome.delivery.closed = await maybeCloseIssue({
+        request: deliveryRequest, repository: project.fullName, issueNumber, policy: deliveryPolicy,
+        delivery: outcome.delivery, verification: outcome.runtime.verification, review: outcome.runtime.review,
+        signal: controller.signal
+      }).catch((error) => ({ closed: false, reason: safeError(error) }))
+    }
+    const resultState = hostedResult(outcome, policy)
+    if (entry) {
+      entry.fixState = resultState.status.toLowerCase()
+      entry.executionStatus = resultState.executionStatus
+      entry.deliveryStatus = resultState.deliveryStatus
+      entry.fixTaskId = outcome.taskId
+      entry.fixSummary = {
+        changedPaths: outcome.changedPaths,
+        branch: outcome.delivery?.branch || null,
+        pullRequest: outcome.delivery?.pullRequest || null,
+        issueCommented: Boolean(outcome.delivery?.issueCommented),
+        verification: outcome.runtime?.verification?.summary || null,
+        skippedReason: outcome.delivery?.skippedReason || null,
+        merged: outcome.delivery?.merged ? { merged: Boolean(outcome.delivery.merged.merged), reason: outcome.delivery.merged.reason || null } : null,
+        released: outcome.delivery?.released ? { published: Boolean(outcome.delivery.released.published), tag: outcome.delivery.released.tag || null, releaseUrl: outcome.delivery.released.releaseUrl || null, assets: outcome.delivery.released.assets?.length || 0, reason: outcome.delivery.released.reason || null } : null,
+        issueClosed: outcome.delivery?.closed ? { closed: Boolean(outcome.delivery.closed.closed), reason: outcome.delivery.closed.reason || null } : null
+      }
+    }
+    if (item.job) { Object.assign(item.job, resultState); item.job.outcome = outcome.delivery; item.job.taskId = outcome.taskId }
+    outcome.status = resultState.status
+    project.hosting.lastOutcome = { runId: outcome.taskId, status: outcome.status, issueNumber, at: now() }
+    audit(item.req, 'issue_fix_pipeline_finished', `${project.fullName}#${issueNumber}`, outcome.status.toLowerCase(), 'high', {
+      taskId: outcome.taskId,
+      changedFiles: outcome.changedPaths?.length || 0,
+      pullRequest: outcome.delivery?.pullRequest?.number || null,
+      pushed: Boolean(outcome.delivery?.pushed),
+      merged: Boolean(outcome.delivery?.merged?.merged),
+      releasedTag: outcome.delivery?.released?.tag || null,
+      issueClosed: Boolean(outcome.delivery?.closed?.closed)
+    })
+    state.activity.unshift({ id: id('activity'), type: 'issue-fix', message: `Issue fix for ${project.fullName}#${issueNumber}: ${outcome.status.toLowerCase()}${outcome.delivery?.pullRequest ? ` (PR #${outcome.delivery.pullRequest.number})` : ''}`, at: now() })
+    state.activity = state.activity.slice(0, 100)
+  } catch (error) {
+    if (item.job) { item.job.status = 'Blocked'; item.job.executionStatus ||= 'Blocked'; item.job.deliveryStatus = item.job.operations?.length || item.job.executionStatus === 'Succeeded' ? 'Incomplete' : 'NotStarted'; item.job.error = safeError(error) }
+    if (entry) {
+      entry.fixState = error.code === 'GITHUB_NOT_CONFIGURED' || error.code === 'AI_NOT_CONFIGURED' || error.code === 'HOSTING_POLICY_FORBIDS_FIX' ? 'blocked' : 'failed'
+      entry.fixSummary = { error: safeError(error) }
+    }
+    project.hosting.lastOutcome = { status: entry?.fixState || 'failed', issueNumber, error: safeError(error), at: now() }
+    audit(item.req, 'issue_fix_pipeline_finished', `${project.fullName}#${issueNumber}`, 'failed', 'high', { code: error.code || null, error: safeError(error) })
+    state.activity.unshift({ id: id('activity'), type: 'issue-fix', message: `Issue fix for ${project.fullName}#${issueNumber} failed: ${safeError(error).slice(0, 200)}`, at: now() })
+    state.activity = state.activity.slice(0, 100)
+  } finally {
+    await repositoryLease?.release().catch(() => {})
+    hostedRunningCount -= 1
+    hostedActive.delete(repoKey)
+    project.hosting.currentTaskId = null
+    if (item.job) item.job.finishedAt = now()
+    await saveState().catch(() => {})
+  }
+}
+
+async function enqueueIssueFixTask({ project, issueNumber, source = 'manual', req = null, classification = null, comments = null } = {}) {
+  const repoKey = repoKeyFor(project.fullName)
+  const policy = getHostingPolicy(project)
+  if (!policy.enabled || policy.strategy === 'observe') {
+    throw Object.assign(new Error('Enable repository hosting with a maintain or autonomous strategy before triggering automated fixes.'), { code: 'HOSTING_POLICY_FORBIDS_FIX' })
+  }
+  const queued = queueHostedJob(state, { projectId: project.id, repository: project.fullName, issueNumber: Number(issueNumber), source, priority: classification?.severity })
+  if (queued.reused) return { queued: true, reused: true, jobId: queued.job.id, issueNumber: Number(issueNumber), repository: project.fullName }
+  const store = normalizeIssueStore(project)
+  const entry = store.activity.find((candidate) => candidate.number === Number(issueNumber))
+  if (entry) entry.fixState = 'queued'
+  const item = { repoKey, project, issueNumber: Number(issueNumber), classification, comments, source, job: queued.job, req: req || { get: () => undefined } }
+  hostedPending.push(item)
+  audit(req, 'issue_fix_queued', `${project.fullName}#${issueNumber}`, 'queued', 'high', { source, strategy: policy.strategy })
+  await saveState()
+  scheduleHostedPump()
+  return { queued: true, jobId: queued.job.id, issueNumber: Number(issueNumber), repository: project.fullName }
 }
 
 async function recoverLocalAgentTasks() {
@@ -649,6 +944,68 @@ async function recoverLocalAgentTasks() {
       })
     }
   }
+}
+
+// Resume durable queued work; interrupted side effects require reconciliation.
+async function recoverHostedFixTasks() {
+  for (const project of state.projects) if (project.hosting) project.hosting.currentTaskId = null
+  const queued = recoverHostedJobs(state)
+  for (const job of queued) {
+    const project = state.projects.find((item) => item.id === job.projectId)
+    if (!project || !getHostingPolicy(project).enabled) { job.status = 'Blocked'; continue }
+    hostedPending.push({ repoKey: repoKeyFor(project.fullName), project, issueNumber: job.issueNumber, job, req: { get: () => undefined } })
+  }
+  await saveState()
+  scheduleHostedPump()
+}
+
+// PART 18: workspace garbage collection. Finished task worktrees older than
+// NEXUS_WORKSPACE_RETENTION_DAYS (default 14) are removed; task records,
+// diffs and events are kept as evidence. Only NEXUS-managed paths are touched.
+const WORKSPACE_RETENTION_MS = Math.max(Number(process.env.NEXUS_WORKSPACE_RETENTION_DAYS || 14), 1) * 24 * 60 * 60 * 1000
+
+async function sweepExpiredWorkspaces() {
+  const nowMs = Date.now()
+  const tasks = await listLocalAgentTasks({ dataDir })
+  const finalStatuses = ['Succeeded', 'Failed', 'Cancelled', 'Blocked', 'TimedOut']
+  let swept = 0
+  for (const task of tasks) {
+    if (!finalStatuses.includes(task.status) || !task.workspace?.id || task.workspace.id !== task.id) continue
+    // Age alone is not permission to discard a user's unapplied fix or failed
+    // task evidence. Automatic cleanup requires an explicit cleanup receipt.
+    if (!task.cleanupApprovedAt) continue
+    const finishedAt = new Date(task.finishedAt || task.updatedAt || 0).getTime()
+    if (!finishedAt || nowMs - finishedAt < WORKSPACE_RETENTION_MS) continue
+    try {
+      if (task.type === 'issue-fix-runtime' && task.issue?.repository) {
+        const { disposeRepoWorktree } = await import('./services/repo-workspace.mjs')
+        await disposeRepoWorktree({ dataDir, fullName: task.issue.repository, taskId: task.id, branch: task.workspace.branch || null })
+      } else if (task.workspace.mode === 'worktree') {
+        const handle = agentWorkspaceHandleFor(task, dataDir)
+        if (!handle) continue
+        await fs.rm(handle.root, { recursive: true, force: true })
+        if (handle.branch) {
+          const { runCommand } = await import('./services/agent/executor.mjs')
+          const project = (await listLocalProjects({ dataDir })).find((item) => item.id === task.projectId)
+          if (project?.available) {
+            // The branch is one NEXUS created itself (nexus-agent/<taskId>); the
+            // name is validated before use and the command is tokenized without
+            // a shell by the executor.
+            const safeBranch = String(handle.branch).replace(/[^A-Za-z0-9._\/-]/g, '')
+            await runCommand({ cwd: project.path, command: `git branch -D ${safeBranch}`, timeoutMs: 20_000 }).catch(() => null)
+          }
+        }
+      }
+      swept += 1
+      await updateLocalAgentTask({ dataDir, taskId: task.id, patch: {}, event: { type: 'workspace_swept', detail: `Expired workspace was garbage collected after retention (${Math.round(WORKSPACE_RETENTION_MS / 86400000)} days).` } })
+    } catch { /* GC is best-effort; task records stay intact */ }
+  }
+  if (swept) {
+    state.activity.unshift({ id: id('activity'), type: 'workspace-gc', message: `Garbage collected ${swept} expired task workspace(s).`, at: now() })
+    state.activity = state.activity.slice(0, 100)
+    await saveState().catch(() => {})
+  }
+  return swept
 }
 
 async function createAndQueueLocalAgentTask({ projectId, prompt, providerId, req, taskType = 'local-agent', approvalPolicy = 'standard', workspaceMode = 'auto' }) {
@@ -694,7 +1051,7 @@ async function createAndQueueLocalAgentTask({ projectId, prompt, providerId, req
   })
   audit(req, 'local_agent_task_created', `${project.name} (${project.id})`, 'queued', 'medium', { taskId, providerId: selected.id, taskType, approvalPolicy: policy, workspaceMode: mode, sourceDisclosureConfirmed: true })
   await saveState()
-  enqueueLocalAgentTask(taskId, selected.id)
+  enqueueLocalAgentTask(taskId, selected.id, project.id)
   return { task, provider: selected }
 }
 
@@ -810,6 +1167,55 @@ async function runScheduledIntegrationScan() {
   } catch (error) {
     console.error('Integration schedule tick failed:', safeError(error))
   } finally { scheduleTickRunning = false }
+}
+
+// PHASE 2: autonomous hosting tick — light inspections + issue monitoring for
+// every repository whose hosting policy is enabled and due. Repositories run
+// in parallel up to NEXUS_HOSTING_CONCURRENCY (default 2); each repository is
+// processed by exactly one worker at a time (PART 10).
+let hostingTickRunning = false
+async function runScheduledHostingTick() {
+  if (hostingTickRunning) return
+  hostingTickRunning = true
+  try {
+    const due = hostingDueProjects()
+    if (!due.length) return
+    const limit = Math.min(Math.max(Number(process.env.NEXUS_HOSTING_CONCURRENCY) || 2, 1), 6)
+    let index = 0
+    const researchCandidates = []
+    const workers = Array.from({ length: Math.min(limit, due.length) }, async () => {
+      while (index < due.length) {
+        const { project } = due[index++]
+        try {
+          const run = await runHostingInspection(project, { depth: 'light' })
+          if (run.status === 'Success' && true) {
+            await syncProjectIssues(project, { request: (endpoint, options) => githubFetchForProject(project, endpoint, options) })
+          }
+          // PHASE 5: weekly competitor research for actively hosted repos.
+          const policy = getHostingPolicy(project)
+          const lastResearch = project.research?.lastRunAt ? new Date(project.research.lastRunAt).getTime() : 0
+          if (policy.enabled && policy.strategy !== 'observe' && Date.now() - lastResearch > 7 * 24 * 60 * 60 * 1000) {
+            researchCandidates.push(project)
+          }
+        } catch (error) {
+          console.error(`Hosting tick failed for ${project.fullName}:`, safeError(error))
+        }
+      }
+    })
+    await Promise.all(workers)
+    if (researchCandidates.length && process.env.GITHUB_TOKEN) {
+      try {
+        await runProjectResearch(researchCandidates[0], {})
+        state.activity.unshift({ id: id('activity'), type: 'research', message: `Weekly competitor research completed for ${researchCandidates[0].fullName}`, at: now() })
+        state.activity = state.activity.slice(0, 100)
+      } catch (error) {
+        console.error(`Scheduled research failed for ${researchCandidates[0].fullName}:`, safeError(error))
+      }
+    }
+    await saveState()
+  } catch (error) {
+    console.error('Hosting schedule tick failed:', safeError(error))
+  } finally { hostingTickRunning = false }
 }
 
 async function enqueueAgentJob(project, report, req) {
@@ -1223,7 +1629,679 @@ app.post('/api/local-agent/projects/:projectId/insights', async (req, res) => {
   } catch (error) { res.status(500).json({ code: error.code || 'PROJECT_INSIGHTS_FAILED', message: safeError(error) }) }
 })
 
-app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'project-nexus', time: now() }))
+// ---- PHASE 1: repository hosting (policy, on-demand workspace, inspection) ----
+
+function normalizeRepoMeta(meta, project) {
+  return {
+    defaultBranch: String(meta?.defaultBranch || project?.defaultBranch || 'main'),
+    language: meta?.language || project?.language || null,
+    pushedAt: meta?.pushedAt || null,
+    openIssues: Number.isFinite(Number(meta?.openIssues)) ? Number(meta.openIssues) : null,
+    topics: Array.isArray(meta?.topics) ? meta.topics.slice(0, 20) : [],
+    visibility: meta?.visibility || null,
+    archived: meta?.archived === true,
+    headSha: meta?.headSha || null,
+    lastSyncedAt: meta?.lastSyncedAt || null
+  }
+}
+
+function hostingFinding(key, priority, summary, detail = null) {
+  return { key, priority, summary: String(summary).slice(0, 400), detail: detail ? String(detail).slice(0, 1000) : null }
+}
+
+async function runHostingLightScan(project, { signal } = {}) {
+  const repo = await githubFetchForProject(project, `/repos/${repoFromProject(project)}`, { signal })
+  const defaultBranch = repo.default_branch || project.defaultBranch || 'main'
+  const previousMeta = normalizeRepoMeta(project.repoMeta, project)
+  const head = await githubFetchForProject(project, `/repos/${repoFromProject(project)}/git/ref/heads/${encodeURIComponent(defaultBranch)}`, { signal }).catch(() => null)
+  const meta = normalizeRepoMeta({
+    defaultBranch,
+    language: repo.language,
+    pushedAt: repo.pushed_at,
+    openIssues: repo.open_issues_count,
+    topics: repo.topics,
+    visibility: repo.visibility,
+    archived: repo.archived,
+    headSha: head?.object?.sha || null,
+    lastSyncedAt: now()
+  }, project)
+  const findings = []
+  if (meta.pushedAt && (!previousMeta.pushedAt || new Date(meta.pushedAt) > new Date(previousMeta.pushedAt))) {
+    findings.push(hostingFinding('new_commits', 'P2', `Repository pushed updates at ${meta.pushedAt}`, `previous: ${previousMeta.pushedAt || 'never synced'}`))
+  }
+  if (previousMeta.openIssues !== null && meta.openIssues > previousMeta.openIssues) {
+    findings.push(hostingFinding('open_issues_increased', 'P2', `Open issue count rose from ${previousMeta.openIssues} to ${meta.openIssues}`))
+  }
+  if (meta.headSha && previousMeta.headSha && meta.headSha !== previousMeta.headSha) {
+    findings.push(hostingFinding('default_branch_moved', 'P3', `Default branch ${defaultBranch} moved to ${meta.headSha.slice(0, 12)}`))
+  }
+  if (meta.archived) {
+    findings.push(hostingFinding('repo_archived', 'P1', 'The repository is archived on GitHub; autonomous maintenance should be paused.'))
+  }
+  project.repoMeta = meta
+  return { meta, findings, repo }
+}
+
+async function runHostingInspection(project, { depth = 'light', req = null, signal } = {}) {
+  const startedAt = now()
+  const runId = id('hosting')
+  const policy = getHostingPolicy(project)
+  const run = { id: runId, projectId: project.id, repository: project.fullName, depth, status: 'Running', findings: [], startedAt, finishedAt: null, error: null, triggeredBy: req ? currentRole(req) : 'scheduler' }
+  recordHostingRun(state, run)
+  project.hosting = { ...(project.hosting || defaultHostingPolicy()), ...policy, currentTaskId: project.hosting?.currentTaskId || null }
+  await saveState()
+  try {
+    if (!projectGithubConfigured(project)) throw Object.assign(new Error('Configure GITHUB_TOKEN or a GitHub App installation before inspecting this repository.'), { code: 'GITHUB_NOT_CONFIGURED' })
+    const { findings, meta } = await runHostingLightScan(project, { signal })
+    run.findings = findings
+    if (depth === 'full') {
+      const queued = await enqueueIntegrationScan(project, req || { get: () => undefined })
+      run.integrationJobId = queued.job.id
+      run.findings.push(hostingFinding('update_scan_queued', 'P4', `Update-capability scan queued (${queued.job.id})`))
+      // PHASE 4: genuine security pass over the managed cache clone.
+      try {
+        const token = await githubTokenForProject(project)
+        const cache = await ensureRepoCache({ dataDir, fullName: project.fullName, token, branch: meta.defaultBranch, signal })
+        const scan = await runSecurityScan({ root: cache.path, signal })
+        project.securitySummary = { lastScanAt: scan.scannedAt, status: scan.status, counts: scan.counts, dependencyAuditRan: scan.dependencyAuditRan, topFindings: scan.findings.slice(0, 10) }
+        run.securityStatus = scan.status
+        for (const finding of scan.findings.slice(0, 20)) {
+          state.securityFindings.unshift({ id: id('sec'), projectId: project.id, repository: project.fullName, scanId: run.id, ...finding, recordedAt: now() })
+        }
+        state.securityFindings = state.securityFindings.slice(0, 1000)
+        run.findings.push(hostingFinding('security_scan', scan.status === 'CLEAN' ? 'P4' : 'P2', `Security scan ${scan.status.toLowerCase()} (${scan.counts.P0} P0, ${scan.counts.P1} P1, ${scan.counts.P2} P2, ${scan.counts.P3} P3)`))
+      } catch (scanError) {
+        run.findings.push(hostingFinding('security_scan_failed', 'P3', `Security scan failed: ${safeError(scanError).slice(0, 200)}`))
+      }
+    }
+    run.status = 'Success'
+    project.hosting.lastInspectionAt = startedAt
+    project.hosting.lastOutcome = { runId: run.id, status: run.status, findings: summarizeFindings(run.findings), at: now() }
+    if (depth === 'light') project.hosting.lastLightScanAt = startedAt
+    else project.hosting.lastFullScanAt = startedAt
+  } catch (error) {
+    run.status = error.code === 'GITHUB_NOT_CONFIGURED' ? 'Blocked' : error.code === 'JOB_CANCELLED' ? 'Cancelled' : 'Failed'
+    run.error = safeError(error)
+    project.hosting.lastOutcome = { runId: run.id, status: run.status, error: run.error, at: now() }
+  } finally {
+    run.finishedAt = now()
+    state.activity.unshift({ id: id('activity'), type: 'hosting-inspection', message: `${depth} inspection ${run.status.toLowerCase()} for ${project.fullName} (${run.findings.length} finding(s))`, at: now() })
+    state.activity = state.activity.slice(0, 100)
+    await saveState()
+  }
+  return run
+}
+
+function hostingPaused() {
+  return state.settings.hostingPaused === true
+}
+
+function hostingDueProjects() {
+  if (hostingPaused()) return []
+  const due = []
+  for (const project of state.projects) {
+    const policy = getHostingPolicy(project)
+    if (!policy.enabled) continue
+    if (project.hosting?.currentTaskId) continue // one active task per repository (PART 10.2)
+    const last = project.hosting?.lastInspectionAt || null
+    const dueAt = last ? new Date(last).getTime() + policy.intervalMinutes * 60 * 1000 : 0
+    if (dueAt <= Date.now()) due.push({ project, policy })
+  }
+  return due
+}
+
+// ---- PHASE 2: issue monitoring, classification and event-driven triggers ----
+
+const ISSUE_ACTIVITY_LIMIT = 200
+const ISSUE_KNOWN_LIMIT = 500
+const MAX_ISSUE_CLASSIFICATIONS_PER_SYNC = 5
+const AUTO_LABEL_PREFIX = 'nexus'
+
+function normalizeIssueStore(project) {
+  if (!project.issues || typeof project.issues !== 'object') project.issues = { lastSyncedAt: null, activity: [], known: {} }
+  if (!Array.isArray(project.issues.activity)) project.issues.activity = []
+  if (!project.issues.known || typeof project.issues.known !== 'object') project.issues.known = {}
+  return project.issues
+}
+
+function rememberIssueSeen(store, issue) {
+  store.known[String(issue.number)] = { updatedAt: issue.updated_at || null, state: issue.state || 'open' }
+  const keys = Object.keys(store.known)
+  if (keys.length > ISSUE_KNOWN_LIMIT) {
+    for (const key of keys.slice(0, keys.length - ISSUE_KNOWN_LIMIT)) delete store.known[key]
+  }
+}
+
+function issueLabels(issue) {
+  return (issue.labels || []).map((label) => typeof label === 'string' ? label : label?.name).filter(Boolean).slice(0, 12)
+}
+
+function recordIssueActivity(project, { issue, classification, source, triggerFix }) {
+  const store = normalizeIssueStore(project)
+  const entry = {
+    number: issue.number,
+    title: String(issue.title || '').slice(0, 200),
+    state: issue.state || 'open',
+    htmlUrl: issue.html_url || null,
+    labels: issueLabels(issue),
+    updatedAt: issue.updated_at || null,
+    seenAt: now(),
+    source,
+    classification: {
+      category: classification.category,
+      severity: classification.severity,
+      confidence: classification.confidence,
+      source: classification.source,
+      suggestedAction: classification.suggestedAction || null,
+      problemSummary: classification.problemSummary || null,
+      reproductionSteps: classification.reproductionSteps || null,
+      actualBehavior: classification.actualBehavior || null,
+      expectedBehavior: classification.expectedBehavior || null,
+      errorLogExcerpt: classification.errorLogExcerpt || null,
+      affectedVersions: classification.affectedVersions || null,
+      affectedModules: classification.affectedModules || null
+    },
+    triggerFix: triggerFix === true,
+    fixTaskId: store.activity.find((item) => item.number === issue.number)?.fixTaskId || null
+  }
+  return upsertIssueActivity(store, entry, ISSUE_ACTIVITY_LIMIT)
+}
+
+async function resolveClassifierProvider() {
+  try {
+    return await resolveProviderForInvocation({ dataDir, providerId: null, taskType: 'issue-classification' }) || null
+  } catch { return null }
+}
+
+async function classifyAndRecordIssue({ project, issue, comments = [], source, signal } = {}) {
+  const provider = await resolveClassifierProvider()
+  const classification = await classifyIssue({ issue, comments, provider, signal })
+  const policy = getHostingPolicy(project)
+  const blockedReason = automaticFixDecision(policy, classification, issue)
+  const triggerFix = blockedReason === null
+  const entry = recordIssueActivity(project, { issue, classification, source, triggerFix })
+  entry.automationBlockedReason = blockedReason
+  // Auto-labeling is a lightweight remote write; only non-observe strategies
+  // label issues, and labeling failures never block monitoring.
+  if (policy.enabled && policy.strategy !== 'observe' && remoteWritesEnabled() && !hostingPaused()) {
+    const label = `${AUTO_LABEL_PREFIX}/${classification.category.toLowerCase()}`
+    if (!issueLabels(issue).some((existing) => existing.startsWith(`${AUTO_LABEL_PREFIX}/`))) {
+      try {
+        await addIssueLabels((endpoint, options) => { assertHostingWrite({ project, enabled: remoteWritesEnabled(), paused: hostingPaused(), operation: 'label' }); return githubFetchForProject(project, endpoint, options) }, repoFromProject(project), issue.number, [label])
+        entry.labels = [...new Set([...entry.labels, label])]
+      } catch { /* labeling is best-effort */ }
+    }
+  }
+  return { classification, entry, triggerFix }
+}
+
+async function syncProjectIssues(project, { request, signal, maxClassifications = MAX_ISSUE_CLASSIFICATIONS_PER_SYNC } = {}) {
+  if (!projectGithubConfigured(project)) throw Object.assign(new Error('Configure GITHUB_TOKEN or a GitHub App installation before syncing issues.'), { code: 'GITHUB_NOT_CONFIGURED' })
+  const store = normalizeIssueStore(project)
+  const syncStartedAt = now()
+  // GitHub's list index can lag issue creation. Overlap the cursor and use
+  // per-issue timestamps for deduplication, so delayed records are not lost.
+  const since = store.lastSyncedAt ? new Date(new Date(store.lastSyncedAt).getTime() - 5 * 60_000).toISOString() : null
+  const { issues, truncated } = await listRepositoryIssues(request, repoFromProject(project), { state: 'all', since, signal })
+  let classified = 0
+  let newlyActionable = 0
+  for (const issue of issues) {
+    const key = String(issue.number)
+    const previous = store.known[key]
+    if (previous?.updatedAt === issue.updated_at && previous.state === issue.state) continue
+    if (issue.state === 'closed') { recordIssueActivity(project, { issue, classification: { category: 'NEEDS_HUMAN_REVIEW', severity: 'P4', confidence: 0.2, source: 'heuristic', suggestedAction: 'none' }, source: 'poll', triggerFix: false }); continue }
+    if (classified >= maxClassifications) continue
+    const { entry, triggerFix } = await classifyAndRecordIssue({ project, issue, comments: [], source: 'poll', signal })
+    rememberIssueSeen(store, issue)
+    classified += 1
+    if (triggerFix) {
+      newlyActionable += 1
+      try { await enqueueIssueFixTask({ project, issueNumber: entry.number, source: 'poll', classification: entry.classification }) }
+      catch (queueError) { state.activity.unshift({ id: id('activity'), type: 'issue-fix', message: `Fix not queued for ${project.fullName}#${entry.number}: ${queueError.code || 'unknown'}`, at: now() }); state.activity = state.activity.slice(0, 100) }
+    }
+  }
+  // Keep the cursor until all bounded classifications are processed.
+  if (!truncated && classified < maxClassifications) store.lastSyncedAt = syncStartedAt
+  return { scanned: issues.length, classified, newlyActionable }
+}
+
+async function handleIssueEvent({ project, issue, source, comment = null, comments: providedComments = null, signal } = {}) {
+  if (!isRealIssue(issue)) return null
+  const store = normalizeIssueStore(project)
+  const key = String(issue.number)
+  const previous = store.known[key]
+  const changed = !previous || previous.updatedAt !== issue.updated_at
+  rememberIssueSeen(store, issue)
+  // Classify new issues immediately; re-classify known ones only when new
+  // information arrives (a fresh comment may turn a question into a bug).
+  const shouldClassify = !previous || changed || comment || providedComments
+  if (!shouldClassify) return null
+  let comments = providedComments
+  if (!comments && comment) comments = [{ author: comment.user?.login || null, body: String(comment.body || '').slice(0, 4000), createdAt: comment.created_at || null }]
+  if (!comments) {
+    try {
+      comments = await listIssueComments((endpoint, options) => githubFetchForProject(project, endpoint, options), repoFromProject(project), issue.number, { maxPages: 1, signal })
+    } catch { comments = [] }
+  }
+  const { entry, triggerFix } = await classifyAndRecordIssue({ project, issue, comments: (comments || []).slice(0, 5), source, signal })
+  if (triggerFix) entry.fixTaskId = entry.fixTaskId || null
+  return entry
+}
+
+function hostingPublicProject(project) {
+  return {
+    id: project.id,
+    fullName: project.fullName,
+    name: project.name,
+    owner: project.owner,
+    defaultBranch: project.defaultBranch,
+    installationId: project.installationId || null,
+    hosting: hostingStatus(project),
+    policy: getHostingPolicy(project),
+    repoMeta: project.repoMeta ? normalizeRepoMeta(project.repoMeta, project) : null,
+    githubConfigured: projectGithubConfigured(project)
+  }
+}
+
+app.get('/api/hosting/overview', (_req, res) => {
+  const hosted = state.projects.map(hostingPublicProject)
+  const runs = state.hostingRuns.slice(0, 50)
+  res.json({
+    projects: hosted,
+    enabledCount: hosted.filter((item) => item.policy.enabled).length,
+    runs,
+    scheduler: { dueNow: hostingDueProjects().length, strategies: HOSTING_STRATEGIES, paused: hostingPaused() }
+  })
+})
+
+app.get('/api/project-overview', async (req, res) => {
+  if (!requireDesktopLocalAgent(res)) return
+  const results = await Promise.allSettled([listLocalAgentTasks({ dataDir }), listPublicProviders({ dataDir })])
+  const localTasks = results[0].status === 'fulfilled' ? results[0].value : []
+  const providers = results[1].status === 'fulfilled' ? results[1].value : []
+  const secrets = [process.env.GITHUB_TOKEN, process.env.AI_API_KEY]
+  for (const provider of providers.filter((item) => item.configured)) {
+    try { secrets.push((await resolveProviderForInvocation({ dataDir, providerId: provider.id }))?.apiKey) } catch { /* public snapshot remains available */ }
+  }
+  const warnings = results.flatMap((result, index) => result.status === 'rejected' ? [index === 0 ? 'agent-store-unavailable' : 'provider-store-unavailable'] : [])
+  res.json(buildProjectOverview({ state, localTasks, providers, github: { configured: githubConfigured(), owner: githubAccount?.login || process.env.GITHUB_OWNER }, paused: hostingPaused(), activeResearch: [...activeOverviewResearch.values()], projectId: String(req.query.projectId || '').slice(0, 128), secrets, warnings }))
+})
+
+app.put('/api/settings/remote-writes', async (req, res) => {
+  if (!requireDesktopLocalAgent(res) || !requireRole(req, res, 'Administrator')) return
+  if (typeof req.body?.enabled !== 'boolean' || req.body?.confirm !== true) return res.status(400).json({ code: 'CONFIRMATION_REQUIRED', message: 'Confirm whether repository-policy remote writes should be enabled.' })
+  state.settings.remoteWritesEnabled = req.body.enabled
+  audit(req, 'remote_writes_updated', 'desktop', 'success', 'high', { enabled: req.body.enabled })
+  await saveState()
+  res.json({ enabled: remoteWritesEnabled() })
+})
+
+app.get('/api/hosting/runs', (req, res) => {
+  const projectId = String(req.query.projectId || '')
+  const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 200)
+  const runs = state.hostingRuns.filter((run) => !projectId || run.projectId === projectId).slice(0, limit)
+  res.json({ runs, total: state.hostingRuns.filter((run) => !projectId || run.projectId === projectId).length })
+})
+
+app.get('/api/hosting/jobs', (req, res) => {
+  const jobs = (state.hostedJobs || []).filter((job) => !req.query.projectId || job.projectId === req.query.projectId).slice(-100).reverse()
+  res.json({ jobs, running: hostedRunningCount, queued: hostedPending.length, concurrency: HOSTED_MAX_RUNNING })
+})
+
+app.post('/api/hosting/jobs/:jobId/reconcile', async (req, res) => {
+  if (!requireRole(req, res, 'Operator')) return
+  const job = state.hostedJobs.find((candidate) => candidate.id === req.params.jobId)
+  if (!job) return res.status(404).json({ code: 'JOB_NOT_FOUND' })
+  if (!['Interrupted', 'Blocked'].includes(job.status)) return res.status(409).json({ code: 'JOB_NOT_RECONCILABLE' })
+  const project = state.projects.find((candidate) => candidate.id === job.projectId)
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND' })
+  for (const entry of job.operations || []) {
+    if (entry.status === 'Confirmed') continue
+    try {
+      if (entry.endpoint.startsWith('git:')) Object.assign(entry, JSON.parse(entry.body), { repository: project.fullName })
+      if (entry.endpoint.startsWith('upload:')) Object.assign(entry, JSON.parse(entry.body), { repository: project.fullName })
+      await reconcileEffect(entry, (endpoint) => githubFetchForProject(project, endpoint))
+    } catch (error) { entry.reconcileError = safeError(error) }
+  }
+  job.reconciledAt = now()
+  job.reconciliation = (job.operations || []).some((entry) => entry.status !== 'Confirmed') ? 'NeedsReview' : 'ReceiptsConfirmed'
+  // Reconciliation does not execute code or silently replay delivery.
+  await saveState()
+  res.json({ job })
+})
+
+app.get('/api/projects/:projectId/hosting', (req, res) => {
+  const project = state.projects.find((item) => item.id === req.params.projectId)
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'Project not found.' })
+  res.json({ project: hostingPublicProject(project), runs: state.hostingRuns.filter((run) => run.projectId === project.id).slice(0, 20) })
+})
+
+app.put('/api/projects/:projectId/hosting', async (req, res) => {
+  const project = state.projects.find((item) => item.id === req.params.projectId)
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'Project not found.' })
+  if (!requireRole(req, res, 'Operator')) return
+  const body = req.body || {}
+  if (body.strategy !== undefined && !HOSTING_STRATEGIES.includes(body.strategy)) return res.status(400).json({ code: 'HOSTING_STRATEGY_INVALID', message: `strategy must be one of ${HOSTING_STRATEGIES.join(', ')}.` })
+  if (body.intervalMinutes !== undefined) {
+    const minutes = Math.round(Number(body.intervalMinutes))
+    if (!Number.isFinite(minutes) || minutes < HOSTING_MIN_INTERVAL_MINUTES || minutes > HOSTING_MAX_INTERVAL_MINUTES) {
+      return res.status(400).json({ code: 'HOSTING_INTERVAL_INVALID', message: `intervalMinutes must be between ${HOSTING_MIN_INTERVAL_MINUTES} and ${HOSTING_MAX_INTERVAL_MINUTES}.` })
+    }
+  }
+  const previous = getHostingPolicy(project)
+  const merged = normalizeHostingPolicy({ ...previous, ...body, enabled: body.enabled !== undefined ? body.enabled === true : previous.enabled })
+  const withPreset = body.strategy && body.strategy !== previous.strategy && body.applyPreset !== false ? applyStrategyPreset(merged, body.strategy) : merged
+  if (withPreset.enabled && withPreset.strategy !== 'observe' && (!previous.enabled || previous.strategy === 'observe')) return res.status(409).json({ code: 'SETUP_READINESS_REQUIRED', message: 'Save the policy disabled, then run readiness checks and enable hosting.' })
+  project.hosting = { ...withPreset, updatedAt: now(), lastInspectionAt: project.hosting?.lastInspectionAt || null, lastLightScanAt: project.hosting?.lastLightScanAt || null, lastFullScanAt: project.hosting?.lastFullScanAt || null, lastOutcome: project.hosting?.lastOutcome || null, currentTaskId: project.hosting?.currentTaskId || null }
+  audit(req, 'hosting_policy_updated', project.fullName, 'success', 'medium', { strategy: project.hosting.strategy, intervalMinutes: project.hosting.intervalMinutes, enabled: project.hosting.enabled })
+  await saveState()
+  res.json({ project: hostingPublicProject(project) })
+})
+
+async function setupContext(project) {
+  const provider = await resolveProviderForInvocation({ dataDir, taskType: 'coding' })
+  const credential = await githubTokenForProject(project)
+  return { provider, credential, fingerprint: readinessFingerprint({ project, provider, credential, account: githubAccount?.login, epoch: readinessEpoch }) }
+}
+
+app.post('/api/projects/:projectId/hosting/readiness', async (req, res) => {
+  const project = state.projects.find((item) => item.id === req.params.projectId)
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND' })
+  if (!requireRole(req, res, 'Operator')) return
+  try {
+    const context = await setupContext(project)
+    if (!context.credential) throw Object.assign(new Error('GitHub connection is required.'), { code: 'GITHUB_NOT_CONFIGURED' })
+    await githubFetchForProject(project, `/repos/${project.fullName}`)
+    if (getHostingPolicy(project).strategy !== 'observe') {
+      assertTrustedRepository(project)
+      if (!context.provider) throw Object.assign(new Error('A coding provider is required.'), { code: 'AI_NOT_CONFIGURED' })
+      const test = await testProviderRecord({ dataDir, providerId: context.provider.id })
+      if (!test.ok) throw Object.assign(new Error(test.error), { code: test.code || 'PROVIDER_TEST_FAILED' })
+      const env = await detectDevelopmentEnvironment()
+      if (!env.tools.some((tool) => tool.id === 'git' && tool.status === 'AVAILABLE')) throw Object.assign(new Error('A working Git installation is required.'), { code: 'GIT_NOT_AVAILABLE' })
+    }
+    const record = { id: crypto.randomUUID(), fingerprint: context.fingerprint, checkedAt: now(), expiresAt: new Date(Date.now() + 10 * 60_000).toISOString() }
+    project.setupReadiness = record
+    await saveState()
+    res.json({ readinessId: record.id, checkedAt: record.checkedAt, expiresAt: record.expiresAt })
+  } catch (error) { res.status(424).json({ code: error.code || 'SETUP_NOT_READY', message: safeError(error) }) }
+})
+
+app.post('/api/projects/:projectId/hosting/enable', async (req, res) => {
+  const project = state.projects.find((item) => item.id === req.params.projectId)
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'Project not found.' })
+  if (!requireRole(req, res, 'Operator')) return
+  if (!projectGithubConfigured(project)) return notConfigured(res)
+  const policy = getHostingPolicy(project)
+  if (policy.strategy !== 'observe' || req.body?.readinessId) {
+    try { const context = await setupContext(project); validateReadiness(project.setupReadiness, { id: req.body?.readinessId, fingerprint: context.fingerprint }) }
+    catch (error) { return res.status(409).json({ code: error.code, message: safeError(error) }) }
+  }
+  project.hosting = { ...policy, enabled: true, updatedAt: now(), lastInspectionAt: project.hosting?.lastInspectionAt || null, lastLightScanAt: project.hosting?.lastLightScanAt || null, lastFullScanAt: project.hosting?.lastFullScanAt || null, lastOutcome: project.hosting?.lastOutcome || null, currentTaskId: project.hosting?.currentTaskId || null }
+  audit(req, 'hosting_enabled', project.fullName, 'success', 'high', { strategy: project.hosting.strategy, intervalMinutes: project.hosting.intervalMinutes })
+  await saveState()
+  res.json({ project: hostingPublicProject(project) })
+})
+
+app.post('/api/projects/:projectId/hosting/disable', async (req, res) => {
+  const project = state.projects.find((item) => item.id === req.params.projectId)
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'Project not found.' })
+  if (!requireRole(req, res, 'Operator')) return
+  project.hosting = { ...getHostingPolicy(project), enabled: false, updatedAt: now(), lastInspectionAt: project.hosting?.lastInspectionAt || null, lastLightScanAt: project.hosting?.lastLightScanAt || null, lastFullScanAt: project.hosting?.lastFullScanAt || null, lastOutcome: project.hosting?.lastOutcome || null, currentTaskId: project.hosting?.currentTaskId || null }
+  audit(req, 'hosting_disabled', project.fullName, 'success', 'medium', {})
+  await saveState()
+  res.json({ project: hostingPublicProject(project) })
+})
+
+app.post('/api/projects/:projectId/hosting/inspect', async (req, res) => {
+  const project = state.projects.find((item) => item.id === req.params.projectId)
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'Project not found.' })
+  if (!requireRole(req, res, 'Operator')) return
+  if (!projectGithubConfigured(project)) return notConfigured(res)
+  const depth = HOSTING_INSPECTION_DEPTHS.includes(req.body?.depth) ? req.body.depth : 'light'
+  const run = await runHostingInspection(project, { depth, req })
+  res.status(run.status === 'Success' ? 200 : 424).json({ run, project: hostingPublicProject(project) })
+})
+
+app.post('/api/projects/:projectId/hosting/workspace/prepare', async (req, res) => {
+  const project = state.projects.find((item) => item.id === req.params.projectId)
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'Project not found.' })
+  if (!requireRole(req, res, 'Operator')) return
+  if (!projectGithubConfigured(project)) return notConfigured(res)
+  try {
+    const token = await githubTokenForProject(project)
+    const branch = String(req.body?.branch || project.defaultBranch || 'main')
+    const startedAt = now()
+    const cache = await ensureRepoCache({ dataDir, fullName: project.fullName, token, branch })
+    project.localWorkspace = { status: 'ready', cachePath: cache.path, branch: cache.branch, headSha: cache.headSha, clonedNow: cache.cloned, preparedAt: now(), preparedInMs: Date.now() - new Date(startedAt).getTime(), lastError: null }
+    audit(req, 'hosting_workspace_prepared', project.fullName, 'success', 'low', { branch, headSha: cache.headSha, cloned: cache.cloned })
+    await saveState()
+    res.json({ workspace: project.localWorkspace, cache: { path: cache.path, branch: cache.branch, headSha: cache.headSha } })
+  } catch (error) {
+    project.localWorkspace = { status: 'error', cachePath: null, branch: String(req.body?.branch || project.defaultBranch || 'main'), headSha: null, preparedAt: now(), lastError: safeError(error) }
+    await saveState().catch(() => {})
+    res.status(error.code === 'GITHUB_NOT_CONFIGURED' ? 424 : 502).json({ code: error.code || 'HOSTING_WORKSPACE_FAILED', message: safeError(error) })
+  }
+})
+
+app.get('/api/projects/:projectId/hosting/workspace', async (req, res) => {
+  const project = state.projects.find((item) => item.id === req.params.projectId)
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'Project not found.' })
+  const description = await describeRepoCache({ dataDir, fullName: project.fullName }).catch((error) => ({ exists: false, error: safeError(error) }))
+  res.json({ workspace: project.localWorkspace || null, cache: description })
+})
+
+app.delete('/api/projects/:projectId/hosting/workspace', async (req, res) => {
+  const project = state.projects.find((item) => item.id === req.params.projectId)
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'Project not found.' })
+  if (!requireRole(req, res, 'Operator')) return
+  if ((req.body?.confirm || req.query.confirm) !== project.fullName) return res.status(400).json({ code: 'HOSTING_WORKSPACE_CONFIRM_REQUIRED', message: `Confirm by passing confirm: "${project.fullName}". Only the NEXUS-managed cache is removed; user folders are never touched.` })
+  const result = await removeRepoWorkspace(dataDir, project.fullName).catch((error) => ({ removed: false, error: safeError(error) }))
+  project.localWorkspace = { status: 'none', cachePath: null, branch: null, headSha: null, preparedAt: null, lastError: null }
+  audit(req, 'hosting_workspace_removed', project.fullName, 'success', 'medium', { removed: result.removed })
+  await saveState()
+  res.json(result)
+})
+
+// ---- PHASE 2: issue monitoring routes ----
+
+app.get('/api/projects/:projectId/issues', (req, res) => {
+  const project = state.projects.find((item) => item.id === req.params.projectId)
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'Project not found.' })
+  const store = normalizeIssueStore(project)
+  const actionableOnly = req.query.actionable === 'true'
+  const category = String(req.query.category || '')
+  const activity = store.activity.filter((entry) => (!actionableOnly || entry.triggerFix) && (!category || entry.classification?.category === category))
+  res.json({
+    issues: activity.slice(0, 100),
+    total: activity.length,
+    lastSyncedAt: store.lastSyncedAt,
+    categories: ISSUE_CATEGORIES
+  })
+})
+
+app.post('/api/projects/:projectId/issues/sync', async (req, res) => {
+  const project = state.projects.find((item) => item.id === req.params.projectId)
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'Project not found.' })
+  if (!requireRole(req, res, 'Operator')) return
+  if (!projectGithubConfigured(project)) return notConfigured(res)
+  try {
+    const result = await syncProjectIssues(project, { request: (endpoint, options) => githubFetchForProject(project, endpoint, options) })
+    audit(req, 'project_issues_synced', project.fullName, 'success', 'low', { scanned: result.scanned, classified: result.classified })
+    await saveState()
+    res.json(result)
+  } catch (error) {
+    await saveState().catch(() => {})
+    res.status(error.status || 500).json({ code: error.code || 'ISSUE_SYNC_FAILED', message: safeError(error) })
+  }
+})
+
+app.post('/api/projects/:projectId/issues/:number/classify', async (req, res) => {
+  const project = state.projects.find((item) => item.id === req.params.projectId)
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'Project not found.' })
+  if (!requireRole(req, res, 'Operator')) return
+  if (!projectGithubConfigured(project)) return notConfigured(res)
+  try {
+    const request = (endpoint, options) => githubFetchForProject(project, endpoint, options)
+    const issue = await getIssue(request, repoFromProject(project), req.params.number)
+    const comments = await listIssueComments(request, repoFromProject(project), issue.number, { maxPages: 2 })
+    const { classification, entry } = await classifyAndRecordIssue({ project, issue, comments, source: 'manual' })
+    audit(req, 'issue_classified', `${project.fullName}#${issue.number}`, 'success', 'low', { category: classification.category, severity: classification.severity, source: classification.source })
+    await saveState()
+    res.json({ issue: issuePublicSummary(issue), classification, entry, commentsCount: comments.length })
+  } catch (error) {
+    await saveState().catch(() => {})
+    res.status(error.status || 500).json({ code: error.code || 'ISSUE_CLASSIFY_FAILED', message: safeError(error) })
+  }
+})
+
+app.get('/api/issues/activity', (req, res) => {
+  const actionableOnly = req.query.actionable === 'true'
+  const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 300)
+  const entries = []
+  for (const project of state.projects) {
+    const store = project.issues
+    if (!store?.activity?.length) continue
+    for (const entry of store.activity) {
+      if (actionableOnly && !entry.triggerFix) continue
+      entries.push({ projectId: project.id, repository: project.fullName, ...entry })
+    }
+  }
+  entries.sort((a, b) => new Date(b.updatedAt || b.seenAt || 0) - new Date(a.updatedAt || a.seenAt || 0))
+  res.json({ issues: entries.slice(0, limit), total: entries.length })
+})
+
+app.post('/api/projects/:projectId/issues/:number/fix', async (req, res) => {
+  const project = state.projects.find((item) => item.id === req.params.projectId)
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'Project not found.' })
+  if (!requireRole(req, res, 'Operator')) return
+  if (!projectGithubConfigured(project)) return notConfigured(res)
+  try {
+    const result = await enqueueIssueFixTask({ project, issueNumber: req.params.number, source: 'manual', req, classification: req.body?.classification || null })
+    res.status(202).json(result)
+  } catch (error) {
+    const status = error.code === 'HOSTING_TASK_IN_PROGRESS' ? 409 : error.code === 'HOSTED_QUEUE_FULL' ? 429 : error.code === 'HOSTING_POLICY_FORBIDS_FIX' ? 424 : 400
+    res.status(status).json({ code: error.code || 'ISSUE_FIX_QUEUE_FAILED', message: safeError(error) })
+  }
+})
+
+// ---- PHASE 4/5/6 routes: security findings, research, delivery controls ----
+
+app.post('/api/hosting/pause', async (req, res) => {
+  if (!requireRole(req, res, 'Operator')) return
+  const paused = req.body?.paused === true
+  state.settings.hostingPaused = paused
+  if (!paused) scheduleHostedPump()
+  audit(req, 'hosting_pause_toggled', 'scheduler', 'success', 'medium', { paused })
+  await saveState()
+  res.json({ paused })
+})
+
+app.get('/api/security/findings', (req, res) => {
+  const projectId = String(req.query.projectId || '')
+  const priority = String(req.query.priority || '')
+  const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 500)
+  const findings = state.securityFindings.filter((finding) => (!projectId || finding.projectId === projectId) && (!priority || finding.priority === priority))
+  res.json({ findings: findings.slice(0, limit), total: findings.length })
+})
+
+app.post('/api/projects/:projectId/security-scan', async (req, res) => {
+  const project = state.projects.find((item) => item.id === req.params.projectId)
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'Project not found.' })
+  if (!requireRole(req, res, 'Operator')) return
+  if (!projectGithubConfigured(project)) return notConfigured(res)
+  try {
+    const token = await githubTokenForProject(project)
+    const cache = await ensureRepoCache({ dataDir, fullName: project.fullName, token, branch: project.defaultBranch || 'main' })
+    const scan = await runSecurityScan({ root: cache.path })
+    project.securitySummary = { lastScanAt: scan.scannedAt, status: scan.status, counts: scan.counts, dependencyAuditRan: scan.dependencyAuditRan, topFindings: scan.findings.slice(0, 10) }
+    for (const finding of scan.findings.slice(0, 20)) {
+      state.securityFindings.unshift({ id: id('sec'), projectId: project.id, repository: project.fullName, scanId: 'manual', ...finding, recordedAt: now() })
+    }
+    state.securityFindings = state.securityFindings.slice(0, 1000)
+    audit(req, 'security_scan_completed', project.fullName, 'success', 'medium', { status: scan.status, counts: scan.counts })
+    await saveState()
+    res.json({ scan, summary: project.securitySummary })
+  } catch (error) {
+    res.status(error.code === 'GITHUB_NOT_CONFIGURED' ? 424 : 502).json({ code: error.code || 'SECURITY_SCAN_FAILED', message: safeError(error) })
+  }
+})
+
+async function runProjectResearch(project, { req = null, signal } = {}) {
+  const overviewId = crypto.randomUUID()
+  activeOverviewResearch.set(overviewId, { id: overviewId, projectId: project.id, repository: project.fullName, startedAt: now() })
+  try { return await runProjectResearchBody(project, { req, signal }) }
+  finally { activeOverviewResearch.delete(overviewId) }
+}
+
+async function runProjectResearchBody(project, { req = null, signal } = {}) {
+  const token = process.env.GITHUB_TOKEN || ''
+  if (!token) throw Object.assign(new Error('Competitor research requires a legacy GITHUB_TOKEN (the GitHub search API does not accept installation tokens).'), { code: 'GITHUB_NOT_CONFIGURED' })
+  const provider = await resolveClassifierProvider()
+  const request = (endpoint, options) => githubFetch(endpoint, options)
+  const outcome = await runCompetitorResearch({ project, request, provider, signal, limit: RESEARCH_MAX_CANDIDATES })
+  const report = {
+    id: id('research'),
+    projectId: project.id,
+    repository: project.fullName,
+    query: outcome.query,
+    candidates: outcome.candidates,
+    analysis: outcome.analysis,
+    usage: outcome.usage || null,
+    costUsd: outcome.costUsd ?? null,
+    status: 'Success',
+    createdAt: now()
+  }
+  report.upgradeProposals = buildUpgradeProposals(report)
+  state.researchReports.unshift(report)
+  state.researchReports = state.researchReports.slice(0, 200)
+  project.research = { lastRunAt: report.createdAt, lastReportId: report.id, candidatesFound: outcome.candidates.length, source: outcome.analysis.source }
+  return report
+}
+
+app.post('/api/projects/:projectId/research', async (req, res) => {
+  const project = state.projects.find((item) => item.id === req.params.projectId)
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'Project not found.' })
+  if (!requireRole(req, res, 'Operator')) return
+  if (!process.env.GITHUB_TOKEN) return notConfigured(res)
+  try {
+    const report = await runProjectResearch(project, { req })
+    audit(req, 'competitor_research_completed', project.fullName, 'success', 'low', { reportId: report.id, candidates: report.candidates.length, source: report.analysis.source })
+    await saveState()
+    res.json({ report })
+  } catch (error) {
+    await saveState().catch(() => {})
+    res.status(error.status || 502).json({ code: error.code || 'RESEARCH_FAILED', message: safeError(error) })
+  }
+})
+
+app.get('/api/research/reports', (req, res) => {
+  const projectId = String(req.query.projectId || '')
+  const limit = Math.min(Math.max(Number(req.query.limit) || 30, 1), 100)
+  const reports = state.researchReports.filter((report) => !projectId || report.projectId === projectId).slice(0, limit)
+  res.json({ reports, total: state.researchReports.filter((report) => !projectId || report.projectId === projectId).length })
+})
+
+app.post('/api/research/reports/:reportId/proposals/:proposalId/review', async (req, res) => {
+  if (!requireRole(req, res, 'Operator')) return
+  const report = state.researchReports.find((item) => item.id === req.params.reportId)
+  const proposal = report?.upgradeProposals?.find((item) => item.id === req.params.proposalId)
+  if (!proposal) return res.status(404).json({ code: 'PROPOSAL_NOT_FOUND' })
+  try {
+    reviewUpgradeProposal(proposal, { ...req.body, actor: currentRole(req) })
+    audit(req, 'upgrade_proposal_reviewed', proposal.id, proposal.status.toLowerCase(), 'high', { reportId: report.id })
+    await saveState()
+    res.json({ proposal })
+  } catch (error) { res.status(409).json({ code: error.code, message: safeError(error) }) }
+})
+
+app.get('/api/research/reports/:reportId', (req, res) => {
+  const report = state.researchReports.find((item) => item.id === req.params.reportId)
+  if (!report) return res.status(404).json({ code: 'REPORT_NOT_FOUND', message: 'Research report not found.' })
+  res.json({ report })
+})
+
+app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'project-nexus', time: now(), uptimeSeconds: Math.floor(process.uptime()), memory: process.memoryUsage(), scheduler: { paused: hostingPaused(), running: hostedRunningCount, queued: hostedPending.length, concurrency: HOSTED_MAX_RUNNING } }))
 
 app.get('/api/auth/context', (req, res) => res.json({ role: currentRole(req), mode: allowRoleHeader ? 'header-enabled' : 'single-user', supportedRoles: Object.keys(roleRank) }))
 
@@ -1273,7 +2351,7 @@ app.post('/api/github/app/installations/:installationId/sync', async (req, res) 
     )
     const incoming = repositories.map((repo) => ({ ...normalizeRepo(repo), installationId }))
     const byFullName = new Map(state.projects.map((project) => [project.fullName, project]))
-    for (const project of incoming) byFullName.set(project.fullName, { ...byFullName.get(project.fullName), ...project })
+    for (const project of incoming) byFullName.set(project.fullName, { ...byFullName.get(project.fullName), ...project, hosting: getHostingPolicy(byFullName.get(project.fullName)), repoMeta: byFullName.get(project.fullName)?.repoMeta || null, localWorkspace: byFullName.get(project.fullName)?.localWorkspace || null })
     state.projects = [...byFullName.values()].sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0))
     audit(req, 'github_app_repository_sync', installationId, 'success', 'low', { imported: incoming.length })
     await saveState()
@@ -1299,11 +2377,34 @@ app.post('/api/github/webhook', async (req, res) => {
   res.status(202).json({ accepted: true, deliveryId, status: 'QUEUED' })
 })
 
+app.post('/api/github/credentials', async (req, res) => {
+  if (!requireDesktopLocalAgent(res) || !requireRole(req, res, 'Administrator')) return
+  const token = req.body?.token
+  if (typeof token !== 'string' || !token.trim() || token.length > 4096) return res.status(400).json({ code: 'GITHUB_TOKEN_INVALID', message: 'Enter a GitHub access token.' })
+  try {
+    const response = await fetch(`${githubApiUrl}/user`, { headers: { Authorization: `Bearer ${token.trim()}`, Accept: 'application/vnd.github+json' }, signal: AbortSignal.timeout(15_000), redirect: 'error' })
+    if (!response.ok) return res.status(424).json({ code: 'GITHUB_AUTH_FAILED', message: `GitHub rejected the connection (${response.status}).` })
+    const user = await response.json()
+    process.env.GITHUB_TOKEN = token.trim()
+    githubAccount = { login: user.login, avatarUrl: user.avatar_url, connectedAt: now(), scopes: (response.headers.get('x-oauth-scopes') || '').split(',').map((scope) => scope.trim()).filter(Boolean) }
+    res.json({ connected: true, account: githubAccount })
+  } catch (error) { res.status(424).json({ code: 'GITHUB_CONNECTION_FAILED', message: safeError(error) }) }
+})
+
+app.get('/api/github/account', async (_req, res) => {
+  if (!githubConfigured()) return res.status(424).json({ code: 'GITHUB_NOT_CONFIGURED', message: 'Connect GitHub first.' })
+  try {
+    const user = await githubFetch('/user', { signal: AbortSignal.timeout(15_000) })
+    githubAccount = { ...githubAccount, login: user.login, avatarUrl: user.avatar_url }
+    res.json({ account: githubAccount })
+  } catch (error) { res.status(424).json({ code: 'GITHUB_CONNECTION_FAILED', message: safeError(error) }) }
+})
+
 app.get('/api/github/status', (_req, res) => {
   res.json({
     configured: githubConfigured(),
-    tokenHint: redactToken(process.env.GITHUB_TOKEN),
-    owner: process.env.GITHUB_OWNER || null,
+    owner: githubAccount?.login || process.env.GITHUB_OWNER || null,
+    account: githubAccount,
     apiUrl: githubApiUrl,
     permissions: githubConfigured() ? ['repository metadata', 'actions read/dispatch', 'releases read'] : []
   })
@@ -1357,8 +2458,8 @@ app.get('/api/integrations/adapters', (_req, res) => {
   res.json({
     adapters: adapters.map(({ id: adapterId, name, capabilities }) => ({ id: adapterId, name, capabilities })),
     ai: { configured: ai.configured, baseUrl: ai.baseUrl, model: ai.model },
-    remoteWritesEnabled: process.env.NEXUS_ENABLE_REMOTE_WRITES === 'true',
-    supportedWorkflows: { scan: true, localModification: true, isolatedBuild: true, push: process.env.NEXUS_ENABLE_REMOTE_WRITES === 'true', pullRequest: process.env.NEXUS_ENABLE_REMOTE_WRITES === 'true' }
+    remoteWritesEnabled: remoteWritesEnabled(),
+    supportedWorkflows: { scan: true, localModification: true, isolatedBuild: true, push: remoteWritesEnabled(), pullRequest: remoteWritesEnabled() }
   })
 })
 
@@ -1391,7 +2492,7 @@ app.get('/api/integrations/security', (_req, res) => {
     configuration: {
       githubConfigured: githubConfigured(), githubAppConfigured: githubAppConfigured(),
       aiConfigured: aiProviderStatus().configured,
-      remoteWritesEnabled: process.env.NEXUS_ENABLE_REMOTE_WRITES === 'true',
+      remoteWritesEnabled: remoteWritesEnabled(),
       roleIdentityMode: allowRoleHeader ? 'request-header (remote writes disabled)' : 'single-server environment role'
     },
     findings: reports.slice(0, 100).flatMap((report) => (report.assessment?.components || []).flatMap(({ component, assessment }) => assessment.missing.map((check) => ({ projectId: report.projectId, repository: report.repository, framework: component.framework, check, status: assessment.status, reportId: report.id }))))
@@ -1470,7 +2571,7 @@ app.post('/api/integrations/jobs', async (req, res) => {
 })
 
 app.post('/api/integrations/jobs/:jobId/pull-request', async (req, res) => {
-  if (process.env.NEXUS_ENABLE_REMOTE_WRITES !== 'true') return res.status(403).json({ code: 'REMOTE_WRITES_DISABLED', message: 'Enable NEXUS_ENABLE_REMOTE_WRITES explicitly before creating a remote branch or pull request.' })
+  if (!remoteWritesEnabled()) return res.status(403).json({ code: 'REMOTE_WRITES_DISABLED', message: 'Enable NEXUS_ENABLE_REMOTE_WRITES explicitly before creating a remote branch or pull request.' })
   if (allowRoleHeader) return res.status(403).json({ code: 'UNTRUSTED_ROLE_MODE', message: 'Remote writes are disabled while role identity can be supplied by a request header.' })
   if (!requireRole(req, res, 'Administrator')) return
   const job = state.integrationJobs.find((item) => item.id === req.params.jobId)
@@ -1843,9 +2944,13 @@ async function recoverIntegrationWork() {
   }
 }
 
+const hostLease = await acquireFileLease(`${stateFile}.host.lock`)
 await loadState()
 await recoverIntegrationWork()
 await recoverLocalAgentTasks()
+await recoverHostedFixTasks()
+setTimeout(() => void sweepExpiredWorkspaces().catch((error) => console.error('Workspace sweep failed:', safeError(error))), 30_000).unref?.()
+setInterval(() => void sweepExpiredWorkspaces().catch((error) => console.error('Workspace sweep failed:', safeError(error))), 6 * 60 * 60_000).unref?.()
 const server = app.listen(port, host, () => {
   const address = server.address()
   if (desktopMode && address && typeof address === 'object') {
@@ -1854,7 +2959,8 @@ const server = app.listen(port, host, () => {
   } else {
     console.log(`PROJECT NEXUS API listening on http://localhost:${address && typeof address === 'object' ? address.port : port}`)
   }
-  const timer = setInterval(() => void runScheduledIntegrationScan(), 60_000)
+  const timer = setInterval(() => { void runScheduledIntegrationScan(); void runScheduledHostingTick() }, 60_000)
   timer.unref?.()
   void runScheduledIntegrationScan()
+  setTimeout(() => void runScheduledHostingTick(), 5_000).unref?.()
 })

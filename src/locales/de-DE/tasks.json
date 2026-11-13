@@ -9,7 +9,7 @@
     "finished": "abgeschlossen {{time}}",
     "emptyTitle": "Der Aufgabenverlauf ist leer",
     "emptyDetail": "Repository-Synchronisierungen und Build-Starts erscheinen hier mit ihrem eigenen Status.",
-    "jobsKicker": "Phase-3-Ausführung",
+    "jobsKicker": "Repository-Vorgänge",
     "jobsTitle": "Repository-Jobs",
     "cancelToast": "Abbruch für {{repository}} angefordert",
     "retryToast": "Erneuter Versuch für {{repository}} in Warteschlange gestellt",
@@ -18,7 +18,7 @@
     "logSummary_other": "Job-Protokoll ({{count}})",
     "noLogs": "Keine Protokollmeldungen aufgezeichnet.",
     "viewReport": "Bericht anzeigen",
-    "emptyJobsTitle": "Keine Phase-3-Jobs",
+    "emptyJobsTitle": "Keine Repository-Jobs",
     "emptyJobsDetail": "Repository-Scans und lokale Integrationsvorschläge erscheinen mit ihrem aktuellen Schritt und Ergebnis."
   },
   "history": {

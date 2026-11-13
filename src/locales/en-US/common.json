@@ -54,7 +54,9 @@
     "no": "No",
     "guarded": "Guarded",
     "pass": "PASS",
-    "fail": "FAIL"
+    "fail": "FAIL",
+    "neverRun": "Never run",
+    "completed": "Completed"
   },
   "status": {
     "Pending": "Pending",
@@ -75,7 +77,19 @@
     "success": "Success",
     "failure": "Failed",
     "in_progress": "Running",
-    "queued": "Queued"
+    "queued": "Queued",
+    "Succeeded": "Succeeded",
+    "NotStarted": "Not started",
+    "NotRequested": "Not requested",
+    "Incomplete": "Incomplete",
+    "Interrupted": "Interrupted",
+    "Confirmed": "Confirmed",
+    "Uncertain": "Uncertain",
+    "Prepared": "Prepared",
+    "Approved": "Approved",
+    "Rejected": "Rejected",
+    "ReceiptsConfirmed": "Remote receipts confirmed",
+    "NeedsReview": "Review required"
   },
   "mode": {
     "readOnly": "READ-ONLY MODE"

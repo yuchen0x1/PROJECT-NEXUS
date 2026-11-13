@@ -1,0 +1,10 @@
+npm warn Unknown env config "store-dir". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+ RUN  v5.1.0 E:/移动云盘同步盘/PROJECT NEXUS
+
+
+ Test Files  2 passed (2)
+      Tests  7 passed (7)
+   Start at  17:13:12
+   Duration  593ms (tests 84%, transform 8%, import 7%, worker 2%)
+

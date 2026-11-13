@@ -9,7 +9,7 @@
     "finished": "{{time}} に完了",
     "emptyTitle": "タスク履歴が空です",
     "emptyDetail": "リポジトリ同期とビルド送信が、それぞれのステータスとともにここに表示されます。",
-    "jobsKicker": "フェーズ 3 の実行",
+    "jobsKicker": "リポジトリ操作",
     "jobsTitle": "リポジトリジョブ",
     "cancelToast": "{{repository}} のキャンセルを要求しました",
     "retryToast": "{{repository}} の再試行をキューに追加しました",
@@ -18,7 +18,7 @@
     "logSummary_other": "ジョブログ ({{count}})",
     "noLogs": "記録されたログメッセージはありません。",
     "viewReport": "レポートを表示",
-    "emptyJobsTitle": "フェーズ 3 のジョブはありません",
+    "emptyJobsTitle": "リポジトリジョブはありません",
     "emptyJobsDetail": "リポジトリスキャンとローカル統合提案が、現在のステップと結果とともに表示されます。"
   },
   "history": {

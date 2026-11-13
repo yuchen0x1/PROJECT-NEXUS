@@ -80,6 +80,9 @@ export type LocalizedDialogText = {
 }
 
 export type DesktopBridge = {
+  fetchProviderModels: (draft: { kind: string; baseUrl: string; apiKey?: string; providerId?: string }) => Promise<ProviderModelsResult>
+  openGitHubTokenPage: () => Promise<void>
+  connectGitHub: (token: string) => Promise<{ connected: boolean; account: { login: string; avatarUrl: string } }>
   requestApi: (request: { url: string; method?: string; body?: string }) => Promise<{ status: number; body: Record<string, unknown> }>
   getInfo: () => Promise<WorkstationInfo>
   detectEnvironment: () => Promise<EnvironmentReport>
@@ -93,4 +96,12 @@ export type DesktopBridge = {
   setAutoStart: (enabled: boolean) => Promise<{ enabled: boolean }>
   getSettings: () => Promise<DesktopSettingsPayload>
   updateSettings: (partial: Partial<Omit<UserPreferences, 'language'>> & { language?: string | null }) => Promise<UserPreferences>
+}
+
+export type ProviderModelsResult = {
+  ok: boolean
+  models: { id: string }[]
+  truncated: boolean
+  errorCode?: string
+  httpStatus?: number
 }

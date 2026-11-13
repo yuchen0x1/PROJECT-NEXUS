@@ -9,7 +9,7 @@
     "finished": "finalizada {{time}}",
     "emptyTitle": "El historial de tareas está vacío",
     "emptyDetail": "Las sincronizaciones de repositorios y los envíos de compilaciones aparecerán aquí con su propio estado.",
-    "jobsKicker": "Ejecución de la fase 3",
+    "jobsKicker": "Operaciones de repositorios",
     "jobsTitle": "Trabajos de repositorios",
     "cancelToast": "Cancelación solicitada para {{repository}}",
     "retryToast": "Reintento en cola para {{repository}}",
@@ -18,7 +18,7 @@
     "logSummary_other": "Registro del trabajo ({{count}})",
     "noLogs": "No se han registrado mensajes de registro.",
     "viewReport": "Ver informe",
-    "emptyJobsTitle": "Sin trabajos de la fase 3",
+    "emptyJobsTitle": "Sin tareas de repositorio",
     "emptyJobsDetail": "Los escaneos de repositorios y las propuestas de integración locales aparecerán con su paso y resultado actuales."
   },
   "history": {

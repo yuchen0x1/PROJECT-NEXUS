@@ -5,6 +5,7 @@ import { createAgentWorkspace } from './workspace-worktree.mjs'
 import { buildProjectIndex } from './indexer.mjs'
 import { buildTaskContextBundle } from './context.mjs'
 import { resolveProviderForInvocation } from '../provider-store.mjs'
+import { repoWorktreePath, repoWorkspaceRootFor, validateRepoFullName } from '../repo-workspace.mjs'
 
 // Full agent task pipeline: resolve provider → create isolated workspace
 // (worktree preferred) → index the workspace → select task context → run the
@@ -13,16 +14,27 @@ import { resolveProviderForInvocation } from '../provider-store.mjs'
 
 export function agentWorkspaceHandleFor(task, dataDir) {
   if (!task?.workspace?.id || task.workspace.id !== task.id) return null
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(task.projectId || ''))) return null
-  const rootBase = path.join(dataDir, 'agent-workspaces', 'agent')
-  const root = task.workspace.mode === 'worktree'
-    ? path.join(rootBase, 'worktree', `nexus-agent__${task.workspace.id.replace(/[._]/g, '-')}`)
-    : path.join(rootBase, task.projectId, task.workspace.id)
+  const hostedRepository = task.type === 'issue-fix-runtime' && typeof task.issue?.repository === 'string'
+    ? task.issue.repository
+    : null
+  const localProjectId = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(task.projectId || ''))
+  if (!hostedRepository && !localProjectId) return null
+  if (hostedRepository) {
+    try { validateRepoFullName(hostedRepository) } catch { return null }
+  }
+  if (hostedRepository && task.workspace.mode !== 'worktree') return null
+  const rootBase = hostedRepository ? repoWorkspaceRootFor(dataDir) : path.join(dataDir, 'agent-workspaces', 'agent')
+  const root = hostedRepository
+    ? repoWorktreePath(dataDir, hostedRepository, task.id)
+    : task.workspace.mode === 'worktree'
+      ? path.join(rootBase, 'worktree', `nexus-agent__${task.workspace.id.replace(/[._]/g, '-')}`)
+      : path.join(rootBase, task.projectId, task.workspace.id)
   return {
     id: task.workspace.id,
     mode: task.workspace.mode,
     projectId: task.projectId,
     projectName: task.projectName,
+    repository: hostedRepository,
     workspaceRoot: rootBase,
     root,
     source: root,
@@ -33,7 +45,10 @@ export function agentWorkspaceHandleFor(task, dataDir) {
 export async function executeAgentRuntimeTask({ task, taskStore, dataDir, signal, options = {}, audit = () => {} }) {
   const tasks = await taskStore.list({ dataDir })
   const current = tasks.find((item) => item.id === task.id) || task
-  const project = await resolveProject({ dataDir, projectId: current.projectId })
+  // Hosted-repository pipelines (issue fixes) resolve the project themselves:
+  // the "project path" is the NEXUS-managed cache clone instead of a locally
+  // registered folder.
+  const project = options.projectOverride || await resolveProject({ dataDir, projectId: current.projectId })
   if (!project) throw Object.assign(new Error('The selected local project is no longer registered or available.'), { code: 'LOCAL_PROJECT_NOT_AVAILABLE' })
 
   await taskStore.update({ taskId: task.id, patch: { status: 'Running', startedAt: new Date().toISOString(), phase: 'preparing' }, event: { type: 'started', detail: 'Agent runtime starting: provider, workspace, index, context.' } })
@@ -42,17 +57,34 @@ export async function executeAgentRuntimeTask({ task, taskStore, dataDir, signal
   if (!provider) throw Object.assign(new Error('No configured AI provider with a valid API key was found for this task.'), { code: 'AI_NOT_CONFIGURED' })
   await taskStore.update({ taskId: task.id, patch: { provider: { id: provider.id, kind: provider.kind, host: safeHost(provider.baseUrl), model: provider.model } } })
 
+  const hostedRepository = current.type === 'issue-fix-runtime' && typeof current.issue?.repository === 'string'
+    ? current.issue.repository
+    : null
+  const agentWorkspaceRoot = hostedRepository ? repoWorkspaceRootFor(dataDir) : path.join(dataDir, 'agent-workspaces', 'agent')
+  const agentWorkspacePath = hostedRepository ? repoWorktreePath(dataDir, hostedRepository, current.id) : null
+
   const { adapter, mode, fallbackReason } = await createAgentWorkspace({
     project,
     taskId: task.id,
     mode: options.workspaceMode || current.workspaceMode || 'auto',
-    workspaceRoot: path.join(dataDir, 'agent-workspaces', 'agent'),
+    workspaceRoot: agentWorkspaceRoot,
+    workspacePath: agentWorkspacePath,
     dataDir,
     signal
   })
   await taskStore.update({
     taskId: task.id,
-    patch: { workspace: { id: task.id, mode, branch: adapter.branch || null, source: 'agent-workspaces/agent', createdAt: adapter.createdAt }, workspaceMode: mode, fallbackReason },
+      patch: {
+        workspace: {
+          id: task.id,
+          mode,
+          branch: adapter.branch || null,
+          source: hostedRepository ? 'repositories/<owner>__<repo>/worktrees/<taskId>' : 'agent-workspaces/agent',
+          createdAt: adapter.createdAt
+        },
+        workspaceMode: mode,
+        fallbackReason
+      },
     event: { type: 'workspace_created', detail: `Isolated ${mode} workspace created${fallbackReason ? ` (fallback: ${fallbackReason})` : ''}.`, metadata: { mode, branch: adapter.branch || null } }
   })
 
@@ -151,6 +183,7 @@ export async function listRuntimeTaskChanges({ task, dataDir, maxChanges = 40, m
   const adapter = await reconstructAdapter({
     taskId: task.workspace.id,
     projectId: task.projectId,
+    repository: handle.repository,
     mode: handle.mode,
     dataDir,
     workspaceRoot: handle.workspaceRoot
@@ -196,6 +229,7 @@ export async function rollbackAgentTask({ task, dataDir }) {
   const adapter = await reconstructAdapter({
     taskId: task.workspace.id,
     projectId: task.projectId,
+    repository: handle.repository,
     mode: handle.mode,
     dataDir,
     workspaceRoot: handle.workspaceRoot
@@ -208,7 +242,9 @@ export async function rollbackAgentTask({ task, dataDir }) {
 
 export async function applyAgentTaskToProject({ task, dataDir, confirm = false }) {
   if (confirm !== true) throw Object.assign(new Error('Applying changes to the original project requires explicit confirmation.'), { code: 'AGENT_APPLY_CONFIRMATION_REQUIRED' })
-  if (!['Succeeded', 'Failed'].includes(task.status) && task.status !== 'Paused') {
+  // Paused tasks may still be awaiting an approval decision; applying their
+  // workspace would deliver an unreviewed change set (audit finding, fixed).
+  if (!['Succeeded', 'Failed'].includes(task.status)) {
     throw Object.assign(new Error('Only finished tasks can be applied to the project.'), { code: 'AGENT_APPLY_NOT_FINISHED' })
   }
   const handle = agentWorkspaceHandleFor(task, dataDir)
@@ -219,6 +255,7 @@ export async function applyAgentTaskToProject({ task, dataDir, confirm = false }
   const adapter = await reconstructAdapter({
     taskId: task.workspace.id,
     projectId: task.projectId,
+    repository: handle.repository,
     mode: handle.mode,
     dataDir,
     workspaceRoot: handle.workspaceRoot

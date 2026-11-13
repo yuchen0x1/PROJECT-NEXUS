@@ -72,9 +72,13 @@ export function expireStaleApprovals(task, timeoutMs = DEFAULT_APPROVAL_TIMEOUT_
 }
 
 // Approval decision policy: maps a tool's effective permission to whether a
-// live user approval is required under the task's approval policy.
-export function approvalRequired({ permission, policy, workspaceWrite = false }) {
+// live user approval is required under the task's approval policy. Callers may
+// pass `tool` plus a set of `autoApproveTools` (autonomous hosting policies);
+// explicit allowlisted tools skip the live wait but are always recorded in the
+// task's approval history with resolvedBy='hosting-policy'.
+export function approvalRequired({ permission, policy, workspaceWrite = false, tool = null, autoApproveTools = null }) {
   if (permission === 'high') return true
+  if (tool && autoApproveTools?.has?.(tool)) return false
   if (policy === 'supervised') return permission !== 'low'
   if (policy === 'standard') return false
   if (policy === 'workspace-auto') return false

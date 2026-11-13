@@ -1,0 +1,472 @@
+{
+  "at": "2026-11-13T03:49:37.298Z",
+  "discovered": {
+    "query": "autonomous coding agent",
+    "candidates": [
+      {
+        "fullName": "yrn-dev/Operator",
+        "url": "https://github.com/yrn-dev/Operator",
+        "description": "Terminal AI coding agent — Autonomous AI Agent on your computer. Supports Alem AI + Ollama. Works with code, research, automation, DevOps, data analysis, and content generation.",
+        "stars": 11,
+        "forks": 14,
+        "openIssues": 13485,
+        "language": "Shell",
+        "topics": [],
+        "license": null,
+        "pushedAt": "2026-11-13T03:49:22Z",
+        "updatedAt": "2026-11-13T03:33:37Z",
+        "archived": false,
+        "defaultBranch": "main",
+        "isSelf": false
+      },
+      {
+        "fullName": "AMD-AGI/PrimusClaw",
+        "url": "https://github.com/AMD-AGI/PrimusClaw",
+        "description": "LLM agent orchestration on Kubernetes: autonomous coding-agent sessions in per-session sandboxes.",
+        "stars": 8,
+        "forks": 0,
+        "openIssues": 11,
+        "language": "TypeScript",
+        "topics": [
+          "agent",
+          "golang",
+          "kubernetes",
+          "llm",
+          "python",
+          "sandbox",
+          "typescript"
+        ],
+        "license": {
+          "spdx": "NOASSERTION",
+          "name": "Other"
+        },
+        "pushedAt": "2026-11-13T03:45:53Z",
+        "updatedAt": "2026-11-12T15:47:58Z",
+        "archived": false,
+        "defaultBranch": "main",
+        "isSelf": false
+      }
+    ],
+    "totalCount": 7757
+  },
+  "results": [
+    {
+      "fullName": "OpenHands/OpenHands",
+      "url": "https://github.com/OpenHands/OpenHands",
+      "description": "🙌 OpenHands: AI-Driven Development",
+      "stars": 93359,
+      "forks": 12486,
+      "openIssues": 1178,
+      "language": "TypeScript",
+      "topics": [
+        "agent",
+        "artificial-intelligence",
+        "chatgpt",
+        "claude-ai",
+        "cli",
+        "developer-tools",
+        "gpt",
+        "llm",
+        "openai"
+      ],
+      "license": {
+        "spdx": "MIT",
+        "name": "MIT License"
+      },
+      "pushedAt": "2026-11-13T03:47:56Z",
+      "updatedAt": "2026-11-13T03:47:18Z",
+      "archived": false,
+      "defaultBranch": "main",
+      "isSelf": false,
+      "readmeExcerpt": "<a name=\"readme-top\"></a>\n\n<div align=\"center\">\n  <img src=\"https://assets.openhands.dev/logo-whitebackground.png\" alt=\"OpenHands logo\" width=\"340\">\n  <h1 align=\"center\" style=\"border-bottom: none\">Agent Canvas</h1>\n  <p align=\"center\">\n    <strong>The self-hosted developer control center for coding agents and automations.</strong>\n  </p>\n  <p align=\"center\">\n    Run OpenHands, Claude Code, Codex, Gemini, Pi, OpenCode, or any ACP-compatible agent across local, remote, and cloud backends.\n  </p>\n</div>\n<div align=\"center\">\n  <a href=\"https://github.com/OpenHands/OpenHands/actions/workflows/ci.yml\"><img src=\"https://img.shields.io/github/actions/workflow/status/OpenHands/OpenHands/ci.yml?branch=main&style=for-the-badge\" alt=\"CI status\"></a>\n  <a href=\"https://www.npmjs.com/package/@openhands/agent-canvas\"><img src=\"https://img.shields.io/npm/v/%40openhands%2Fagent-canvas?style=for-the-badge&logo=npm\" alt=\"npm version\"></a>\n  <a href=\"https://docs.openhands.dev/openhands/usage/agent-canvas/backends\"><img src=\"https://img.shields.io/badge/Documentation-000?logo=googledocs&logoColor=FFE165&style=for-the-badge\" alt=\"Documentation\"></a>\n  <a href=\"https://go.openhands.dev/slack\"><img src=\"https://img.shields.io/badge/Slack-Join%20the%20community-611f69?logo=slack&logoColor=white&style=for-the-badge\" alt=\"Join us on Slack\"></a>\n</div>\n<div align=\"center\">\n  <a href=\"#quickstart\">Quickstart</a> |\n  <a href=\"./docs/README.md\">Docs</a> |\n  <a href=\"./docs/SELF_HOSTING.md\">Self-Hosting</a> |\n  <a href=\"https://docs.openhands.dev/openhands/usage/agent-canvas/acp-agents\">ACP Agents</a> |\n  <a href=\"https://docs.openhands.dev/openhands/usage/agent-canvas/prebuilt-automations\">Automations</a> |\n  <a href=\"https://go.openhands.dev/slack\">Slack</a>\n</div>\n<p align=\"center\">\n  <img src=\"https://assets.openhands.dev/screenshot/automation-preview.png\" alt=\"Agent Canvas automation preview\" width=\"100%\">\n</p>\n<hr>\n\nOpenHands Agent Canvas turns your coding agents into a self-hosted, always-on engineering team. It's a developer control center for starting conversations and automating everyday tasks — like generating reports that publish to Slack or automatically decomposing GitHub issues into tasks.\n\nIt runs locally on your machine by default, but can connect to multiple “agent backends”, e.g. running agents in Docker containers, on VMs, or within your company infrastructure. You can optionally choose to run agents on OpenHands Cloud or OpenHands Enterprise infrastructure.\n\nAgent Canvas runs the open source OpenHands agent out-of-the-box, but can use third-party agents such as Claude Code, Codex, Gemini CLI, Pi, and OpenCode.\n\n|                                                                                                                      |                                                                                                                                          |\n| -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |\n| [**Self-host your way**](https://docs.openhands.dev/openhands/usage/agent-canvas/backend-setup/vm)                   | Run agents locally, in Docker, on VMs, or anywhere you can run an agent server backend                                                   |\n| [**Switch between different backends**](https://docs.openhands.dev/openhands/usage/agent-canvas/backends)            | Switch between local, remote, and cloud agents without losing focus                                                                      |\n| [**Create automations**](https://docs.openhands.dev/openhands/usage/agent-canvas/prebuilt-automations)               | Create automations and workflows that integrate with Slack, GitHub, Linear, and more. Run on a schedule or in response to webhook events |\n| [**Integrate with the tools you use**](https://docs.openhands.dev/openhands/usage/agent-canvas/prebuilt-automations) | Connect your automations with third-party services like Slack, GitHub, Notion, and more to automate workflows                            |\n| [**Bring your own model**](https://docs.openhands.dev/openhands/usage/settings/llm-settings#llm-profiles)            | Use with any LLM                                                                                                                         |\n| [**Use with any agent**](https://docs.openhands.dev/openhands/usage/agent-canvas/acp-agents)                         | Use with OpenHands, Claude Code, Codex, Gemini, Pi, OpenCode, or any agent with Agent-Client Protocol (ACP).                             |\n\nIf you have questions or feedback, please open a GitHub issue or join the [#proj-agent-canvas channel in Slack](https://openhands.dev/joinslack).\n\n## Quickstart\n\nYou can install OpenHands to run agents on any machine: on your laptop, on a dedicated computer like a Mac Mini,\nor on a server in the cloud.\n\nThe most powerful way to run OpenHands is on a server in the cloud. This allows your agents to continue running\neven when your laptop is shut, and makes it easier to trigger your agents through third-party services\nlike Slack, GitHub, and Datadog. See [SELF_HOSTING.md](docs/SELF_HOSTING.md) for details, especially with respect to security hardening.\n\nNotably, you can run the backend in _multiple different environments_, and switch between\nthem from the same Agent Canvas frontend. E.g. you can share an Agent Server with your team for agents doing\ncode review and dependency updates, then have your personal agents running on your laptop.\n\n### Option 1: Without a Sandbox\n\n> [!WARNING]\n> This runs the agent-server directly on the machine you're installing on — the agent will have full access to your filesystem!\n\n**Prerequisites**: [Node.js](https://nodejs.org/) 24 or later, `uv`\n\n```sh\nnpm install -g @openhands/agent-canvas\nagent-canvas\n```\n\nThe `agent-ca",
+      "recentCommits": [
+        {
+          "sha": "754abee4f0",
+          "message": "feat(acp): choose the reasoning effort from what the agent reports (#19436)",
+          "date": "2026-11-12T15:45:05Z"
+        },
+        {
+          "sha": "33e3ef443a",
+          "message": "feat(verify-openhands): scenarios beyond the happy path, `map controls`, `browser timezone` (#19670)",
+          "date": "2026-11-12T14:44:58Z"
+        },
+        {
+          "sha": "f59bf3dd9a",
+          "message": "docs(verify-openhands): map maintenance 2026-11-11 (#19653)",
+          "date": "2026-11-12T14:20:58Z"
+        },
+        {
+          "sha": "5095273dea",
+          "message": "chore(main): release 1.40.0 (#19662)",
+          "date": "2026-11-12T14:17:33Z"
+        },
+        {
+          "sha": "5b40cc2da4",
+          "message": "fix(i18n): add the missing Indonesian translations for the Codex subscription keys (#19685)",
+          "date": "2026-11-12T14:00:01Z"
+        },
+        {
+          "sha": "d58ca3dcdf",
+          "message": "fix(git): use a repository's real default branch instead of assuming \"main\" (#19604)",
+          "date": "2026-11-12T12:29:22Z"
+        },
+        {
+          "sha": "c4ec3bdb2c",
+          "message": "fix(chat): activate the home model pick when a self-hosted instance turns Agent Profiles off (#19682)",
+          "date": "2026-11-12T12:27:41Z"
+        },
+        {
+          "sha": "4ee8171392",
+          "message": "fix(chat): prevent delayed echoes from deleting newer drafts (#19382)",
+          "date": "2026-11-12T11:54:23Z"
+        },
+        {
+          "sha": "160fa03246",
+          "message": "ci: absorb review artifact cleanup into release PRs (#19109)",
+          "date": "2026-11-12T10:46:07Z"
+        },
+        {
+          "sha": "c26bda84cd",
+          "message": "feat: improve Codex subscription authentication guidance (#17194)",
+          "date": "2026-11-12T08:41:06Z"
+        }
+      ],
+      "releases": [
+        {
+          "tagName": "v1.40.0",
+          "name": "v1.40.0",
+          "publishedAt": "2026-11-12T14:22:00Z"
+        },
+        {
+          "tagName": "v1.39.0",
+          "name": "v1.39.0",
+          "publishedAt": "2026-11-11T17:14:58Z"
+        },
+        {
+          "tagName": "v1.38.0",
+          "name": "v1.38.0",
+          "publishedAt": "2026-11-10T04:59:49Z"
+        },
+        {
+          "tagName": "v1.37.0",
+          "name": "v1.37.0",
+          "publishedAt": "2026-11-06T12:54:14Z"
+        },
+        {
+          "tagName": "v1.36.0",
+          "name": "v1.36.0",
+          "publishedAt": "2026-11-05T21:38:50Z"
+        }
+      ],
+      "rootEntries": [
+        ".agents",
+        ".dockerignore",
+        ".env.sample",
+        ".gitattributes",
+        ".github",
+        ".gitignore",
+        ".husky",
+        ".npmignore",
+        ".openhands",
+        ".pr",
+        ".prettierrc.json",
+        ".release-please-manifest.json",
+        ".screenshots",
+        "AGENTS.md",
+        "CHANGELOG.md",
+        "LICENSE",
+        "README.md",
+        "README.windows.md",
+        "__mocks__",
+        "__tests__",
+        "bin",
+        "config",
+        "docker",
+        "docs",
+        "electron-builder.config.mjs",
+        "electron",
+        "eslint.config.js",
+        "examples",
+        "global.d.ts",
+        "helm",
+        "hero.ts",
+        "package-lock.json",
+        "package.json",
+        "playwright.bind-policy.config.ts",
+        "playwright.config.ts",
+        "playwright.live.config.ts",
+        "playwright.mock-llm-docker.config.ts",
+        "playwright.mock-llm.config.ts",
+        "playwright.windows-install.config.ts",
+        "public"
+      ],
+      "sources": [
+        {
+          "path": "electron/lib/bundled-runtime-dir.mjs",
+          "sha": "fa849a93115d4215476c06baf7727ea38d2b4c29",
+          "excerpt": "/**\n * Resolve the bundled-runtime directory (uv `bin`, Node `node`) for the\n * running Electron process, arch-aware for macOS universal builds.\n *\n * Under a universal Electron binary, `process.arch` reports the slice the\n * OS actually executed — arm64 on Apple Silicon, x64 on Intel hardware or\n * when running under Rosetta (`arch -x86_64`). Universal builds download\n * one runtime tree per arch into `resources/{bin,node}-<arch>`, so the\n * arch-tagged directory is correct by construction: the executing slice\n * can only use runtimes built for that same arch. Single-arch builds keep\n * shipping the legacy flat `resources/{bin,node}` directory, which is the\n * fallback. Returns null when neither candidate exists so callers can emit\n * their own loud missing-runtime warning.\n */\nimport { existsSync } from \"node:fs\";\nimport { join } from \"node:path\";\n\n/**\n * @param {string} resourcesPath Electron's process.resourcesPath.\n * @param {string} baseName Runtime dir base name (\"bin\" for uv, \"node\" for\n *   the bundled Node.js distribution).\n * @param {string} arch CPU arch tag; defaults to the executing process's\n *   arch (overridable so tests can pin arm64/x64).\n * @returns {string | null} The first existing candidate dir, or null when\n *   neither the arch-tagged nor the legacy flat dir exists.\n */\nexport function resolveBundledRuntimeDir(\n  resourcesPath,\n  baseName,\n  arch = process.arch,\n) {\n  const candidates = [\n    join(resourcesPath, `${baseName}-${arch}`),\n    join(resourcesPath, baseName),\n  ];\n  return candidates.find((dir) => existsSync(dir)) ?? null;\n}\n"
+        },
+        {
+          "path": "scripts/runtime-services-info.mjs",
+          "sha": "a94f87c3ddaa281aa21ba6e1f4d782e45aba3a32",
+          "excerpt": "/**\n * Single source of truth for the `<RUNTIME_SERVICES>` block.\n *\n * Builds a structured description of the services that are reachable from\n * inside the agent's sandbox. Agent Canvas backend-serving processes attach it\n * to `/server_info.runtime_services`; the frontend renders that backend value\n * into `AgentContext.system_message_suffix`, so the agent sees a\n * `<RUNTIME_SERVICES>` block listing what's available without having to probe.\n *\n * Two callers share this one definition:\n *   - the dev launchers (scripts/dev-*.mjs), which know the stack as a set of\n *     ports and pass the result to ingress/static-server for `/server_info`;\n *   - docker/entrypoint.sh, which runs this file as a CLI (see the bottom of\n *     this module) because in a container the URLs are *runtime* config — the\n *     ports and base URLs are overridable at `docker run` and therefore cannot\n *     be baked into the image at build time. The JSON it prints is passed to\n *     scripts/static-server.mjs and exposed through `/server_info`.\n *\n * URLs are written from the *agent's* point of view (i.e. as the agent should\n * curl/fetch them from inside its sandbox), which is deliberately not the\n * browser's point of view.\n */\n\nimport process from \"node:process\";\nimport { pathToFileURL } from \"node:url\";\n\n/**\n * @param {object} options\n * @param {string} [options.mode] - Human-readable mode label (e.g. \"dev:safe\").\n * @param {string} [options.agentHostAlias=\"localhost\"] - Hostname the agent\n *   uses to reach host-side services (ingress, frontend, port-derived\n *   automation). Also surfaced as `agent_host_alias`.\n * @param {number} [options.agentServerPort] - Port the agent-server listens on.\n *   Used to derive the agent_server URL when `agentServerUrl` is not given.\n * @param {string} [options.agentServerUrl] - Explicit agent_server URL, from\n *   the agent's POV. Takes precedence over `agentServerPort`; used by the\n *   Docker image, which serves over `127.0.0.1` to avoid IPv6 loopback issues\n *   and honors an overridable `AGENT_SERVER_URL`. One of `agentServerUrl` /\n *   `agentServerPort` is required (else the URL would be `:undefined`).\n * @param {number} [options.ingressPort] - Ingress port (omit if no ingress).\n * @param {number} [options.frontendPort] - Frontend port (Vite dev server\n *   or static-file server). Omit if no frontend is exposed.\n * @param {number} [options.vitePort] - Deprecated alias for `frontendPort`,\n *   accepted for backward compat with older launchers. Remove after one release.\n * @param {\"vite\"|\"static\"} [options.frontendKind=\"vite\"] - Whether the\n *   frontend port hosts Vite or a static build. Only affects the description.\n * @param {object} [options.automation] - Automation backend info. Skipped\n *   entirely unless `.url` or `.port` is provided, so passing `{}` is safe.\n * @param {string} [options.automation.url] - Explicit automation base URL, from\n *   the agent's POV. Takes precedence over `.port`; used by the Docker image to\n *   honor an overridable `AUTOMATION_BASE_URL`.\n * @param {number} [options.automation.port] - Automation backend port (used to\n *   derive the base URL when `.url` is not given).\n * @param {string} [options.automation.apiPrefix=\"/api/automation\"] - Path\n *   prefix all automation routes are mounted under.\n * @param {string} [options.automation.authEnvVar=\"OPENHANDS_AUTOMATION_API_KEY\"]\n *   - Env var holding the API key.\n * @returns {object} A JSON-serializable runtime services info object.\n */\nexport function buildRuntimeServicesInfo(options) {\n  const {\n    mode,\n    agentHostAlias = \"localhost\",\n    agentServerPort,\n    agentServerUrl,\n    ingressPort,\n    // Accept legacy `vitePort` for one release so external callers keep working.\n    vitePort,\n    frontendPort = vitePort,\n    frontendKind = \"vite\",\n    automation,\n  } = options;\n\n  // Prefer an explicit URL (containers reach the agent-server over a specific\n  // host/scheme), else derive it from the port. From the agent's POV the\n"
+        },
+        {
+          "path": "src/api/runtime-service/agent-server-runtime-service.ts",
+          "sha": "e3341a6cfef95ddeb31a7007bf65585a8c610564",
+          "excerpt": "import { FileClient } from \"@openhands/typescript-client/clients\";\nimport { RemoteWorkspace } from \"@openhands/typescript-client/workspace/remote-workspace\";\nimport { getAgentServerClientOptions } from \"#/api/agent-server-client-options\";\nimport { getActiveBackend } from \"#/api/backend-registry/active-store\";\n\nexport interface CommandResult {\n  exit_code: number;\n  stdout: string;\n  stderr: string;\n}\n\n/**\n * Cloud-aware runtime operations for agent-server conversations.\n *\n * In **local** mode the runtime is reachable directly from the browser\n * (e.g. `127.0.0.1:18000`) so the SDK's typed clients work fine.\n * In **cloud** mode the runtime lives at `*.prod-runtime.all-hands.dev`,\n * whose CORS allowlist (`OH_ALLOW_CORS_ORIGINS`, set to the Canvas origin\n * in saas-deploy) permits direct browser calls authenticated with the\n * conversation's `X-Session-API-Key`. So both modes now use the same\n * direct typed-client path against the per-conversation runtime URL.\n */\nclass AgentServerRuntimeService {\n  static async executeCommand(\n    conversationUrl: string | null | undefined,\n    sessionApiKey: [REDACTED] | null | undefined,\n    command: string,\n    cwd?: string,\n    timeout = 30,\n    conversationId?: string,\n  ): Promise<CommandResult> {\n    const active = getActiveBackend().backend;\n\n    if (active.kind === \"cloud\" && !conversationUrl) {\n      throw new Error(\n        \"AgentServerRuntimeService.executeCommand requires a conversation URL on cloud backends\",\n      );\n    }\n\n    // `RemoteWorkspace.executeCommand` forwards `timeout` (seconds) to the\n    // agent-server as the command timeout AND sets the HTTP request timeout to\n    // `(timeout + 10) * 1000` ms — the same +10s buffer the old cloud\n    // `callCloudProxy` branch used (`timeoutSeconds: timeout + 10`). We\n    // deliberately do NOT pass `timeout` into `getAgentServerClientOptions`:\n    // that option is the SDK HttpClient's default timeout in *milliseconds*,\n    // so a seconds value (e.g. 30) would be read as 30 ms. The per-request\n    // timeout the SDK sets on `executeCommand` overrides the client default\n    // anyway, but passing a ms-mismatched default is a latent footgun if any\n    // method on the client ever lacks a per-request timeout.\n    const result = await new RemoteWorkspace(\n      getAgentServerClientOptions({\n        conversationUrl,\n        sessionApiKey,\n        conversationId,\n      }),\n    ).executeCommand(command, cwd, timeout);\n    // The SDK already coerces these (`exit_code ?? 0`, `stdout || ''`,\n    // `stderr || ''`); keep a defensive fallback so a contract drift in the\n    // client can never surface `undefined` to callers.\n    return {\n      exit_code: result.exit_code ?? -1,\n      stdout: result.stdout ?? \"\",\n      stderr: result.stderr ?? \"\",\n    };\n  }\n\n  static async downloadFile(\n    conversationUrl: string | null | undefined,\n    sessionApiKey: [REDACTED] | null | undefined,\n    path: string,\n  ): Promise<ArrayBuffer> {\n    const active = getActiveBackend().backend;\n\n    if (active.kind === \"cloud\" && !conversationUrl) {\n      throw new Error(\n        \"AgentServerRuntimeService.downloadFile requires a conversation URL on cloud backends\",\n      );\n    }\n\n    return new FileClient(\n      getAgentServerClientOptions({ conversationUrl, sessionApiKey }),\n    ).downloadFile(path);\n  }\n}\n\nexport default AgentServerRuntimeService;\n"
+        },
+        {
+          "path": "src/components/features/canvas-extensions/canvas-extensions-runtime.tsx",
+          "sha": "0a0360e87f3374010d01eaf977812d590052ae8d",
+          "excerpt": "import React from \"react\";\nimport { useNavigate } from \"react-router\";\nimport { useTranslation } from \"react-i18next\";\nimport CanvasExtensionsService from \"#/api/canvas-extensions-service\";\nimport { useActiveBackend } from \"#/contexts/active-backend-context\";\nimport { mountCanvasExtensionAppView } from \"#/extensions/canvas-extension-app-view\";\nimport { loadCanvasExtensionModule } from \"#/extensions/canvas-extension-module-loader\";\nimport { useCanvasExtensions } from \"#/hooks/query/use-canvas-extensions\";\nimport { I18nKey } from \"#/i18n/declaration\";\nimport {\n  CANVAS_EXTENSION_HOST_API_VERSION,\n  type CanvasExtensionDispose,\n  type CanvasExtensionHost,\n  type CanvasExtensionModule,\n  type CanvasExtensionPageContribution,\n  type CanvasExtensionPageMount,\n  type InstalledCanvasExtensionInfo,\n} from \"#/types/canvas-extension\";\n\nexport interface RegisteredCanvasExtensionPage {\n  extension: InstalledCanvasExtensionInfo;\n  contribution: CanvasExtensionPageContribution;\n  mount: CanvasExtensionPageMount;\n  href: string;\n}\n\ninterface CanvasExtensionsRuntimeValue {\n  pages: RegisteredCanvasExtensionPage[];\n  activating: boolean;\n  errors: ReadonlyMap<string, string>;\n}\n\nconst EMPTY_RUNTIME: CanvasExtensionsRuntimeValue = {\n  pages: [],\n  activating: false,\n  errors: new Map(),\n};\n\nconst CanvasExtensionsRuntimeContext =\n  React.createContext<CanvasExtensionsRuntimeValue>(EMPTY_RUNTIME);\n\nexport function useCanvasExtensionsRuntime(): CanvasExtensionsRuntimeValue {\n  return React.useContext(CanvasExtensionsRuntimeContext);\n}\n\nexport function selectCanvasExtensionPage(\n  pages: RegisteredCanvasExtensionPage[],\n  extensionName: string,\n  routePath: string,\n): RegisteredCanvasExtensionPage | undefined {\n  return pages\n    .filter((candidate) => candidate.extension.name === extensionName)\n    .sort(\n      (left, right) =>\n        right.contribution.path.length - left.contribution.path.length,\n    )\n    .find(\n      (candidate) =>\n        routePath === candidate.contribution.path ||\n        routePath.startsWith(`${candidate.contribution.path}/`),\n    );\n}\n\nfunction isValidSegment(value: string): boolean {\n  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);\n}\n\nexport function buildCanvasExtensionPageHref(\n  extensionName: string,\n  contributionPath: string,\n): string {\n  return `/extensions/${encodeURIComponent(extensionName)}/${contributionPath\n    .split(\"/\")\n    .map(encodeURIComponent)\n    .join(\"/\")}`;\n}\n\nfunction getDeclaredPage(\n  extension: InstalledCanvasExtensionInfo,\n  contributionId: string,\n): CanvasExtensionPageContribution {\n  const contribution = extension.manifest?.contributes?.pages?.find(\n    (page) => page.id === contributionId,\n  );\n  if (!contribution) {\n    throw new Error(\n      `Extension ${extension.name} registered undeclared page \"${contributionId}\".`,\n    );\n  }\n  // The backend declares page paths as absolute routes (e.g. \"/dashboard\");\n  // normalize to the relative form used for hrefs and route matching.\n  const normalizedPath = contribution.path.replace(/^\\/+/, \"\");\n  if (\n    !isValidSegment(extension.name) ||\n    !isValidSegment(contribution.id) ||\n    !normalizedPath.split(\"/\").every(isValidSegment)\n  ) {\n    throw new Error(\n      `Extension ${extension.name} has an invalid page name, id, or path.`,\n    );\n  }\n  return { ...contribution, path: normalizedPath };\n}\n\ntype CanvasExtensionModuleLoader = (\n  source: string,\n) => Promise<CanvasExtensionModule>;\n\ninterface CanvasExtensionsRuntimeProviderProps {\n  children: React.ReactNode;\n  /** Test seam for environments that cannot import browser Blob URLs. */\n  moduleLoader?: CanvasExtensionModuleLoader;\n}\n\nexport function CanvasExtensionsRuntimeProvider({\n  children,\n  moduleLoader = loadCanvasExtensionModule,\n}: CanvasExtensionsRuntimeProviderProps) {\n  const active = useActiveBackend();\n  const navigate = useNavigate();\n  const { t, i18n } = useTranslation(\"openhands\");\n  const query = useCanvasExtensions();\n  const [pages, setPages] = React.useState<Registered"
+        }
+      ],
+      "recentIssues": [
+        {
+          "number": 19712,
+          "title": "fix(canvas): scope WebSocket messages to committed connection",
+          "state": "open",
+          "url": "https://github.com/OpenHands/OpenHands/pull/19712",
+          "isPullRequest": true
+        },
+        {
+          "number": 19711,
+          "title": "fix: keep mobile conversation navigation visible",
+          "state": "open",
+          "url": "https://github.com/OpenHands/OpenHands/pull/19711",
+          "isPullRequest": true
+        },
+        {
+          "number": 19710,
+          "title": "[Bug]: Restore mobile conversation navigation and full-screen PWA installability",
+          "state": "open",
+          "url": "https://github.com/OpenHands/OpenHands/issues/19710",
+          "isPullRequest": false
+        },
+        {
+          "number": 19709,
+          "title": "chore(deps): bump lucide-react from 1.68.0 to 1.69.0",
+          "state": "open",
+          "url": "https://github.com/OpenHands/OpenHands/pull/19709",
+          "isPullRequest": true
+        },
+        {
+          "number": 19708,
+          "title": "chore(deps): bump framer-motion from 14.9.0 to 14.9.1",
+          "state": "open",
+          "url": "https://github.com/OpenHands/OpenHands/pull/19708",
+          "isPullRequest": true
+        }
+      ],
+      "licenseEvidence": {
+        "path": "LICENSE",
+        "sha": "f6f60f52368bcc96f82fbe59ec65049c2c3af9db",
+        "excerpt": "The MIT License (MIT)\n\nCopyright © 2025 OpenHands contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the “Software”), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+      },
+      "treeTruncated": false,
+      "researchedAt": "2026-11-13T03:49:30.975Z"
+    },
+    {
+      "fullName": "cline/cline",
+      "url": "https://github.com/cline/cline",
+      "description": "Autonomous coding agent as an SDK, IDE extension, or CLI assistant.",
+      "stars": 71573,
+      "forks": 7920,
+      "openIssues": 1770,
+      "language": "TypeScript",
+      "topics": [],
+      "license": {
+        "spdx": "Apache-2.0",
+        "name": "Apache License 2.0"
+      },
+      "pushedAt": "2026-11-13T02:24:05Z",
+      "updatedAt": "2026-11-13T02:21:37Z",
+      "archived": false,
+      "defaultBranch": "main",
+      "isSelf": false,
+      "readmeExcerpt": "<p align=\"center\">\n  <img src=\"assets/icons/icon.png\" width=\"80\" alt=\"Cline\" />\n</p>\n\n<h1 align=\"center\">Cline</h1>\n\n<p align=\"center\">\nThe open source coding agent in your IDE, terminal, & desktop!\n</p>\n\n<div align=\"center\">\n\n<div align=\"center\">\n<table>\n<tbody>\n<td align=\"center\">\n<a href=\"https://docs.cline.bot\" target=\"_blank\"><strong>Docs</strong></a>\n</td>\n<td align=\"center\">\n<a href=\"https://discord.gg/cline\" target=\"_blank\"><strong>Discord</strong></a>\n</td>\n<td align=\"center\">\n<a href=\"https://www.reddit.com/r/cline/\" target=\"_blank\"><strong>r/cline</strong></a>\n</td>\n<td align=\"center\">\n<a href=\"https://github.com/cline/cline/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop\" target=\"_blank\"><strong>Feature Requests</strong></a>\n</td>\n<td align=\"center\">\n<a href=\"https://cline.bot/join-us\" target=\"_blank\"><strong>Join us!</strong></a>\n</td>\n</tbody>\n</table>\n</div>\n\n</div>\n\n<br>\n\n<div align=\"center\">\n<table>\n<tr>\n<td align=\"center\" width=\"50%\">\n\n### CLI\n\nRun Cline in your terminal.\nInteractive chat or fully headless \nfor CI/CD and scripting.\n\n```\nnpm i -g cline\n```\n\n<a href=\"./apps/cli/README.md\">Learn more</a>\n<br><br>\n\n</td>\n<td align=\"center\" width=\"50%\">\n\n### Desktop App\n\nCline as a native app for macOS and Windows.\nRun agent sessions in any folder, schedule\nroutines, and manage models, plugins, and MCP servers.\n\n<a href=\"https://cline.bot/desktop\">Download for macOS and Windows</a>\n<br><br>\n\n</td>\n</tr>\n<tr>\n<td align=\"center\" width=\"50%\">\n\n### VS Code Extension\n\nAI coding assistant in your editor.\nCreate files, run commands, browse the web,\nand use tools with human-in-the-loop approval.\n\n<a href=\"https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev\">Install from VS Marketplace</a>\n<br><br>\n\n</td>\n<td align=\"center\" width=\"50%\">\n\n### JetBrains Plugin\n\nThe same Cline experience in IntelliJ IDEA,\nPyCharm, WebStorm, GoLand, and the rest of\nthe JetBrains family.\n\n<a href=\"https://plugins.jetbrains.com/plugin/28247-cline\">Install from JetBrains Marketplace</a>\n<br><br>\n\n</td>\n</tr>\n</table>\n</div>\n\n<div align=\"center\">\n<table>\n<tr>\n<td align=\"center\">\n\n### SDK\n\nBuild your own AI agents and integrations powered by the same engine that runs the CLI, desktop app, VS Code extension, and JetBrains plugin. Custom tools, multi-agent teams, connectors, scheduled automations, and more.\n\n```\nnpm install @cline/sdk\n```\n\n<a href=\"https://docs.cline.bot/cline-sdk/overview\">Documentation</a>\n<br><br>\n\n</td>\n</tr>\n</table>\n</div>\n\n---\n\n## Index\n\n| Product | Description | Location | CHANGELOG |\n|---------|------------|--------------|--------------|\n| **SDK** | Node.js programmatic agent API and extension exports. | [`sdk/`](https://github.com/cline/cline/tree/main/sdk) | [CHANGELOG.md](https://github.com/cline/cline/blob/main/sdk/CHANGELOG.md) |\n| **CLI** | Terminal UI, headless mode, shell commands, and CLI-specific flows. | [`apps/cli/`](https://github.com/cline/cline/tree/main/apps/cli) | [CHANGELOG.md](https://github.com/cline/cline/blob/main/apps/cli/CHANGELOG.md) |\n| **VS Code Extension** | The Marketplace extension and extension host integration. | [`apps/vscode/`](https://github.com/cline/cline/tree/main/apps/vscode) | [CHANGELOG.md](https://github.com/cline/cline/blob/main/CHANGELOG.md) |\n| **Desktop App** | Native macOS and Windows app (Tauri shell, Bun sidecar, Next.js UI). | [`apps/examples/desktop-app/`](https://github.com/cline/cline/tree/main/apps/examples/desktop-app) | [CHANGELOG.md](https://github.com/cline/cline/blob/main/apps/examples/desktop-app/CHANGELOG.md) |\n| **JetBrains Plugin** | JetBrains-hosted client that talks to the shared agent core. | Currently we are not open-sourcing JetBrains plugins | - |\n| **Docs site** | Public documentation pages. | [`docs/`](https://docs.cline.bot/) | - |\n\n## Edits Code Across Your Project\n\nCline reads your project structure, understands the relationships between files, and makes coordinated changes across your codebase. It monitors linter and compiler errors as it works, fixing issues like missing imports, type mismatches, and syntax errors before you even see them. In VS Code and JetBrains, every edit shows up as a diff you can review, modify, or revert. All changes are tracked with checkpoints, so you can easily undo the agent's work.\n\n## Runs Bash Commands\n\nCline executes commands directly in your terminal and watches the output in real time. Install packages, run build scripts, execute tests, deploy applications, manage databases. For long-running processes like dev servers, Cline continues working in the background and reacts to new output as it appears, catching compile errors, test failures, and server crashes as they happen.\n\n## Plan and Act\n\nToggle between Plan mode and Act mode. In Plan mode, Cline explores your codebase, asks clarifying questions, and lays out a strategy. Once you're aligned, switch to Act mode and Cline executes the plan. Every file edit and terminal command requires your approval, so you stay in control of what actually changes. Or toggle auto-approve and let Cline run autonomously.\n\n## Rules and Skills\n\nDefine project-specific rules in `.clinerules` files that guide how Cline works in your codebase: coding standards, architecture conventions, deployment procedures, testing requirements. Rules are picked up automatically by the CLI, VS Code extension, and JetBrains plugin. Use skills to let the model load specific rules when needed.\n\n## Works With Every Model\n\nCline is not locked to a single AI provider. Use whichever model fits your workflow:\n\n| Provider | Models |\n|----------|--------|\n| Anthropic | Claude Opus, Sonnet, Haiku |\n| OpenAI | GPT series models |\n| Google | Gemini series models |\n| OpenRouter | 200+ models from any provider |\n| Vercel AI Gateway | Route to many providers through one gateway |\n| AWS Bedrock | Claude, Llama, and more |\n| Azure / GCP Vertex | All hosted models |\n| Cerebras / Groq | Fast inference m",
+      "recentCommits": [
+        {
+          "sha": "72b3d71405",
+          "message": "refactor(vscode): migrate xAI provider settings to GenericProviderSettings (#15671)",
+          "date": "2026-11-12T22:03:14Z"
+        },
+        {
+          "sha": "50e77bc1e8",
+          "message": "refactor(vscode): unify generic provider fallback names with presentation overrides (#15658)",
+          "date": "2026-11-12T03:28:09Z"
+        },
+        {
+          "sha": "d9a5258ba8",
+          "message": "fix(vscode): refresh generic provider models after saving credentials (#15667)",
+          "date": "2026-11-12T02:13:48Z"
+        },
+        {
+          "sha": "32075f1110",
+          "message": "refactor(vscode): remove dead LiteLLM/OpenAI model state and unused model streams (#15656)",
+          "date": "2026-11-11T17:54:28Z"
+        },
+        {
+          "sha": "c5df41f937",
+          "message": "refactor(vscode): remove dead onboarding models state and proto messages (#15638)",
+          "date": "2026-11-11T01:17:48Z"
+        },
+        {
+          "sha": "7796dc9ce1",
+          "message": "revert(llms): back out AI/ML API ranking/attribution and Wally provider (#15647)",
+          "date": "2026-11-10T23:18:17Z"
+        },
+        {
+          "sha": "d9b24c2031",
+          "message": "feat(cli): default non-interactive runs to yolo mode (#15644)",
+          "date": "2026-11-10T22:15:15Z"
+        },
+        {
+          "sha": "7c5bb54fcb",
+          "message": "Remove PostHog events (#15642)",
+          "date": "2026-11-10T22:14:38Z"
+        },
+        {
+          "sha": "dcccbd7712",
+          "message": "fix(desktop): preserve cloud recency across reconnects (#15637)",
+          "date": "2026-11-10T21:26:25Z"
+        },
+        {
+          "sha": "500a40e7b7",
+          "message": "refactor(desktop): move MCP management to hub (#15498)",
+          "date": "2026-11-10T20:29:54Z"
+        }
+      ],
+      "releases": [
+        {
+          "tagName": "v4.1.26",
+          "name": "v4.1.26",
+          "publishedAt": "2026-10-26T09:06:50Z"
+        },
+        {
+          "tagName": "sdk/sdk/v0.2.0",
+          "name": "SDK v0.2.0",
+          "publishedAt": "2026-10-26T03:34:08Z"
+        },
+        {
+          "tagName": "desktop-v0.0.49",
+          "name": "Desktop v0.0.49",
+          "publishedAt": "2026-10-26T04:49:34Z"
+        },
+        {
+          "tagName": "cli-v3.0.74",
+          "name": "CLI v3.0.74",
+          "publishedAt": "2026-10-26T04:03:28Z"
+        },
+        {
+          "tagName": "sdk/sdk/v0.0.95",
+          "name": "SDK v0.0.95",
+          "publishedAt": "2026-10-17T03:00:13Z"
+        }
+      ],
+      "rootEntries": [
+        ".agents",
+        ".claude",
+        ".cline",
+        ".clinerules",
+        ".codex",
+        ".gitattributes",
+        ".github",
+        ".gitignore",
+        ".gitleaks.toml",
+        ".gitmodules",
+        ".greptile",
+        ".husky",
+        ".kanban",
+        ".nvmrc",
+        ".tool-versions",
+        ".vscode",
+        ".worktreeinclude",
+        "AGENTS.md",
+        "CHANGELOG.md",
+        "CODE_OF_CONDUCT.md",
+        "CONTRIBUTING.md",
+        "LICENSE",
+        "README.md",
+        "SECURITY.md",
+        "apps",
+        "assets",
+        "biome.json",
+        "bun.lock",
+        "docs",
+        "evals",
+        "package.json",
+        "patches",
+        "sdk",
+        "vitest.config.ts"
+      ],
+      "sources": [
+        {
+          "path": "apps/cli/script/dashboard-runtime.ts",
+          "sha": "5bb61de0341024b76af60200f2b64333390ca38a",
+          "excerpt": "import { existsSync } from \"node:fs\";\nimport { join, resolve } from \"node:path\";\nimport { $ } from \"bun\";\n\nlet directory: Promise<string> | undefined;\n\n/** Build once per platform-build invocation; the compiler embeds this tree unchanged. */\nexport function buildDashboardRuntimeDirectory(): Promise<string> {\n\tdirectory ??= buildDirectory();\n\treturn directory;\n}\n\nasync function buildDirectory(): Promise<string> {\n\tconst root = resolve(import.meta.dir, \"../../..\");\n\tawait $`bun -F @cline/cline-hub build:webview`.cwd(root).quiet();\n\tconst directory = join(root, \"apps/cline-hub/dist/webview\");\n\tif (!existsSync(join(directory, \"index.html\")))\n\t\tthrow new Error(\"Dashboard build produced no index.html\");\n\treturn directory;\n}\n"
+        },
+        {
+          "path": "apps/cli/src/connectors/chat-runtime.ts",
+          "sha": "0af9ee798041661cdc8f7f41da57a27cd46c4f46",
+          "excerpt": "import type { CliLoggerAdapter } from \"../logging/adapter\";\n\nexport function createChatSdkLogger(adapter: CliLoggerAdapter) {\n\treturn {\n\t\tchild(prefix: string) {\n\t\t\treturn createChatSdkLogger(adapter.child({ chatLogger: prefix }));\n\t\t},\n\t\tdebug(message: string, ...args: unknown[]) {\n\t\t\tadapter.core.debug(message, args.length > 0 ? { args } : undefined);\n\t\t},\n\t\tinfo(message: string, ...args: unknown[]) {\n\t\t\tadapter.core.log(message, args.length > 0 ? { args } : undefined);\n\t\t},\n\t\twarn(message: string, ...args: unknown[]) {\n\t\t\tadapter.core.log(message, {\n\t\t\t\tseverity: \"warn\",\n\t\t\t\t...(args.length > 0 ? { args } : {}),\n\t\t\t});\n\t\t},\n\t\terror(message: string, ...args: unknown[]) {\n\t\t\tadapter.core.error?.(message, args.length > 0 ? { args } : undefined);\n\t\t},\n\t};\n}\n\nexport async function enqueueThreadTurn(\n\tthreadQueues: Map<string, Promise<void>>,\n\tthreadId: string,\n\twork: () => Promise<void>,\n): Promise<void> {\n\tconst previous = threadQueues.get(threadId) ?? Promise.resolve();\n\tconst current = previous\n\t\t.catch(() => {})\n\t\t.then(work)\n\t\t.finally(() => {\n\t\t\tif (threadQueues.get(threadId) === current) {\n\t\t\t\tthreadQueues.delete(threadId);\n\t\t\t}\n\t\t});\n\tthreadQueues.set(threadId, current);\n\treturn current;\n}\n\nexport type ConnectorWebhookHandler = (\n\trequest: Request,\n) => Response | Promise<Response>;\n\nexport type ConnectorWebhookServer = {\n\tclose: () => Promise<void>;\n};\n\nasync function readRequestBody(\n\trequest: import(\"node:http\").IncomingMessage,\n): Promise<Uint8Array | undefined> {\n\tif (\n\t\trequest.method === \"GET\" ||\n\t\trequest.method === \"HEAD\" ||\n\t\trequest.method === undefined\n\t) {\n\t\treturn undefined;\n\t}\n\tconst chunks: Buffer[] = [];\n\tfor await (const chunk of request) {\n\t\tchunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));\n\t}\n\tconst body = Buffer.concat(chunks);\n\treturn body.length > 0 ? body : undefined;\n}\n\nexport async function startConnectorWebhookServer(input: {\n\thost: string;\n\tport: number;\n\troutes: Record<string, ConnectorWebhookHandler>;\n\tnotFound?: ConnectorWebhookHandler;\n}): Promise<ConnectorWebhookServer> {\n\tconst http = await import(\"node:http\");\n\n\tconst server = http.createServer(async (req, res) => {\n\t\ttry {\n\t\t\tconst hostHeader = req.headers.host || `${input.host}:${input.port}`;\n\t\t\tconst requestUrl = new URL(req.url || \"/\", `http://${hostHeader}`);\n\t\t\tconst body = await readRequestBody(req);\n\t\t\tconst request = new Request(requestUrl.toString(), {\n\t\t\t\tmethod: req.method,\n\t\t\t\theaders: new Headers(\n\t\t\t\t\tObject.entries(req.headers).flatMap(([key, value]) => {\n\t\t\t\t\t\tif (Array.isArray(value)) {\n\t\t\t\t\t\t\treturn value.map((entry) => [key, entry] as [string, string]);\n\t\t\t\t\t\t}\n\t\t\t\t\t\treturn typeof value === \"string\" ? [[key, value]] : [];\n\t\t\t\t\t}),\n\t\t\t\t),\n\t\t\t\tbody,\n\t\t\t\tduplex: body ? \"half\" : undefined,\n\t\t\t});\n\t\t\tconst handler =\n\t\t\t\tinput.routes[requestUrl.pathname] ??\n\t\t\t\tinput.notFound ??\n\t\t\t\t(() => new Response(\"Not Found\", { status: 404 }));\n\t\t\tconst response = await handler(request);\n\t\t\tres.statusCode = response.status;\n\t\t\tresponse.headers.forEach((value, key) => {\n\t\t\t\tres.setHeader(key, value);\n\t\t\t});\n\t\t\tconst buffer = Buffer.from(await response.arrayBuffer());\n\t\t\tres.end(buffer);\n\t\t} catch (error) {\n\t\t\tres.statusCode = 500;\n\t\t\tres.end(error instanceof Error ? error.message : \"Internal Server Error\");\n\t\t}\n\t});\n\n\tawait new Promise<void>((resolve, reject) => {\n\t\tserver.once(\"error\", reject);\n\t\tserver.listen(input.port, input.host, () => {\n\t\t\tserver.off(\"error\", reject);\n\t\t\tresolve();\n\t\t});\n\t});\n\n\treturn {\n\t\tclose: async () => {\n\t\t\tawait new Promise<void>((resolve, reject) => {\n\t\t\t\tserver.close((error) => {\n\t\t\t\t\tif (error) {\n\t\t\t\t\t\treject(error);\n\t\t\t\t\t\treturn;\n\t\t\t\t\t}\n\t\t\t\t\tresolve();\n\t\t\t\t});\n\t\t\t});\n\t\t},\n\t};\n}\n"
+        },
+        {
+          "path": "apps/cli/src/connectors/runtime-turn.ts",
+          "sha": "e836efd564032c9aa1108162441f8a3db4b18404",
+          "excerpt": "import type { ChatRunTurnRequest, HubSessionClient } from \"@cline/core\";\nimport { type GeneratedMedia, isGeneratedMedia } from \"@cline/shared\";\nimport type { CliLoggerAdapter } from \"../logging/adapter\";\n\nexport type PendingConnectorApproval = {\n\tapprovalId: string;\n\tsessionId: string;\n\ttoolCallId: string;\n\ttoolName: string;\n\tinput?: unknown;\n};\n\ntype QueueItem =\n\t| { type: \"chunk\"; value: string }\n\t| { type: \"error\"; error: Error }\n\t| { type: \"end\" };\n\nexport function truncateConnectorText(value: string, maxLength = 160): string {\n\tconst singleLine = value.replace(/\\s+/g, \" \").trim();\n\tif (singleLine.length <= maxLength) {\n\t\treturn singleLine;\n\t}\n\treturn `${singleLine.slice(0, maxLength - 3)}...`;\n}\n\nexport function parseToolApprovalInput(inputJson: unknown): unknown {\n\tif (typeof inputJson !== \"string\" || !inputJson.trim()) {\n\t\treturn undefined;\n\t}\n\ttry {\n\t\treturn JSON.parse(inputJson);\n\t} catch {\n\t\treturn undefined;\n\t}\n}\n\nfunction formatToolInput(toolName: string | undefined, input: unknown): string {\n\tif (input === undefined) {\n\t\treturn toolName?.trim() || \"\";\n\t}\n\ttry {\n\t\tconst serialized = JSON.stringify(input);\n\t\tif (!serialized) {\n\t\t\treturn toolName?.trim() || \"\";\n\t\t}\n\t\treturn toolName?.trim() ? `${toolName.trim()} ${serialized}` : serialized;\n\t} catch {\n\t\treturn toolName?.trim() || \"\";\n\t}\n}\n\nexport function formatConnectorToolStatus(input: {\n\ttoolName: string | undefined;\n\tstatus: \"start\" | \"error\";\n\ttoolInput?: unknown;\n\terrorMessage?: string;\n}): string {\n\tconst resolvedName = input.toolName?.trim() || \"unknown_tool\";\n\tif (input.status === \"start\") {\n\t\treturn `Executing ${resolvedName}...`;\n\t}\n\tconst detail = input.errorMessage?.trim();\n\treturn detail\n\t\t? `${resolvedName} failed: ${truncateConnectorText(detail, 240)}`\n\t\t: `${resolvedName} failed`;\n}\n\nexport function formatConnectorApprovalPrompt(\n\tinput: PendingConnectorApproval,\n): string {\n\tconst summary = formatToolInput(input.toolName, input.input);\n\treturn summary\n\t\t? [\n\t\t\t\t`Approval required for \"${input.toolName}\"`,\n\t\t\t\t`Request: ${truncateConnectorText(summary, 220)}`,\n\t\t\t\t'Reply \"Y\" to approve or \"N\" to deny.',\n\t\t\t].join(\"\\n\")\n\t\t: [\n\t\t\t\t`Approval required for \"${input.toolName}\"`,\n\t\t\t\t'Reply \"Y\" to approve or \"N\" to deny.',\n\t\t\t].join(\"\\n\");\n}\n\nexport function parseConnectorApprovalDecision(\n\ttext: string,\n\tdeniedReason = \"Denied by user\",\n): { approved: boolean; reason?: string } | undefined {\n\tconst normalized = text.trim().toLowerCase();\n\tif (\n\t\tnormalized === \"y\" ||\n\t\tnormalized === \"yes\" ||\n\t\tnormalized === \"approve\" ||\n\t\tnormalized === \"approved\"\n\t) {\n\t\treturn { approved: true };\n\t}\n\tif (\n\t\tnormalized === \"n\" ||\n\t\tnormalized === \"no\" ||\n\t\tnormalized === \"deny\" ||\n\t\tnormalized === \"denied\"\n\t) {\n\t\treturn { approved: false, reason: deniedReason };\n\t}\n\treturn undefined;\n}\n\nfunction resolveTextDelta(\n\tpayload: Record<string, unknown>,\n\tprevious: string,\n): { delta: string; nextText: string } {\n\tconst accumulated =\n\t\ttypeof payload.accumulated === \"string\" ? payload.accumulated : undefined;\n\tif (typeof accumulated === \"string\") {\n\t\tif (accumulated.startsWith(previous)) {\n\t\t\treturn {\n\t\t\t\tdelta: accumulated.slice(previous.length),\n\t\t\t\tnextText: accumulated,\n\t\t\t};\n\t\t}\n\t\tif (previous.startsWith(accumulated)) {\n\t\t\treturn {\n\t\t\t\tdelta: \"\",\n\t\t\t\tnextText: previous,\n\t\t\t};\n\t\t}\n\t}\n\tconst text = typeof payload.text === \"string\" ? payload.text : \"\";\n\treturn {\n\t\tdelta: text,\n\t\tnextText: `${previous}${text}`,\n\t};\n}\n\nexport function createConnectorRuntimeTurnStream(input: {\n\tclient: HubSessionClient;\n\tsessionId: string;\n\trequest: ChatRunTurnRequest;\n\tclientId: string;\n\tlogger: CliLoggerAdapter;\n\ttransport: string;\n\tconversationId: string;\n\tonToolStatus?: (message: string) => Promise<void>;\n\tonApprovalRequested?: (approval: PendingConnectorApproval) => Promise<void>;\n\tonMedia?: (media: GeneratedMedia) => Promise<void> | void;\n\tonCompleted?: (result: {\n\t\ttext: string;\n\t\tfinishReason?: string;\n\t\titerations?: number;\n\t}) => Promise<void>;\n\tonFailed?: (error: Error) => Promise<voi"
+        },
+        {
+          "path": "apps/cli/src/connectors/session-runtime.ts",
+          "sha": "46fffbb9233f3b5183e22324085703ef8b039f66",
+          "excerpt": "import type { ChatStartSessionRequest, RuntimeLoggerConfig } from \"@cline/core\";\nimport {\n\tCoreSessionService,\n\tHubSessionClient,\n\tLlms,\n\tProviderSettingsManager,\n\tSqliteSessionStore,\n} from \"@cline/core\";\nimport { CLINE_DEFAULT_MODEL_ID } from \"@cline/shared\";\nimport type { Thread } from \"chat\";\nimport {\n\tensureOAuthProviderApiKey,\n\tgetPersistedProviderApiKey,\n\tisOAuthProvider,\n\tnormalizeProviderId,\n} from \"../commands/auth\";\nimport type { CliLoggerAdapter } from \"../logging/adapter\";\nimport { resolveSystemPrompt } from \"../runtime/prompt\";\nimport { resolveCliSessionMetadata } from \"../utils/enterprise\";\nimport { resolveWorkspaceRoot } from \"../utils/helpers\";\nimport {\n\tparseLocalRowMetadata,\n\tparseRowMetadata,\n\treadSessionMessageCount,\n\treadSessionReplyText,\n} from \"./common\";\nimport { dispatchConnectorHook } from \"./hooks\";\nimport {\n\ttype ConnectorThreadState,\n\tloadThreadState,\n\tpersistMergedThreadState,\n} from \"./thread-bindings\";\nimport type { ConnectIo } from \"./types\";\n\nasync function resolveProviderApiKeyFromEnv(\n\tprovider: string,\n): Promise<string | undefined> {\n\tconst envKeys =\n\t\t(await Llms.getProviderCollection(provider))?.provider?.env ?? [];\n\tfor (const envKey of envKeys) {\n\t\tconst value = process.env[envKey]?.trim();\n\t\tif (value) {\n\t\t\treturn value;\n\t\t}\n\t}\n\treturn undefined;\n}\n\nexport async function buildConnectorStartRequest(input: {\n\toptions: {\n\t\tcwd: string;\n\t\tmodel?: string;\n\t\tprovider?: string;\n\t\tapiKey?: string;\n\t\tsystemPrompt?: string;\n\t\tmode: \"act\" | \"plan\";\n\t\tenableTools: boolean;\n\t};\n\tio: ConnectIo;\n\tloggerConfig: RuntimeLoggerConfig;\n\tsystemRules: string;\n\tdefaultModel?: string;\n}): Promise<ChatStartSessionRequest> {\n\tconst providerSettingsManager = new ProviderSettingsManager();\n\tconst lastUsedProviderSettings =\n\t\tproviderSettingsManager.getLastUsedProviderSettings({\n\t\t\tisClinePassEnabled: true,\n\t\t});\n\tconst provider = normalizeProviderId(\n\t\tinput.options.provider?.trim() ||\n\t\t\tlastUsedProviderSettings?.provider ||\n\t\t\t\"cline\",\n\t);\n\tlet selectedProviderSettings =\n\t\tproviderSettingsManager.getProviderSettings(provider);\n\tconst persistedApiKey = [REDACTED]\n\t\tprovider,\n\t\tselectedProviderSettings,\n\t);\n\tlet apiKey =\n\t\t[REDACTED] ||\n\t\tpersistedApiKey ||\n\t\t(await resolveProviderApiKeyFromEnv(provider)) ||\n\t\t\"\";\n\n\tif (!apiKey && isOAuthProvider(provider)) {\n\t\tconst oauthResult = await ensureOAuthProviderApiKey({\n\t\t\tproviderId: provider,\n\t\t\tcurrentApiKey: [REDACTED],\n\t\t\texistingSettings: selectedProviderSettings,\n\t\t\tproviderSettingsManager,\n\t\t\tio: input.io,\n\t\t});\n\t\tselectedProviderSettings = oauthResult.selectedProviderSettings;\n\t\tapiKey = [REDACTED] ?? \"\";\n\t}\n\n\tconst cwd = input.options.cwd;\n\tconst systemPrompt = await resolveSystemPrompt({\n\t\tcwd,\n\t\texplicitSystemPrompt: input.options.systemPrompt,\n\t\tproviderId: provider,\n\t\trules: input.systemRules,\n\t});\n\t// Providers without a bundled catalog (e.g. a local Ollama server that has\n\t// not been queried yet) expose a \"default\" placeholder instead of a model.\n\tconst providerDefaultModel = (await Llms.getProviderCollection(provider))\n\t\t?.provider?.defaultModelId;\n\tconst usableProviderDefault =\n\t\tproviderDefaultModel && providerDefaultModel !== \"default\"\n\t\t\t? providerDefaultModel\n\t\t\t: undefined;\n\n\treturn {\n\t\tworkspaceRoot: resolveWorkspaceRoot(cwd),\n\t\tcwd,\n\t\tprovider,\n\t\tmodel:\n\t\t\tinput.options.model?.trim() ||\n\t\t\tselectedProviderSettings?.model ||\n\t\t\tinput.defaultModel ||\n\t\t\tusableProviderDefault ||\n\t\t\tCLINE_DEFAULT_MODEL_ID,\n\t\tmode: input.options.mode,\n\t\tapiKey,\n\t\tsystemPrompt,\n\t\tlogger: input.loggerConfig,\n\t\tenableTools: input.options.enableTools,\n\t\tautoApproveTools: false,\n\t};\n}\n\nexport function buildThreadStartRequest<TState extends ConnectorThreadState>(\n\tbase: ChatStartSessionRequest,\n\tstate: TState,\n): ChatStartSessionRequest {\n\tconst enableTools = state.enableTools ?? base.enableTools;\n\treturn {\n\t\t...base,\n\t\tenableTools,\n\t\tenableSpawn: enableTools,\n\t\tenableTeams: enableTools,\n\t\tautoApproveTools: state.autoApproveTools ?? base.autoApproveTools,\n\t\tcwd: state."
+        }
+      ],
+      "recentIssues": [
+        {
+          "number": 15706,
+          "title": "fix(llms): forward OpenRouter provider sorting",
+          "state": "open",
+          "url": "https://github.com/cline/cline/pull/15706",
+          "isPullRequest": true
+        },
+        {
+          "number": 15705,
+          "title": "F62: Add docs/scratch/part-one.md with one neutral sentence",
+          "state": "closed",
+          "url": "https://github.com/cline/cline/pull/15705",
+          "isPullRequest": true
+        },
+        {
+          "number": 15704,
+          "title": "Remote OAuth MCP server stays \"connected\" after its token is invalidated mid-session, with no Authenticate (or Retry) button",
+          "state": "open",
+          "url": "https://github.com/cline/cline/issues/15704",
+          "isPullRequest": false
+        },
+        {
+          "number": 15703,
+          "title": "Cline [Mac Specific]: Created rules cannot be enabled in cline",
+          "state": "open",
+          "url": "https://github.com/cline/cline/issues/15703",
+          "isPullRequest": false
+        },
+        {
+          "number": 15701,
+          "title": "feat(desktop): redesign Customize > Manage",
+          "state": "closed",
+          "url": "https://github.com/cline/cline/pull/15701",
+          "isPullRequest": true
+        }
+      ],
+      "licenseEvidence": {
+        "path": "LICENSE",
+        "sha": "05ae14a377caf4df24e26edde0c4f7b22ef3ef30",
+        "excerpt": "                                 Apache License\n                           Version 2.0, January 2004\n                        http://www.apache.org/licenses/\n\n   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\n\n   1. Definitions.\n\n      \"License\" shall mean the terms and conditions for use, reproduction,\n      and distribution as defined by Sections 1 through 9 of this document.\n\n      \"Licensor\" shall mean the copyright owner or entity authorized by\n      the copyright owner that is granting the License.\n\n      \"Legal Entity\" shall mean the union of the acting entity and all\n      other entities that control, are controlled by, or are under common\n      control with that entity. For the purposes of this definition,\n      \"control\" means (i) the power, direct or indirect, to cause the\n      direction or management of such entity, whether by contract or\n      otherwise, or (ii) ownership of fifty percent (50%) or more of the\n      outstanding shares, or (iii) beneficial ownership of such entity.\n\n      \"You\" (or \"Your\") shall mean an individual or Legal Entity\n      exercising permissions granted by this License.\n\n      \"Source\" form shall mean the preferred form for making modifications,\n      including but not limited to software source code, documentation\n      source, and configuration files.\n\n      \"Object\" form shall mean any form resulting from mechanical\n      transformation or translation of a Source form, including but\n      not limited to compiled object code, generated documentation,\n      and conversions to other media types.\n\n      \"Work\" shall mean the work of authorship, whether in Source or\n      Object form, made available under the License, as indicated by a\n      copyright notice that is included in or attached to the work\n      (an example is provided in the Appendix below).\n\n      \"Derivative Works\" shall mean any work, whether in Source or Object\n      form, that is based on (or derived from) the Work and for which the\n      editorial revisions, annotations, elaborations, or other modifications\n      represent, as a whole, an original work of authorship. For the purposes\n      of this License, Derivative Works shall not include works that remain\n      separable from, or merely link (or bind by name) to the interfaces of,\n      the Work and Derivative Works thereof.\n\n      \"Contribution\" shall mean any work of authorship, including\n      the original version of the Work and any modifications or additions\n      to that Work or Derivative Works thereof, that is intentionally\n      submitted to Licensor for inclusion in the Work by the copyright owner\n      or by an individual or Legal Entity authorized to submit on behalf of\n      the copyright owner. For the purposes of this definition, \"submitted\"\n      means any form of electronic, verbal, or written communication sent\n      to the Licensor or its representatives, including but not limited to\n      communication on electronic mailing lists, source code control systems,\n      and issue tracking systems that are managed by, or on behalf of, the\n      Licensor for the purpose of discussing and improving the Work, but\n      excluding communication that is conspicuously marked or otherwise\n      designated in writing by the copyright owner as \"Not a Contribution.\"\n\n      \"Contributor\" shall mean Licensor and any individual or Legal Entity\n      on behalf of whom a Contribution has been received by Licensor and\n      subsequently incorporated within the Work.\n\n   2. Grant of Copyright License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      copyright license to reproduce, prepare Derivative Works of,\n      publicly display, publicly perform, sublicense, and distribute the\n      Work and such Derivative Works in Source or Object form.\n\n   3. Grant of Patent License. Subject to the terms and conditions of\n      this "
+      },
+      "treeTruncated": false,
+      "researchedAt": "2026-11-13T03:49:37.298Z"
+    }
+  ]
+}

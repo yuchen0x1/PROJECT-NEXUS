@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "version": "0.6.0",
+  "installer": "C:\\Users\\lenmo\\Desktop\\PROJECT NEXUS\\release-batch-repositories\\PROJECT-NEXUS-0.6.0-win-x64-setup.exe",
+  "bytes": 122118244,
+  "sha256": "3CE57784D658AEE13EE55D5874A6903981E2893908CF57EF317F4FD88A3181B7",
+  "signature": "NotSigned",
+  "installerExitCode": 0,
+  "backup": "C:\\Users\\lenmo\\AppData\\Local\\PROJECT NEXUS Backups\\20261113-143753-batch-repositories",
+  "profileFilesChecked": 7,
+  "profileFilesChanged": [],
+  "installedAsarMatchesPackage": true,
+  "at": "2026-11-13T06:38:17.4279690Z"
+}

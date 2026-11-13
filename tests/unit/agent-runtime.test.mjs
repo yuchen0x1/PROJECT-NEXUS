@@ -131,6 +131,24 @@ describe('agent runtime protocol helpers', () => {
 })
 
 describe('agent runtime end-to-end loop', () => {
+  it.each(['malformed reviewer output', { findings: [], verdict: 'request_changes' }])('does not mark an edited task successful without reviewer approval: %j', async (review) => {
+    await setupProject()
+    const { server } = await scriptedProvider([
+      { plan: ['fix greeting'], first_tool: { name: 'edit_file', args: { path: 'src/main.js', oldText: 'greeting = "hello"', newText: 'greeting = "hello there"' } } },
+      { final: 'Updated the greeting.' },
+      review
+    ])
+    servers.push(server)
+    const task = await createLocalAgentTask({ dataDir, task: { id: 'nexus_agent_review_gate', type: 'local-agent-runtime', label: 'review gate', projectId: 'p', projectName: 'x', prompt: 'Update greeting.', status: 'Queued' } })
+    const project = { id: 'p', name: 'x', path: projectPath }
+    const { adapter } = await createAgentWorkspace({ project, taskId: task.id, mode: 'auto', workspaceRoot })
+    const index = await scanProjectStructure(adapter.source)
+    const result = await runAgentTask({ task, project, provider: providerFromServer(server), adapter, index, contextBundle: null, taskStore: taskStoreFor(dataDir), dataDir, options: { approvalPolicy: 'workspace-auto' } })
+    expect(result.verification.passed).toBe(true)
+    expect(result.status).toBe('Failed')
+    expect(result.review.verdict).not.toBe('approve')
+    await adapter.dispose()
+  }, 60_000)
   it('plans, edits files, fails verification, repairs itself, re-verifies, and reviews the diff', async () => {
     await setupProject()
     const { server, requests } = await scriptedProvider([
@@ -138,7 +156,8 @@ describe('agent runtime end-to-end loop', () => {
       { thought: 'got content', tool: { name: 'edit_file', args: { path: 'src/main.js', oldText: 'greeting = "hello"', newText: 'greeting = "wrong marker"' } } },
       { thought: 'done too early', final: 'I updated the greeting.' },
       { thought: 'verification failed, fixing', tool: { name: 'edit_file', args: { path: 'src/main.js', oldText: 'greeting = "wrong marker"', newText: 'greeting = "hello there"' } } },
-      { thought: 'fixed', final: 'Updated the greeting constant; the self-check passes after one repair.' }
+      { thought: 'fixed', final: 'Updated the greeting constant; the self-check passes after one repair.' },
+      { findings: [], verdict: 'approve', overall: 'The corrected greeting passes the self-check.' }
     ])
     servers.push(server)
     const provider = providerFromServer(server)
@@ -174,6 +193,7 @@ describe('agent runtime end-to-end loop', () => {
     expect(result.finalMessage).toContain('greeting')
     expect(result.usage.totalTokens).toBeGreaterThan(0)
     expect(result.review.findings).toEqual([])
+    expect(result.review.verdict).toBe('approve')
     expect(result.changes.map((change) => change.path)).toContain('src/main.js')
 
     // The original project was never modified; the worktree has the change.
@@ -237,6 +257,42 @@ describe('agent runtime end-to-end loop', () => {
       task, project, provider: providerFromServer(server), adapter, index, contextBundle: null,
       taskStore: taskStoreFor(dataDir), dataDir, signal: controller.signal, options: { approvalPolicy: 'standard' }
     })).rejects.toMatchObject({ code: 'AGENT_CANCELLED' })
+    await adapter.dispose()
+  }, 60_000)
+
+  it('records autonomous allowlist approvals without blocking and preserves history', async () => {
+    await setupProject({ withTestScript: false })
+    const { server } = await scriptedProvider([
+      { thought: 'inspect', plan: ['inspect the workspace', 'confirm status'], first_tool: { name: 'git_status', args: {} } },
+      { thought: 'inspect again', tool: { name: 'git_status', args: {} } },
+      { thought: 'done', final: 'Inspected the isolated workspace.' }
+    ])
+    servers.push(server)
+    const task = await createLocalAgentTask({ dataDir, task: { id: 'nexus_agent_auto1', type: 'local-agent-runtime', label: 'hosting audit', projectId: 'p', projectName: 'x', prompt: 'Inspect the repository status.', status: 'Queued' } })
+    const project = { id: 'p', name: 'x', path: projectPath }
+    const { adapter } = await createAgentWorkspace({ project, taskId: task.id, mode: 'auto', workspaceRoot })
+    const index = await scanProjectStructure(adapter.source)
+
+    const result = await runAgentTask({
+      task,
+      project,
+      provider: providerFromServer(server),
+      adapter,
+      index,
+      contextBundle: null,
+      taskStore: taskStoreFor(dataDir),
+      dataDir,
+      signal: null,
+      options: { approvalPolicy: 'standard', autoApproveTools: ['git_status'] }
+    })
+
+    expect(result.status).toBe('Succeeded')
+    const persisted = await getLocalAgentTask({ dataDir, taskId: task.id })
+    expect(persisted.approvals).toHaveLength(2)
+    expect(persisted.approvals).toEqual(expect.arrayContaining([
+      expect.objectContaining({ tool: 'git_status', status: 'approved', resolvedBy: 'hosting-policy' })
+    ]))
+    expect(persisted.events.filter((event) => event.type === 'approval_auto_approved')).toHaveLength(2)
     await adapter.dispose()
   }, 60_000)
 

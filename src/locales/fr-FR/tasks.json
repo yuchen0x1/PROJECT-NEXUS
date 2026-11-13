@@ -9,7 +9,7 @@
     "finished": "terminée {{time}}",
     "emptyTitle": "L'historique des tâches est vide",
     "emptyDetail": "Les synchronisations de dépôts et les lancements de build apparaîtront ici avec leur propre statut.",
-    "jobsKicker": "Exécution de la phase 3",
+    "jobsKicker": "Opérations des dépôts",
     "jobsTitle": "Jobs de dépôts",
     "cancelToast": "Annulation demandée pour {{repository}}",
     "retryToast": "Relance mise en file d'attente pour {{repository}}",
@@ -18,7 +18,7 @@
     "logSummary_other": "Journal du job ({{count}})",
     "noLogs": "Aucun message de journal enregistré.",
     "viewReport": "Voir le rapport",
-    "emptyJobsTitle": "Aucun job de la phase 3",
+    "emptyJobsTitle": "Aucune opération de dépôt",
     "emptyJobsDetail": "Les analyses de dépôts et les propositions d'intégration locale apparaîtront avec leur étape et leur résultat actuels."
   },
   "history": {

@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "version": "0.7.0",
+  "installer": "E:\\移动云盘同步盘\\PROJECT NEXUS\\release-project-overview\\PROJECT-NEXUS-0.7.0-win-x64-setup.exe",
+  "bytes": 122131830,
+  "sha256": "620CF4F5CD4130778B9F8AD7BEE7812D7B2D96A4954754667870256D9D175297",
+  "signature": "NotSigned",
+  "installerExitCode": 0,
+  "backup": "C:\\Users\\lenmo\\AppData\\Local\\PROJECT NEXUS Backups\\20261113-171223-project-overview",
+  "profileFilesChecked": 9,
+  "profileFilesChanged": [],
+  "installedAsarMatchesPackage": true,
+  "at": "2026-11-13T09:12:59.2776318Z"
+}

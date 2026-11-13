@@ -1,0 +1,5 @@
+
+PASS: A: real GitHub identity and repository permissions — yuchen0x1; push=true
+PASS: C: original bug reproduced by real test — add(2, 3) returned -1 instead of 5
+PASS: B: live monitoring performs no clone
+Issue fix state: running

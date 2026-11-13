@@ -1,0 +1,11 @@
+{
+  "restored": true,
+  "provider": [
+    {
+      "id": "pikaqiu",
+      "model": "gpt-6-luna"
+    }
+  ],
+  "github": "yuchen0x1",
+  "dataPath": "C:\\Users\\lenmo\\AppData\\Local\\PROJECT NEXUS"
+}

@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "scope": "batch-selection-and-setup-feature",
+  "version": "0.6.0",
+  "realRepositoryCount": 26,
+  "installedBatchFlowLocales": [
+    "zh-CN",
+    "en-US"
+  ],
+  "fixtureBatchExecution": true,
+  "realRepositoriesEnabledByAcceptance": false,
+  "originalProfileFilesPreserved": 7,
+  "fullRegressionStatus": "PARTIAL: separate timeout failures; affected files passed in other runs",
+  "at": "2026-11-13T06:43:29.609Z"
+}

@@ -1,0 +1,13 @@
+{
+  "version": "0.3.0",
+  "file": "PROJECT-NEXUS-0.3.0-win-x64-setup.exe",
+  "sizeBytes": 122077962,
+  "sha256": "242572587DBEFEABEBE9680E83BB52F817F2585AD71D2DF6EAF820A61E130390",
+  "signature": "NotSigned",
+  "install": {
+    "ExitCode": 0,
+    "ProfileUnchanged": true,
+    "InstalledExecutable": true
+  },
+  "installedPath": "C:\\Users\\lenmo\\AppData\\Local\\Programs\\PROJECT NEXUS\\PROJECT NEXUS.exe"
+}

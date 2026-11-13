@@ -1,176 +1,101 @@
 # PROJECT NEXUS
 
-PROJECT NEXUS is a Windows-native AI development workstation: a real autonomous agent engine that understands local projects, plans work, calls tools, edits files in isolated workspaces, runs builds and tests, repairs its own failures, reviews its diff, and hands a reversible change set to the user — plus the GitHub repository operations console, build/release workflows, update capability scanning and guarded local AI change pipeline from earlier phases.
+Windows 桌面 AI 仓库运营中心。连接 GitHub 与 AI 网关，持续监控仓库，在独立 Worktree 中修复和验证问题，并按授权策略交付 PR 和版本。
 
-It uses Electron + React/Vite, a local Node service, GitHub REST APIs and versioned JSON persistence. The frontend never receives GitHub or AI credentials. Missing integrations report explicit blocked states instead of fabricated results.
+**当前软件版本 0.7.0。本工作区包含面向 v1.0 的增量实现，尚未作为 v1.0 稳定版发布。**
 
-## Current capabilities
+## 最新更新
 
-- **Autonomous agent engine (Phase 6)**: multi-turn tool-calling runtime (plan → tools → verify → repair → independent review), 34-tool registry with permission levels, live user approvals for high-risk actions, git-worktree or bounded-copy workspace isolation per task, real command execution with an allowlist + injection guards, real `npm test`/build verification, bounded self-repair, per-task rollback, and user-confirmed apply-to-project with automatic backups.
-- **Project understanding engine**: incremental project index (files, symbols, imports, manifests, entry points, tests, routes) with bounded, redacted task-context selection and an in-app "Analyze project" panel.
-- **Provider system**: persistent multi-provider registry (OpenAI-compatible, OpenAI, Anthropic, Gemini, Ollama/local) with connectivity tests, capability tags, task routing and estimated cost; API keys live only in the OS credential store (DPAPI via Electron safeStorage) and service memory — never on disk in plaintext, never in the renderer.
-- Repository inventory sync from a GitHub token or configured GitHub App installation.
-- Repository project views, GitHub Actions workflow/run lookup, and workflow dispatch.
-- Release lookup, draft/edit/publish endpoints, asset upload and SHA-256 recording, with role and confirmation checks.
-- Webhook HMAC validation, delivery deduplication and persisted event intake. Event processing still uses an in-process task runner.
-- Commit-pinned update evidence scans and reports for Electron, Tauri, Python desktop, .NET and Web/PWA.
-- Android and iOS project evidence detection, currently reported as unsupported because no mobile update adapters are implemented.
-- Persisted scan history, bounded recurring scans, cancellation and retry controls.
-- Optional AI change proposals in isolated per-repository workspaces, with selected source disclosure, file-operation limits, local diff review and container-based checks.
-- Extensible AI provider registry with task routing, OpenAI-compatible/Ollama/Anthropic/Gemini request formats, bounded retry/timeout, usage normalization and optional cost estimation; provider keys remain server-side.
-- Guarded AI diagnosis endpoint and non-secret provider registry diagnostics.
-- Draft PR preparation behind disabled-by-default remote writes, server role configuration, passing checks, and exact repository/branch confirmation.
-- Overview, Projects, Build Center, Release Center, Monitoring, AI Operations, Task Center, Repository Scanner, AI Integration Pipeline, Adapter Center, Update Security and Integration History surfaces.
+### 0.7.0 · 项目总览关系图（2026-11-13）
 
-- Native Windows Electron workstation with local project registration, environment detection and isolated AI change proposals.
+- 左侧工作区新增「项目总览」，账号居中、仓库环绕，连接 AI、巡检、分析、执行、测试、交付与研究环节。
+- 运行任务显示流动连线，点击节点查看任务、真实输出和交付状态；支持缩放、拖动、搜索、筛选和仓库定位。
+- 状态约每 3 秒刷新，等待审批、完成或断线时停止对应流动。进入页面只查看记录，不启动任务。
+- 保留多仓库批量托管、获取模型、一键教学和平铺导航。
 
-## Windows workstation: UI, themes and languages (Phase 5)
+使用方法见 [中文上手指南](docs/QUICK_START.zh-CN.md)，关系图验收见 [交付记录](docs/PROJECT_OVERVIEW_REPORT.md)，完整历史见 [发布记录](docs/releases/release-notes.md)。
 
-The desktop shell is a commercial-grade dark developer workstation: an activity bar with collapsible rail, a top bar with a `Ctrl+K` command palette and notification center, a resizable activity-log drawer, a full in-app Settings page, and a light/dark/system theme system driven by shared design tokens (`src/theme.css`).
+## 安装和首次使用
 
-The entire interface is internationalized with i18next/react-i18next. Ten languages ship in this release: 简体中文, 繁體中文, English, 日本語, 한국어, Français, Deutsch, Español, Português (Brasil), Русский. The first launch follows the Windows display language (falling back to English), switching applies instantly without a restart, and the choice persists in the user's app-data settings file. Dates, numbers, currency and relative times are formatted per locale. AI model output, code, commands and terminal content are never translated. See [the i18n architecture](docs/PHASE5_I18N_ARCHITECTURE.md), [the design system](docs/PHASE5_DESIGN_SYSTEM.md) and [translation coverage](docs/PHASE5_TRANSLATION_COVERAGE.md).
+[下载 Windows x64 安装包](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/download/v0.7.0/PROJECT-NEXUS-0.7.0-win-x64-setup.exe)，[版本说明与校验文件](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.7.0)。此版本为 0.x 开发预览。
 
-## Windows desktop and local Agent
+1. 在 Windows x64 上运行安装程序。
+2. 启动应用，点击工作台上的蓝色「一键教学」，顶部也可进入。
+3. 使用 GitHub 访问令牌连接账号；已有 GitHub App 也可在远程控制台管理。
+4. 输入 API 类型、Base URL 和 API Key，点击默认模型旁的「获取模型」，从下拉列表选择后保存并测试；也可手动输入模型名。
+5. 勾选仓库或点击「全选」，按下一步完成工具检测、统一策略与逐仓库检查。执行代码需要明确授权所选全部可信仓库的脚本。
+6. 需要远程交付时，明确允许应用按各仓库策略写入 GitHub。
+7. 如果全局巡检暂停，先明确恢复，再开启托管。完成后可跟随定位教学，或立即检查 Issue。
 
-Build a Windows x64 NSIS installer with `npm run desktop:package:win`. The checked Phase 6 installer is documented in [the delivery report](docs/PHASE6_DELIVERY_REPORT.md). The Agent page is a full development workbench: register a local folder, describe a change in natural language, and the autonomous runtime plans, edits files inside an isolated git worktree (or a bounded snapshot copy for non-git projects), runs the project's own build/test scripts, repairs failures up to a bounded number of attempts, has its diff independently reviewed, and presents the result for your decision — rollback or apply (apply requires explicit confirmation, refuses a dirty tree, and backs up every overwritten original). High-risk actions (deleting files, installing dependencies, non-allowlisted commands) pause the task for your approval; nothing is auto-approved that the model asked for itself.
+用户不需要手工创建密钥目录；缺少工具只检测，不自动安装 Ollama、Docker 或本地模型。安装包未签名，大小、SHA256 和验收结果见 [交付记录](docs/PROJECT_OVERVIEW_REPORT.md)。
 
-Provider keys are stored with Windows DPAPI through Electron's safeStorage and forwarded only to the local service process. AI model output, code, commands and terminal content are never translated. See [Phase 6 architecture](docs/PHASE6_ARCHITECTURE.md), [agent runtime](docs/PHASE6_AGENT_RUNTIME.md), [tool system](docs/PHASE6_TOOL_SYSTEM.md), [security](docs/PHASE6_SECURITY.md), [workspace isolation](docs/PHASE6_WORKSPACE.md), [project understanding](docs/PHASE6_PROJECT_INDEX.md) and [research](docs/PHASE6_RESEARCH.md). Phase 4 background: [Agent engine](docs/PHASE4_AGENT_ENGINE.md), [Windows installation](docs/PHASE4_WINDOWS_INSTALL.md), [security limits](docs/PHASE4_SECURITY.md).
-## Quick start
+窗口关闭后可留在托盘运行。退出应用或关闭电脑后本机任务无法继续；开机启动由用户在设置中启用。后台是 Electron 管理的 Node 子进程，没有安装 Windows 系统服务。
 
-```powershell
-npm install
-Copy-Item .env.example .env
-npm run dev
-```
+## 策略与功能
 
-By default, the API listens on `127.0.0.1:4317` and the Vite UI on `http://localhost:5173`.
+| 策略 | 行为 |
+| --- | --- |
+| 观察 | 监控、分析、报告，不自动修复 |
+| 自动维护 | 隔离修复，验证后按策略推送分支和创建 PR |
+| 全自主 | 还允许在验证与发布检查后合并、发布和条件关闭 Issue |
 
-To connect GitHub, set a fine-grained token in `.env`:
+仓库策略与应用远程写入开关同时生效。工具、依赖、网络、权限或验证不满足时停止并保留证据。中断交付可在任务中心核对回执，后续处理仍需人工评估；尚不提供精确步骤自动续跑。
 
-```env
-GITHUB_TOKEN=github_pat_...
-GITHUB_OWNER=your-account-or-organization
-```
+主要能力包括本地项目管理、开发环境检测、多轮 Agent Runtime、文件/Git 工具、预算和审批、测试/构建/修复循环/独立审查、Worktree 与非 Git 快照、显式应用与回滚、任务时间线、Provider 管理、GitHub App 与 Webhook、Issue 托管、安全扫描和研究。保留原有 Electron/Tauri/Web-PWA/Python/.NET 更新适配分析、十种语言和主题。
 
-The token should have only the repository metadata, Actions read/dispatch, and Releases permissions required by enabled features. GitHub App settings are documented in [docs/GITHUB_APP_SETUP.md](docs/GITHUB_APP_SETUP.md).
+自动发布当前面向具有 package.json 且可运行 npm test 的项目：要求确切合并 SHA、与已审查提交一致的树、重新测试、安全检查和匹配版本号；资产先上传草稿，成功后发布。Electron 资产默认还需有效 Authenticode 签名。尚不是任意语言项目的通用发布器。
 
-## AI and local change preparation
+## 开发者运行
 
-Set `AI_BASE_URL`, `AI_API_KEY`, and `AI_MODEL` to enable real model calls. The pipeline sends selected source files only after an explicit UI confirmation and applies bounded file operations in a separate workspace. Running target-project tests requires Docker and compatible preloaded dependencies; the runner has no network access. A provider response or local patch is not proof of correctness. This web/GitHub pipeline is separate from the Windows local Agent, which currently creates a task-private proposal but does not apply it to the selected local folder or run local tests.
+需要已安装的 Node.js、npm 和 Git。
 
-Remote writes are disabled unless `NEXUS_ENABLE_REMOTE_WRITES=true`. The default server role is a single-server role setting, not per-user authentication. Keep NEXUS bound to a trusted local boundary; do not expose it to an untrusted network. Before enabling remote writes in a shared deployment, add authenticated user identity and per-user authorization.
+    npm ci
+    npm run desktop:dev
 
-## Commands
+网页/API 开发使用 npm run dev。生产后端先 npm run build，再 npm start。环境模板见 .env.example；npm start 不自动加载 .env，需要时显式执行：
 
-```powershell
-npm run dev              # local API and Vite development server
-npm run build            # production frontend build
-npm test                 # Vitest unit and isolated API tests (incl. i18n key parity)
-npm run test:browser     # Playwright navigation and screenshot flow against a running app
-npm run test:desktop     # Electron desktop smoke test (real window)
-npm run test:desktop:agent          # Electron local Agent UI workflow test (single-pass engine)
-npm run test:desktop:agent-runtime  # Electron autonomous runtime workbench test (Phase 6)
-npm run test:desktop:i18n           # Electron i18n acceptance (detection, switching, persistence)
-npm run test:desktop:quality        # Electron quality run: sizes, themes, palette, notifications, recovery
-npm run test:phase6:acceptance      # real-provider end-to-end acceptance (needs a provider; writes evidence)
-node tests/desktop-perf.mjs  # Electron performance measurements
-node scripts/i18n-deep-audit.mjs  # deep i18n + hardcoded-string/color audit
-npm run i18n:coverage    # translation coverage report → docs/PHASE5_TRANSLATION_COVERAGE.md
-npm run start            # API plus built frontend
-```
+    node --env-file=.env server/index.mjs
 
-`npm run test:ui` is the legacy API/browser smoke script; it can enqueue a repository sync when pointed at a live server. Use an isolated state file for that script.
+不要提交真实凭据。默认 API 仅监听 127.0.0.1:4317；独立后端不具备公网多用户认证。
 
-## Data and deployment
+## 验证与构建
 
-The current JSON schema is v3. Startup migrates v1/v2 state additively; review [docs/STATE_MIGRATIONS.md](docs/STATE_MIGRATIONS.md) and back up `data/state.json` before deployment. Phase 3 verification used disposable fixtures, not the live data file.
+    npx tsc --noEmit
+    npm test
+    npm run build
+    npm run i18n:audit
+    npm run i18n:coverage
+    node tests/desktop.smoke.mjs
+    node tests/desktop-i18n.mjs
+    node tests/desktop-quality.mjs
+    node tests/desktop-perf.mjs
+    npm run desktop:package:win -- --config.directories.output=release-v1-preview
 
-Docker Compose binds its published port to loopback by default. If the service is deliberately exposed through a reverse proxy, configure authentication, TLS, strict network access and a trusted role identity first. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) and [docs/SECURITY.md](docs/SECURITY.md).
+真实验收脚本 tests/v1-live-acceptance.mjs 要求真实 GitHub/AI 凭据和严格命名的临时测试仓库；它会写入该仓库，不应指向业务项目。仓库的创建与删除由操作者管理。本次测试仓库已删除，回执在 docs/evidence/。
 
-## Current limitations
+## 数据与安全
 
-- No AI provider credentials were available for a real model-generated change in this delivery.
-- No connected GitHub repositories were scanned during verification, and no branch or PR was pushed.
-- Adapter findings are static source/configuration evidence. Cryptographic signatures, release assets and old-client updates are not verified by the scan.
-- Android and iOS are recognized as unsupported evidence categories; dedicated adapters are future work.
-- Background work and schedules run in-process. A durable worker queue, multi-process locking and PostgreSQL/Redis production storage are not included.
-- The container sandbox is fail-closed and network-disabled. Dependency restore may be blocked unless the image/workspace already has required packages cached.
-- The service does not provide per-user authentication. The default role model is suitable only for a trusted single-user environment.
+桌面数据在 %LOCALAPPDATA%\PROJECT NEXUS：state.json 为 schema v4；ai-providers.json 只保存元数据；provider-keys.json 与 github-credentials.json 保存 DPAPI 加密凭据；repositories/ 和 agent-workspaces/ 保存隔离工作区；logs/ 与任务文件保存执行证据。
 
-## Documentation
+状态使用原子替换、上一份有效副本和迁移前快照。短期 Installation Token 不写入状态或备份。不会自动用备份覆盖当前数据；恢复前退出应用，复制当前数据并人工核对。
 
-- [Phase 6 research](docs/PHASE6_RESEARCH.md)
-- [Phase 6 architecture](docs/PHASE6_ARCHITECTURE.md)
-- [Phase 6 agent runtime](docs/PHASE6_AGENT_RUNTIME.md)
-- [Phase 6 tool system](docs/PHASE6_TOOL_SYSTEM.md)
-- [Phase 6 project index](docs/PHASE6_PROJECT_INDEX.md)
-- [Phase 6 security](docs/PHASE6_SECURITY.md)
-- [Phase 6 workspace](docs/PHASE6_WORKSPACE.md)
-- [Phase 6 multi-agent plan](docs/PHASE6_MULTI_AGENT.md)
-- [Phase 6 test report](docs/PHASE6_TEST_REPORT.md)
-- [Phase 6 acceptance](docs/PHASE6_ACCEPTANCE.md)
-- [Phase 6 acceptance evidence](docs/PHASE6_ACCEPTANCE_EVIDENCE.md)
-- [Phase 6 delivery report](docs/PHASE6_DELIVERY_REPORT.md)
-- [Phase 5.1 audit](docs/PHASE5_1_AUDIT.md)
-- [Phase 5.1 fixes](docs/PHASE5_1_FIXES.md)
-- [Phase 5.1 i18n audit](docs/PHASE5_1_I18N_AUDIT.md)
-- [Phase 5.1 theme audit](docs/PHASE5_1_THEME_AUDIT.md)
-- [Phase 5.1 Windows test report](docs/PHASE5_1_WINDOWS_TEST.md)
-- [Phase 5.1 regression report](docs/PHASE5_1_REGRESSION.md)
-- [Phase 5.1 delivery report](docs/PHASE5_1_DELIVERY_REPORT.md)
-- [Phase 5 UI audit](docs/PHASE5_UI_AUDIT.md)
-- [Phase 5 design system](docs/PHASE5_DESIGN_SYSTEM.md)
-- [Phase 5 i18n architecture](docs/PHASE5_I18N_ARCHITECTURE.md)
-- [Phase 5 translation coverage](docs/PHASE5_TRANSLATION_COVERAGE.md)
-- [Phase 5 test report](docs/PHASE5_TEST_REPORT.md)
-- [Phase 5 delivery report](docs/PHASE5_DELIVERY_REPORT.md)
-- [Phase 4 audit](docs/PHASE4_AUDIT.md)
-- [Phase 4 architecture](docs/PHASE4_ARCHITECTURE.md)
-- [Phase 4 local Agent engine](docs/PHASE4_AGENT_ENGINE.md)
-- [Phase 4 security](docs/PHASE4_SECURITY.md)
-- [Phase 4 Windows installation](docs/PHASE4_WINDOWS_INSTALL.md)
-- [Phase 4 test report](docs/PHASE4_TEST_REPORT.md)
-- [Phase 4 delivery report](docs/PHASE4_DELIVERY_REPORT.md)
-- [Phase 4 research](docs/PHASE4_RESEARCH.md)
-- [Phase 4 Docker sandbox boundary](docs/PHASE4_SANDBOX.md)
-- [Phase 4 Windows environment compatibility](docs/PHASE4_WINDOWS_COMPATIBILITY.md)
-- [Windows desktop decision](docs/WINDOWS_DESKTOP_DECISION.md)- [API reference](docs/API.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Development status](docs/DEVELOPMENT.md)
-- [User guide](docs/USER_GUIDE.md)
-- [Update scanner](docs/AUTO_UPDATE.md)
-- [Adapter reference](docs/UPDATE_ADAPTERS.md)
-- [AI change engine](docs/AI_AUTO_UPDATE_ENGINE.md)
-- [Phase 3 research notes](docs/PHASE3_RESEARCH.md)
-- [Update security](docs/UPDATE_SECURITY.md)
-- [Deployment](docs/DEPLOYMENT.md)
-- [State migration](docs/STATE_MIGRATIONS.md)
-- [Phase 3 test report](docs/PHASE3_TEST_REPORT.md)
-- [Phase 3 delivery report](docs/PHASE3_DELIVERY_REPORT.md)
-- [Phase 2 baseline audit](docs/PHASE2_BASELINE_AUDIT.md)
-- [Phase 3 baseline audit](docs/PHASE3_BASELINE_AUDIT.md)
-- [Ultimate gap analysis](docs/ULTIMATE_GAP_ANALYSIS.md)
-- [Ultimate architecture](docs/ULTIMATE_ARCHITECTURE.md)
-- [Ultimate roadmap](docs/ULTIMATE_ROADMAP.md)
-- [Ultimate implementation report](docs/ULTIMATE_IMPLEMENTATION_REPORT.md)
-- [Ultimate test report](docs/ULTIMATE_TEST_REPORT.md)
-- [Ultimate security audit](docs/ULTIMATE_SECURITY_AUDIT.md)
-- [Ultimate deployment guide](docs/ULTIMATE_DEPLOYMENT_GUIDE.md)
-- [Ultimate user guide](docs/ULTIMATE_USER_GUIDE.md)
+本机命令具有超时、程序允许列表与凭据环境过滤，**不是 Windows 操作系统安全沙箱**。只为可信仓库开启脚本执行。研究模块读取外部项目，不执行其代码。DPAPI 不能防御同一 Windows 用户权限下的恶意程序。
 
-## Screenshots
+## 验收与限制
 
-![PROJECT NEXUS Phase 3 Overview](docs/screenshots/phase3/overview.png)
+0.3.0 的历史私有测试仓库验收通过了 Bug 复现、AI 修复、回归测试、构建、独立审查、推送、PR、合并、带校验资产的 Release、回复和关闭 Issue。另读取两个真实开源项目的源码与许可证，见 [历史测试报告](docs/V1_TEST_REPORT.md)。0.7.0 新增 CI 门禁下的真实交付闭环仍因 Checks API 权限受阻，不以历史成功替代本版本验收。
 
-Additional real-app screenshots are in `docs/screenshots/phase3/`.
+仍未完成：通用多语言自动发布、竞品建议自动实施、精确步骤自动续跑、独立自我维护策略、完整资源阈值和 24 小时连续验收。跨进程宿主与仓库租约、远端回执人工核对已在后续增量中加入，见 [按序升级报告](docs/ORDERED_UPGRADE_REPORT.md)。历史依赖审计记录的 6 项打包开发依赖链中危问题尚未处理；ESLint 尚未安装。当前发布边界见 [0.7.0 版本说明](docs/releases/v0.7.0.md)，历史目标与安全记录见 [交付报告](docs/V1_DELIVERY_REPORT.md) 和 [安全报告](docs/V1_SECURITY_AUDIT.md)。
 
-The Phase 4 native Agent workflow was captured from a running Electron application: ![PROJECT NEXUS local Agent proposal](docs/screenshots/phase4/local-agent-workflow.png)
+## 文档
 
-Phase 6 captures (real Electron runs): the autonomous workbench —
-![PROJECT NEXUS agent runtime workbench](docs/screenshots/phase6/agent-runtime-workbench.png) —
-and a completed runtime task with plan, verification, review and diff —
-![PROJECT NEXUS agent runtime result](docs/screenshots/phase6/agent-runtime-result.png).
-The compose surface with provider manager and project insights is in
-`docs/screenshots/phase6/agent-compose-insights.png`.
+- [架构](docs/V1_ARCHITECTURE.md)
+- [交付报告](docs/V1_DELIVERY_REPORT.md)
+- [测试报告](docs/V1_TEST_REPORT.md)
+- [安全报告](docs/V1_SECURITY_AUDIT.md)
+- [Windows 安装说明](docs/V1_WINDOWS_INSTALL.md)
+- [GitHub App 配置](docs/GITHUB_APP_SETUP.md)
+- [Webhook 配置](docs/GITHUB_WEBHOOKS.md)
+- [历史 Phase 0 审计](docs/V1_PHASE0_AUDIT.md)
 
-Phase 5 captures (real Electron runs, multiple languages and both themes) are in `docs/screenshots/phase5/`: ![PROJECT NEXUS Chinese workbench](docs/screenshots/phase5/workbench-zh-CN.png)
+0.7.0 的新增能力、验证范围及已知限制见[版本说明](docs/releases/v0.7.0.md)。当前会话无法解密既有 GitHub / AI 凭据时，需在应用中重新连接，或回到能够解密的原 Windows 会话；原凭据文件不会被验收流程覆盖。

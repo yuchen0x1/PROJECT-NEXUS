@@ -174,6 +174,31 @@
     "source": {
       "stored": "registriert",
       "env": "Umgebung"
+    },
+    "discovery": {
+      "fetch": "Modelle abrufen",
+      "loading": "Wird geladen…",
+      "select": "Modell auswählen",
+      "hint": "Modellliste abrufen oder einen Modellnamen direkt eingeben.",
+      "loaded": "{{total}} Modelle geladen. Die Auswahl füllt das Feld oben aus.",
+      "empty": "Keine auswählbaren Modelle erhalten. Modell manuell eingeben.",
+      "truncated": "Ein Teil der Liste wird angezeigt. Manuelle Eingabe ist weiterhin möglich.",
+      "errors": {
+        "invalid-kind": "API-Typ, URL und Schlüsselformat prüfen.",
+        "invalid-url": "API-Typ, URL und Schlüsselformat prüfen.",
+        "invalid-key": "API-Typ, URL und Schlüsselformat prüfen.",
+        "key-required": "API-Schlüssel eingeben. Nach einer Änderung der URL oder des API-Typs erneut eingeben.",
+        "key-unavailable": "Gespeicherter Schlüssel nicht verfügbar. Erneut eingeben.",
+        "unsupported": "Dieser Endpunkt unterstützt keine Modellliste. Modell manuell eingeben.",
+        "unauthorized": "Ungültiger Schlüssel oder fehlende Berechtigung. Prüfen und erneut versuchen.",
+        "rate-limit": "Zu viele Anfragen. Später erneut versuchen.",
+        "http-error": "Modellabruf fehlgeschlagen. Erneut versuchen oder Modell manuell eingeben.",
+        "response-too-large": "Die Modellantwort ist zu groß. Modell manuell eingeben.",
+        "invalid-response": "Ungültige Modellliste erhalten. Modell manuell eingeben.",
+        "timeout": "Zeitüberschreitung. Erneut versuchen oder Modell manuell eingeben.",
+        "network-error": "Keine Verbindung. URL und Netzwerk prüfen und erneut versuchen.",
+        "desktop-required": "Modelle in der Desktop-App abrufen."
+      }
     }
   },
   "risk": {

@@ -54,7 +54,9 @@
     "no": "Não",
     "guarded": "Protegido",
     "pass": "PASSOU",
-    "fail": "FALHOU"
+    "fail": "FALHOU",
+    "neverRun": "Nunca executado",
+    "completed": "Concluído"
   },
   "status": {
     "Pending": "Pendente",
@@ -75,7 +77,19 @@
     "success": "Sucesso",
     "failure": "Falha",
     "in_progress": "Em execução",
-    "queued": "Na fila"
+    "queued": "Na fila",
+    "Succeeded": "Concluído",
+    "NotStarted": "Não iniciado",
+    "NotRequested": "Não solicitado",
+    "Incomplete": "Incompleto",
+    "Interrupted": "Interrompido",
+    "Confirmed": "Confirmado",
+    "Uncertain": "A verificar",
+    "Prepared": "Preparado",
+    "Approved": "Aprovado",
+    "Rejected": "Rejeitado",
+    "ReceiptsConfirmed": "Resultados remotos confirmados",
+    "NeedsReview": "Revisão necessária"
   },
   "mode": {
     "readOnly": "MODO SOMENTE LEITURA"

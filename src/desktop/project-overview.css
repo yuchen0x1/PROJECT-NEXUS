@@ -1,0 +1,93 @@
+.nx-project-overview { height: 100%; min-height: 420px; display: flex; flex-direction: column; background: var(--nx-bg-panel); --nx-map-ai: #9174cb; }
+.nx-map-header { display: flex; align-items: center; gap: 16px; padding: 14px 20px 10px; }
+.nx-map-header > div:first-child { display: flex; align-items: center; gap: 10px; }
+.nx-map-header h1 { font-size: 18px; margin: 0; font-weight: 640; }
+.nx-map-header > button { margin-left: auto; }
+.nx-map-connection { display: flex; align-items: center; gap: 6px; color: var(--nx-warning); font-size: 11px; }
+.nx-map-connection i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.nx-map-connection.is-live { color: var(--nx-success); }
+.nx-map-connection time { color: var(--nx-text-muted); margin-left: 5px; }
+.nx-map-stats { display: flex; gap: 22px; align-items: center; padding: 0 20px 12px; font-size: 11px; color: var(--nx-text-muted); flex-wrap: wrap; }
+.nx-map-stats span { display: flex; gap: 6px; align-items: baseline; }
+.nx-map-stats b { color: var(--nx-text); font: 600 17px var(--nx-font-ui); }
+.nx-map-stats [data-stat='running'] b { color: var(--nx-accent); }
+.nx-map-stats [data-stat='attention'] b, .nx-map-stats > strong { color: var(--nx-warning); }
+.nx-map-toolbar { display: flex; align-items: center; gap: 8px; padding: 0 20px 12px; }
+.nx-map-toolbar label { display: flex; align-items: center; gap: 6px; background: var(--nx-bg-inset); border: 1px solid var(--nx-line-strong); padding: 0 8px; border-radius: 5px; }
+.nx-map-toolbar input { height: 29px; width: 170px; min-width: 60px; padding: 0; border: 0; background: transparent; color: var(--nx-text); }
+.nx-map-toolbar select { height: 31px; max-width: 230px; min-width: 0; border: 1px solid var(--nx-line-strong); border-radius: 5px; background: var(--nx-bg-inset); color: var(--nx-text); padding: 0 8px; font: inherit; }
+.nx-map-toolbar > span { margin-left: auto; white-space: nowrap; color: var(--nx-text-muted); font-size: 11px; }
+.nx-map-warning { padding: 8px 20px; color: var(--nx-warning); background: var(--nx-warning-soft); font-size: 11px; }
+.nx-overview-canvas { flex: 1; min-height: 280px; position: relative; overflow: hidden; background: var(--nx-bg-inset); border-block: 1px solid var(--nx-line); }
+.nx-overview-svg { display: block; width: 100%; height: 100%; position: absolute; inset: 0; touch-action: none; cursor: grab; }
+.nx-overview-svg:active { cursor: grabbing; }
+#nx-map-grid circle { fill: var(--nx-line-strong); opacity: .6; }
+.nx-map-orbit { fill: none; stroke: var(--nx-line); stroke-dasharray: 3 8; }
+.nx-map-ownership, .nx-map-service-link { fill: none; stroke: var(--nx-line-strong); stroke-width: 1; vector-effect: non-scaling-stroke; opacity: .65; }
+.nx-map-service-link { stroke-dasharray: 3 5; }
+.nx-map-service-link.is-ai { stroke: var(--nx-map-ai); }
+.nx-map-ownership.is-selected { stroke: var(--nx-accent); stroke-width: 1.8; opacity: 1; }
+.nx-map-flow, .nx-map-ai-flow { fill: none; stroke: var(--nx-accent); stroke-width: 2; stroke-dasharray: 7 7; vector-effect: non-scaling-stroke; opacity: .55; }
+.nx-map-ai-flow { stroke: var(--nx-map-ai); stroke-width: 1.5; }
+.nx-map-flow.is-active, .nx-map-ai-flow.is-active { opacity: 1; animation: nx-map-flow 1.3s linear infinite; }
+.nx-map-flow.is-muted, .nx-map-ai-flow.is-muted { opacity: .22; }
+#nx-map-arrow path { fill: var(--nx-accent); }
+@keyframes nx-map-flow { to { stroke-dashoffset: -56; } }
+.nx-map-node { cursor: pointer; outline: none; color: var(--nx-text-2); }
+.nx-map-node-bg { fill: var(--nx-bg-panel); stroke: var(--nx-line-strong); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.nx-map-node:hover .nx-map-node-bg, .nx-map-node:focus-visible .nx-map-node-bg, .nx-map-node.is-selected .nx-map-node-bg { stroke: var(--nx-accent); stroke-width: 2; fill: var(--nx-bg-hover); }
+.nx-map-node-name { font: 600 15px var(--nx-font-ui); color: var(--nx-text); text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+.nx-map-node-small { font: 12px var(--nx-font-ui); color: var(--nx-text-muted); text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+.nx-map-node-detail { fill: var(--nx-text-muted); font: 12px var(--nx-font-ui); }
+.nx-map-account-name { fill: var(--nx-text); font: 650 18px var(--nx-font-ui); }
+.nx-map-account-ring { fill: var(--nx-accent-soft); stroke: var(--nx-accent-line); }
+.nx-map-account .nx-map-node-bg { stroke: var(--nx-accent); }
+.nx-map-account { color: var(--nx-accent); }
+.nx-map-node-dot { fill: var(--nx-text-faint); }
+.nx-map-node[data-status='running'] .nx-map-node-dot { fill: var(--nx-accent); }
+.nx-map-node[data-status='success'] .nx-map-node-dot { fill: var(--nx-success); }
+.nx-map-node[data-status='blocked'] .nx-map-node-dot, .nx-map-node[data-status='queued'] .nx-map-node-dot { fill: var(--nx-warning); }
+.nx-map-node[data-status='failed'] .nx-map-node-dot { fill: var(--nx-danger); }
+.nx-map-node.is-ai { color: var(--nx-map-ai); }
+.nx-map-node.is-ai .nx-map-node-bg { stroke: var(--nx-map-ai); }
+.nx-map-controls { position: absolute; left: 12px; top: 12px; display: flex; align-items: center; gap: 4px; padding: 4px; border: 1px solid var(--nx-line); border-radius: 6px; background: var(--nx-bg-panel); }
+.nx-map-controls > span { min-width: 42px; text-align: center; font: 10px var(--nx-font-mono); color: var(--nx-text-muted); }
+.nx-map-legend { position: absolute; left: 14px; bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 10px; color: var(--nx-text-muted); pointer-events: none; }
+.nx-map-legend > span { display: flex; align-items: center; gap: 5px; }
+.nx-map-legend i { display: inline-block; width: 18px; border-top: 1px solid var(--nx-line-strong); }
+.nx-map-legend i.is-flow { border-top: 2px dashed var(--nx-accent); }
+.nx-map-placeholder { position: absolute; inset: 0; display: grid; place-items: center; background: var(--nx-bg-inset); color: var(--nx-text-muted); }
+.nx-map-no-repos { position: absolute; left: 16px; top: 65px; max-width: 240px; color: var(--nx-text-muted); font-size: 11px; }
+.nx-map-inspector { position: absolute; right: 10px; top: 10px; bottom: 10px; width: min(310px, 42%); padding: 14px; overflow: auto; background: var(--nx-bg-panel); border: 1px solid var(--nx-line-strong); border-radius: 7px; box-shadow: var(--nx-shadow-popover); }
+.nx-map-inspector > header { display: flex; align-items: flex-start; gap: 8px; }
+.nx-map-inspector h2 { margin: 0; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; flex: 1; }
+.nx-map-inspector h3 { margin: 18px 0 8px; font-size: 11px; color: var(--nx-text-2); }
+.nx-map-inspector-state { font-size: 11px; color: var(--nx-text-muted); }
+.nx-map-inspector-state.is-running { color: var(--nx-accent); }
+.nx-map-inspector-state.is-failed, .nx-map-inspector-state.is-blocked { color: var(--nx-danger); }
+.nx-map-inspector dl { font-size: 11px; }
+.nx-map-inspector dl > div { display: flex; gap: 12px; justify-content: space-between; margin: 8px 0; }
+.nx-map-inspector dt { color: var(--nx-text-muted); }
+.nx-map-inspector dd { margin: 0; }
+.nx-map-providers p { font-size: 11px; display: grid; gap: 4px; }
+.nx-map-providers p > span { color: var(--nx-text-muted); overflow-wrap: anywhere; }
+.nx-map-task-list > button { width: 100%; text-align: left; display: grid; gap: 5px; border: 0; border-bottom: 1px solid var(--nx-line); background: transparent; color: var(--nx-text); padding: 9px 0; font-size: 11px; cursor: pointer; }
+.nx-map-task-list small { color: var(--nx-text-muted); }
+.nx-map-task-list em { color: var(--nx-danger); font-style: normal; overflow-wrap: anywhere; }
+.nx-map-task-list > p, .nx-map-empty-output { color: var(--nx-text-muted); font-size: 11px; line-height: 1.6; }
+.nx-map-events { list-style: none; padding: 0; margin: 0; font-size: 10px; }
+.nx-map-events li { padding: 8px 0; border-bottom: 1px solid var(--nx-line); }
+.nx-map-events li > div { display: flex; align-items: baseline; gap: 10px; color: var(--nx-text-muted); }
+.nx-map-events li > div > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nx-map-events time { flex-shrink: 0; font-family: var(--nx-font-mono); }
+.nx-map-events pre { margin: 5px 0 0; font: 11px/1.6 var(--nx-font-mono); white-space: pre-wrap; overflow-wrap: anywhere; color: var(--nx-text-2); }
+.nx-map-output { flex: 0 0 auto; background: var(--nx-bg-panel); }
+.nx-map-output-toggle { height: 35px; width: 100%; display: flex; align-items: center; gap: 8px; padding: 0 18px; color: var(--nx-text-2); background: transparent; border: 0; text-align: left; cursor: pointer; font-size: 11px; }
+.nx-map-output-toggle > span { color: var(--nx-text-muted); flex: 1; min-width: 0; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+.nx-map-output > .nx-map-events, .nx-map-output > .nx-map-empty-output { height: 160px; margin: 0; padding: 0 20px 12px; overflow: auto; }
+.nx-map-footer { display: flex; gap: 15px; justify-content: space-between; padding: 6px 20px; font-size: 10px; color: var(--nx-text-muted); border-top: 1px solid var(--nx-line); }
+@media (max-width: 1100px) { .nx-map-locate { max-width: 150px !important; } .nx-map-toolbar input { width: 130px; } .nx-map-stats { gap: 13px; } .nx-map-legend small { display: none; } }
+@media (prefers-reduced-motion: reduce) { .nx-map-flow.is-active, .nx-map-ai-flow.is-active { animation: none; stroke-dasharray: none; } }
+[data-motion='reduced'] .nx-map-flow.is-active, [data-motion='reduced'] .nx-map-ai-flow.is-active { animation: none; stroke-dasharray: none; }
+.nx-shell[data-page='overview'] .nx-workarea { display: flex; padding: 0; overflow: hidden; }
+.nx-shell[data-page='overview'] .nx-project-overview { flex: 1; min-width: 0; }

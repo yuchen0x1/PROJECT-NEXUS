@@ -1,6 +1,6 @@
 {
   "name": "project-nexus",
-  "version": "0.3.0",
+  "version": "0.7.0",
   "description": "Windows AI development and project operations workstation",
   "author": {
     "name": "PROJECT NEXUS"
@@ -29,15 +29,8 @@
     "test:phase6:acceptance": "node tests/phase6-acceptance.mjs"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "latest",
     "cors": "latest",
-    "express": "latest",
-    "i18next": "^25.10.10",
-    "lucide-react": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "react-i18next": "^16.6.6",
-    "vite": "latest"
+    "express": "latest"
   },
   "devDependencies": {
     "@types/react": "latest",
@@ -47,13 +40,23 @@
     "electron-builder": "26.18.0",
     "playwright": "^1.65.0",
     "typescript": "latest",
-    "vitest": "latest"
+    "vitest": "latest",
+    "@vitejs/plugin-react": "latest",
+    "i18next": "^25.10.10",
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-i18next": "^16.6.6",
+    "vite": "latest"
   },
   "main": "desktop/main.mjs",
   "build": {
     "appId": "com.projectnexus.workstation",
     "productName": "PROJECT NEXUS",
     "asar": true,
+    "asarUnpack": [
+      "server/services/agent/windows-job-runner.ps1"
+    ],
     "directories": {
       "buildResources": "desktop/assets",
       "output": "release"
@@ -62,7 +65,8 @@
       "desktop/**/*",
       "server/**/*",
       "dist/**/*",
-      "package.json"
+      "package.json",
+      "!**/*.map"
     ],
     "win": {
       "target": [
@@ -86,7 +90,8 @@
       "createStartMenuShortcut": true,
       "shortcutName": "PROJECT NEXUS",
       "deleteAppDataOnUninstall": false
-    }
+    },
+    "afterPack": "desktop/after-pack.cjs"
   },
   "allowScripts": {
     "electron@45.3.1": true
