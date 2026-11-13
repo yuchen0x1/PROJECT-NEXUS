@@ -17,7 +17,7 @@
 
 最终维护中回归：55 文件 / 286 项 PASS，156.72 秒，`test-results/ultimate-regression-evidence-lock.log`。TypeScript、ESLint、生产构建、NSIS x64 打包通过。源码中文暗色、英文浅色和打包 exe 原生 fixture 流程均通过，包括真实原有/独立新增测试、暂停续跑、记忆下载导出和进程指标。
 
-最终退出与预算修复后，旧长稳会话已明确记为 Interrupted，不计入最终 24h。封板候选通过原生复验后启动新会话，再记录准确起点与实时状态路径。
+当前 24h 会话于 **2026-11-13 20:33:23（Asia/Shanghai）** 启动，最早次日 20:33:23 满足时长；仍须检查采样连续性和错误，当前不能记为 PASS。实时状态：`test-results/soak/2026-11-13T12-33-21-033Z/status.json`。固定源码 SHA-256：`f5cb11cef51131e989c90da91ea05bff01ac26d53c9923e9818ce7c7d10c7ef5`。本地代码检查点为 `626af316f9269efa03622004b790aa9c22961652`，未推送。
 
 首次短测的父仓库边界错误已修复；此前未取得采样的隐藏 Renderer IPC 测试记录为 FAIL，没有计入正式 24h。改用受认证直连 API 与 Electron 主进程采样后，72 秒后台预检取得 2 次真实采样、1 次完成工作流、9 次 fixture 模型请求，仅标 PARTIAL。
 

@@ -36,4 +36,4 @@
 文档索引：[基线审计](ULTIMATE_EVOLUTION_AUDIT.md)、[源码研究](COMPETITOR_RESEARCH.md)、[架构](ARCHITECTURE_EVOLUTION.md)、[协作](MULTI_AGENT_REPORT.md)、[安全](SECURITY_HARDENING_REPORT.md)、[自我维护](SELF_MAINTENANCE_REPORT.md)、[可靠性](RELIABILITY_REPORT.md)、[性能](PERFORMANCE_REPORT.md)、[验收](TEST_ACCEPTANCE_REPORT.md)、[持续进度](ULTIMATE_EVOLUTION_PROGRESS.md)。
 
 
-旧长稳因最终退出与预算修复已中断，不计入封板验收；新会话的准确起点将在启动后更新。
+当前 24h 会话于 2026-11-13 20:33:23（Asia/Shanghai）启动，最早次日同一时间满足时长；完成前不能记为 PASS。实时状态：`test-results/soak/2026-11-13T12-33-21-033Z/status.json`。源码检查点提交：`626af316f9269efa03622004b790aa9c22961652`，工作分支 `codex/ultimate-evolution`。系统隔离与安装的下一阶段方案见 [门禁方案](WINDOWS_ISOLATION_AND_INSTALL_PLAN.md)。
