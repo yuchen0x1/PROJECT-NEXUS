@@ -20,6 +20,7 @@ concurrency:
 jobs:
   release:
     runs-on: windows-latest
+    timeout-minutes: 30
     env:
       RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
     permissions:
@@ -45,7 +46,25 @@ jobs:
           $latest = $releases | Where-Object { -not $_.draft -and -not $_.prerelease -and $_.tag_name -match '^v\d+\.\d+\.\d+$' } | Sort-Object { [version]($_.tag_name.Substring(1)) } -Descending | Select-Object -First 1
           if ($latest -and [version]$version -le [version]($latest.tag_name.Substring(1))) { throw 'The new version must be greater than the published version.' }
       - run: npm ci
-      - run: npm run check
+      - name: Check Windows command runner
+        shell: pwsh
+        run: |
+          @'
+          import { spawnSync } from 'node:child_process'
+          import { runCommand } from './server/services/agent/executor.mjs'
+          console.log('Direct Git:', spawnSync('git', ['--version'], { encoding: 'utf8', timeout: 15000 }).stdout)
+          for (const command of ['git --version', 'node --version']) {
+            const result = await runCommand({ cwd: process.cwd(), command, timeoutMs: 15000 })
+            console.log(JSON.stringify(result))
+            if (!result.ok) throw new Error('Windows command runner preflight failed: ' + command)
+          }
+          '@ | node --input-type=module
+          if ($LASTEXITCODE -ne 0) { throw 'Windows runner preflight failed.' }
+      - run: npm run typecheck
+      - run: npm run lint
+      - name: Run complete regression suite
+        run: npx vitest run --bail 1 --maxWorkers 2
+      - run: npm run build
       - name: Build installer and update metadata
         run: npm run desktop:package:win
         env:
