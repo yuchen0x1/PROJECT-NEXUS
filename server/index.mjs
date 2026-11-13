@@ -315,6 +315,7 @@ function normalizeRepo(repo) {
     openIssues: repo.open_issues_count || 0,
     updatedAt: repo.updated_at,
     pushedAt: repo.pushed_at,
+    archived: repo.archived === true,
     group: classifyRepo(repo),
     stack: [repo.language].filter(Boolean),
     latestRelease: null,
@@ -465,7 +466,7 @@ async function syncRepositories() {
     if (previous) {
       // Merge in place so concurrent per-project mutations (e.g. an in-flight
       // scan writing project.stack) are not clobbered by the sync.
-      Object.assign(previous, project, { workflows: previous.workflows || [], hosting: previous.hosting || getHostingPolicy(null), repoMeta: previous.repoMeta || null, localWorkspace: previous.localWorkspace || null })
+      Object.assign(previous, project, { workflows: previous.workflows || [], hosting: previous.hosting || getHostingPolicy(null), repoMeta: previous.repoMeta ? { ...previous.repoMeta, archived: project.archived } : null, localWorkspace: previous.localWorkspace || null })
     } else {
       byFullName.set(project.fullName, { ...project, hosting: getHostingPolicy(null), repoMeta: null, localWorkspace: null })
     }
@@ -1649,7 +1650,7 @@ function normalizeRepoMeta(meta, project) {
     openIssues: Number.isFinite(Number(meta?.openIssues)) ? Number(meta.openIssues) : null,
     topics: Array.isArray(meta?.topics) ? meta.topics.slice(0, 20) : [],
     visibility: meta?.visibility || null,
-    archived: meta?.archived === true,
+    archived: typeof meta?.archived === 'boolean' ? meta.archived : project.archived === true,
     headSha: meta?.headSha || null,
     lastSyncedAt: meta?.lastSyncedAt || null
   }
@@ -1689,6 +1690,7 @@ async function runHostingLightScan(project, { signal } = {}) {
     findings.push(hostingFinding('repo_archived', 'P1', 'The repository is archived on GitHub; autonomous maintenance should be paused.'))
   }
   project.repoMeta = meta
+  project.archived = meta.archived
   return { meta, findings, repo }
 }
 
@@ -1898,6 +1900,25 @@ async function handleIssueEvent({ project, issue, source, comment = null, commen
   return entry
 }
 
+function repositoryIsArchived(project) {
+  return typeof project.archived === 'boolean' ? project.archived : project.repoMeta?.archived === true
+}
+
+function archivedRepositoryError() {
+  return Object.assign(new Error('This repository is archived on GitHub and cannot be selected for hosting.'), { code: 'REPOSITORY_ARCHIVED' })
+}
+
+async function checkRepositoryArchiveState(project) {
+  const repo = await githubFetchForProject(project, `/repos/${project.fullName}`)
+  project.archived = repo.archived === true
+  if (project.repoMeta) project.repoMeta.archived = project.archived
+  if (project.archived) {
+    delete project.setupReadiness
+    await saveState()
+    throw archivedRepositoryError()
+  }
+}
+
 function hostingPublicProject(project) {
   return {
     id: project.id,
@@ -1909,6 +1930,7 @@ function hostingPublicProject(project) {
     hosting: hostingStatus(project),
     policy: getHostingPolicy(project),
     repoMeta: project.repoMeta ? normalizeRepoMeta(project.repoMeta, project) : null,
+    archived: repositoryIsArchived(project),
     githubConfigured: projectGithubConfigured(project)
   }
 }
@@ -2030,6 +2052,7 @@ app.put('/api/projects/:projectId/hosting', async (req, res) => {
   const previous = getHostingPolicy(project)
   const merged = normalizeHostingPolicy({ ...previous, ...body, enabled: body.enabled !== undefined ? body.enabled === true : previous.enabled })
   const withPreset = body.strategy && body.strategy !== previous.strategy && body.applyPreset !== false ? applyStrategyPreset(merged, body.strategy) : merged
+  if (withPreset.enabled && repositoryIsArchived(project)) return res.status(409).json({ code: 'REPOSITORY_ARCHIVED', message: archivedRepositoryError().message })
   if (withPreset.enabled && withPreset.strategy !== 'observe' && (!previous.enabled || previous.strategy === 'observe')) return res.status(409).json({ code: 'SETUP_READINESS_REQUIRED', message: 'Save the policy disabled, then run readiness checks and enable hosting.' })
   project.hosting = { ...withPreset, updatedAt: now(), lastInspectionAt: project.hosting?.lastInspectionAt || null, lastLightScanAt: project.hosting?.lastLightScanAt || null, lastFullScanAt: project.hosting?.lastFullScanAt || null, lastOutcome: project.hosting?.lastOutcome || null, currentTaskId: project.hosting?.currentTaskId || null }
   audit(req, 'hosting_policy_updated', project.fullName, 'success', 'medium', { strategy: project.hosting.strategy, intervalMinutes: project.hosting.intervalMinutes, enabled: project.hosting.enabled })
@@ -2047,10 +2070,11 @@ app.post('/api/projects/:projectId/hosting/readiness', async (req, res) => {
   const project = state.projects.find((item) => item.id === req.params.projectId)
   if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND' })
   if (!requireRole(req, res, 'Operator')) return
+  if (repositoryIsArchived(project)) return res.status(409).json({ code: 'REPOSITORY_ARCHIVED', message: archivedRepositoryError().message })
   try {
     const context = await setupContext(project)
     if (!context.credential) throw Object.assign(new Error('GitHub connection is required.'), { code: 'GITHUB_NOT_CONFIGURED' })
-    await githubFetchForProject(project, `/repos/${project.fullName}`)
+    await checkRepositoryArchiveState(project)
     if (getHostingPolicy(project).strategy !== 'observe') {
       assertTrustedRepository(project)
       if (!context.provider) throw Object.assign(new Error('A coding provider is required.'), { code: 'AI_NOT_CONFIGURED' })
@@ -2063,14 +2087,17 @@ app.post('/api/projects/:projectId/hosting/readiness', async (req, res) => {
     project.setupReadiness = record
     await saveState()
     res.json({ readinessId: record.id, checkedAt: record.checkedAt, expiresAt: record.expiresAt })
-  } catch (error) { res.status(424).json({ code: error.code || 'SETUP_NOT_READY', message: safeError(error) }) }
+  } catch (error) { res.status(error.code === 'REPOSITORY_ARCHIVED' ? 409 : 424).json({ code: error.code || 'SETUP_NOT_READY', message: safeError(error) }) }
 })
 
 app.post('/api/projects/:projectId/hosting/enable', async (req, res) => {
   const project = state.projects.find((item) => item.id === req.params.projectId)
   if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'Project not found.' })
   if (!requireRole(req, res, 'Operator')) return
+  if (repositoryIsArchived(project)) return res.status(409).json({ code: 'REPOSITORY_ARCHIVED', message: archivedRepositoryError().message })
   if (!projectGithubConfigured(project)) return notConfigured(res)
+  try { await checkRepositoryArchiveState(project) }
+  catch (error) { return res.status(error.code === 'REPOSITORY_ARCHIVED' ? 409 : 424).json({ code: error.code || 'SETUP_NOT_READY', message: safeError(error) }) }
   const policy = getHostingPolicy(project)
   if (policy.strategy !== 'observe' || req.body?.readinessId) {
     try { const context = await setupContext(project); validateReadiness(project.setupReadiness, { id: req.body?.readinessId, fingerprint: context.fingerprint }) }
@@ -2390,7 +2417,10 @@ app.post('/api/github/app/installations/:installationId/sync', async (req, res) 
     )
     const incoming = repositories.map((repo) => ({ ...normalizeRepo(repo), installationId }))
     const byFullName = new Map(state.projects.map((project) => [project.fullName, project]))
-    for (const project of incoming) byFullName.set(project.fullName, { ...byFullName.get(project.fullName), ...project, hosting: getHostingPolicy(byFullName.get(project.fullName)), repoMeta: byFullName.get(project.fullName)?.repoMeta || null, localWorkspace: byFullName.get(project.fullName)?.localWorkspace || null })
+    for (const project of incoming) {
+      const previous = byFullName.get(project.fullName)
+      byFullName.set(project.fullName, { ...previous, ...project, hosting: getHostingPolicy(previous), repoMeta: previous?.repoMeta ? { ...previous.repoMeta, archived: project.archived } : null, localWorkspace: previous?.localWorkspace || null })
+    }
     state.projects = [...byFullName.values()].sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0))
     audit(req, 'github_app_repository_sync', installationId, 'success', 'low', { imported: incoming.length })
     await saveState()

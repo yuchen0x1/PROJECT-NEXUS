@@ -471,6 +471,12 @@
       "running": "处理中",
       "success": "成功",
       "failed": "失败"
-    }
+    },
+    "active": "正常更新",
+    "archived": "已归档",
+    "showArchived": "显示已归档（{{total}}）",
+    "archivedHint": "已归档仓库不参与托管选择。归档状态会在同步 GitHub 后刷新。",
+    "noActive": "没有可托管的仓库；当前仓库均已归档。",
+    "selectionChanged": "所选仓库中有项目已归档或不可用，已取消选择。请返回仓库列表确认后继续。"
   }
 }

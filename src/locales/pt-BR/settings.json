@@ -97,6 +97,10 @@
         "v0_1_0": {
           "title": "Desktop Windows e Agent local",
           "summary": "Primeira prévia desktop com propostas locais de IA, espaços isolados, aplicação confirmada e registros de tarefas."
+        },
+        "v0_8_4": {
+          "title": "Filtro e estado de repositórios arquivados",
+          "summary": "Oculta os arquivados por padrão e mostra o estado em cada linha. Eles não podem ser selecionados; a seleção geral e o contador incluem apenas os disponíveis. A sincronização desmarca os recém-arquivados."
         }
       }
     }

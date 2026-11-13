@@ -53,6 +53,63 @@ afterEach(async () => {
 })
 
 describe('isolated Phase 3 API and schema migration', () => {
+  it('preserves archive metadata on sync and rejects archived or newly archived hosting selections', async () => {
+    let archiveFirst = true, archiveSecond = false
+    const repositories = () => [1, 2].map((number) => ({ id: number, name: `repo-${number}`, full_name: `fixture/repo-${number}`, owner: { login: 'fixture' }, default_branch: 'main', archived: number === 1 ? archiveFirst : archiveSecond }))
+    const githubApiUrl = await startHttpServer((req, res) => {
+      res.setHeader('content-type', 'application/json')
+      if (req.url.startsWith('/user/repos')) return res.end(JSON.stringify(repositories()))
+      if (req.url.startsWith('/repos/fixture/repo-')) return res.end(JSON.stringify(repositories().find((repo) => req.url.endsWith(repo.name))))
+      res.statusCode = 404; res.end('{}')
+    })
+    const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'nexus-archive-api-'))
+    directories.push(directory)
+    const stateFile = path.join(directory, 'state.json')
+    await fs.writeFile(stateFile, JSON.stringify({ schemaVersion: 4, settings: { hostingPaused: true }, projects: [{ id: 'repo_1', name: 'repo-1', fullName: 'fixture/repo-1', repoMeta: { archived: true }, hosting: { enabled: false, strategy: 'observe' } }] }))
+    const port = await freePort()
+    let stderrText = ''
+    const child = spawn(process.execPath, ['server/index.mjs'], {
+      cwd: root, windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'],
+      env: { ...process.env, PORT: String(port), NEXUS_STATE_FILE: stateFile, GITHUB_API_URL: githubApiUrl, GITHUB_TOKEN: 'archive-fixture-token', GITHUB_OWNER: '', NEXUS_ROLE: 'Administrator', NEXUS_ALLOW_ROLE_HEADER: 'false', NEXUS_ENABLE_REMOTE_WRITES: 'false', AI_API_KEY: '', AI_BASE_URL: '', AI_MODEL: '' }
+    })
+    child.stderr.setEncoding('utf8').on('data', (chunk) => { stderrText += chunk })
+    children.push(child)
+    const base = `http://127.0.0.1:${port}`
+    await waitForHealth(base, child, () => stderrText)
+    const post = (url, body = {}, method = 'POST') => fetch(base + url, { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+    const sync = async () => {
+      const task = (await (await post('/api/tasks/sync-repositories')).json()).task
+      await expect.poll(async () => (await (await fetch(base + '/api/tasks')).json()).tasks.find((item) => item.id === task.id).status).toBe('Success')
+      return (await (await fetch(base + '/api/projects')).json()).projects
+    }
+    let projects = await sync()
+    expect(projects).toHaveLength(2)
+    expect(projects.find((project) => project.id === 'repo_1').archived).toBe(true)
+    expect(projects.find((project) => project.id === 'repo_2').archived).toBe(false)
+    for (const [endpoint, method, body] of [['readiness', 'POST', {}], ['enable', 'POST', {}], ['', 'PUT', { enabled: true }]]) {
+      const response = await post(`/api/projects/repo_1/hosting${endpoint ? '/' + endpoint : ''}`, body, method)
+      expect(response.status).toBe(409)
+      expect((await response.json()).code).toBe('REPOSITORY_ARCHIVED')
+    }
+    archiveSecond = true // The server's saved selection is still active.
+    const newlyArchived = await post('/api/projects/repo_2/hosting/enable')
+    expect(newlyArchived.status).toBe(409)
+    expect((await newlyArchived.json()).code).toBe('REPOSITORY_ARCHIVED')
+    const blockedReadiness = await post('/api/projects/repo_2/hosting/readiness')
+    expect(blockedReadiness.status).toBe(409)
+    archiveFirst = false
+    projects = await sync()
+    const restored = projects.find((project) => project.id === 'repo_1')
+    expect(restored.archived).toBe(false)
+    expect(restored.repoMeta.archived).toBe(false)
+    const readiness = await post('/api/projects/repo_1/hosting/readiness')
+    expect(readiness.status).toBe(200)
+    const enabled = await post('/api/projects/repo_1/hosting/enable', { readinessId: (await readiness.json()).readinessId })
+    expect(enabled.status).toBe(200)
+    expect((await enabled.json()).project.archived).toBe(false)
+    expect(JSON.parse(await fs.readFile(stateFile, 'utf8')).projects.find((project) => project.id === 'repo_2').hosting.enabled).toBe(false)
+  })
+
   it('migrates a 24-repository v2 fixture additively and exposes real integration routes', async () => {
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'nexus-api-test-'))
     directories.push(directory)

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import type { AppUpdateState } from './types'
 
-const bundledVersions = ['0.8.3', '0.8.2', '0.8.0', '0.7.0', '0.3.0', '0.2.1', '0.1.0']
+const bundledVersions = ['0.8.4', '0.8.3', '0.8.2', '0.8.0', '0.7.0', '0.3.0', '0.2.1', '0.1.0']
 type ReleaseEntry = { version: string; date: string | null; title: string; notes: string }
 
 // The production update channel accepts stable versions only. Compare numeric

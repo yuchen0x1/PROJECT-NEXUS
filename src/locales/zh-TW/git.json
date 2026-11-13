@@ -471,6 +471,12 @@
       "running": "處理中",
       "success": "成功",
       "failed": "失敗"
-    }
+    },
+    "active": "正常更新",
+    "archived": "已封存",
+    "showArchived": "顯示已封存（{{total}}）",
+    "archivedHint": "已封存儲存庫不參與託管選取。同步 GitHub 後會更新封存狀態。",
+    "noActive": "目前的儲存庫均已封存，沒有可託管的項目。",
+    "selectionChanged": "部分已選儲存庫已封存或無法使用，已取消選取。請返回清單確認後繼續。"
   }
 }

@@ -97,6 +97,10 @@
         "v0_1_0": {
           "title": "Escritorio Windows y Agent local",
           "summary": "Primera vista previa con propuestas de IA locales, espacios aislados, aplicación confirmada y registros de tareas."
+        },
+        "v0_8_4": {
+          "title": "Filtro y estado de repositorios archivados",
+          "summary": "Oculta los archivados de forma predeterminada y muestra el estado en cada fila. No se pueden seleccionar; la selección global y el contador solo incluyen los disponibles. La sincronización desmarca los recién archivados."
         }
       }
     }

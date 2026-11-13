@@ -13,6 +13,8 @@ export type Project = {
   openIssues: number
   updatedAt?: string
   pushedAt?: string
+  archived?: boolean
+  repoMeta?: { archived?: boolean } | null
   group: string
   stack: string[]
   latestRelease?: { tag_name?: string; published_at?: string } | null

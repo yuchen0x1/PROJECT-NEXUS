@@ -471,6 +471,12 @@
       "running": "Running",
       "success": "Succeeded",
       "failed": "Failed"
-    }
+    },
+    "active": "Active",
+    "archived": "Archived",
+    "showArchived": "Show archived ({{total}})",
+    "archivedHint": "Archived repositories cannot be selected for hosting. Sync GitHub to refresh archive status.",
+    "noActive": "No repositories available for hosting; all are archived.",
+    "selectionChanged": "Some selected repositories are archived or unavailable and were deselected. Return to the repository list to confirm before continuing."
   }
 }

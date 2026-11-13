@@ -97,6 +97,10 @@
         "v0_1_0": {
           "title": "Bureau Windows et Agent local",
           "summary": "Premier aperçu de bureau avec propositions IA locales, espaces isolés, application confirmée et journaux de tâches."
+        },
+        "v0_8_4": {
+          "title": "Filtrage et état des dépôts archivés",
+          "summary": "Masque les dépôts archivés par défaut et affiche leur état. Ils ne sont pas sélectionnables ; la sélection globale et le compteur ne concernent que les dépôts disponibles. La synchronisation retire les nouvelles archives de la sélection."
         }
       }
     }

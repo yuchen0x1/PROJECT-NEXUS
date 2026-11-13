@@ -856,6 +856,16 @@
 .nx-setup-body .nx-repo-option input { width: 16px; min-height: 16px; flex: 0 0 auto; accent-color: var(--nx-accent); }
 .nx-repo-option span { overflow-wrap: anywhere; min-width: 0; }
 .nx-repo-option:focus-within, .nx-repo-option:hover { background: var(--nx-accent-soft); }
+.nx-repo-name { flex: 1; }
+.nx-repo-option .nx-repo-status { flex: 0 0 auto; margin-inline-start: auto; padding: 2px 7px; border-radius: var(--nx-r-sm); font-size: var(--nx-fs-2xs); white-space: nowrap; overflow-wrap: normal; }
+.nx-repo-status.active { color: var(--nx-success); background: var(--nx-success-soft); }
+.nx-repo-status.archived { color: var(--nx-text-muted); background: var(--nx-bg-inset); border: 1px solid var(--nx-line); }
+.nx-setup-body label.nx-repo-option-archived { color: var(--nx-text-muted); cursor: not-allowed; }
+.nx-repo-selection-summary { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 10px; }
+.nx-repo-selection-summary .nx-repo-selection-count { margin: 0; }
+.nx-setup-body label.nx-repo-archive-toggle { display: flex; flex-direction: row; align-items: center; gap: 7px; margin: 0; color: var(--nx-text-muted); font-size: var(--nx-fs-xs); }
+.nx-setup-body .nx-repo-archive-toggle input { flex: 0 0 auto; width: 16px; min-height: 16px; margin: 0; accent-color: var(--nx-accent); }
+.nx-setup-body .nx-repo-archive-hint { display: block; margin: 0 0 10px; font-size: var(--nx-fs-xs); color: var(--nx-text-muted); }
 .nx-repo-checklist > p { padding: 8px 12px; }
 .nx-setup-batch { margin-top: 14px; padding: 12px; border: 1px solid var(--nx-line); border-radius: var(--nx-r-md); }
 .nx-setup-batch ul, .nx-setup-enabled-repos { max-height: 190px; overflow: auto; list-style: none; margin: 8px 0; padding: 0; }

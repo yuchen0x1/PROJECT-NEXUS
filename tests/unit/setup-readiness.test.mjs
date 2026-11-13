@@ -10,6 +10,8 @@ describe('setup evidence binding', () => {
     expect(() => validateReadiness(record, { id: 'ready', fingerprint, now: 2000 })).toThrow(/expired/)
     for (const changed of [
       { ...context, project: { ...context.project, id: 'two' } },
+      { ...context, project: { ...context.project, archived: true } },
+      { ...context, project: { ...context.project, repoMeta: { archived: true } } },
       { ...context, project: { ...context.project, hosting: { strategy: 'autonomous' } } },
       { ...context, account: 'b' }, { ...context, credential: 'new' },
       { ...context, provider: { ...context.provider, apiKey: 'new' } }, { ...context, epoch: 'host-2' }

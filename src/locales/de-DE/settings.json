@@ -97,6 +97,10 @@
         "v0_1_0": {
           "title": "Windows-Desktop und lokaler Agent",
           "summary": "Erste Desktop-Vorschau mit lokalen KI-Vorschlägen, isolierten Arbeitsbereichen, bestätigter Übernahme und Aufgabenprotokollen."
+        },
+        "v0_8_4": {
+          "title": "Archivfilter und Repository-Status",
+          "summary": "Archivierte Repositories werden standardmäßig ausgeblendet und alle Zeilen zeigen ihren Status. Archivierte sind nicht auswählbar; Gesamtauswahl und Zähler berücksichtigen nur verfügbare Repositories. Neue Archivierungen werden nach der Synchronisierung abgewählt."
         }
       }
     }

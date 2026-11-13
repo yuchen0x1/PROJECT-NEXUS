@@ -471,6 +471,12 @@
       "running": "En cours",
       "success": "Réussi",
       "failed": "Échec"
-    }
+    },
+    "active": "Actif",
+    "archived": "Archivé",
+    "showArchived": "Afficher les archives ({{total}})",
+    "archivedHint": "Les dépôts archivés ne sont pas sélectionnables. Synchronisez GitHub pour actualiser leur état.",
+    "noActive": "Tous les dépôts sont archivés ; aucun ne peut être sélectionné.",
+    "selectionChanged": "Certains dépôts sélectionnés sont archivés ou indisponibles et ont été désélectionnés. Revenez à la liste pour confirmer."
   }
 }

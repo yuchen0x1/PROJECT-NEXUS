@@ -9,6 +9,7 @@ type BatchPhase = 'policy' | 'inspect' | 'enable' | 'issues'
 
 type Destination = 'GitHub Connections' | 'Projects' | 'Hosting' | 'environment' | 'agent'
 const destinations: Destination[] = ['GitHub Connections', 'agent', 'Projects', 'environment', 'Hosting', 'Hosting', 'Hosting']
+const isArchivedRepository = (project: Project) => project.archived ?? project.repoMeta?.archived ?? false
 
 export default function SetupCenter({ onClose, guided = false, onNavigate, onComplete }: {
   onClose: () => void; guided?: boolean; onNavigate?: (page: Destination, projectId?: string) => void; onComplete?: (projectId: string) => void
@@ -37,6 +38,7 @@ export default function SetupCenter({ onClose, guided = false, onNavigate, onCom
   const selectedRef = useRef(selectedIds); selectedRef.current = selectedIds
   const selectionEdited = useRef(false)
   const [repositoryQuery, setRepositoryQuery] = useState('')
+  const [showArchived, setShowArchived] = useState(false)
   const [batch, setBatch] = useState<{ phase: BatchPhase; items: SetupBatchItem[] } | null>(null)
   const batchResults = useRef<Partial<Record<BatchPhase, SetupBatchItem[]>>>({})
   const stopBatch = useRef(false), mounted = useRef(true)
@@ -112,9 +114,10 @@ export default function SetupCenter({ onClose, guided = false, onNavigate, onCom
     const load = () => api.projects().then((response) => {
       if (!active) return
       setProjects(response.projects)
-      const available = new Set(response.projects.map((item) => item.id))
+      const eligible = response.projects.filter((item) => !isArchivedRepository(item))
+      const available = new Set(eligible.map((item) => item.id))
       let ids = selectedRef.current.filter((id) => available.has(id))
-      if (!selectionEdited.current && !ids.length && response.projects[0]) ids = [response.projects[0].id]
+      if (!selectionEdited.current && !ids.length && eligible[0]) ids = [eligible[0].id]
       if (ids.join('\0') !== selectedRef.current.join('\0')) changeSelection(ids, false)
     }).catch((cause) => { if (active) setError(cause instanceof Error ? cause.message : t('git:setup.failed')) })
     const timer = window.setInterval(() => void load(), 2000)
@@ -179,8 +182,19 @@ export default function SetupCenter({ onClose, guided = false, onNavigate, onCom
     setResult(`${env.available || 0} / ${env.total || 0}`)
   }
   const assertContinue = () => { if (!mounted.current || stopBatch.current) throw new Error(t('git:batch.stopped')) }
-  const runBatch = async (phase: BatchPhase, operation: (id: string) => Promise<void>) => {
+  const validateSelection = async () => {
     if (!selectedIds.length) throw new Error(t('git:guide.pickRepo'))
+    const latest = await api.projects()
+    setProjects(latest.projects)
+    const eligible = new Set(latest.projects.filter((item) => !isArchivedRepository(item)).map((item) => item.id))
+    if (selectedIds.some((id) => !eligible.has(id))) {
+      changeSelection(selectedIds.filter((id) => eligible.has(id)))
+      throw new Error(t('git:batch.selectionChanged'))
+    }
+    assertContinue()
+  }
+  const runBatch = async (phase: BatchPhase, operation: (id: string) => Promise<void>) => {
+    await validateSelection()
     const previous = batchResults.current[phase]
     const retrying = previous?.some((item) => item.status !== 'success')
     if (phase === 'policy' || phase === 'inspect') {
@@ -221,6 +235,7 @@ export default function SetupCenter({ onClose, guided = false, onNavigate, onCom
   const enable = async () => {
     if (![0, 1, 2, 3, 4, 5].every((index) => done.has(index))) throw new Error(t('git:guide.requirePrereqs'))
     if (guided && strategy !== 'observe' && !allowDelivery) throw new Error(t('git:guide.requireDelivery'))
+    await validateSelection()
     const overview = await api.hostingOverview()
     if (overview.scheduler.paused) { setSchedulerPaused(true); throw new Error(t('git:guide.resumeRequired')) }
     assertContinue()
@@ -242,7 +257,18 @@ export default function SetupCenter({ onClose, guided = false, onNavigate, onCom
     const totals = selectedIds.reduce((acc, id) => ({ count: acc.count + (issueCounts.current[id]?.scanned || 0), actionable: acc.actionable + (issueCounts.current[id]?.newlyActionable || 0) }), { count: 0, actionable: 0 })
     setResult(t('git:guide.inspected', totals))
   }
-  const operation = [connect, configure, async () => { if (!selected) throw new Error(t('git:guide.pickRepo')) }, detect, savePolicy, inspect, enable][step]
+  const confirmSelection = async () => {
+    if (!selected) throw new Error(t('git:guide.pickRepo'))
+    const latest = await api.projects()
+    setProjects(latest.projects)
+    if (!selectedRef.current.length) throw new Error(t('git:guide.pickRepo'))
+    const eligible = new Set(latest.projects.filter((item) => !isArchivedRepository(item)).map((item) => item.id))
+    if (selectedRef.current.some((id) => !eligible.has(id))) {
+      changeSelection(selectedRef.current.filter((id) => eligible.has(id)))
+      throw new Error(t('git:batch.selectionChanged'))
+    }
+  }
+  const operation = [connect, configure, confirmSelection, detect, savePolicy, inspect, enable][step]
   const canRun = step === 0 ? Boolean(githubToken.trim()) : step === 1 ? Boolean(baseUrl && model && (apiKey || provider?.configured && provider.source === 'stored')) : step === 2 ? Boolean(selected) : step === 4 ? Boolean(selected && (strategy === 'observe' || trustedExecution || !guided)) : step === 5 ? Boolean(selected && (!guided || [0, 1, 2, 3, 4].every((index) => done.has(index)))) : step === 6 ? Boolean(selected && schedulerChecked && !schedulerPaused && [0, 1, 2, 3, 4, 5].every((index) => done.has(index)) && (!guided || strategy === 'observe' || allowDelivery)) : true
   const changeStep = (index: number) => { setResult(''); setError(''); setStep(index) }
   const next = async () => {
@@ -252,7 +278,9 @@ export default function SetupCenter({ onClose, guided = false, onNavigate, onCom
   const title = t(`git:setup.steps.${step}`)
   const projectNames = new Map(projects.map((item) => [item.id, item.fullName]))
   const selectedSet = new Set(selectedIds)
-  const visibleProjects = projects.filter((item) => item.fullName.toLowerCase().includes(repositoryQuery.trim().toLowerCase()))
+  const eligibleProjects = projects.filter((item) => !isArchivedRepository(item))
+  const archivedCount = projects.length - eligibleProjects.length
+  const visibleProjects = projects.filter((item) => (showArchived || !isArchivedRepository(item)) && item.fullName.toLowerCase().includes(repositoryQuery.trim().toLowerCase()))
   const showBatch = batch && (complete ? ['enable', 'issues'].includes(batch.phase) : ({ policy: 4, inspect: 5, enable: 6, issues: -1 }[batch.phase] === step))
   if (peek) return <aside ref={locationCard} tabIndex={-1} className="nx-product-tour nx-panel" aria-label={t('git:guide.entry')}><header><BookOpen size={17} /><button className="nx-icon-button" onClick={onClose} aria-label={t('common:actions.close')}><X size={16} /></button></header><p className="nx-guide-location">{t('git:guide.location')}: {t(`git:guide.locations.${step}`)}</p><h2>{title}</h2><p>{t(`git:guide.instructions.${step}`)}</p><button className="nx-primary" onClick={() => setPeek(false)}>{t('git:guide.returnToSetup')}</button></aside>
   return <div className="nx-modal-backdrop"><section ref={dialog} className={`nx-setup nx-panel ${guided ? 'nx-setup-guided' : ''}`} role="dialog" aria-modal="true" aria-labelledby="setup-title">
@@ -267,15 +295,21 @@ export default function SetupCenter({ onClose, guided = false, onNavigate, onCom
         {step === 2 && <>
           <div className="nx-repo-toolbar">
             <button className="nx-secondary" disabled={busy} onClick={() => void act(async () => { await api.syncRepositories(); setResult(t('git:shell.toast.syncQueued')) }, false)}>{t('git:overview.syncGithub')}</button>
-            <button className="nx-secondary nx-repo-select-all" disabled={busy || !projects.length || selectedIds.length === projects.length} onClick={() => changeSelection(projects.map((item) => item.id))}>{t('git:batch.selectAll')}</button>
+            <button className="nx-secondary nx-repo-select-all" disabled={busy || !eligibleProjects.length || selectedIds.length === eligibleProjects.length} onClick={() => changeSelection(eligibleProjects.map((item) => item.id))}>{t('git:batch.selectAll')}</button>
             <button className="nx-secondary nx-repo-select-none" disabled={busy || !selectedIds.length} onClick={() => changeSelection([])}>{t('git:batch.selectNone')}</button>
           </div>
           <label htmlFor="setup-repository-search">{t('git:batch.search')}</label>
           <input id="setup-repository-search" type="search" disabled={busy} value={repositoryQuery} onChange={(event) => setRepositoryQuery(event.target.value)} />
-          <div className="nx-repo-selection-count" role="status" aria-live="polite">{t('git:batch.selected', { selected: selectedIds.length, total: projects.length })}</div>
+          <div className="nx-repo-selection-summary"><div className="nx-repo-selection-count" role="status" aria-live="polite">{t('git:batch.selected', { selected: selectedIds.length, total: eligibleProjects.length })}</div>
+            {archivedCount > 0 && <label className="nx-repo-archive-toggle"><input id="setup-show-archived" type="checkbox" disabled={busy} checked={showArchived} onChange={(event) => setShowArchived(event.target.checked)} />{t('git:batch.showArchived', { total: archivedCount })}</label>}
+          </div>
+          {archivedCount > 0 && <p className="nx-repo-archive-hint">{t('git:batch.archivedHint')}</p>}
           <div className="nx-repo-checklist" role="group" aria-label={t('git:setup.repository')}>
-            {visibleProjects.map((item) => <label className="nx-repo-option" key={item.id}><input type="checkbox" disabled={busy} checked={selectedSet.has(item.id)} value={item.id} onChange={(event) => changeSelection(event.target.checked ? [...selectedIds, item.id] : selectedIds.filter((id) => id !== item.id))} /><span>{item.fullName}</span></label>)}
-            {!visibleProjects.length && <p>{t(projects.length ? 'git:batch.noMatches' : 'git:batch.empty')}</p>}
+            {visibleProjects.map((item) => {
+              const archived = isArchivedRepository(item)
+              return <label className={`nx-repo-option ${archived ? 'nx-repo-option-archived' : ''}`} key={item.id}><input type="checkbox" disabled={busy || archived} checked={!archived && selectedSet.has(item.id)} value={item.id} onChange={(event) => changeSelection(event.target.checked ? [...selectedIds, item.id] : selectedIds.filter((id) => id !== item.id))} /><span className="nx-repo-name">{item.fullName}</span><span className={`nx-repo-status ${archived ? 'archived' : 'active'}`}>{t(archived ? 'git:batch.archived' : 'git:batch.active')}</span></label>
+            })}
+            {!visibleProjects.length && <p>{t(!projects.length ? 'git:batch.empty' : !showArchived && !eligibleProjects.length ? 'git:batch.noActive' : 'git:batch.noMatches')}</p>}
           </div>
           <button className="nx-primary" disabled={busy || !selectedIds.length} onClick={() => void act(operation)}>{t('common:actions.confirm')}</button>
         </>}

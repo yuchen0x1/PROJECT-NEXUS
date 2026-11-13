@@ -1,0 +1,150 @@
+{
+  "target": "release-v0.8.4/win-unpacked",
+  "profile": "electron",
+  "score": 31,
+  "grade": "D",
+  "grade_note": "几乎等同于开源，按严重项优先处理",
+  "counts": {
+    "files": 75,
+    "binaries": 7,
+    "web": 0
+  },
+  "findings": [
+    {
+      "id": "PE-PDB",
+      "area": "native",
+      "severity": "high",
+      "title": "PE 内嵌 PDB 路径（泄漏构建机源码目录）",
+      "evidence": "release-v0.8.4/win-unpacked\\d3dcompiler_47.dll: CodeView RSDS -> D3DCompiler_47.pdb ; release-v0.8.4/win-unpacked\\dxcompiler.dll: CodeView RSDS -> dxcompiler.dll.pdb ; release-v0.8.4/win-unpacked\\electron_wer.dll: CodeView RSDS -> crashpad_wer.dll.pdb",
+      "rea_tool": "list_strings / read_bytes",
+      "fix": "发布版不生成 PDB，或链接加 /DEBUG:NONE /PDBALTPATH:%_PDB%；路径会直接暴露 solution 结构、用户名和模块划分。",
+      "count": 7
+    },
+    {
+      "id": "CLR-ASM",
+      "area": "managed",
+      "severity": "high",
+      "title": ".NET 托管程序集（可还原为近似原始 C#）",
+      "evidence": "release-v0.8.4/win-unpacked\\d3dcompiler_47.dll: 命中 CLI 元数据签名 BSJB @0x21c767",
+      "rea_tool": "analyze_artifact / ILSpy / dnSpy",
+      "fix": "托管程序集的 IL 保留了类名、方法名、字段名和控制流。要么用 NativeAOT 编译为原生码，要么把真正值钱的逻辑搬到服务端；仅靠混淆（Obfuscar 之类）只是拖慢阅读，挡不住还原。",
+      "count": 1
+    },
+    {
+      "id": "PE-SIGN",
+      "area": "native",
+      "severity": "high",
+      "title": "未签名（无 Authenticode 证书目录）",
+      "evidence": "release-v0.8.4/win-unpacked\\dxcompiler.dll: DataDirectory[SECURITY] 为空 ; release-v0.8.4/win-unpacked\\electron_wer.dll: DataDirectory[SECURITY] 为空 ; release-v0.8.4/win-unpacked\\ffmpeg.dll: DataDirectory[SECURITY] 为空",
+      "rea_tool": "inspect_signature",
+      "fix": "用 signtool 做 Authenticode 签名并带时间戳；未签名产物无法判断是否被篡改，也让分发渠道与用户失去完整性依据。",
+      "count": 6
+    },
+    {
+      "id": "WEB-SOURCEMAPREF",
+      "area": "artifact",
+      "severity": "high",
+      "title": "产物中泄漏：sourceMappingURL 指令",
+      "evidence": "release-v0.8.4/win-unpacked\\resources\\app.asar: sourceMappingURL=CancellationToken.js.map | sourceMappingURL=MemoLazy.js.map | sourceMappingURL=ProgressCallbackTransform.js.map",
+      "rea_tool": "list_strings / search_strings",
+      "fix": "构建关闭 sourcemap（Vite: build.sourcemap=false；webpack: devtool=false；Next: productionBrowserSourceMaps=false），需要排查线上问题就上传到私有 Sentry 而不是随包发布。",
+      "count": 1
+    },
+    {
+      "id": "LEAK-INTRANET",
+      "area": "artifact",
+      "severity": "high",
+      "title": "产物中泄漏：内网地址",
+      "evidence": "release-v0.8.4/win-unpacked\\resources\\app.asar: http://127.0.0.1:${address | http://localhost/ | http://localhost:3000/",
+      "rea_tool": "list_strings / search_strings",
+      "fix": "客户端不得内置内网地址；改为域名 + 网关。",
+      "count": 1
+    },
+    {
+      "id": "ELECTRON-UNPACKED",
+      "area": "electron",
+      "severity": "medium",
+      "title": "ASAR 有 unpacked 目录（原生模块与文件明文可见）",
+      "evidence": "resources\\app.asar.unpacked",
+      "rea_tool": "open_bundle_resources",
+      "fix": "尽量减少 unpack 项；不要把手写业务代码放进 unpacked。",
+      "count": 1
+    },
+    {
+      "id": "LEAK-NODEMODULES",
+      "area": "artifact",
+      "severity": "low",
+      "title": "产物中泄漏：node_modules 依赖路径",
+      "evidence": "release-v0.8.4/win-unpacked\\resources\\app.asar: node_modules/@types",
+      "rea_tool": "list_strings / search_strings",
+      "fix": "正常现象，但可用于推断依赖树与版本；开正常的压缩与裁剪。",
+      "count": 1
+    },
+    {
+      "id": "PE-CFG",
+      "area": "native",
+      "severity": "low",
+      "title": "未启用 Control Flow Guard",
+      "evidence": "release-v0.8.4/win-unpacked\\resources\\elevate.exe: DllCharacteristics 缺 0x4000",
+      "rea_tool": "inspect_binary_hardening",
+      "fix": "编译加 /guard:cf 并链接 /guard:cf。",
+      "count": 1
+    },
+    {
+      "id": "PE-INFO",
+      "area": "native",
+      "severity": "info",
+      "title": "PE 目标已解析",
+      "evidence": "release-v0.8.4/win-unpacked\\d3dcompiler_47.dll (PE32+, machine=0x8664, DllCharacteristics=0x4160) ; release-v0.8.4/win-unpacked\\dxcompiler.dll (PE32+, machine=0x8664, DllCharacteristics=0x4160) ; release-v0.8.4/win-unpacked\\electron_wer.dll (PE32+, machine=0x8664, DllCharacteristics=0x4160)",
+      "rea_tool": "inspect_binary_hardening",
+      "fix": "-",
+      "count": 7
+    },
+    {
+      "id": "IO-BIG",
+      "area": "io",
+      "severity": "info",
+      "title": "文件过大已跳过",
+      "evidence": "PROJECT NEXUS.exe (250176512 字节)",
+      "rea_tool": "-",
+      "fix": "如需覆盖请拆分或提高上限",
+      "count": 1
+    },
+    {
+      "id": "ELECTRON-ASARINFO",
+      "area": "electron",
+      "severity": "info",
+      "title": "ASAR 归档已解析",
+      "evidence": "release-v0.8.4/win-unpacked\\resources\\app.asar: 755 个文件（516 个 JS）, 顶层条目: desktop, dist, node_modules, package.json, server",
+      "rea_tool": "analyze_javascript_application",
+      "fix": "ASAR 不是加密容器，只是打包格式；不要把它当保护手段。",
+      "count": 1
+    },
+    {
+      "id": "ELECTRON-FOUND",
+      "area": "electron",
+      "severity": "info",
+      "title": "发现 Electron ASAR 归档",
+      "evidence": "resources\\app.asar",
+      "rea_tool": "open_bundle_resources",
+      "fix": "ASAR 是打包格式不是加密；若业务逻辑全在 ASAR 内，用 analyze_javascript_application 可直接读出结构。",
+      "count": 1
+    }
+  ],
+  "diff": {
+    "resolved": [],
+    "new": [],
+    "improved": [],
+    "worsened": [],
+    "unchanged": [
+      "PE-PDB",
+      "CLR-ASM",
+      "PE-SIGN",
+      "WEB-SOURCEMAPREF",
+      "LEAK-NODEMODULES",
+      "LEAK-INTRANET",
+      "PE-CFG",
+      "ELECTRON-UNPACKED"
+    ]
+  }
+}

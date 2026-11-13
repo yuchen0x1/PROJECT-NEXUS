@@ -3,7 +3,7 @@ import { getHostingPolicy } from './hosting.mjs'
 
 export function readinessFingerprint({ project, provider, account, credential, epoch }) {
   return crypto.createHash('sha256').update(JSON.stringify({
-    project: project.id, repository: project.fullName, policy: getHostingPolicy(project),
+    project: project.id, repository: project.fullName, archived: project.archived ?? project.repoMeta?.archived ?? false, policy: getHostingPolicy(project),
     provider: provider ? { id: provider.id, baseUrl: provider.baseUrl, model: provider.model, apiKey: provider.apiKey } : null,
     account, credential, epoch
   })).digest('hex')

@@ -471,6 +471,12 @@
       "running": "En curso",
       "success": "Correcto",
       "failed": "Error"
-    }
+    },
+    "active": "Activo",
+    "archived": "Archivado",
+    "showArchived": "Mostrar archivados ({{total}})",
+    "archivedHint": "Los repositorios archivados no se pueden seleccionar. Sincroniza GitHub para actualizar su estado.",
+    "noActive": "Todos los repositorios están archivados; no hay ninguno disponible.",
+    "selectionChanged": "Algunos repositorios seleccionados están archivados o no disponibles y se han desmarcado. Vuelve a la lista para confirmar."
   }
 }
