@@ -3,6 +3,16 @@ import path from 'node:path'
 import { runCommand, isProgramAllowed, DEFAULT_ALLOWED_PROGRAMS } from './executor.mjs'
 import { searchProjectIndex } from './indexer.mjs'
 
+export function commandPermission(command) {
+  const text = String(command || '').trim()
+  if (!isProgramAllowed(text)) return 'high'
+  if (/^git\b.*(?:\b(?:push|remote|clone|fetch|pull)\b|(?:^|\s)-(?:C|c)(?:\s|$)|\bconfig\b.*--(?:global|system))/i.test(text)) return 'high'
+  if (/^(?:npm|pnpm|yarn|bun)\s+(?:publish|unpublish|install|add|remove|ci|exec|dlx|set|config)\b/i.test(text)) return 'high'
+  if (/^(?:pip|pip3|uv|poetry|cargo|rustup|dotnet)\b.*\b(?:install|publish|update|uninstall|self|tool)\b/i.test(text)) return 'high'
+  if (/^(?:npx|pnpx)\b/i.test(text) && !/--no-install\b/.test(text)) return 'high'
+  return 'medium'
+}
+
 // Agent tool registry. Every tool declares a permission level (low/medium/high),
 // a bounded input schema, and returns a compact observation. The agent runtime
 // enforces approvals based on the declared permission and the task's approval
@@ -589,7 +599,7 @@ function defineTools() {
     name: 'run_command',
     description: 'Run one shell command inside the task workspace. Commands are tokenized and spawn without a shell; allowlisted development programs run automatically, anything else requires user approval.',
     permission: 'medium',
-    permissionFor: (args) => isProgramAllowed(String(args?.command || '')) ? 'medium' : 'high',
+    permissionFor: (args) => commandPermission(args?.command),
     summary: (args) => `run: ${(args?.command || '').slice(0, 80)}`,
     schema: { command: { type: 'string', required: true, maxLength: 4_096 }, timeoutMs: { type: 'number', min: 1_000, max: 600_000 } }
   }, async (args, ctx) => {
@@ -616,6 +626,7 @@ function defineTools() {
     name: toolName,
     description,
     permission: 'medium',
+    permissionFor: (args) => args?.command ? commandPermission(args.command) : 'medium',
     summary: () => toolName,
     schema: { command: { type: 'string', maxLength: 4_096 } }
   }, async (args, ctx) => {

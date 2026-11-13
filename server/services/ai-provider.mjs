@@ -249,7 +249,10 @@ export async function invokeAIProvider({ taskType = 'general', providerId = null
         throw error
       }
       const usage = normalizeUsage(body?.usage || body?.usageMetadata)
-      return { text: extractText(provider.kind, body), raw: body, usage, costUsd: estimateCost(provider, usage), provider: { id: provider.id, kind: provider.kind, host: safeProviderHost(provider.baseUrl) }, model: provider.model, attempts: attempt + 1 }
+      const rawUsage = body?.usage || body?.usageMetadata
+      const validCount = (value) => (typeof value === 'number' || (typeof value === 'string' && value.trim() !== '')) && Number.isSafeInteger(Number(value)) && Number(value) >= 0
+      const usageKnown = Boolean(rawUsage && (['total_tokens', 'totalTokenCount'].some((key) => validCount(rawUsage[key])) || (['prompt_tokens', 'input_tokens', 'promptTokenCount', 'inputTokenCount'].some((key) => validCount(rawUsage[key])) && ['completion_tokens', 'output_tokens', 'candidatesTokenCount', 'outputTokenCount'].some((key) => validCount(rawUsage[key])))))
+      return { text: extractText(provider.kind, body), raw: body, usage, usageKnown, costUsd: usageKnown ? estimateCost(provider, usage) : null, provider: { id: provider.id, kind: provider.kind, host: safeProviderHost(provider.baseUrl) }, model: provider.model, attempts: attempt + 1 }
     } catch (error) {
       if (error?.name === 'AbortError' || signal?.aborted) throw Object.assign(new Error(signal?.aborted ? 'AI provider request was cancelled.' : 'AI provider request timed out.'), { code: signal?.aborted ? 'JOB_CANCELLED' : 'AI_TIMEOUT' })
       lastError = error

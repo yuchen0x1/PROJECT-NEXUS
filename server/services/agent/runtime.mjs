@@ -1,6 +1,7 @@
 import { invokeAIProvider, redactSecrets } from '../ai-provider.mjs'
-import { listTools, executeTool, createToolContext } from './tools.mjs'
+import { listTools, getTool, executeTool, createToolContext } from './tools.mjs'
 import { createApprovalRecord, resolveApprovalInTask, expireStaleApprovals, approvalRequired, DEFAULT_APPROVAL_TIMEOUT_MS, APPROVAL_POLICIES } from './approval.mjs'
+import { RuntimeCheckpoint } from './runtime-checkpoint.mjs'
 
 // The agent execution loop.
 //
@@ -22,7 +23,7 @@ export const RUNTIME_DEFAULTS = Object.freeze({
   maxTokensPerTurn: 4_096
 })
 
-const RUNTIME_VERSION = 'phase6a-1'
+const RUNTIME_VERSION = 'evolution-checkpoint-1'
 
 function runtimeError(code, message) {
   return Object.assign(new Error(message), { code })
@@ -200,6 +201,7 @@ export async function runAgentTask({
     repairAttempts: 0,
     totalUsage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
     costUsd: 0,
+    costKnown: true,
     providerCalls: 0,
     toolCalls: [],
     plan: null,
@@ -215,7 +217,16 @@ export async function runAgentTask({
   }
 
   const persist = async (patch, event) => {
-    await taskStore.update({ taskId: task.id, patch, event }).catch(() => {})
+    try { await taskStore.update({ taskId: task.id, patch, event }) }
+    catch (cause) {
+      throw Object.assign(runtimeError('AGENT_PERSISTENCE_FAILED', 'Task state could not be persisted; execution stopped before continuing.'), { cause })
+    }
+  }
+  const journal = new RuntimeCheckpoint({ task, provider, adapter, persist, signal })
+  let restored = null
+  if (options.resumeVerified === true) {
+    restored = await journal.restore(task.runtimeCheckpoint)
+    Object.assign(state, restored.state)
   }
 
   const recordEvent = async (event) => {
@@ -233,7 +244,7 @@ export async function runAgentTask({
       state.timedOut = true
       throw runtimeError('AGENT_WALL_CLOCK_EXCEEDED', `Agent task exceeded the ${Math.round(config.wallClockMs / 60_000)}-minute wall-clock budget.`)
     }
-    if (state.totalUsage.totalTokens > config.tokenBudget) {
+    if (state.totalUsage.totalTokens + (state.totalUsage.uncertainTokens || 0) > config.tokenBudget) {
       state.tokenExhausted = true
       throw runtimeError('AGENT_TOKEN_BUDGET_EXCEEDED', `Agent task exceeded the ${config.tokenBudget}-token budget.`)
     }
@@ -242,6 +253,10 @@ export async function runAgentTask({
   const invokeModel = async (messages, { maxTokens = config.maxTokensPerTurn, temperature = 0.2, responseFormat = null } = {}) => {
     checkAbort('model call')
     compressHistory(messages, config.historyBudgetBytes)
+    // No hidden model retries: unknown request usage must remain visible on recovery.
+    const reservation = Math.ceil(Buffer.byteLength(JSON.stringify(messages)) / 2) + maxTokens
+    if (reservation + state.totalUsage.totalTokens + (state.totalUsage.uncertainTokens || 0) > config.tokenBudget) throw runtimeError('AGENT_TOKEN_BUDGET_EXCEEDED', 'Insufficient remaining token budget for this bounded model request.')
+    await journal.beforeModel(messages, state, reservation)
     const result = await invokeAIProvider({
       providerOverride: provider,
       messages,
@@ -250,13 +265,18 @@ export async function runAgentTask({
       responseFormat,
       maxTokens,
       timeoutMs: config.providerTimeoutMs,
-      maxRetries: 2
+      maxRetries: 0
     })
     state.providerCalls += 1
     state.totalUsage.inputTokens += result.usage.inputTokens
     state.totalUsage.outputTokens += result.usage.outputTokens
     state.totalUsage.totalTokens += result.usage.totalTokens
+    if (!result.usageKnown) state.totalUsage.uncertainTokens = (state.totalUsage.uncertainTokens || 0) + reservation
     if (result.costUsd) state.costUsd = Number((state.costUsd + result.costUsd).toFixed(8))
+    if (typeof result.costUsd !== 'number') state.costKnown = false
+    await persist({ usage: state.totalUsage, costUsd: state.costUsd, providerCalls: state.providerCalls })
+    await journal.responseReceived()
+    checkAbort('model response')
     return result
   }
 
@@ -331,7 +351,9 @@ export async function runAgentTask({
   const executeWithApprovalGate = async (toolCall) => {
     const tool = toolCatalog.find((item) => item.name === toolCall.name)
     if (!tool) return { tool: toolCall.name, error: `Unknown tool "${toolCall.name}". Use one of the listed tools.`, ok: false }
-    const permission = typeof tool.permissionFor === 'function' ? tool.permissionFor(toolCall.args) : tool.permission
+    // Public catalog omits executable callbacks. Resolve dynamic risk from the owning definition.
+    const definition = getTool(toolCall.name)
+    const permission = typeof definition?.permissionFor === 'function' ? definition.permissionFor(toolCall.args) : tool.permission
     const policyAutoApproved = autoApproveTools?.has(tool.name) === true
     const needsApproval = approvalRequired({ permission, policy: config.approvalPolicy || 'standard', tool: tool.name, autoApproveTools })
     if (policyAutoApproved && !needsApproval && tool.name !== 'request_approval') {
@@ -354,19 +376,24 @@ export async function runAgentTask({
       }
     }
     const startedAt = Date.now()
+    await journal.intent(toolCall.name, toolCall.args)
+    let receipt
     try {
       const result = await executeTool(toolCall.name, toolCall.args, toolCtx)
-      return { tool: toolCall.name, args: toolCall.args, permission, result, ok: true, durationMs: Date.now() - startedAt }
+      receipt = { tool: toolCall.name, args: toolCall.args, permission, result, ok: true, durationMs: Date.now() - startedAt }
     } catch (error) {
-      return { tool: toolCall.name, args: toolCall.args, permission, error: `${error.code ? `[${error.code}] ` : ''}${redactSecrets(String(error.message)).slice(0, 800)}`, ok: false, durationMs: Date.now() - startedAt }
+      receipt = { tool: toolCall.name, args: toolCall.args, permission, error: `${error.code ? `[${error.code}] ` : ''}${redactSecrets(String(error.message)).slice(0, 800)}`, ok: false, durationMs: Date.now() - startedAt }
     }
+    await journal.receipt(receipt)
+    return receipt
   }
 
   // ---- Phase 1: planning ----
-  const messages = [
+  const messages = restored?.messages || [
     { role: 'system', content: buildSystemPrompt({ workspaceMode: adapter.kind, toolCatalog, approvalPolicy: config.approvalPolicy || 'standard', projectSummary }) },
     { role: 'user', content: buildPlanningPrompt({ prompt: task.prompt, projectSummary, contextDigest: digestContext(contextBundle) }) }
   ]
+  if (!restored) {
   if (contextBundle?.files?.length) {
     messages.push({ role: 'user', content: `DISCLOSED PROJECT FILES (redacted, truncated where large):\n${contextBundle.files.filter((file) => file.content).map((file) => `=== ${file.path} ===\n${file.content}`).join('\n\n').slice(0, 400_000)}` })
   }
@@ -411,6 +438,7 @@ export async function runAgentTask({
     messages.push({ role: 'user', content: `TOOL RESULT (${execution.tool || call.name}):\n${clampObservation(execution.ok ? execution.result : { error: execution.error, denied: execution.denied || false })}` })
   } else {
     messages.push({ role: 'user', content: buildTaskTurn({}) })
+  }
   }
 
   // ---- Phase 2: execution loop ----
@@ -517,6 +545,7 @@ export async function runAgentTask({
   // ---- Phase 3: verification (real build/test when the project defines them) ----
   state.phase = 'verifying'
   await persist({ phase: 'verifying' }, { type: 'phase', detail: 'Verification started.' })
+  await journal.intent('verification', {})
   const verification = await autoVerify({ adapter, index, signal })
   state.verification = verification
   await persist({ verification }, { type: 'verification', detail: `Verification: ${verification.summary}`, metadata: verification })
@@ -557,6 +586,7 @@ export async function runAgentTask({
           messages.push({ role: 'user', content: `TOOL RESULT (${execution.tool || call.name}):\n${clampObservation(execution.ok ? execution.result : { error: execution.error })}` })
         }
       }
+      await journal.intent('verification', { repair: state.repairAttempts })
       const recheck = await autoVerify({ adapter, index, signal })
       state.verification = recheck
       await persist({ verification: recheck }, { type: 'verification', detail: `Re-verification after repair ${state.repairAttempts}: ${recheck.summary}`, metadata: recheck })
@@ -572,7 +602,7 @@ export async function runAgentTask({
     const { changes } = await adapter.diff()
     state.changes = changes.map((change) => ({ action: change.action, path: change.path }))
     if (changes.length) {
-      const reviewResult = await reviewDiff({ provider, changes, adapter, signal, taskPrompt: task.prompt, timeoutMs: config.providerTimeoutMs, verification: state.verification })
+      const reviewResult = await reviewDiff({ provider, changes, adapter, signal, taskPrompt: task.prompt, timeoutMs: config.providerTimeoutMs, verification: state.verification, invoke: (request) => invokeModel(request.messages, { maxTokens: request.maxTokens, temperature: request.temperature }) })
       state.review = reviewResult
       await persist({ review: reviewResult }, { type: 'review', detail: `Review found ${reviewResult.findings.length} finding(s).`, metadata: { findings: reviewResult.findings.slice(0, 10) } })
     } else {
@@ -599,6 +629,7 @@ function finalize(status, state, task, adapter, note) {
     providerCalls: state.providerCalls,
     usage: state.totalUsage,
     costUsd: state.costUsd,
+    costKnown: state.costKnown && !(state.totalUsage.uncertainTokens > 0),
     toolCalls: state.toolCalls,
     changes: state.changes || null,
     verification: state.verification,
@@ -632,7 +663,7 @@ async function autoVerify({ adapter, index, signal }) {
   }
 }
 
-async function reviewDiff({ provider, changes, adapter, signal, taskPrompt, timeoutMs, verification = null }) {
+async function reviewDiff({ provider, changes, adapter, signal, taskPrompt, timeoutMs, verification = null, invoke = invokeAIProvider }) {
   const severityRank = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3, INFO: 4 }
   const diff = await adapter.diff()
   const diffText = (diff.diff || '').slice(0, 60_000)
@@ -640,7 +671,7 @@ async function reviewDiff({ provider, changes, adapter, signal, taskPrompt, time
     { role: 'system', content: 'You are an independent code reviewer. Review the diff strictly. Respond with EXACTLY one JSON object: {"findings": [{"severity": "CRITICAL|HIGH|MEDIUM|LOW|INFO", "path": "file path", "line": number|null, "issue": "one-sentence problem", "suggestion": "one-sentence fix"}], "overall": "one-sentence assessment", "verdict": "approve|request_changes"}. Do not invent issues; if the diff is clean return an empty findings array. Never claim tests were run. If the build/test verification FAILED, that is at least one CRITICAL finding about the broken state.' },
     { role: 'user', content: JSON.stringify({ taskPrompt: String(taskPrompt || '').slice(0, 2_000), verification, changedFiles: changes.map((change) => `${change.action}: ${change.path}`), diff: diffText }) }
   ]
-  const result = await invokeAIProvider({ providerOverride: provider, messages, signal, temperature: 0.1, maxTokens: 3_000, timeoutMs, maxRetries: 1 })
+  const result = await invoke({ providerOverride: provider, messages, signal, temperature: 0.1, maxTokens: 3_000, timeoutMs, maxRetries: 1 })
   let parsed
   try { parsed = JSON.parse(String(result.text || '').replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()) } catch { parsed = null }
   if (!parsed || !Array.isArray(parsed.findings) || !['approve', 'request_changes'].includes(parsed.verdict)) throw new Error('Independent review did not return a valid verdict.')

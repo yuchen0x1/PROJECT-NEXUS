@@ -408,7 +408,7 @@ export type AgentInsights = {
 
 export type LocalAgentChange = { action: 'added' | 'modified' | 'deleted'; path: string; before: string | null; after: string | null; contentStatus: string }
 
-async function request<T>(url: string, init?: RequestInit): Promise<T> {
+export async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const desktop = typeof window === 'undefined' ? undefined : window.nexusDesktop
   let status: number
   let body: any

@@ -39,6 +39,44 @@ async function createGitProject() {
 }
 
 describe('worktree workspace adapter', () => {
+  it('never includes a Git ancestor when only its nested project was authorized', async () => {
+    await createGitProject()
+    const nested = path.join(projectPath, 'nested-project'); await fs.mkdir(nested)
+    await fs.writeFile(path.join(nested, 'selected.txt'), 'selected project only')
+    const project = { id: '11111111-2222-4333-8444-555555555558', name: 'nested', path: nested }
+    await expect(createWorktreeWorkspace({ projectPath: nested, taskId: 'task-parent-denied', workspaceRoot })).rejects.toMatchObject({ code: 'AGENT_GIT_ROOT_MISMATCH' })
+    const workspace = await createAgentWorkspace({ project, taskId: 'task-nested-copy', mode: 'auto', workspaceRoot, dataDir })
+    expect(workspace.mode).toBe('copy')
+    expect(await fs.readdir(workspace.adapter.source)).toEqual(['selected.txt'])
+    await workspace.adapter.dispose()
+  }, 60000)
+  it('keeps committed candidate changes visible against its original baseline and rolls them back', async () => {
+    await createGitProject()
+    const { adapter } = await createAgentWorkspace({ project: { id: 'p1', name: 'demo', path: projectPath }, taskId: 'task-committed', mode: 'worktree', workspaceRoot })
+    await adapter.applyOperations([{ action: 'replace', path: 'app.js', content: 'export const version = "2.0.0"\n' }])
+    const { runCommand } = await import('../../server/services/agent/executor.mjs')
+    await runCommand({ cwd: adapter.source, command: 'git add -A' })
+    const commit = await runCommand({ cwd: adapter.source, command: 'git -c user.name=t -c user.email=t@t.local commit -m candidate' })
+    expect(commit.ok).toBe(true)
+    expect((await adapter.diff()).diff).toContain('+export const version = "2.0.0"')
+    await adapter.restoreAll()
+    expect((await adapter.diff()).changes).toEqual([])
+    expect(await fs.readFile(path.join(adapter.source, 'app.js'), 'utf8')).toContain('1.0.0')
+    await adapter.dispose()
+  }, 60000)
+  it('refuses linked parent directories for reading, writing and deleting', async () => {
+    await createGitProject()
+    const { adapter } = await createAgentWorkspace({ project: { id: 'p1', name: 'demo', path: projectPath }, taskId: 'task-linked', mode: 'worktree', workspaceRoot })
+    const outside = path.join(tempRoot, 'outside'); await fs.mkdir(outside)
+    await fs.writeFile(path.join(outside, 'secret.txt'), 'private')
+    await fs.symlink(outside, path.join(adapter.source, 'linked'), process.platform === 'win32' ? 'junction' : 'dir')
+    await expect(adapter.readFiles(['linked/secret.txt'])).rejects.toMatchObject({ code: 'AGENT_PATH_ESCAPE' })
+    await expect(adapter.applyOperations([{ action: 'create', path: 'linked/new.txt', content: 'bad' }])).rejects.toMatchObject({ code: 'AGENT_PATH_ESCAPE' })
+    await expect(adapter.deleteFile('linked/secret.txt')).rejects.toMatchObject({ code: 'AGENT_PATH_ESCAPE' })
+    expect(await fs.readFile(path.join(outside, 'secret.txt'), 'utf8')).toBe('private')
+    await fs.unlink(path.join(adapter.source, 'linked'))
+    await adapter.dispose()
+  }, 60000)
   it('creates an isolated worktree, tracks modifications, diffs, restores and disposes', async () => {
     await createGitProject()
     const { adapter, mode, fallbackReason } = await createAgentWorkspace({

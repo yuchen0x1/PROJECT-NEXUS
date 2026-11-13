@@ -80,6 +80,7 @@ export type LocalizedDialogText = {
 }
 
 export type DesktopBridge = {
+  getMetrics: () => Promise<DesktopMetrics>
   fetchProviderModels: (draft: { kind: string; baseUrl: string; apiKey?: string; providerId?: string }) => Promise<ProviderModelsResult>
   openGitHubTokenPage: () => Promise<void>
   connectGitHub: (token: string) => Promise<{ connected: boolean; account: { login: string; avatarUrl: string } }>
@@ -97,6 +98,8 @@ export type DesktopBridge = {
   getSettings: () => Promise<DesktopSettingsPayload>
   updateSettings: (partial: Partial<Omit<UserPreferences, 'language'>> & { language?: string | null }) => Promise<UserPreferences>
 }
+
+export type DesktopMetrics = { at: string; processes: { pid: number; type: string; cpuPercent: number; workingSetBytes: number; peakWorkingSetBytes: number; creationTime: number }[]; servicePid: number | null }
 
 export type ProviderModelsResult = {
   ok: boolean

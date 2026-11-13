@@ -92,7 +92,15 @@ export async function saveStateFile(file, value) {
       try { const parsed = JSON.parse(previous); await fs.writeFile(`${file}.bak`, JSON.stringify(persistedState(parsed), null, 2), { encoding: 'utf8', mode: 0o600 }) }
       catch (error) { if (!(error instanceof SyntaxError)) throw error }
     }
-    await fs.rename(temporary, file)
+    // Windows indexers/antivirus can briefly hold a replacement target open.
+    // Retry only transient sharing/permission errors; retain the atomic rename and fail closed.
+    for (let attempt = 0; ; attempt++) {
+      try { await fs.rename(temporary, file); break }
+      catch (error) {
+        if (!['EPERM', 'EACCES', 'EBUSY'].includes(error.code) || attempt >= 5) throw error
+        await new Promise((resolve) => setTimeout(resolve, 20 * (2 ** attempt)))
+      }
+    }
   } catch (error) {
     await fs.rm(temporary, { force: true }).catch(() => {})
     throw error

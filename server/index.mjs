@@ -43,6 +43,8 @@ import { detectDevelopmentEnvironment } from './services/local-environment.mjs'
 import { assertHostingWrite, hostingOperation, hostedResult, automaticFixDecision } from './services/hosting-gates.mjs'
 import { queueHostedJob, nextHostedJobIndex, recoverHostedJobs } from './services/hosted-queue.mjs'
 import { buildProjectOverview } from './services/project-overview.mjs'
+import { registerEvolutionApi } from './services/evolution-api.mjs'
+import { proposalLifecycle, startProposalImplementation } from './services/proposal-implementation.mjs'
 
 const activeOverviewResearch = new Map()
 
@@ -72,6 +74,8 @@ let state = structuredClone(emptyState)
 const integrationControllers = new Map()
 const agentWorkspacePaths = new Map()
 const localAgentControllers = new Map()
+const hostedControllers = new Map()
+let shuttingDown = false
 const localAgentQueue = []
 const pendingGitHubAppInstallStates = new Map()
 const installationTokens = new Map()
@@ -703,6 +707,7 @@ const localAgentActiveByProject = new Map()
 let localAgentRunningCount = 0
 
 async function pumpLocalAgentQueue() {
+  if (shuttingDown) return
   while (localAgentQueue.length) {
     if (localAgentRunningCount >= LOCAL_AGENT_MAX_RUNNING) return
     const index = localAgentQueue.findIndex((item) => !localAgentActiveByProject.get(item.projectId))
@@ -754,6 +759,7 @@ function scheduleHostedPump() {
 }
 
 async function pumpHostedTasks() {
+  if (shuttingDown) return
   if (hostingPaused()) return
   while (hostedPending.length) {
     if (hostedRunningCount >= HOSTED_MAX_RUNNING) return
@@ -773,10 +779,11 @@ async function runHostedIssueFixOwned(item) {
   hostedRunningCount += 1
   hostedActive.set(repoKey, { project, issueNumber, taskId: null })
   const controller = new AbortController()
+  hostedControllers.set(repoKey, controller)
   let repositoryLease = null
   const guardedRequest = (endpoint, options = {}) => {
     const operation = hostingOperation(endpoint, options)
-    const guard = () => assertHostingWrite({ project, enabled: remoteWritesEnabled(), paused: hostingPaused(), operation })
+    const guard = () => { if (shuttingDown) throw Object.assign(new Error('Host is stopping; no remote operation was started.'), { code: 'HOST_SHUTDOWN' }); return assertHostingWrite({ project, enabled: remoteWritesEnabled(), paused: hostingPaused(), operation }) }
     const perform = () => githubFetchForProject(project, endpoint, options)
     return operation && item.job ? durableEffect({ job: item.job, endpoint, options, save: saveState, guard, perform }) : perform()
   }
@@ -904,6 +911,7 @@ async function runHostedIssueFixOwned(item) {
     state.activity.unshift({ id: id('activity'), type: 'issue-fix', message: `Issue fix for ${project.fullName}#${issueNumber} failed: ${safeError(error).slice(0, 200)}`, at: now() })
     state.activity = state.activity.slice(0, 100)
   } finally {
+    hostedControllers.delete(repoKey)
     await repositoryLease?.release().catch(() => {})
     hostedRunningCount -= 1
     hostedActive.delete(repoKey)
@@ -1145,6 +1153,7 @@ async function runScanQueue(jobIds, req) {
 
 let scheduleTickRunning = false
 async function runScheduledIntegrationScan() {
+  if (shuttingDown) return
   if (scheduleTickRunning) return
   scheduleTickRunning = true
   try {
@@ -1175,6 +1184,7 @@ async function runScheduledIntegrationScan() {
 // processed by exactly one worker at a time (PART 10).
 let hostingTickRunning = false
 async function runScheduledHostingTick() {
+  if (shuttingDown) return
   if (hostingTickRunning) return
   hostingTickRunning = true
   try {
@@ -1925,6 +1935,35 @@ app.get('/api/project-overview', async (req, res) => {
   }
   const warnings = results.flatMap((result, index) => result.status === 'rejected' ? [index === 0 ? 'agent-store-unavailable' : 'provider-store-unavailable'] : [])
   res.json(buildProjectOverview({ state, localTasks, providers, github: { configured: githubConfigured(), owner: githubAccount?.login || process.env.GITHUB_OWNER }, paused: hostingPaused(), activeResearch: [...activeOverviewResearch.values()], projectId: String(req.query.projectId || '').slice(0, 128), secrets, warnings }))
+})
+
+const evolution = registerEvolutionApi({ app, dataDir, version: process.env.NEXUS_DESKTOP_VERSION || JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8')).version, guard: (req, res) => requireDesktopLocalAgent(res) && requireRole(req, res, 'Operator'), getResearchEvidence: async (workflow) => workflow.metadata.evidence || [], isProposalLinked: async (workflow) => state.researchReports.find((report) => report.id === workflow.metadata.reportId)?.upgradeProposals?.find((proposal) => proposal.id === workflow.metadata.proposalId)?.implementation?.workflowId === workflow.id, request: async (endpoint) => {
+  if (githubConfigured()) return githubFetch(endpoint)
+  if (endpoint !== '/repos/yuchen0x1/PROJECT-NEXUS/releases/latest') throw Object.assign(new Error('This public request is outside the NEXUS release scope.'), { code: 'NEXUS_RELEASE_SCOPE_REQUIRED' })
+  const response = await fetch(`https://api.github.com${endpoint}`, { headers: { Accept: 'application/vnd.github+json' }, signal: AbortSignal.timeout(15000), redirect: 'error' })
+  if (!response.ok) throw Object.assign(new Error('NEXUS release metadata could not be read.'), { code: 'NEXUS_RELEASE_UNAVAILABLE' })
+  return response.json()
+} })
+
+evolution.route('get', '/api/evolution/research', async (_req, res) => {
+  const reports = []
+  for (const report of state.researchReports.slice(0, 50)) {
+    const proposals = []
+    for (const proposal of (report.upgradeProposals || []).slice(0, 20)) {
+      const workflow = proposal.implementation?.workflowId ? await evolution.engine.store.get(proposal.implementation.workflowId) : null
+      proposals.push({ ...proposal, lifecycleStatus: proposalLifecycle(proposal, workflow), workflowStatus: workflow?.status || null, applied: proposal.applied === true })
+    }
+    reports.push({ id: report.id, projectId: report.projectId, repository: report.repository, createdAt: report.createdAt, proposals })
+  }
+  res.json({ reports })
+})
+evolution.route('post', '/api/evolution/research/:reportId/proposals/:proposalId/implement', async (req, res) => {
+  const report = state.researchReports.find((item) => item.id === req.params.reportId)
+  const proposal = report?.upgradeProposals?.find((item) => item.id === req.params.proposalId)
+  if (!proposal) return res.status(404).json({ code: 'PROPOSAL_NOT_FOUND' })
+  const project = await evolution.project(req.body?.projectId)
+  const workflow = await startProposalImplementation({ report, proposal, project, body: req.body || {}, engine: evolution.engine, scheduler: evolution.scheduler, save: saveState })
+  res.status(202).json({ workflow })
 })
 
 app.put('/api/settings/remote-writes', async (req, res) => {
@@ -2949,6 +2988,7 @@ await loadState()
 await recoverIntegrationWork()
 await recoverLocalAgentTasks()
 await recoverHostedFixTasks()
+await evolution.recover()
 setTimeout(() => void sweepExpiredWorkspaces().catch((error) => console.error('Workspace sweep failed:', safeError(error))), 30_000).unref?.()
 setInterval(() => void sweepExpiredWorkspaces().catch((error) => console.error('Workspace sweep failed:', safeError(error))), 6 * 60 * 60_000).unref?.()
 const server = app.listen(port, host, () => {
@@ -2964,3 +3004,31 @@ const server = app.listen(port, host, () => {
   void runScheduledIntegrationScan()
   setTimeout(() => void runScheduledHostingTick(), 5_000).unref?.()
 })
+
+async function stopHost() {
+  if (shuttingDown) return
+  shuttingDown = true
+  const forced = setTimeout(() => process.exit(1), 9000)
+  forced.unref?.()
+  server.close(); server.closeAllConnections?.()
+  for (const collection of [localAgentControllers, integrationControllers, hostedControllers]) for (const controller of collection.values()) controller.abort(Object.assign(new Error('Host shutdown.'), { code: 'HOST_SHUTDOWN' }))
+  try {
+    await evolution.stop()
+    const deadline = Date.now() + 6000
+    while ((localAgentControllers.size || integrationControllers.size || hostedControllers.size) && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 25))
+    await saveState(); await stateWriteQueue
+    await hostLease.release()
+    process.exit(0)
+  } catch { process.exit(1) }
+}
+process.on('message', (message) => { if (message?.type === 'nexus-shutdown' && process.send) void stopHost() })
+if (process.send) process.on('disconnect', () => void stopHost())
+// Owner liveness supplements IPC on desktop deployments. This monitors process
+// lifecycle; it is not an OS security boundary.
+const desktopOwnerPid = Number(process.env.NEXUS_DESKTOP_OWNER_PID)
+if (desktopMode && Number.isInteger(desktopOwnerPid) && desktopOwnerPid > 0 && desktopOwnerPid !== process.pid) {
+  const ownerTimer = setInterval(() => { try { process.kill(desktopOwnerPid, 0) } catch { void stopHost() } }, 1000)
+  ownerTimer.unref?.()
+}
+process.on('SIGTERM', () => void stopHost())
+process.on('SIGINT', () => void stopHost())

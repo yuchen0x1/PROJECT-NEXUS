@@ -29,13 +29,13 @@ export async function startHttpServer(handler) {
 async function stopChild(child) {
   const index = children.indexOf(child)
   if (index >= 0) children.splice(index, 1)
-  if (child.exitCode !== null) return
+  if (child.exitCode !== null || child.signalCode !== null) return
   const exited = new Promise((resolve) => child.once('exit', resolve))
   child.kill()
   await exited
 }
 
-export async function startNexusServer({ dataDir, stateFile, providerUrl, token, extraEnv = {} }) {
+export async function startNexusServer({ dataDir, stateFile, providerUrl, token, extraEnv = {}, ipc = false }) {
   const port = await freePort()
   let stderrText = ''
   const child = spawn(process.execPath, ['server/index.mjs'], {
@@ -45,6 +45,7 @@ export async function startNexusServer({ dataDir, stateFile, providerUrl, token,
       PORT: String(port),
       NEXUS_HOST: '127.0.0.1',
       NEXUS_DESKTOP_MODE: 'true',
+      NEXUS_DESKTOP_OWNER_PID: '',
       NEXUS_LOCAL_API_TOKEN: token,
       NEXUS_DATA_DIR: dataDir,
       NEXUS_STATE_FILE: stateFile,
@@ -62,7 +63,7 @@ export async function startNexusServer({ dataDir, stateFile, providerUrl, token,
       GITHUB_TOKEN: '',
       ...extraEnv
     },
-    stdio: ['ignore', 'ignore', 'pipe'],
+    stdio: ipc ? ['ignore', 'ignore', 'pipe', 'ipc'] : ['ignore', 'ignore', 'pipe'],
     windowsHide: true
   })
   child.stderr.setEncoding('utf8').on('data', (chunk) => { stderrText += chunk })

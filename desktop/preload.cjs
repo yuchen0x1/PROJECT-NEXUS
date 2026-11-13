@@ -5,6 +5,7 @@ const invoke = (channel, ...args) => ipcRenderer.invoke(channel, ...args)
 contextBridge.exposeInMainWorld('nexusDesktop', Object.freeze({
   requestApi: (request) => invoke('desktop:api:request', request),
   getInfo: () => invoke('desktop:info'),
+  getMetrics: () => invoke('desktop:metrics'),
   detectEnvironment: () => invoke('desktop:environment:detect'),
   listProjects: () => invoke('desktop:projects:list'),
   addProject: (dialogTitle) => invoke('desktop:projects:add', dialogTitle),

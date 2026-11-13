@@ -121,6 +121,7 @@ async function startApiProcess() {
       PORT: '0',
       NEXUS_HOST: '127.0.0.1',
       NEXUS_DESKTOP_MODE: 'true',
+      NEXUS_DESKTOP_OWNER_PID: String(process.pid),
       NEXUS_LOCAL_API_TOKEN: apiToken,
       NEXUS_DATA_DIR: userDataPath,
       NEXUS_STATE_FILE: path.join(userDataPath, 'state.json'),
@@ -131,7 +132,7 @@ async function startApiProcess() {
     const child = spawn(process.execPath, [serverEntry], {
       cwd: serviceWorkingDirectory,
       env: childEnv,
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
       windowsHide: true,
       shell: false
     })
@@ -424,6 +425,13 @@ function registerLocalCapabilities() {
     cachePath,
     autoStart: Boolean(preferences.autoStart)
   }))
+  registerIpc('desktop:metrics', async () => ({
+    at: new Date().toISOString(),
+    // Electron documents these memory fields in KB. No process paths, command
+    // lines or arbitrary PID queries are exposed to the renderer.
+    processes: app.getAppMetrics().map((item) => ({ pid: item.pid, type: item.type, cpuPercent: item.cpu.percentCPUUsage, workingSetBytes: item.memory.workingSetSize * 1024, peakWorkingSetBytes: item.memory.peakWorkingSetSize * 1024, creationTime: item.creationTime })),
+    servicePid: apiProcess?.pid || null
+  }))
   registerIpc('desktop:environment:detect', async () => {
     const result = await detectDevelopmentEnvironment()
     await writeLog('info', 'environment-scan-complete', { available: result.available || 0, total: result.total || 0 })
@@ -660,11 +668,25 @@ if (!singleInstance) {
 } else {
   app.on('second-instance', showWindow)
   registerLocalCapabilities()
-  app.on('before-quit', () => {
+  let quitReady = false
+  app.on('before-quit', (event) => {
+    if (quitReady) return
+    event.preventDefault()
+    if (isQuitting) return
     isQuitting = true
     clearTimeout(windowSaveTimer)
-    void saveWindowState()
-    if (apiProcess && !apiProcess.killed) apiProcess.kill()
+    clearTimeout(serviceRespawnTimer)
+    void (async () => {
+      await saveWindowState().catch(() => {})
+      const child = apiProcess
+      if (child && child.exitCode === null && !child.killed) await new Promise((resolve) => {
+        const timer = setTimeout(() => { child.kill(); resolve() }, 10000)
+        child.once('exit', () => { clearTimeout(timer); resolve() })
+        if (child.connected) child.send({ type: 'nexus-shutdown' }, () => {})
+        else child.kill()
+      })
+      quitReady = true; app.quit()
+    })().catch(() => { quitReady = true; app.quit() })
   })
   app.on('window-all-closed', () => {})
   app.on('activate', showWindow)

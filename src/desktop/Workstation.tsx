@@ -10,6 +10,7 @@ import App, { REMOTE_NAV_PAGES, type RemotePage } from '../App'
 import SetupCenter from './SetupCenter'
 import ProductTour from './ProductTour'
 import ProjectOverview from './ProjectOverview'
+import EvolutionCenter from './EvolutionCenter'
 import { api, type AgentInsights, type AgentProvider, type LocalAgentTask } from '../api'
 import { useSettings } from '../i18n/settings'
 import { LANGUAGES } from '../i18n/languages'
@@ -17,7 +18,7 @@ import { formatCurrency, formatRelative, formatStamp, formatTime, formatTokens }
 import './workstation.css'
 import type { EnvironmentReport, LocalProject, WorkstationInfo } from './types'
 
-type Page = 'workstation' | 'projects' | 'environment' | 'agent' | 'overview' | 'remote' | 'settings'
+type Page = 'workstation' | 'projects' | 'environment' | 'agent' | 'overview' | 'evolution' | 'remote' | 'settings'
 
 type ActivityEntry = {
   id: string
@@ -564,6 +565,7 @@ export default function Workstation() {
     environment: t('environment:page.title'),
     agent: t('agent:page.title'),
     overview: t('workstation:overview.title'),
+    evolution: t('workstation:evolution.title'),
     remote: remoteLabels[remotePage],
     settings: t('settings:page.title')
   })[target]
@@ -574,6 +576,7 @@ export default function Workstation() {
     environment: t('workstation:sectionSubtitle.environment'),
     agent: t('workstation:sectionSubtitle.agent'),
     overview: t('workstation:overview.subtitle'),
+    evolution: t('workstation:evolution.subtitle'),
     remote: t('workstation:sectionSubtitle.remote'),
     settings: t('settings:page.subtitle')
   })[target]
@@ -595,6 +598,7 @@ export default function Workstation() {
     pushPage('environment', t('navigation:rail.environment'), <Wrench size={15} />)
     pushPage('agent', t('navigation:rail.agent'), <Bot size={15} />)
     pushPage('overview', t('workstation:overview.title'), <Network size={15} />)
+    pushPage('evolution', t('workstation:evolution.title'), <Bot size={15} />)
     for (const entry of REMOTE_NAV_PAGES) {
       items.push({ id: `page:remote:${entry.page}`, group: 'pages', label: remoteLabels[entry.page], icon: <entry.icon size={15} />, run: () => { navigateRemote(entry.page); setPaletteOpen(false) } })
     }
@@ -681,9 +685,9 @@ export default function Workstation() {
         </div>
       </header>
 
-      <div className="nx-content-grid" data-rail={showActivity && !['remote', 'settings', 'overview'].includes(page) ? 'open' : 'closed'}>
+      <div className="nx-content-grid" data-rail={showActivity && !['remote', 'settings', 'overview', 'evolution'].includes(page) ? 'open' : 'closed'}>
         <main className="nx-workarea">
-          {page !== 'remote' && page !== 'overview' && <div className="nx-page-heading">
+          {page !== 'remote' && page !== 'overview' && page !== 'evolution' && <div className="nx-page-heading">
             <div>
               <p className="nx-overline">{t('workstation:overline')}</p>
               <h1>{sectionTitle(page)}</h1>
@@ -725,6 +729,7 @@ export default function Workstation() {
             if (destination === 'agent') { if (taskId) setSelectedAgentTaskId(taskId); setPage('agent') }
             else { if (projectId) setGuideProjectId(projectId); navigateRemote(destination) }
           }} />}
+          {page === 'evolution' && <EvolutionCenter projects={projects} onOpenTask={(id) => { setSelectedAgentTaskId(id); setPage('agent') }} onOpenProjects={() => setPage('projects')} onOpenResearch={() => navigateRemote('Research')} />}
 
           {page === 'projects' && <section className="nx-section-block nx-project-page">
             <div className="nx-section-heading">
@@ -788,7 +793,7 @@ export default function Workstation() {
           {page === 'settings' && <WorkstationSettings info={info} systemLocale={systemLocale} onAutoStartChange={toggleAutoStart} />}
         </main>
 
-        {showActivity && !['remote', 'settings', 'overview'].includes(page) && <aside className="nx-activity-pane" aria-label={t('common:aria.notifications')}>
+        {showActivity && !['remote', 'settings', 'overview', 'evolution'].includes(page) && <aside className="nx-activity-pane" aria-label={t('common:aria.notifications')}>
           <div className="nx-side-heading">
             <div><Activity size={15} /><h2>{t('navigation:notifications.title')}</h2></div>
             <button className="nx-icon-button" aria-label={t('common:aria.collapsePanel')} onClick={() => setShowActivity(false)}><PanelRightClose size={14} /></button>
@@ -819,7 +824,7 @@ export default function Workstation() {
         </aside>}
       </div>
 
-      {!showActivity && !['remote', 'settings', 'overview'].includes(page) && (
+      {!showActivity && !['remote', 'settings', 'overview', 'evolution'].includes(page) && (
         <button className="nx-reopen-activity" onClick={() => setShowActivity(true)} aria-label={t('common:aria.expandPanel')}><PanelRightOpen size={16} /></button>
       )}
 
@@ -914,6 +919,7 @@ function ActivityBar({ page, onNavigate, remotePage, onRemoteNavigate, remoteLab
       {item('environment', t('navigation:rail.environment'), <Wrench size={16} />)}
       {item('agent', t('navigation:rail.agent'), <Bot size={16} />, { badge: agentActive })}
       {item('overview', t('workstation:overview.title'), <Network size={16} />)}
+      {item('evolution', t('workstation:evolution.title'), <Bot size={16} />)}
     </div>
     {!collapsed && <div className="nx-rail-label nx-rail-lower">{t('navigation:rail.management')}</div>}
     <div className="nx-rail-scroll"><div className="nx-rail-group">

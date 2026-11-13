@@ -249,7 +249,7 @@ function apiCandidates(files) {
   return files.filter((file) => /(?:^|\/)(?:api|controllers?|endpoints?|handlers?|graphql|resolvers?)(?:\/|[\w.-]*$)/i.test(file.path) && isSymbolTarget(file.path)).slice(0, 60).map((file) => file.path)
 }
 
-export async function scanProjectStructure(root, limitOverrides = {}) {
+export async function scanProjectStructure(root, limitOverrides = {}, previous = null) {
   const limits = { ...PROJECT_INDEX_LIMITS, ...limitOverrides }
   if (!path.isAbsolute(root)) throw indexError('PROJECT_INDEX_INVALID_ROOT', 'Project index root must be an absolute path.')
   const { files, stats } = await walkProject(root, limits)
@@ -257,12 +257,25 @@ export async function scanProjectStructure(root, limitOverrides = {}) {
   let totalBytes = 0
   const symbols = new Map()
   const imports = new Map()
+  const previousByPath = new Map(previous?.root === path.resolve(root) ? previous.files.map((file) => [file.path, file]) : [])
+  let analyzedFiles = 0, reusedFiles = 0
   for (const file of files) {
     totalBytes += file.size
     const isTarget = isSymbolTarget(file.path) || isManifestCandidate(file.path)
     if (!isTarget || file.size > limits.maxFileBytes || symbols.size >= limits.maxSymbolFiles && !isManifestCandidate(file.path)) continue
+    const before = previousByPath.get(file.path)
+    if (before?.sha256 && before.size === file.size && before.mtimeMs === file.mtimeMs) {
+      file.sha256 = before.sha256; reusedFiles++
+      if (previous.symbols?.[file.path]) symbols.set(file.path, previous.symbols[file.path])
+      if (previous.imports?.[file.path]) imports.set(file.path, previous.imports[file.path])
+      const manifest = previous.manifests?.find((item) => item.path === file.path)
+      if (manifest) manifests.push(manifest)
+      continue
+    }
     const content = await readTextIfSmall(root, file, limits)
     if (content === null) continue
+    analyzedFiles++
+    file.sha256 = crypto.createHash('sha256').update(content).digest('hex')
     if (isManifestCandidate(file.path) && file.size < 256 * 1024) {
       const summary = extractManifestSummary(file.path, content)
       if (summary) manifests.push(summary)
@@ -281,7 +294,7 @@ export async function scanProjectStructure(root, limitOverrides = {}) {
     root: path.resolve(root),
     scannedAt: new Date().toISOString(),
     limits,
-    stats: { ...stats, totalBytes, symbolFiles: symbols.size, manifestCount: manifests.length },
+    stats: { ...stats, totalBytes, symbolFiles: symbols.size, manifestCount: manifests.length, analyzedFiles, reusedFiles },
     files,
     manifests,
     entryPoints: detectEntryPoints(files, manifests),
@@ -295,13 +308,13 @@ export async function scanProjectStructure(root, limitOverrides = {}) {
 }
 
 export async function buildProjectIndex({ root, cacheFile, limitOverrides = {} } = {}) {
-  const fresh = await scanProjectStructure(root, limitOverrides)
-  if (!cacheFile) return { index: fresh, changed: [], reindexed: fresh.files.length, cached: false }
+  if (!cacheFile) { const index = await scanProjectStructure(root, limitOverrides); return { index, changed: [], reindexed: index.files.length, cached: false } }
   let previous = null
   try {
     const parsed = JSON.parse(await fs.readFile(cacheFile, 'utf8'))
-    if (parsed?.schemaVersion === INDEX_SCHEMA_VERSION && Array.isArray(parsed.files)) previous = parsed
+    if (parsed?.schemaVersion === INDEX_SCHEMA_VERSION && parsed.root === path.resolve(root) && Array.isArray(parsed.files)) previous = parsed
   } catch { previous = null }
+  const fresh = await scanProjectStructure(root, limitOverrides, previous)
   if (!previous) {
     await persistIndex(cacheFile, fresh)
     return { index: fresh, changed: fresh.files.map((file) => file.path), reindexed: fresh.files.length, cached: false }
@@ -314,35 +327,8 @@ export async function buildProjectIndex({ root, cacheFile, limitOverrides = {} }
     if (!before || before.size !== file.size || before.mtimeMs !== file.mtimeMs) changed.push(filePath)
   }
   for (const filePath of previousByPath.keys()) if (!freshByPath.has(filePath)) changed.push(filePath)
-  if (!changed.length) return { index: previous, changed: [], reindexed: 0, cached: true }
-  // Re-scan only the changed subset for symbols/imports, keep the rest from cache.
-  const merged = { ...fresh, files: fresh.files, symbols: { ...previous.symbols }, imports: { ...previous.imports } }
-  for (const filePath of changed) {
-    delete merged.symbols[filePath]
-    delete merged.imports[filePath]
-  }
-  const refreshSet = new Set(changed.filter((filePath) => freshByPath.has(filePath) && (isSymbolTarget(filePath))))
-  if (refreshSet.size) {
-    const limits = fresh.limits
-    for (const filePath of refreshSet) {
-      if (symbolsBudget(merged) >= limits.maxSymbolFiles) break
-      const file = freshByPath.get(filePath)
-      const content = await readTextIfSmall(root, file, limits)
-      if (content === null) continue
-      const language = file.language || classifyLanguage(filePath)
-      const fileSymbols = extractSymbols(language, content, limits)
-      if (fileSymbols.length) merged.symbols[filePath] = fileSymbols
-      const fileImports = extractImports(language, content, limits)
-      if (fileImports.length) merged.imports[filePath] = fileImports
-    }
-  }
-  merged.stats.symbolFiles = Object.keys(merged.symbols).length
-  await persistIndex(cacheFile, merged)
-  return { index: merged, changed, reindexed: changed.length, cached: true }
-}
-
-function symbolsBudget(index) {
-  return Object.keys(index.symbols).length
+  await persistIndex(cacheFile, fresh)
+  return { index: fresh, changed, reindexed: changed.length, cached: true }
 }
 
 async function persistIndex(cacheFile, index) {

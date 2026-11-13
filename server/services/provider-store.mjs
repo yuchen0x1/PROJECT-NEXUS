@@ -375,11 +375,13 @@ export async function resolveProviderForInvocation({ dataDir, providerId, taskTy
     selected = selected || records.find((provider) => provider.enabled !== false && hasApiKey(provider)) || null
   }
   if (selected) {
+    if (selected.enabled === false) return null
     const resolved = resolveProviderWithKey(selected)
     return resolved.configured ? resolved : null
   }
   // Fall back to the legacy env-configured providers so runtime tasks work in
   // server deployments without a persisted provider registry.
+  if (providerId && providerId !== 'default') return null
   const kind = normalizeKind(process.env.AI_PROVIDER_KIND)
   if (process.env.AI_BASE_URL && process.env.AI_MODEL && (process.env.AI_API_KEY || kind === 'ollama')) {
     return {

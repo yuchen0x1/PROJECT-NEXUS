@@ -12,6 +12,13 @@ afterEach(async () => {
 })
 
 describe('AI provider registry and execution', () => {
+  it.each([undefined, { total_tokens: -1 }, { total_tokens: '' }])('marks missing or malformed provider usage unknown instead of claiming a zero-cost request: %j', async (usage) => {
+    const server = http.createServer((_req, res) => { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ choices: [{ message: { content: 'response without accounting' } }], usage })) })
+    servers.push(server); await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
+    const result = await invokeAIProvider({ providerOverride: { id: 'fixture', kind: 'openai-compatible', configured: true, baseUrl: `http://127.0.0.1:${server.address().port}`, model: 'fixture', apiKey: 'fixture-key', pricing: { inputPer1M: 1, outputPer1M: 1 } }, messages: [{ role: 'user', content: 'fixture' }], maxRetries: 0 })
+    expect(result.usageKnown).toBe(false)
+    expect(result.costUsd).toBeNull()
+  })
   it('normalizes usage and rejects untrusted provider URLs', () => {
     expect(normalizeUsage({ prompt_tokens: 3, completion_tokens: 4 })).toEqual({ inputTokens: 3, outputTokens: 4, totalTokens: 7 })
     expect(() => assertTrustedProviderUrl('http://example.com')).toThrow(/HTTPS/)

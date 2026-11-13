@@ -1,6 +1,7 @@
 import crypto from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { saveStateFile } from './state-store.mjs'
 
 export const LOCAL_AGENT_TASKS_FILE = 'local-agent-tasks.json'
 export const LOCAL_AGENT_TASK_SCHEMA_VERSION = 1
@@ -103,14 +104,7 @@ async function assertRegularFileOrMissing(file) {
 async function writeDocument(file, document) {
   await fs.mkdir(path.dirname(file), { recursive: true })
   await assertRegularFileOrMissing(file)
-  const temporary = `${file}.${process.pid}.${crypto.randomUUID()}.tmp`
-  try {
-    await fs.writeFile(temporary, JSON.stringify(document, null, 2), { encoding: 'utf8', flag: 'wx' })
-    await fs.rename(temporary, file)
-  } catch (error) {
-    await fs.rm(temporary, { force: true }).catch(() => {})
-    throw error
-  }
+  await saveStateFile(file, document)
 }
 
 function normalizeTask(source, seenIds) {

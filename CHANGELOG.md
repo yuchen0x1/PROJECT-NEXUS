@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.0 — 2026-11-13 (local candidate, unpublished)
+
+Six-role collaboration, isolated independently authored Node tests, verified conversation checkpoint recovery, research proposal implementation gates, separate self-maintenance policy, project memory and resource telemetry are available on the local development branch. Persistence, command risk escalation, workspace boundaries and candidate application received focused fixes.
+
+Maintained suite: 54 files / 284 tests passed. Native source and packaged-executable fixture acceptance passed. Unsigned installer; strict OS isolation, native update installation/rollback, real external services and 24-hour soak acceptance remain incomplete. See [current delivery report](docs/FINAL_DELIVERY_REPORT.md) and [canonical product release notes](docs/releases/release-notes.md).
+
 ## 0.3.0 — 2026-11-13
 
 Phase 6 — autonomous AI development engine (PHASE 6A delivered; 6B–6F partially specified).

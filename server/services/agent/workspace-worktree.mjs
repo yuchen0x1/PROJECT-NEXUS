@@ -73,10 +73,24 @@ async function git(cwd, args, { signal = null } = {}) {
 const secretLikeSegments = /(?:^|\/)\.env(?:$|[._-])|(?:^|\/)(?:id_rsa|id_dsa|id_ecdsa|id_ed25519|\.npmrc|\.pypirc|\.netrc|credentials\.json)$|(?:^|\/)[^\/]*\.(?:pem|key|p12|pfx)$/i
 
 function safeReadSegments(relativePath) {
+  const raw = String(relativePath || '').replace(/\\/g, '/')
+  if (/^(?:\/|[A-Za-z]:)/.test(raw) || raw.includes('\0') || raw.split('/').includes('..')) return null
   const clean = String(relativePath || '').replace(/\\/g, '/').split('/').filter((segment) => segment && segment !== '.' && segment !== '..')
   if (!clean.length) return null
   if (clean.some((segment) => secretLikeSegments.test('/' + clean.join('/')) || segment === '.git')) return null
   return clean
+}
+
+async function guardedTarget(adapter, segments = []) {
+  const rootInfo = await fs.lstat(adapter.source)
+  if (!rootInfo.isDirectory() || rootInfo.isSymbolicLink()) throw workspaceError('AGENT_PATH_ESCAPE', 'Workspace root must not be a link.')
+  let target = adapter.source
+  for (const segment of segments) {
+    target = path.join(target, segment)
+    const info = await fs.lstat(target).catch((error) => { if (error.code !== 'ENOENT') throw error; return null })
+    if (info?.isSymbolicLink()) throw workspaceError('AGENT_PATH_ESCAPE', 'Workspace paths must not traverse symbolic links or junctions.')
+  }
+  return target
 }
 
 function parsePorcelain(output) {
@@ -112,6 +126,10 @@ export async function createWorktreeWorkspace({ projectPath, taskId, workspaceRo
   // Confirm this is a real git repository with at least one commit.
   const check = await runCommand({ cwd: source, command: 'git rev-parse --is-inside-work-tree', timeoutMs: GIT_TIMEOUT_MS })
   if (!check.ok || !check.stdout.includes('true')) throw workspaceError('AGENT_NOT_A_GIT_REPO', 'The project is not a git working tree.')
+  const top = await runCommand({ cwd: source, command: 'git rev-parse --show-toplevel', timeoutMs: GIT_TIMEOUT_MS })
+  const [registeredRoot, gitRoot] = await Promise.all([fs.realpath(source), top.ok ? fs.realpath(top.stdout.trim()) : Promise.resolve(null)])
+  const comparable = (value) => process.platform === 'win32' ? value?.toLowerCase() : value
+  if (!gitRoot || comparable(registeredRoot) !== comparable(gitRoot)) throw workspaceError('AGENT_GIT_ROOT_MISMATCH', 'The selected project is a subdirectory of another repository; a bounded copy is required to avoid disclosing its parent project.')
   const head = await runCommand({ cwd: source, command: 'git rev-parse --verify HEAD', timeoutMs: GIT_TIMEOUT_MS })
   if (!head.ok) throw workspaceError('AGENT_GIT_NO_COMMITS', 'The repository has no commits; a worktree cannot be created.')
 
@@ -121,6 +139,7 @@ export async function createWorktreeWorkspace({ projectPath, taskId, workspaceRo
       kind: 'worktree',
       id,
       branch,
+      baseCommit: head.stdout.trim(),
       projectId: null,
       projectPath: source,
       workspaceRoot: rootBase,
@@ -142,13 +161,22 @@ async function listWorktreeChanges(adapter) {
   // Materialize content for review: stage everything in the isolated worktree
   // so the diff includes added files, then diff against HEAD.
   if (changes.length) await git(adapter.source, ['add', '-A'], {})
+  if (adapter.baseCommit) {
+    const entries = (await git(adapter.source, ['diff', '--cached', '--no-renames', '--name-status', '-z', adapter.baseCommit, '--'], {})).split('\0')
+    const baselineChanges = []
+    for (let index = 0; index + 1 < entries.length; index += 2) {
+      const status = entries[index], file = entries[index + 1]
+      if (status && file) baselineChanges.push({ path: file, action: status === 'A' ? 'added' : status === 'D' ? 'deleted' : 'modified', indexStatus: status })
+    }
+    return baselineChanges
+  }
   return changes
 }
 
 async function worktreeDiff(adapter, { signal = null } = {}) {
   const changes = await listWorktreeChanges(adapter)
   if (!changes.length) return { changes, diff: '' }
-  const diff = await git(adapter.source, ['diff', '--cached', 'HEAD', '--'], { signal })
+  const diff = await git(adapter.source, ['diff', '--cached', adapter.baseCommit || 'HEAD', '--'], { signal })
   return { changes, diff }
 }
 
@@ -157,8 +185,10 @@ async function restoreWorktreeFile(adapter, relativePath) {
   if (!clean) throw workspaceError('AGENT_WORKSPACE_INVALID_PATH', 'A workspace-relative file path is required.')
   const relative = clean.join('/')
   // If the file exists in HEAD, restore it; if it was newly added, delete it.
-  const check = await runCommand({ cwd: adapter.source, command: `git cat-file -e "HEAD:${relative}"`, timeoutMs: GIT_TIMEOUT_MS })
-  if (check.ok) await git(adapter.source, ['checkout', 'HEAD', '--', relative], {})
+  await guardedTarget(adapter, clean)
+  const base = adapter.baseCommit || 'HEAD'
+  const check = await runCommand({ cwd: adapter.source, command: `git cat-file -e "${base}:${relative}"`, timeoutMs: GIT_TIMEOUT_MS })
+  if (check.ok) await git(adapter.source, ['checkout', base, '--', relative], {})
   else {
     await fs.rm(path.join(adapter.source, ...clean), { force: true }).catch(() => {})
     const result = await runCommand({ cwd: adapter.source, command: `git status --porcelain -- ${gitQuote(relative)}`, timeoutMs: GIT_TIMEOUT_MS })
@@ -168,8 +198,8 @@ async function restoreWorktreeFile(adapter, relativePath) {
 }
 
 async function restoreAllWorktree(adapter) {
-  await git(adapter.source, ['reset', '--quiet', 'HEAD', '--'], {})
-  await git(adapter.source, ['checkout', '--quiet', 'HEAD', '--', '.'], {})
+  await guardedTarget(adapter)
+  await git(adapter.source, ['restore', '--source', adapter.baseCommit || 'HEAD', '--staged', '--worktree', '--', '.'], {})
   await git(adapter.source, ['clean', '-qfd'], {})
   return { reset: true }
 }
@@ -227,7 +257,7 @@ function worktreeAdapter(adapter) {
       for (const relativePath of (paths || []).slice(0, maxFiles)) {
         const clean = safeReadSegments(relativePath)
         if (!clean) continue
-        const target = path.join(adapter.source, ...clean)
+        const target = await guardedTarget(adapter, clean)
         const info = await fs.stat(target).catch(() => null)
         if (!info?.isFile() || info.size > maxFileWindowBytes()) continue
         if (total + info.size > maxBytes) break
@@ -246,7 +276,7 @@ function worktreeAdapter(adapter) {
         }
         const clean = safeReadSegments(operation.path)
         if (!clean) throw workspaceError('AGENT_PATH_INVALID', `Unsafe or secret-like worktree path: ${operation.path}`)
-        const target = path.join(adapter.source, ...clean)
+        const target = await guardedTarget(adapter, clean)
         if (path.relative(adapter.source, target).startsWith('..')) throw workspaceError('AGENT_PATH_ESCAPE', 'Worktree path escaped the worktree root.')
         await fs.mkdir(path.dirname(target), { recursive: true })
         if (operation.action === 'create') {
@@ -269,7 +299,7 @@ function worktreeAdapter(adapter) {
     deleteFile: async (relativePath) => {
       const clean = safeReadSegments(relativePath)
       if (!clean) throw workspaceError('AGENT_PATH_INVALID', `Unsafe or secret-like worktree path: ${relativePath}`)
-      const target = path.join(adapter.source, ...clean)
+      const target = await guardedTarget(adapter, clean)
       if (path.relative(adapter.source, target).startsWith('..')) throw workspaceError('AGENT_PATH_ESCAPE', 'Worktree path escaped the worktree root.')
       const info = await fs.lstat(target).catch(() => null)
       if (!info?.isFile()) throw workspaceError('AGENT_FILE_MISSING', `File does not exist: ${relativePath}`)
@@ -348,7 +378,7 @@ export async function createAgentWorkspace({ project, taskId, mode = 'auto', wor
 
 // Rebuild an adapter for an existing workspace after the runtime finished
 // (rollback / apply endpoints). Throws when the workspace is gone.
-export async function reconstructAdapter({ taskId, projectId, repository = null, mode, dataDir, workspaceRoot }) {
+export async function reconstructAdapter({ taskId, projectId, repository = null, mode, dataDir, workspaceRoot, baseCommit = null }) {
   const id = validateTaskId(taskId)
   if (mode === 'worktree') {
     const rootBase = validateAbsolutePath(workspaceRoot, 'workspaceRoot')
@@ -356,21 +386,23 @@ export async function reconstructAdapter({ taskId, projectId, repository = null,
       ? repoWorktreePath(dataDir, repository, id)
       : path.join(rootBase, 'worktree', `nexus-agent__${id.replace(/[._]/g, '-')}`)
     const info = await fs.lstat(root).catch(() => null)
-    if (!info?.isDirectory()) throw workspaceError('AGENT_WORKSPACE_GONE', `The worktree for this task no longer exists: ${root}`)
+    if (!info?.isDirectory() || info.isSymbolicLink()) throw workspaceError('AGENT_WORKSPACE_GONE', `The worktree for this task no longer exists or is a link: ${root}`)
     const projectPath = await readWorktreeProjectPath(root)
-    return worktreeAdapter({ kind: 'worktree', id, branch: `nexus-agent/${id.replace(/[._]/g, '-')}`, projectPath, workspaceRoot: rootBase, root, source: root, createdAt: null })
+    if (baseCommit && !/^[a-f0-9]{40}$/.test(baseCommit)) throw workspaceError('AGENT_WORKSPACE_INVALID_BASE', 'Invalid worktree baseline.')
+    return worktreeAdapter({ kind: 'worktree', id, branch: `nexus-agent/${id.replace(/[._]/g, '-')}`, baseCommit, projectPath, workspaceRoot: rootBase, root, source: root, createdAt: null })
   }
-  const manifestPath = path.join(dataDir, 'agent-workspaces', 'agent', String(projectId || ''), id, 'baseline.json')
+  const copyRoot = workspaceRoot ? validateAbsolutePath(workspaceRoot, 'workspaceRoot') : path.join(dataDir, 'agent-workspaces', 'agent')
+  const manifestPath = path.join(copyRoot, String(projectId || ''), id, 'baseline.json')
   const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'))
   const handle = {
     id,
     projectId,
     projectName: manifest.project?.name || '',
-    workspaceRoot: path.join(dataDir, 'agent-workspaces', 'agent'),
-    root: path.join(dataDir, 'agent-workspaces', 'agent', String(projectId || ''), id),
-    source: path.join(dataDir, 'agent-workspaces', 'agent', String(projectId || ''), id, 'source'),
-    baselinePath: path.join(dataDir, 'agent-workspaces', 'agent', String(projectId || ''), id, 'baseline.json'),
-    baselineFiles: path.join(dataDir, 'agent-workspaces', 'agent', String(projectId || ''), id, 'baseline-files'),
+    workspaceRoot: copyRoot,
+    root: path.join(copyRoot, String(projectId || ''), id),
+    source: path.join(copyRoot, String(projectId || ''), id, 'source'),
+    baselinePath: path.join(copyRoot, String(projectId || ''), id, 'baseline.json'),
+    baselineFiles: path.join(copyRoot, String(projectId || ''), id, 'baseline-files'),
     limits: manifest.limits,
     stats: manifest.stats
   }

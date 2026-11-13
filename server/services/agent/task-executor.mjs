@@ -6,6 +6,8 @@ import { buildProjectIndex } from './indexer.mjs'
 import { buildTaskContextBundle } from './context.mjs'
 import { resolveProviderForInvocation } from '../provider-store.mjs'
 import { repoWorktreePath, repoWorkspaceRootFor, validateRepoFullName } from '../repo-workspace.mjs'
+import { captureWorkspaceEvidence } from '../workspace-evidence.mjs'
+import { applyCandidateFiles } from '../candidate-apply.mjs'
 
 // Full agent task pipeline: resolve provider → create isolated workspace
 // (worktree preferred) → index the workspace → select task context → run the
@@ -23,7 +25,7 @@ export function agentWorkspaceHandleFor(task, dataDir) {
     try { validateRepoFullName(hostedRepository) } catch { return null }
   }
   if (hostedRepository && task.workspace.mode !== 'worktree') return null
-  const rootBase = hostedRepository ? repoWorkspaceRootFor(dataDir) : path.join(dataDir, 'agent-workspaces', 'agent')
+  const rootBase = hostedRepository ? repoWorkspaceRootFor(dataDir) : path.join(dataDir, 'agent-workspaces', task.role === 'tester' ? 'tests' : 'agent')
   const root = hostedRepository
     ? repoWorktreePath(dataDir, hostedRepository, task.id)
     : task.workspace.mode === 'worktree'
@@ -63,7 +65,15 @@ export async function executeAgentRuntimeTask({ task, taskStore, dataDir, signal
   const agentWorkspaceRoot = hostedRepository ? repoWorkspaceRootFor(dataDir) : path.join(dataDir, 'agent-workspaces', 'agent')
   const agentWorkspacePath = hostedRepository ? repoWorktreePath(dataDir, hostedRepository, current.id) : null
 
-  const { adapter, mode, fallbackReason } = await createAgentWorkspace({
+  let adapter, mode, fallbackReason
+  if (options.resumeVerified === true) {
+    const handle = agentWorkspaceHandleFor(current, dataDir)
+    if (!handle) throw Object.assign(new Error('The task has no recoverable isolated workspace.'), { code: 'AGENT_WORKSPACE_MISSING' })
+    const { reconstructAdapter } = await import('./workspace-worktree.mjs')
+    adapter = await reconstructAdapter({ taskId: current.id, projectId: current.projectId, mode: current.workspace.mode, baseCommit: current.workspace.baseCommit, dataDir, workspaceRoot: handle.workspaceRoot, workspacePath: hostedRepository ? handle.root : undefined })
+    mode = current.workspace.mode; fallbackReason = null
+  } else {
+  const created = await createAgentWorkspace({
     project,
     taskId: task.id,
     mode: options.workspaceMode || current.workspaceMode || 'auto',
@@ -72,6 +82,8 @@ export async function executeAgentRuntimeTask({ task, taskStore, dataDir, signal
     dataDir,
     signal
   })
+  adapter = created.adapter; mode = created.mode; fallbackReason = created.fallbackReason
+  }
   await taskStore.update({
     taskId: task.id,
       patch: {
@@ -79,6 +91,7 @@ export async function executeAgentRuntimeTask({ task, taskStore, dataDir, signal
           id: task.id,
           mode,
           branch: adapter.branch || null,
+          baseCommit: adapter.baseCommit || null,
           source: hostedRepository ? 'repositories/<owner>__<repo>/worktrees/<taskId>' : 'agent-workspaces/agent',
           createdAt: adapter.createdAt
         },
@@ -124,6 +137,7 @@ export async function executeAgentRuntimeTask({ task, taskStore, dataDir, signal
   })
 
   const changesSummary = Array.isArray(result.changes) ? result.changes : null
+  const reviewedEvidence = result.status === 'Succeeded' ? await captureWorkspaceEvidence(adapter, { signal }) : null
   await taskStore.update({
     taskId: task.id,
     patch: {
@@ -138,6 +152,7 @@ export async function executeAgentRuntimeTask({ task, taskStore, dataDir, signal
         providerCalls: result.providerCalls,
         usage: result.usage,
         costUsd: result.costUsd,
+        costKnown: result.costKnown,
         verification: result.verification,
         review: result.review,
         finalMessage: result.finalMessage,
@@ -149,7 +164,8 @@ export async function executeAgentRuntimeTask({ task, taskStore, dataDir, signal
       changedFiles: changesSummary ? changesSummary.map((change) => change.path) : [],
       changeCount: changesSummary ? changesSummary.length : 0,
       usage: result.usage,
-      costUsd: result.costUsd
+      costUsd: result.costUsd,
+      artifactSha256: reviewedEvidence?.artifactSha256 || null
     },
     event: {
       type: result.status === 'Succeeded' ? 'completed' : 'failed',
@@ -178,13 +194,14 @@ export async function listRuntimeTaskChanges({ task, dataDir, maxChanges = 40, m
   if (!handle) return { changes: [], error: 'This task has no workspace handle.' }
   const info = await fs.lstat(handle.root).catch(() => null)
   if (!info) return { changes: [], error: 'The workspace for this task no longer exists.' }
-  const { reconstructAdapter, parsePorcelain } = await import('./workspace-worktree.mjs')
+  const { reconstructAdapter } = await import('./workspace-worktree.mjs')
   const { runCommand } = await import('./executor.mjs')
   const adapter = await reconstructAdapter({
     taskId: task.workspace.id,
     projectId: task.projectId,
     repository: handle.repository,
     mode: handle.mode,
+    baseCommit: task.workspace.baseCommit,
     dataDir,
     workspaceRoot: handle.workspaceRoot
   })
@@ -193,8 +210,7 @@ export async function listRuntimeTaskChanges({ task, dataDir, maxChanges = 40, m
     return { changes: changes.slice(0, maxChanges), error: null }
   }
   // Worktree: derive before/after per file from HEAD and the working tree.
-  const status = await runCommand({ cwd: adapter.source, command: 'git status --porcelain', timeoutMs: 20_000 })
-  const raw = parsePorcelain(status.stdout || '')
+  const raw = await adapter.listChanges()
   const changes = []
   for (const change of raw.slice(0, maxChanges)) {
     let before = null
@@ -202,7 +218,7 @@ export async function listRuntimeTaskChanges({ task, dataDir, maxChanges = 40, m
     let contentStatus = 'available'
     try {
       if (change.action !== 'added') {
-        const show = await runCommand({ cwd: adapter.source, command: `git show "HEAD:${change.path}"`, timeoutMs: 15_000, outputLimitBytes: maxFileBytes })
+        const show = await runCommand({ cwd: adapter.source, command: `git show "${adapter.baseCommit || 'HEAD'}:${change.path}"`, timeoutMs: 15_000, outputLimitBytes: maxFileBytes })
         if (show.ok) before = show.stdout
         else contentStatus = 'preview-unavailable'
       }
@@ -231,6 +247,7 @@ export async function rollbackAgentTask({ task, dataDir }) {
     projectId: task.projectId,
     repository: handle.repository,
     mode: handle.mode,
+    baseCommit: task.workspace.baseCommit,
     dataDir,
     workspaceRoot: handle.workspaceRoot
   })
@@ -241,6 +258,7 @@ export async function rollbackAgentTask({ task, dataDir }) {
 // ---- Apply workspace changes to the original project (explicit user action) ----
 
 export async function applyAgentTaskToProject({ task, dataDir, confirm = false }) {
+  if (task.role === 'tester') throw Object.assign(new Error('Independent test workspaces are evidence; apply the reviewed developer candidate instead.'), { code: 'AGENT_APPLY_ROLE_FORBIDDEN' })
   if (confirm !== true) throw Object.assign(new Error('Applying changes to the original project requires explicit confirmation.'), { code: 'AGENT_APPLY_CONFIRMATION_REQUIRED' })
   // Paused tasks may still be awaiting an approval decision; applying their
   // workspace would deliver an unreviewed change set (audit finding, fixed).
@@ -257,11 +275,16 @@ export async function applyAgentTaskToProject({ task, dataDir, confirm = false }
     projectId: task.projectId,
     repository: handle.repository,
     mode: handle.mode,
+    baseCommit: task.workspace.baseCommit,
     dataDir,
     workspaceRoot: handle.workspaceRoot
   })
 
   const { changes, diff } = await adapter.diff()
+  const evidence = await captureWorkspaceEvidence(adapter)
+  if (task.artifactSha256) {
+    if (evidence.artifactSha256 !== task.artifactSha256) throw Object.assign(new Error('Candidate files changed after verification. Run a new task before applying them.'), { code: 'AGENT_APPLY_ARTIFACT_CHANGED' })
+  }
   if (!changes.length) return { applied: false, note: 'The workspace has no changes to apply.', appliedPaths: [] }
 
   // Protect the user's own uncommitted work: refuse when the original tree is dirty.
@@ -274,31 +297,15 @@ export async function applyAgentTaskToProject({ task, dataDir, confirm = false }
   if (isGit && statusResult.stdout.trim()) {
     throw Object.assign(new Error('The original project has uncommitted changes. Commit or stash them before applying agent changes.'), { code: 'AGENT_APPLY_DIRTY_PROJECT' })
   }
+  if (isGit && task.workspace.baseCommit) {
+    const { runCommand } = await import('./executor.mjs')
+    const head = await runCommand({ cwd: project.path, command: 'git rev-parse HEAD', timeoutMs: 20000 })
+    if (!head.ok || head.stdout.trim() !== task.workspace.baseCommit) throw Object.assign(new Error('The original project HEAD changed after this candidate was created. Rebase and verify a new candidate before applying.'), { code: 'AGENT_APPLY_BASE_CHANGED' })
+  }
 
   // Backup affected original files inside the workspace root before overwriting.
   const backupRoot = path.join(handle.workspaceRoot, 'apply-backup', task.id)
-  const appliedPaths = []
-  for (const change of changes) {
-    const cleanSegments = change.path.replace(/\\/g, '/').split('/').filter((segment) => segment && segment !== '.' && segment !== '..')
-    if (!cleanSegments.length) continue
-    const originalTarget = path.join(project.path, ...cleanSegments)
-    const backupPath = path.join(backupRoot, ...cleanSegments)
-    const originalInfo = await fs.lstat(originalTarget).catch(() => null)
-    if (originalInfo?.isFile() && !originalInfo.isSymbolicLink()) {
-      await fs.mkdir(path.dirname(backupPath), { recursive: true })
-      await fs.copyFile(originalTarget, backupPath, fs.constants.COPYFILE_EXCL).catch(() => {})
-    }
-    if (change.action === 'deleted') {
-      await fs.rm(originalTarget, { force: true })
-    } else {
-      const files = await adapter.readFiles([change.path], { maxFiles: 1, maxBytes: 4 * 1024 * 1024 })
-      const file = files.find((item) => item.path === change.path)
-      if (!file) throw Object.assign(new Error(`Workspace file could not be read for apply: ${change.path}`), { code: 'AGENT_APPLY_READ_FAILED' })
-      await fs.mkdir(path.dirname(originalTarget), { recursive: true })
-      await fs.writeFile(originalTarget, Buffer.from(file.content, 'utf8'))
-    }
-    appliedPaths.push(change.path)
-  }
+  const { appliedPaths } = await applyCandidateFiles({ source: adapter.source, originalRoot: project.path, backupRoot, changes, taskId: task.id, expectedEntries: evidence.entries })
   return {
     applied: true,
     mode: handle.mode,
