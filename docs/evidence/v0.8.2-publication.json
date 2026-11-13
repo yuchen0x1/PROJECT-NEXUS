@@ -1,0 +1,50 @@
+{
+  "tag": "v0.8.2",
+  "releaseUrl": "https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.2",
+  "publishedAt": "2026-11-13T14:17:42Z",
+  "draft": false,
+  "prerelease": false,
+  "sourceCommit": "fc368b409c7cd3daa9597ed3a0fe75763061a326",
+  "ci": {
+    "runId": 43440658247,
+    "url": "https://github.com/yuchen0x1/PROJECT-NEXUS/actions/runs/43440658247",
+    "conclusion": "success",
+    "testFiles": 56,
+    "tests": 298
+  },
+  "assets": [
+    {
+      "name": "latest.yml",
+      "size": 371,
+      "digest": "sha256:9828f11301b4e4115f0dd700c775c910d909e1c906c5c9ff4c7e5d54df788ef5",
+      "url": "https://github.com/yuchen0x1/PROJECT-NEXUS/releases/download/v0.8.2/latest.yml"
+    },
+    {
+      "name": "PROJECT-NEXUS-0.8.2-win-x64-setup.exe",
+      "size": 122841697,
+      "digest": "sha256:80c9df6558432af6ec93d02218bb1a3a1c52ac62e3c20c7804f5da25153b0b94",
+      "url": "https://github.com/yuchen0x1/PROJECT-NEXUS/releases/download/v0.8.2/PROJECT-NEXUS-0.8.2-win-x64-setup.exe"
+    },
+    {
+      "name": "PROJECT-NEXUS-0.8.2-win-x64-setup.exe.blockmap",
+      "size": 130447,
+      "digest": "sha256:860d52f362aaba069365a95fe07afeb1c165d86d5ab9b649475a67ba9c9761a8",
+      "url": "https://github.com/yuchen0x1/PROJECT-NEXUS/releases/download/v0.8.2/PROJECT-NEXUS-0.8.2-win-x64-setup.exe.blockmap"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 104,
+      "digest": "sha256:173007925c1c51afb5c55159f8e5629b36c8a259d10e1f43601e6b7ae9096513",
+      "url": "https://github.com/yuchen0x1/PROJECT-NEXUS/releases/download/v0.8.2/SHA256SUMS.txt"
+    }
+  ],
+  "verification": {
+    "smallAssetsDownloadedAndSha256Matched": true,
+    "installerGitHubSha256MatchesDownloadedChecksums": true,
+    "installerVersionSizeAndSha512VerifiedInCI": true,
+    "installerCompleteLocalReadback": false,
+    "crossVersionInstallAndRelaunch": false,
+    "codeSigned": false,
+    "manifestAnonymousPublicDownloadSha256Matched": true
+  }
+}
