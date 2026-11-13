@@ -441,7 +441,13 @@
       "Gerenciamento / Issues",
       "Gerenciamento / Pesquisa"
     ],
-    "resumeRequired": "O agendador global está pausado. Retome-o explicitamente antes de iniciar tarefas automáticas neste repositório."
+    "resumeRequired": "O agendador global está pausado. Retome-o explicitamente antes de iniciar tarefas automáticas neste repositório.",
+    "firstUse": {
+      "title": "Primeiro uso · Configuração guiada",
+      "detail": "Vamos orientar você pelo GitHub, IA, seleção de repositórios, ferramentas e gerenciamento e mostrar as tarefas e os resultados. Você pode continuar depois; o guia abrirá novamente na próxima inicialização.",
+      "later": "Continuar depois",
+      "saveFailed": "Não foi possível salvar a conclusão do tutorial. Tente novamente."
+    }
   },
   "batch": {
     "selectAll": "Selecionar todos",

@@ -105,6 +105,10 @@
         "v0_8_5": {
           "title": "Repository-Abgleich und regelmäßige Aktualisierung",
           "summary": "Korrigiert veraltete Zahlen nach dem Löschen. Wartet auf den Abschluss, synchronisiert im Vordergrund etwa alle 60 Sekunden, pausiert unsichtbar, bündelt Anfragen und beachtet Limits. Verlauf und Arbeitsbereiche bleiben erhalten."
+        },
+        "v0_8_6": {
+          "title": "Automatische Anleitung beim ersten Start",
+          "summary": "Beim ersten Start öffnet sich die geführte Einrichtung automatisch. Du kannst später fortfahren und anschließend die Aufgaben und Ergebnisse kennenlernen. Nach Abschluss bleibt die Anleitung über die Schaltfläche erreichbar."
         }
       }
     }

@@ -125,7 +125,7 @@ async function memorySnapshot(page) {
 try {
   await fs.mkdir(dataRoot, { recursive: true })
   await fs.mkdir(profilePath, { recursive: true })
-  await fs.writeFile(path.join(dataRoot, 'desktop-settings.json'), JSON.stringify({ language: 'en-US', theme: 'dark' }, null, 2), 'utf8')
+  await fs.writeFile(path.join(dataRoot, 'desktop-settings.json'), JSON.stringify({ onboardingStage: 'complete', language: 'en-US', theme: 'dark' }, null, 2), 'utf8')
 
   const { browser, page, coldStartMs } = await launch()
   console.log(`cold start (spawn -> workstation interactive): ${coldStartMs} ms`)

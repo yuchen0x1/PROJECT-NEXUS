@@ -20,7 +20,7 @@ try {
   state.settings.hostingPaused = true
   state.projects = projects.map((project) => ({ ...project, hosting: { strategy: 'observe', enabled: false }, setupReadiness: undefined }))
   await saveStateFile(path.join(temporary, 'state.json'), state)
-  await fs.writeFile(path.join(temporary, 'desktop-settings.json'), JSON.stringify({ language: 'zh-CN', theme: 'light' }))
+  await fs.writeFile(path.join(temporary, 'desktop-settings.json'), JSON.stringify({ onboardingStage: 'complete', language: 'zh-CN', theme: 'light' }))
   const env = { ...process.env, NEXUS_DESKTOP_DATA_DIR: temporary, NEXUS_ENABLE_REMOTE_WRITES: 'false' }
   for (const key of ['ELECTRON_RUN_AS_NODE', 'GITHUB_TOKEN', 'GH_TOKEN', 'AI_API_KEY', 'AI_BASE_URL', 'AI_MODEL', 'NEXUS_AI_PROVIDERS_JSON']) delete env[key]
   app = await _electron.launch({ executablePath, args: ['--nexus-smoke-test'], env, timeout: 45000 })

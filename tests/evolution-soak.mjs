@@ -47,7 +47,7 @@ await fs.writeFile(path.join(projectDir, 'app.mjs'), 'export const answer = 41\n
 await fs.writeFile(path.join(projectDir, 'verify.mjs'), 'import { answer } from "./app.mjs"; if(answer !== 42) throw new Error("incorrect answer"); console.log("soak verified 42")\n')
 await fs.writeFile(path.join(projectDir, 'package.json'), JSON.stringify({ name: 'nexus-soak-fixture', type: 'module', scripts: { test: 'node verify.mjs' } }))
 const { project } = await registerLocalProject({ dataDir, folderPath: projectDir })
-await fs.writeFile(path.join(dataDir, 'desktop-settings.json'), JSON.stringify({ language: 'zh-CN', theme: 'dark', autoStart: false }))
+await fs.writeFile(path.join(dataDir, 'desktop-settings.json'), JSON.stringify({ onboardingStage: 'complete', language: 'zh-CN', theme: 'dark', autoStart: false }))
 const state = structuredClone(emptyState); state.settings.hostingPaused = true
 await saveStateFile(path.join(dataDir, 'state.json'), state)
 let requests = 0, app, page, stopped = false, apiConnection

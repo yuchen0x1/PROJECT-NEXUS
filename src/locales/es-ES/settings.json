@@ -105,6 +105,10 @@
         "v0_8_5": {
           "title": "Conciliación y actualización de repositorios",
           "summary": "Corrige recuentos tras eliminar repositorios. Espera al finalizar, sincroniza cada 60 s en primer plano y pausa al ocultarse. Comparte solicitudes y respeta límites; conserva historial y espacios."
+        },
+        "v0_8_6": {
+          "title": "Tutorial automático en el primer inicio",
+          "summary": "El primer inicio abre la configuración guiada automáticamente. Puedes continuar más tarde y conocer dónde aparecen las tareas y los resultados. Al terminar, la guía sigue disponible desde su botón sin abrirse automáticamente."
         }
       }
     }

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import type { AppUpdateState } from './types'
 
-const bundledVersions = ['0.8.5', '0.8.4', '0.8.3', '0.8.2', '0.8.0', '0.7.0', '0.3.0', '0.2.1', '0.1.0']
+const bundledVersions = ['0.8.6', '0.8.5', '0.8.4', '0.8.3', '0.8.2', '0.8.0', '0.7.0', '0.3.0', '0.2.1', '0.1.0']
 type ReleaseEntry = { version: string; date: string | null; title: string; notes: string }
 
 // The production update channel accepts stable versions only. Compare numeric
@@ -10,7 +10,7 @@ export function useReleaseHistory(state: AppUpdateState | null): ReleaseEntry[] 
   const { t } = useTranslation()
   const entries = new Map<string, ReleaseEntry>(bundledVersions.map((version) => {
     const key = `settings:appUpdate.history.releases.v${version.replaceAll('.', '_')}`
-    return [version, { version, date: '2026-11-13', title: t(`${key}.title`), notes: t(`${key}.summary`) }]
+    return [version, { version, date: version === '0.8.6' ? '2026-11-14' : '2026-11-13', title: t(`${key}.title`), notes: t(`${key}.summary`) }]
   }))
   for (const version of [state?.currentVersion, state?.version]) {
     if (!version || !/^\d+\.\d+\.\d+$/.test(version)) continue

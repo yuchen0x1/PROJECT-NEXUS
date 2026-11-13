@@ -98,7 +98,7 @@ try {
   await fs.mkdir(path.join(projectPath, 'src'), { recursive: true })
   await fs.mkdir(profilePath, { recursive: true })
   await fs.mkdir(dataRoot, { recursive: true })
-  await fs.writeFile(path.join(dataRoot, 'desktop-settings.json'), JSON.stringify({ language: 'en-US' }, null, 2), 'utf8')
+  await fs.writeFile(path.join(dataRoot, 'desktop-settings.json'), JSON.stringify({ onboardingStage: 'complete', language: 'en-US' }, null, 2), 'utf8')
   await fs.writeFile(path.join(projectPath, 'package.json'), JSON.stringify({ name: 'runtime-fixture', type: 'module', scripts: { test: 'node src/selfcheck.js' } }, null, 2), 'utf8')
   await fs.writeFile(path.join(projectPath, 'src', 'main.js'), originalSource, 'utf8')
   await fs.writeFile(path.join(projectPath, 'src', 'selfcheck.js'), [

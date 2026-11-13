@@ -105,6 +105,10 @@
         "v0_8_5": {
           "title": "Repository reconciliation and scheduled refresh",
           "summary": "Fix stale counts after repository deletion. Wait for sync completion, sync about every 60 seconds while visible, pause when hidden, share requests and respect rate-limit retries. Keep history and workspaces."
+        },
+        "v0_8_6": {
+          "title": "Automatic first-use tutorial",
+          "summary": "The first launch opens guided setup automatically. Continue later if needed, then learn where tasks and results appear. Once completed, the tutorial stays available from the guide button without opening automatically."
         }
       }
     }

@@ -12,8 +12,8 @@ type Destination = 'GitHub Connections' | 'Projects' | 'Hosting' | 'environment'
 const destinations: Destination[] = ['GitHub Connections', 'agent', 'Projects', 'environment', 'Hosting', 'Hosting', 'Hosting']
 const isArchivedRepository = (project: Project) => project.archived ?? project.repoMeta?.archived ?? false
 
-export default function SetupCenter({ onClose, guided = false, onNavigate, onComplete }: {
-  onClose: () => void; guided?: boolean; onNavigate?: (page: Destination, projectId?: string) => void; onComplete?: (projectId: string) => void
+export default function SetupCenter({ onClose, guided = false, firstUse = false, onConfigured, onNavigate, onComplete }: {
+  onClose: () => void; guided?: boolean; firstUse?: boolean; onConfigured?: () => Promise<void>; onNavigate?: (page: Destination, projectId?: string) => void; onComplete?: (projectId: string) => void
 }) {
   const { t } = useTranslation()
   const dialog = useRef<HTMLElement>(null)
@@ -250,8 +250,8 @@ export default function SetupCenter({ onClose, guided = false, onNavigate, onCom
       try { await api.enableHosting(id, readiness.current[id].readinessId) }
       catch (cause) { delete readiness.current[id]; throw cause }
     })
+    if (guided) await onConfigured?.()
     setComplete(true); setResult(t('git:hosting.updated'))
-    localStorage.setItem('nexus-setup-complete', JSON.stringify({ projectId: selected, projectIds: selectedIds, completedAt: new Date().toISOString() }))
   }
   const inspectIssues = async () => {
     await runBatch('issues', async (id) => { issueCounts.current[id] = await api.syncProjectIssues(id) })
@@ -286,6 +286,7 @@ export default function SetupCenter({ onClose, guided = false, onNavigate, onCom
   if (peek) return <aside ref={locationCard} tabIndex={-1} className="nx-product-tour nx-panel" aria-label={t('git:guide.entry')}><header><BookOpen size={17} /><button className="nx-icon-button" onClick={onClose} aria-label={t('common:actions.close')}><X size={16} /></button></header><p className="nx-guide-location">{t('git:guide.location')}: {t(`git:guide.locations.${step}`)}</p><h2>{title}</h2><p>{t(`git:guide.instructions.${step}`)}</p><button className="nx-primary" onClick={() => setPeek(false)}>{t('git:guide.returnToSetup')}</button></aside>
   return <div className="nx-modal-backdrop"><section ref={dialog} className={`nx-setup nx-panel ${guided ? 'nx-setup-guided' : ''}`} role="dialog" aria-modal="true" aria-labelledby="setup-title">
     <header><div>{guided ? <BookOpen size={22} /> : <GitFork size={22} />}<h2 id="setup-title">{guided ? t('git:guide.title') : t('git:setup.title')}</h2></div><button className="nx-icon-button" disabled={busy} onClick={onClose} aria-label={t('common:actions.close')}><X size={18} /></button></header>
+    {firstUse && !complete && <div className="nx-first-use-notice"><strong>{t('git:guide.firstUse.title')}</strong><p>{t('git:guide.firstUse.detail')}</p></div>}
     <div className="nx-setup-layout"><nav aria-label={t('git:setup.title')}>{Array.from({ length: 7 }, (_, index) => <button key={index} disabled={busy || complete || guided && index > step && !done.has(index - 1)} aria-current={step === index ? 'step' : undefined} onClick={() => changeStep(index)}><span>{done.has(index) ? <CheckCircle2 size={16} /> : index + 1}</span>{t(`git:setup.steps.${index}`)}</button>)}</nav>
       <div className="nx-setup-body"><h3 tabIndex={-1}>{complete ? t('git:guide.doneTitle') : title}</h3>
         {complete ? <div className="nx-setup-completion"><CheckCircle2 size={24} /><p>{t('git:batch.doneDetail', { total: selectedIds.length, minutes: interval })}</p><ul className="nx-setup-enabled-repos">{selectedIds.map((id) => <li key={id}>{projectNames.get(id) || id}</li>)}</ul><p>{t('git:guide.keepRunning')}</p><p>{t('git:guide.limits')}</p><div className="nx-guide-actions"><button className="nx-primary" disabled={busy} onClick={() => onComplete?.(selected)}>{t('git:guide.viewRunLocations')}<ChevronRight size={15} /></button><button className="nx-secondary" disabled={busy} onClick={() => void act(inspectIssues, false)}>{t('git:guide.inspectNow')}</button></div></div> : <>
@@ -325,6 +326,6 @@ export default function SetupCenter({ onClose, guided = false, onNavigate, onCom
           {busy ? <button className="nx-secondary" onClick={() => { stopBatch.current = true }}>{t('git:batch.stop')}</button> : batch.items.some((item) => item.status !== 'success') && <button className="nx-secondary nx-batch-retry" onClick={() => void act(batch.phase === 'issues' ? inspectIssues : operation, batch.phase !== 'issues')}>{t('git:batch.retry')}</button>}
         </section>}
         {busy && <p role="status"><Loader2 size={15} className="spin" />{t('common:states.working')}</p>}{error && <p className="danger-text" role="alert">{error}</p>}{result && <p className="success-text" role="status">{result}</p>}{done.has(step) && !complete && <p className="nx-setup-complete"><CheckCircle2 size={15} />{t('common:states.ready')}</p>}
-      </div></div><footer><button className="nx-secondary" disabled={step === 0 || busy || complete} onClick={() => changeStep(step - 1)}><ChevronLeft size={15} />{t('git:setup.previous')}</button>{guided && !complete && <button className="nx-secondary" disabled={busy} onClick={() => setPeek(true)}>{t('git:guide.viewLocation')}</button>}{!complete && <button className="nx-primary nx-setup-next" disabled={busy || (guided ? !done.has(step) && !canRun : step === 6 || !done.has(step))} onClick={() => void (guided ? next() : changeStep(step + 1))}>{guided && step === 6 ? t('git:hosting.enable') : t('git:setup.next')}<ChevronRight size={15} /></button>}</footer>
+      </div></div><footer><button className="nx-secondary" disabled={step === 0 || busy || complete} onClick={() => changeStep(step - 1)}><ChevronLeft size={15} />{t('git:setup.previous')}</button>{guided && !complete && <button className="nx-secondary" disabled={busy} onClick={() => setPeek(true)}>{t('git:guide.viewLocation')}</button>}{firstUse && !complete && <button className="nx-secondary nx-setup-later" disabled={busy} onClick={onClose}>{t('git:guide.firstUse.later')}</button>}{!complete && <button className="nx-primary nx-setup-next" disabled={busy || (guided ? !done.has(step) && !canRun : step === 6 || !done.has(step))} onClick={() => void (guided ? next() : changeStep(step + 1))}>{guided && step === 6 ? t('git:hosting.enable') : t('git:setup.next')}<ChevronRight size={15} /></button>}</footer>
   </section></div>
 }

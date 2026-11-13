@@ -77,7 +77,7 @@ async function launch(language, theme) {
   const profilePath = path.join(workspaceRoot, `profile-${language}-${theme}`)
   await fs.mkdir(dataRoot, { recursive: true })
   await fs.mkdir(profilePath, { recursive: true })
-  await fs.writeFile(path.join(dataRoot, 'desktop-settings.json'), JSON.stringify({ language, theme }, null, 2), 'utf8')
+  await fs.writeFile(path.join(dataRoot, 'desktop-settings.json'), JSON.stringify({ onboardingStage: 'complete', language, theme }, null, 2), 'utf8')
   const debuggingPort = await freePort()
   output = ''
   childExit = null

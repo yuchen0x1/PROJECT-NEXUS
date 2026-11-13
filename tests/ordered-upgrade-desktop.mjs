@@ -23,7 +23,7 @@ await new Promise((resolve) => mock.listen(0, '127.0.0.1', resolve))
 let app
 try {
   await fs.mkdir(dataDir, { recursive: true })
-  await fs.writeFile(path.join(dataDir, 'desktop-settings.json'), JSON.stringify({ language: 'en-US', theme: 'light' }))
+  await fs.writeFile(path.join(dataDir, 'desktop-settings.json'), JSON.stringify({ onboardingStage: 'complete', language: 'en-US', theme: 'light' }))
   const state = structuredClone(emptyState)
   state.projects = ['one', 'two'].map((id) => ({ id, fullName: `fixture/${id}`, name: id, owner: 'fixture', defaultBranch: 'main', group: 'fixture', stack: [], hosting: { strategy: 'observe', enabled: false } }))
   state.hostedJobs = [{ id: 'delivery-failed', projectId: 'one', repository: 'fixture/one', issueNumber: 7, priority: 'P2', status: 'Blocked', executionStatus: 'Succeeded', deliveryStatus: 'Incomplete', createdAt: new Date().toISOString(), error: 'Release test failed; local changes retained.', events: [] }]

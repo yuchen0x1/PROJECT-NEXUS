@@ -823,7 +823,9 @@
 .nx-setup header, .nx-setup footer { display: flex; align-items: center; justify-content: space-between; padding: 20px; border-bottom: 1px solid var(--nx-line); }
 .nx-setup header > div { display: flex; align-items: center; gap: 12px; }
 .nx-setup header h2 { margin: 0; font-size: var(--nx-fs-xl); }
-.nx-setup footer { border-bottom: 0; border-top: 1px solid var(--nx-line); }
+.nx-setup footer { border-bottom: 0; border-top: 1px solid var(--nx-line); flex-wrap: wrap; gap: 8px; }
+.nx-first-use-notice { padding: 14px 20px; border-bottom: 1px solid var(--nx-line); background: var(--nx-accent-soft); }
+.nx-first-use-notice p { margin: 6px 0 0; line-height: 1.6; color: var(--nx-text-muted); font-size: var(--nx-fs-xs); }
 .nx-setup-layout { display: grid; grid-template-columns: 230px minmax(0, 1fr); min-height: 390px; }
 .nx-setup nav { display: flex; flex-direction: column; gap: 6px; padding: 16px; background: var(--nx-bg-inset); border-right: 1px solid var(--nx-line); }
 .nx-setup nav button { display: flex; gap: 10px; text-align: left; align-items: center; padding: 12px 8px; background: transparent; border: 0; border-radius: var(--nx-r-md); color: var(--nx-text-2); cursor: pointer; }

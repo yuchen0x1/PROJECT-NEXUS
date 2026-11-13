@@ -19,7 +19,7 @@ let app
 try {
   for (const [name, bytes] of before) await fs.writeFile(path.join(temporary, name), bytes)
   const preferences = JSON.parse(before.get('desktop-settings.json') || '{}')
-  await fs.writeFile(path.join(temporary, 'desktop-settings.json'), JSON.stringify({ ...preferences, autoStart: false }))
+  await fs.writeFile(path.join(temporary, 'desktop-settings.json'), JSON.stringify({ onboardingStage: 'complete', ...preferences, autoStart: false }))
   const state = JSON.parse(before.get('state.json'))
   // Pause hosting in the copy before startup; integration scans have their own schedule.
   state.settings = { ...state.settings, hostingPaused: true, remoteWritesEnabled: false }

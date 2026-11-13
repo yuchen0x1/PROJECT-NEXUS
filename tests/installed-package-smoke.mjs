@@ -20,7 +20,7 @@ const expectedDataPath = path.join(tempLocalAppData, 'PROJECT NEXUS')
 // Pin the UI language so the assertions below stay deterministic regardless
 // of the Windows display language of the machine running the test.
 await fs.mkdir(expectedDataPath, { recursive: true })
-await fs.writeFile(path.join(expectedDataPath, 'desktop-settings.json'), JSON.stringify({ language: 'en-US' }, null, 2), 'utf8')
+await fs.writeFile(path.join(expectedDataPath, 'desktop-settings.json'), JSON.stringify({ onboardingStage: 'complete', language: 'en-US' }, null, 2), 'utf8')
 const keepTempDataForUninstallCheck = process.env.NEXUS_KEEP_INSTALLED_SMOKE_DATA === 'true'
 const outputLimit = 128 * 1024
 const startupTimeoutMs = 45_000

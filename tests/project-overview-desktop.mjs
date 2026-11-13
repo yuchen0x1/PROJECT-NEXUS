@@ -20,7 +20,7 @@ const mock = http.createServer((_req, res) => { remoteRequests++; res.end('{}') 
 await new Promise((resolve) => mock.listen(0, '127.0.0.1', resolve))
 let app
 try {
-  await fs.writeFile(path.join(temporary, 'desktop-settings.json'), JSON.stringify({ language: locale, theme: 'light' }))
+  await fs.writeFile(path.join(temporary, 'desktop-settings.json'), JSON.stringify({ onboardingStage: 'complete', language: locale, theme: 'light' }))
   const state = structuredClone(emptyState)
   state.settings.hostingPaused = true
   state.projects = ['one', 'two', 'three'].map((id) => ({ id, name: id, fullName: `fixture/${id}`, owner: 'fixture', defaultBranch: 'main', hosting: { enabled: false, strategy: 'observe' } }))

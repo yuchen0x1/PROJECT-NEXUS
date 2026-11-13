@@ -55,6 +55,7 @@ export type ProjectRegistration = { project: LocalProject; added: boolean }
 export type ThemePreference = 'dark' | 'light' | 'system'
 
 export type AgentReplyLanguageMode = 'ui' | 'input' | (string & {})
+export type OnboardingStage = 'setup' | 'tour' | 'complete'
 
 export type UserPreferences = {
   /** null on first launch: the startup language is derived from the system locale. */
@@ -62,6 +63,7 @@ export type UserPreferences = {
   theme: ThemePreference
   reduceMotion: boolean
   agentReplyLanguage: AgentReplyLanguageMode
+  onboardingStage: OnboardingStage
 }
 
 export type DesktopSettingsPayload = {

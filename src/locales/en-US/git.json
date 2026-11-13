@@ -441,7 +441,13 @@
       "Management / Issues",
       "Management / Research"
     ],
-    "resumeRequired": "The global scheduler is paused. Explicitly resume it before starting automatic work for this repository."
+    "resumeRequired": "The global scheduler is paused. Explicitly resume it before starting automatic work for this repository.",
+    "firstUse": {
+      "title": "First use · Guided setup",
+      "detail": "We will walk you through GitHub, AI, repository selection, tool checks and hosting, then show where to find tasks and results. You can continue later; the guide will open again next time.",
+      "later": "Continue later",
+      "saveFailed": "Could not save tutorial completion. Please try again."
+    }
   },
   "batch": {
     "selectAll": "Select all",

@@ -105,6 +105,7 @@ async function launch({ settings = null, extraArgs = [] } = {}) {
   const page = context.pages()[0] || await context.waitForEvent('page', { timeout: 15_000 })
   await page.waitForLoadState('domcontentloaded', { timeout: 20_000 })
   await page.locator('.nx-rail').waitFor({ timeout: 20_000 })
+  if (await page.locator('.nx-setup-later').count()) await page.locator('.nx-setup-later').click()
   return { browser, page }
 }
 
@@ -150,7 +151,7 @@ try {
   await fs.mkdir(dataRoot, { recursive: true })
   await fs.mkdir(profilePath, { recursive: true })
   await fs.mkdir(screenshotDir, { recursive: true }).catch(() => {})
-  await fs.writeFile(settingsFile, JSON.stringify({ language: 'en-US', theme: 'dark' }, null, 2), 'utf8')
+  await fs.writeFile(settingsFile, JSON.stringify({ onboardingStage: 'complete', language: 'en-US', theme: 'dark' }, null, 2), 'utf8')
 
   // ---- Launch 1: window sizes, theme system, palette, notifications ----
   let instance = await launch()
@@ -251,7 +252,7 @@ try {
   await stop(instance)
 
   // ---- Launch 4: invalid language code falls back safely ----
-  await fs.writeFile(settingsFile, JSON.stringify({ language: 'xx-XX', theme: 'dark' }, null, 2), 'utf8')
+  await fs.writeFile(settingsFile, JSON.stringify({ onboardingStage: 'complete', language: 'xx-XX', theme: 'dark' }, null, 2), 'utf8')
   instance = await launch()
   page = instance.page
   await page.waitForFunction(() => ['en-US', 'zh-CN', 'zh-TW', 'ja-JP', 'ko-KR', 'fr-FR', 'de-DE', 'es-ES', 'pt-BR', 'ru-RU'].includes(document.documentElement.lang), null, { timeout: 15_000 })

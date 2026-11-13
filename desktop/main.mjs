@@ -73,7 +73,7 @@ let hostingPaused = false
 const serviceRestartBudget = createRestartBudget()
 let serviceRespawnAttempts = 0
 let serviceRespawnTimer = null
-let preferences = { autoStart: false, language: null, theme: 'dark', reduceMotion: false, agentReplyLanguage: 'ui' }
+let preferences = { autoStart: false, language: null, theme: 'dark', reduceMotion: false, agentReplyLanguage: 'ui', onboardingStage: 'setup' }
 
 process.env.NEXUS_LOCAL_API_TOKEN = apiToken
 process.env.NEXUS_DESKTOP_VERSION = app.getVersion()
@@ -502,7 +502,8 @@ function registerLocalCapabilities() {
       language: preferences.language ?? null,
       theme: preferences.theme ?? 'dark',
       reduceMotion: Boolean(preferences.reduceMotion),
-      agentReplyLanguage: preferences.agentReplyLanguage ?? 'ui'
+      agentReplyLanguage: preferences.agentReplyLanguage ?? 'ui',
+      onboardingStage: preferences.onboardingStage ?? 'setup'
     },
     systemLocale: app.getLocale(),
     settingsPath
@@ -528,6 +529,10 @@ function registerLocalCapabilities() {
       if (mode !== 'ui' && mode !== 'input' && !SUPPORTED_LANGUAGES.includes(mode)) throw new Error('agentReplyLanguage must be "ui", "input" or a supported language code.')
       next.agentReplyLanguage = mode
     }
+    if ('onboardingStage' in partial) {
+      if (!['setup', 'tour', 'complete'].includes(partial.onboardingStage)) throw new Error('Invalid onboarding stage.')
+      next.onboardingStage = partial.onboardingStage
+    }
     preferences = next
     await writeJson(settingsPath, preferences)
     await writeLog('info', 'settings-updated', { keys: Object.keys(partial).join(',') })
@@ -535,7 +540,8 @@ function registerLocalCapabilities() {
       language: preferences.language ?? null,
       theme: preferences.theme,
       reduceMotion: Boolean(preferences.reduceMotion),
-      agentReplyLanguage: preferences.agentReplyLanguage
+      agentReplyLanguage: preferences.agentReplyLanguage,
+      onboardingStage: preferences.onboardingStage
     }
   })
 }
@@ -760,7 +766,8 @@ async function startDesktop() {
     language: SUPPORTED_LANGUAGES.includes(stored.language) ? stored.language : null,
     theme: THEMES.includes(stored.theme) ? stored.theme : 'dark',
     reduceMotion: typeof stored.reduceMotion === 'boolean' ? stored.reduceMotion : false,
-    agentReplyLanguage: (stored.agentReplyLanguage === 'ui' || stored.agentReplyLanguage === 'input' || SUPPORTED_LANGUAGES.includes(stored.agentReplyLanguage)) ? stored.agentReplyLanguage : 'ui'
+    agentReplyLanguage: (stored.agentReplyLanguage === 'ui' || stored.agentReplyLanguage === 'input' || SUPPORTED_LANGUAGES.includes(stored.agentReplyLanguage)) ? stored.agentReplyLanguage : 'ui',
+    onboardingStage: stored.onboardingStage === 'tour' || stored.onboardingStage === 'complete' ? stored.onboardingStage : 'setup'
   }
   if (preferences.autoStart) app.setLoginItemSettings({ openAtLogin: true, path: app.getPath('exe'), args: ['--hidden'] })
   await writeLog('info', 'application-starting', { version: app.getVersion(), platform: process.platform, arch: process.arch })

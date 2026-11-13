@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import i18next from 'i18next'
 import { ensureLanguageResources, initI18n } from './config'
 import { DEFAULT_LANGUAGE, isSupportedLanguage, resolveLanguage } from './languages'
-import type { AgentReplyLanguageMode, ThemePreference, UserPreferences } from '../desktop/types'
+import type { AgentReplyLanguageMode, OnboardingStage, ThemePreference, UserPreferences } from '../desktop/types'
 
 const STORAGE_KEY = 'nexus.user-preferences'
 
@@ -11,7 +11,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   language: null,
   theme: 'dark',
   reduceMotion: false,
-  agentReplyLanguage: 'ui'
+  agentReplyLanguage: 'ui',
+  onboardingStage: 'setup'
 }
 
 const browserBridge = () => (typeof window !== 'undefined' ? window.nexusDesktop : undefined)
@@ -40,7 +41,8 @@ function sanitizePreferences(input: unknown): UserPreferences {
     language: isSupportedLanguage(source.language) ? source.language : null,
     theme,
     reduceMotion: typeof source.reduceMotion === 'boolean' ? source.reduceMotion : false,
-    agentReplyLanguage
+    agentReplyLanguage,
+    onboardingStage: source.onboardingStage === 'tour' || source.onboardingStage === 'complete' ? source.onboardingStage : 'setup'
   }
 }
 
@@ -62,6 +64,7 @@ type SettingsContextValue = {
   setTheme: (theme: ThemePreference) => Promise<void>
   setReduceMotion: (value: boolean) => Promise<void>
   setAgentReplyLanguage: (value: AgentReplyLanguageMode) => Promise<void>
+  setOnboardingStage: (stage: OnboardingStage) => Promise<void>
 }
 
 const SettingsContext = createContext<SettingsContextValue | null>(null)
@@ -178,6 +181,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setPreferences((next) => ({ ...(next ?? DEFAULT_PREFERENCES), ...merged }))
   }, [persist])
 
+  const setOnboardingStage = useCallback(async (stage: OnboardingStage) => {
+    const merged = await persist({ onboardingStage: stage })
+    setPreferences((next) => ({ ...(next ?? DEFAULT_PREFERENCES), ...merged }))
+  }, [persist])
+
   const value = useMemo<SettingsContextValue | null>(() => preferences ? {
     preferences,
     resolvedTheme,
@@ -186,8 +194,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setLanguage,
     setTheme,
     setReduceMotion,
-    setAgentReplyLanguage
-  } : null, [preferences, resolvedTheme, systemLocale, ready, setLanguage, setTheme, setReduceMotion, setAgentReplyLanguage])
+    setAgentReplyLanguage,
+    setOnboardingStage
+  } : null, [preferences, resolvedTheme, systemLocale, ready, setLanguage, setTheme, setReduceMotion, setAgentReplyLanguage, setOnboardingStage])
 
   if (!value) return null
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>

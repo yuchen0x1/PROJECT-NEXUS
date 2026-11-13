@@ -28,7 +28,7 @@ try {
   state.settings.hostingPaused = true
   state.projects = repositories.map((repo) => ({ id: `repo_${repo.id}`, name: repo.name, fullName: repo.full_name, owner: 'fixture', defaultBranch: 'main', stack: [], ...(repo.id === 4 ? { repoMeta: { archived: true } } : { archived: repo.archived }), hosting: { enabled: false, strategy: 'observe' } }))
   await saveStateFile(path.join(temporary, 'state.json'), state)
-  await fs.writeFile(path.join(temporary, 'desktop-settings.json'), JSON.stringify({ language: 'zh-CN', theme: 'light' }))
+  await fs.writeFile(path.join(temporary, 'desktop-settings.json'), JSON.stringify({ onboardingStage: 'complete', language: 'zh-CN', theme: 'light' }))
   const env = { ...process.env, NEXUS_DESKTOP_DATA_DIR: temporary, GITHUB_API_URL: `http://127.0.0.1:${mock.address().port}`, NEXUS_ENABLE_REMOTE_WRITES: 'false' }
   for (const key of ['ELECTRON_RUN_AS_NODE', 'GITHUB_TOKEN', 'GH_TOKEN', 'GITHUB_OWNER', 'AI_API_KEY', 'AI_BASE_URL', 'AI_MODEL', 'NEXUS_AI_PROVIDERS_JSON']) delete env[key]
   const executablePath = process.env.NEXUS_ARCHIVE_TEST_EXECUTABLE || require('electron')

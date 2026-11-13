@@ -24,7 +24,7 @@ await fs.writeFile(path.join(projectDir, 'app.mjs'), 'export const answer = 41\n
 await fs.writeFile(path.join(projectDir, 'verify.mjs'), 'import { answer } from "./app.mjs"; if (answer !== 42) throw new Error("not fixed"); console.log("verified answer 42")\n')
 await fs.writeFile(path.join(projectDir, 'package.json'), JSON.stringify({ name: 'fixture-evolution-project', type: 'module', scripts: { test: 'node verify.mjs' } }))
 const { project } = await registerLocalProject({ dataDir, folderPath: projectDir })
-await fs.writeFile(path.join(dataDir, 'desktop-settings.json'), JSON.stringify({ language: locale, theme, autoStart: false }))
+await fs.writeFile(path.join(dataDir, 'desktop-settings.json'), JSON.stringify({ onboardingStage: 'complete', language: locale, theme, autoStart: false }))
 const state = structuredClone(emptyState); state.settings.hostingPaused = true
 await saveStateFile(path.join(dataDir, 'state.json'), state)
 let releasePlanner

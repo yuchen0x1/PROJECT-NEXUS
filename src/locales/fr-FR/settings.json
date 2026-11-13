@@ -105,6 +105,10 @@
         "v0_8_5": {
           "title": "Synchronisation et actualisation des dépôts",
           "summary": "Corrige les compteurs après suppression. Attend la fin, synchronise environ toutes les 60 s au premier plan, suspend en arrière-plan, partage les requêtes et respecte les limites. Historique et espaces conservés."
+        },
+        "v0_8_6": {
+          "title": "Tutoriel automatique au premier démarrage",
+          "summary": "Le premier démarrage ouvre automatiquement la configuration guidée. Vous pouvez reprendre plus tard et découvrir où consulter les tâches et les résultats. Une fois terminé, le guide reste accessible depuis son bouton."
         }
       }
     }

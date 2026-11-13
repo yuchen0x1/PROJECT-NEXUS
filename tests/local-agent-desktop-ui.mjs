@@ -76,7 +76,7 @@ try {
   await fs.mkdir(profilePath, { recursive: true })
   await fs.mkdir(dataRoot, { recursive: true })
   // Pin the UI language so the Playwright selectors below stay deterministic.
-  await fs.writeFile(path.join(dataRoot, 'desktop-settings.json'), JSON.stringify({ language: 'en-US' }, null, 2), 'utf8')
+  await fs.writeFile(path.join(dataRoot, 'desktop-settings.json'), JSON.stringify({ onboardingStage: 'complete', language: 'en-US' }, null, 2), 'utf8')
   await fs.writeFile(path.join(projectPath, '.gitignore'), 'ignored.txt\n', 'utf8')
   await fs.writeFile(path.join(projectPath, 'ignored.txt'), 'fixture-only ignored source\n', 'utf8')
   await fs.writeFile(path.join(projectPath, '.env'), 'API_KEY=fixture-secret-must-not-leave-this-machine\n', 'utf8')

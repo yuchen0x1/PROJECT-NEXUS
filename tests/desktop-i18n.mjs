@@ -17,7 +17,7 @@ import { chromium } from 'playwright'
 const require = createRequire(import.meta.url)
 const electronExecutable = require('electron')
 const appRoot = path.resolve(import.meta.dirname, '..')
-const screenshotDir = path.join(appRoot, 'docs', 'screenshots', 'phase5')
+const screenshotDir = path.join(appRoot, 'test-results', 'desktop-i18n')
 const localesDir = path.join(appRoot, 'src', 'locales')
 const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'nexus-phase5-i18n-'))
 const dataRoot = path.join(tempRoot, 'nexus-data')
@@ -133,6 +133,8 @@ async function launchWorkstation() {
   assert.ok(context, 'The launched Electron app should expose a Chromium context.')
   const page = context.pages()[0] || await context.waitForEvent('page', { timeout: 15_000 })
   await page.waitForLoadState('domcontentloaded', { timeout: 20_000 })
+  await page.locator('.nx-rail').waitFor({ timeout: 20_000 })
+  if (await page.locator('.nx-setup-later').count()) await page.locator('.nx-setup-later').click()
   return { browser: instanceBrowser, page }
 }
 

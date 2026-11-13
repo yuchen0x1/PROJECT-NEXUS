@@ -105,6 +105,10 @@
         "v0_8_5": {
           "title": "Sincronização e atualização de repositórios",
           "summary": "Corrige contagens após excluir repositórios. Aguarda a conclusão, sincroniza a cada 60 s em primeiro plano e pausa ao ocultar. Compartilha solicitações e respeita limites, mantendo histórico e espaços."
+        },
+        "v0_8_6": {
+          "title": "Tutorial automático no primeiro uso",
+          "summary": "A primeira inicialização abre a configuração guiada automaticamente. Você pode continuar depois e conhecer onde aparecem as tarefas e os resultados. Após concluir, o guia continua disponível pelo botão sem abrir automaticamente."
         }
       }
     }

@@ -15,7 +15,7 @@ const batchMode = process.env.NEXUS_GUIDE_BATCH === 'true'
 const labels = JSON.parse(await fs.readFile(path.join(root, `src/locales/${locale}/git.json`), 'utf8'))
 const navigation = JSON.parse(await fs.readFile(path.join(root, `src/locales/${locale}/navigation.json`), 'utf8'))
 const modelLabels = JSON.parse(await fs.readFile(path.join(root, `src/locales/${locale}/agent.json`), 'utf8')).providers.discovery
-const screenshots = path.join(root, `docs/screenshots/${batchMode ? 'batch-repositories' : 'guided-setup'}`)
+const screenshots = path.join(root, `test-results/${batchMode ? 'batch-repositories' : 'guided-setup'}`)
 await fs.mkdir(screenshots, { recursive: true })
 let rejectProvider = true, rejectRepository = false, rejectModels = true
 let modelRequests = 0
@@ -33,6 +33,7 @@ const mock = http.createServer((req, res) => {
     return res.end(JSON.stringify({ choices: [{ message: { content: 'pong' } }], usage: { prompt_tokens: 1, completion_tokens: 1 } }))
   }
   if (req.url === '/user') return res.end('{"login":"fixture","avatar_url":""}')
+  if (req.url.startsWith('/user/repos')) return res.end(JSON.stringify((batchMode ? ['one', 'two', 'three'] : ['one', 'two']).map((name, index) => ({ id: index + 1, name, full_name: `fixture/${name}`, owner: { login: 'fixture' }, default_branch: 'main', archived: false }))))
   if (req.url.includes('/git/ref/')) return res.end(JSON.stringify({ object: { sha: 'a'.repeat(40) } }))
   if (req.url.includes('/issues')) { issueRequests++; return res.end('[]') }
   if (req.url.startsWith('/repos/')) {
@@ -50,7 +51,7 @@ try {
   state.projects = (batchMode ? ['one', 'two', 'three'] : ['one', 'two']).map((id) => ({ id, fullName: `fixture/${id}`, name: id, owner: 'fixture', defaultBranch: 'main', group: 'fixture', stack: [], hosting: { strategy: 'observe', enabled: false } }))
   await saveStateFile(path.join(temporary, 'state.json'), state)
   const env = { ...process.env, NEXUS_DESKTOP_DATA_DIR: temporary, GITHUB_API_URL: `http://127.0.0.1:${mock.address().port}`, NEXUS_ENABLE_REMOTE_WRITES: 'false' }
-  for (const key of ['ELECTRON_RUN_AS_NODE', 'GITHUB_TOKEN', 'GH_TOKEN', 'AI_API_KEY', 'AI_BASE_URL', 'AI_MODEL']) delete env[key]
+  for (const key of ['ELECTRON_RUN_AS_NODE', 'GITHUB_TOKEN', 'GH_TOKEN', 'GITHUB_OWNER', 'AI_API_KEY', 'AI_BASE_URL', 'AI_MODEL', 'NEXUS_AI_PROVIDERS_JSON']) delete env[key]
   const installedExe = process.env.NEXUS_GUIDE_INSTALLED_EXE
   app = await _electron.launch({ executablePath: installedExe || require('electron'), args: installedExe ? ['--nexus-smoke-test'] : [root, '--nexus-smoke-test'], env, timeout: 45000 })
   const page = await app.firstWindow()
@@ -58,6 +59,9 @@ try {
   const pageErrors = []
   page.on('pageerror', (error) => pageErrors.push(error.message))
   await page.locator('.nx-guide-entry').waitFor()
+  await page.locator('.nx-first-use-notice').waitFor()
+  assert.equal(await page.evaluate(async () => (await window.nexusDesktop.getSettings()).preferences.onboardingStage), 'setup')
+  await page.locator('.nx-setup-later').click()
   await page.screenshot({ path: path.join(screenshots, `workbench-${locale}.png`) })
   assert.equal(await page.locator('.nx-rail [data-management-page]').count(), 20)
   assert.equal(await page.locator('.nx-remote-navigation').count(), 0)
@@ -196,6 +200,7 @@ try {
     await page.locator('.success-text').filter({ hasText: labels.guide.inspected.replace('{{count}}', '0').replace('{{actionable}}', '0') }).waitFor()
   }
   await page.getByRole('button', { name: labels.guide.viewRunLocations, exact: true }).click()
+  assert.equal(await page.evaluate(async () => (await window.nexusDesktop.getSettings()).preferences.onboardingStage), 'tour')
   await page.locator('.nx-product-tour h2').filter({ hasText: labels.guide.tourTitles[0] }).waitFor()
   assert.equal(await page.locator('.hosting-policy h2').innerText(), batchMode ? 'fixture/one' : 'fixture/two')
   assert.equal(await page.locator('.hosting-policy select').inputValue(), 'autonomous')
@@ -207,6 +212,7 @@ try {
   }
   await page.locator('.nx-product-tour footer .nx-primary').click()
   await page.locator('.nx-product-tour').waitFor({ state: 'detached' })
+  assert.equal(JSON.parse(await fs.readFile(path.join(temporary, 'desktop-settings.json'), 'utf8')).onboardingStage, 'complete')
   await page.locator('.hosting-policy').waitFor()
   const metadataUpdate = await page.evaluate(() => window.nexusDesktop.requestApi({ url: '/api/local-agent/providers/setup-provider', method: 'PATCH', body: JSON.stringify({ name: 'Keep provider name', priority: 7, capabilities: ['chat', 'json'] }) }))
   assert.equal(metadataUpdate.status, 200)
@@ -232,10 +238,10 @@ try {
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setContentSize(1280, 720))
   const bounds = await page.locator('.nx-rail-collapse').boundingBox()
   assert.ok(bounds.y + bounds.height <= await page.evaluate(() => innerHeight))
-  await fs.mkdir(path.join(root, 'docs/screenshots/guided-setup'), { recursive: true })
-  await page.screenshot({ path: path.join(root, `docs/screenshots/guided-setup/flat-navigation-${locale}.png`) })
+  await fs.mkdir(path.join(root, 'test-results/guided-setup'), { recursive: true })
+  await page.screenshot({ path: path.join(root, `test-results/guided-setup/flat-navigation-${locale}.png`) })
   assert.deepEqual(pageErrors, [])
-  await fs.writeFile(path.join(root, `docs/evidence/${batchMode ? 'batch-repositories' : 'guided-setup'}-${process.env.NEXUS_GUIDE_INSTALLED_EXE ? 'installed-' : ''}${locale}.json`), JSON.stringify({ status: 'PASS', locale, batchMode, fixtureServices: true, installedPackage: Boolean(process.env.NEXUS_GUIDE_INSTALLED_EXE), checks: ['flat-navigation', 'next-saves-and-navigates', 'draft-model-discovery', 'model-failure-retry', 'model-selection-and-manual-entry', 'model-list-invalidation', 'saved-key-model-discovery', 'provider-failure-retry', 'repository-failure-retry', 'script-and-write-consent', 'selected-repository', 'actual-enable', 'feature-tour', 'saved-credential-reuse', 'provider-metadata-preserved', 'explicit-scheduler-resume', '720p-layout', ...(batchMode ? ['select-all-and-none', 'deselect-survives-polling', 'search-keeps-selection', 'batch-policy', 'partial-inspection-retry', 'partial-enable-retry-with-fresh-proof', 'successful-repository-not-repeated', 'unselected-repository-untouched', 'batch-issue-sync-and-repeat'] : [])], at: new Date().toISOString() }, null, 2))
+  await fs.writeFile(path.join(root, `test-results/${batchMode ? 'batch-repositories' : 'guided-setup'}-${process.env.NEXUS_GUIDE_INSTALLED_EXE ? 'installed-' : ''}${locale}.json`), JSON.stringify({ status: 'PASS', locale, batchMode, fixtureServices: true, installedPackage: Boolean(process.env.NEXUS_GUIDE_INSTALLED_EXE), checks: ['flat-navigation', 'next-saves-and-navigates', 'draft-model-discovery', 'model-failure-retry', 'model-selection-and-manual-entry', 'model-list-invalidation', 'saved-key-model-discovery', 'provider-failure-retry', 'repository-failure-retry', 'script-and-write-consent', 'selected-repository', 'actual-enable', 'feature-tour', 'saved-credential-reuse', 'provider-metadata-preserved', 'explicit-scheduler-resume', '720p-layout', ...(batchMode ? ['select-all-and-none', 'deselect-survives-polling', 'search-keeps-selection', 'batch-policy', 'partial-inspection-retry', 'partial-enable-retry-with-fresh-proof', 'successful-repository-not-repeated', 'unselected-repository-untouched', 'batch-issue-sync-and-repeat'] : [])], at: new Date().toISOString() }, null, 2))
   console.log('PASS: Flat navigation and complete guided setup, retries after real fixture failures, explicit consent, repository selection, feature tour, saved credential reuse and 720p sidebar layout.')
 } finally {
   await app?.close().catch(() => {})

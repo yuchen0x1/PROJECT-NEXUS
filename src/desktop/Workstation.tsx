@@ -60,15 +60,19 @@ function statusClass(status: string) {
 export default function Workstation() {
   const bridge = window.nexusDesktop!
   const { t } = useTranslation()
-  const { preferences, resolvedTheme, setLanguage, setTheme, systemLocale } = useSettings()
+  const { preferences, resolvedTheme, setLanguage, setTheme, setOnboardingStage, systemLocale } = useSettings()
   const [page, setPage] = useState<Page>('workstation')
   const [remotePage, setRemotePage] = useState<RemotePage>('Overview')
-  const [setupOpen, setSetupOpen] = useState(false)
-  const [guidedSetup, setGuidedSetup] = useState(false)
-  const [tourOpen, setTourOpen] = useState(false)
+  // SettingsProvider loads the durable desktop preferences before mounting us.
+  const [setupOpen, setSetupOpen] = useState(preferences.onboardingStage === 'setup')
+  const [guidedSetup, setGuidedSetup] = useState(true)
+  const [tourOpen, setTourOpen] = useState(preferences.onboardingStage === 'tour')
   const [guideProjectId, setGuideProjectId] = useState('')
   const [remoteRefreshKey, setRemoteRefreshKey] = useState(0)
-  const openGuide = () => { setTourOpen(false); setGuidedSetup(true); setSetupOpen(true) }
+  const openGuide = () => {
+    if (preferences.onboardingStage === 'tour') { setSetupOpen(false); setTourOpen(true) }
+    else { setTourOpen(false); setGuidedSetup(true); setSetupOpen(true) }
+  }
   const navigateRemote = (next: RemotePage) => { setRemotePage(next); setPage('remote') }
   const remoteLabels = Object.fromEntries(REMOTE_NAV_PAGES.map(({ page: target, key }) => [target, target === 'Projects' ? t('git:guide.repoNav') : target === 'Overview' ? t('git:guide.overviewNav') : target === 'Settings' ? t('git:guide.connectionsNav') : t(`git:shell.nav.${key}`)])) as Record<RemotePage, string>
   const [info, setInfo] = useState<WorkstationInfo | null>(null)
@@ -708,8 +712,8 @@ export default function Workstation() {
           {error && <div className="nx-alert" role="alert"><AlertTriangle size={16} /><span>{error}</span><button aria-label={t('common:aria.dismissError')} onClick={() => setError(null)}><X size={14} /></button></div>}
 
           {page === 'workstation' && <div className="nx-start-actions"><button className="nx-guide-entry" onClick={openGuide}><BookOpen size={21} /><span><strong>{t('git:guide.entry')}</strong><small>{t('git:guide.entryDetail')}</small></span><ChevronRight size={17} /></button><button className="nx-setup-entry nx-secondary" onClick={() => { setGuidedSetup(false); setSetupOpen(true) }}><GitBranch size={17} />{t('git:setup.title')}<ChevronRight size={17} /></button></div>}
-          {setupOpen && <SetupCenter guided={guidedSetup} onNavigate={(destination, projectId) => { if (projectId) setGuideProjectId(projectId); if (destination === 'environment' || destination === 'agent') setPage(destination); else navigateRemote(destination) }} onComplete={(projectId) => { setGuideProjectId(projectId); setRemoteRefreshKey((current) => current + 1); setSetupOpen(false); setTourOpen(true); void refreshAgentTasks() }} onClose={() => { setSetupOpen(false); void refreshAgentTasks() }} />}
-          {tourOpen && <ProductTour onNavigate={navigateRemote} onClose={() => setTourOpen(false)} onFinish={() => { setTourOpen(false); navigateRemote('Hosting') }} />}
+          {setupOpen && <SetupCenter guided={guidedSetup} firstUse={guidedSetup && preferences.onboardingStage !== 'complete'} onConfigured={async () => { if (preferences.onboardingStage !== 'complete') await setOnboardingStage('tour') }} onNavigate={(destination, projectId) => { if (projectId) setGuideProjectId(projectId); if (destination === 'environment' || destination === 'agent') setPage(destination); else navigateRemote(destination) }} onComplete={(projectId) => { setGuideProjectId(projectId); setRemoteRefreshKey((current) => current + 1); setSetupOpen(false); setTourOpen(true); void refreshAgentTasks() }} onClose={() => { setSetupOpen(false); void refreshAgentTasks() }} />}
+          {tourOpen && <ProductTour onNavigate={navigateRemote} onClose={() => setTourOpen(false)} onFinish={() => { void setOnboardingStage('complete').then(() => { setTourOpen(false); navigateRemote('Hosting') }).catch(() => pushToast('git:guide.firstUse.saveFailed')) }} />}
           {page === 'workstation' && <WorkbenchPage
             projects={projects}
             environment={environment}

@@ -441,7 +441,13 @@
       "Gestion / Issues",
       "Gestion / Recherche"
     ],
-    "resumeRequired": "Le planificateur global est suspendu. Reprenez-le explicitement avant de démarrer les tâches automatiques de ce dépôt."
+    "resumeRequired": "Le planificateur global est suspendu. Reprenez-le explicitement avant de démarrer les tâches automatiques de ce dépôt.",
+    "firstUse": {
+      "title": "Première utilisation · Configuration guidée",
+      "detail": "Nous vous guiderons dans GitHub, l’IA, le choix des dépôts, les outils et la gestion, puis vers les tâches et les résultats. Vous pouvez continuer plus tard ; le guide reviendra au prochain démarrage.",
+      "later": "Continuer plus tard",
+      "saveFailed": "Impossible d’enregistrer la fin du tutoriel. Réessayez."
+    }
   },
   "batch": {
     "selectAll": "Tout sélectionner",

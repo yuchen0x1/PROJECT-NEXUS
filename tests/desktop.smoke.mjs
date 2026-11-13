@@ -59,7 +59,7 @@ try {
   await fs.mkdir(chromiumProfile, { recursive: true })
   // Pin the UI language so the assertions below are deterministic regardless
   // of the Windows display language of the machine running the test.
-  await fs.writeFile(path.join(dataRoot, 'desktop-settings.json'), JSON.stringify({ language: 'en-US' }, null, 2), 'utf8')
+  await fs.writeFile(path.join(dataRoot, 'desktop-settings.json'), JSON.stringify({ onboardingStage: 'complete', language: 'en-US' }, null, 2), 'utf8')
 
   child = spawn(electronExecutable, [
     '--remote-debugging-address=127.0.0.1',

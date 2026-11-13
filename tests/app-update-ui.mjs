@@ -48,7 +48,7 @@ try {
   assert.equal(await historyButton.getAttribute('aria-expanded'), 'true')
   await history.getByText('当前版本', { exact: true }).waitFor()
   const bundledVersions = await history.locator('[data-release-version]').evaluateAll((items) => items.map((item) => item.dataset.releaseVersion))
-  assert.deepEqual(bundledVersions, ['0.8.5', '0.8.4', '0.8.3', '0.8.2', '0.8.0', '0.7.0', '0.3.0', '0.2.1', '0.1.0'])
+  assert.deepEqual(bundledVersions, ['0.8.6', '0.8.5', '0.8.4', '0.8.3', '0.8.2', '0.8.0', '0.7.0', '0.3.0', '0.2.1', '0.1.0'])
   await assertLayout(page)
   await historyButton.click()
   await page.getByRole('button', { name: '检查更新', exact: true }).click()

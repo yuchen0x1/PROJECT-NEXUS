@@ -441,7 +441,13 @@
       "Verwaltung / Issues",
       "Verwaltung / Recherche"
     ],
-    "resumeRequired": "Der globale Zeitplan ist pausiert. Setzen Sie ihn ausdrücklich fort, bevor Sie automatische Aufgaben für dieses Repository starten."
+    "resumeRequired": "Der globale Zeitplan ist pausiert. Setzen Sie ihn ausdrücklich fort, bevor Sie automatische Aufgaben für dieses Repository starten.",
+    "firstUse": {
+      "title": "Erster Start · Geführte Einrichtung",
+      "detail": "Wir führen dich durch GitHub, KI, Repository-Auswahl, Werkzeugprüfung und Verwaltung und zeigen dir Aufgaben und Ergebnisse. Du kannst später fortfahren; die Anleitung öffnet sich beim nächsten Start erneut.",
+      "later": "Später fortfahren",
+      "saveFailed": "Der Abschluss der Anleitung konnte nicht gespeichert werden. Bitte erneut versuchen."
+    }
   },
   "batch": {
     "selectAll": "Alle auswählen",

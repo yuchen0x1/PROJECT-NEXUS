@@ -137,7 +137,7 @@ async function captureFor(language, theme, shots) {
   const profilePath = path.join(workspaceRoot, `profile-${language}-${theme}`)
   await fs.mkdir(dataRoot, { recursive: true })
   await fs.mkdir(profilePath, { recursive: true })
-  await fs.writeFile(path.join(dataRoot, 'desktop-settings.json'), JSON.stringify({ language, theme }, null, 2), 'utf8')
+  await fs.writeFile(path.join(dataRoot, 'desktop-settings.json'), JSON.stringify({ onboardingStage: 'complete', language, theme }, null, 2), 'utf8')
   const { browser, page } = await launch(dataRoot, profilePath)
   try {
     await page.locator('.nx-rail').waitFor({ timeout: 20_000 })

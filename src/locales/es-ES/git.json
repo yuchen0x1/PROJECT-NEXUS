@@ -441,7 +441,13 @@
       "Gestión / Incidencias",
       "Gestión / Investigación"
     ],
-    "resumeRequired": "El planificador global está pausado. Reanúdalo explícitamente antes de iniciar tareas automáticas para este repositorio."
+    "resumeRequired": "El planificador global está pausado. Reanúdalo explícitamente antes de iniciar tareas automáticas para este repositorio.",
+    "firstUse": {
+      "title": "Primer uso · Configuración guiada",
+      "detail": "Te guiaremos por GitHub, IA, selección de repositorios, herramientas y gestión, y te mostraremos las tareas y los resultados. Puedes continuar más tarde; la guía volverá a abrirse al iniciar.",
+      "later": "Continuar después",
+      "saveFailed": "No se pudo guardar la finalización del tutorial. Inténtalo de nuevo."
+    }
   },
   "batch": {
     "selectAll": "Seleccionar todo",
