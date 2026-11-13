@@ -87,6 +87,8 @@
       "artifactName": "PROJECT-NEXUS-${version}-win-${arch}-setup.${ext}"
     },
     "nsis": {
+      "installerIcon": "desktop/assets/app.ico",
+      "uninstallerIcon": "desktop/assets/app.ico",
       "publish": null,
       "oneClick": false,
       "perMachine": false,

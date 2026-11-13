@@ -37,12 +37,7 @@
 .nx-brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 22px; min-height: 34px; }
 .nx-brand-mark {
   width: 30px; height: 30px; flex: 0 0 auto;
-  display: grid; place-items: center;
-  border: 1px solid var(--nx-accent-line);
-  border-radius: var(--nx-r-md);
-  background: var(--nx-accent-soft);
-  color: var(--nx-accent);
-  font-size: 15px; font-weight: 700;
+  display: block; object-fit: contain;
 }
 .nx-brand strong, .nx-brand span { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .nx-brand strong { font-size: var(--nx-fs-md); font-weight: 650; letter-spacing: .08em; }

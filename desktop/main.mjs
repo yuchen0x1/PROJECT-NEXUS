@@ -540,6 +540,7 @@ async function createMainWindow() {
     minHeight: 700,
     show: false,
     title: 'PROJECT NEXUS — Windows Workstation',
+    icon: path.join(here, 'assets', 'app.ico'),
     backgroundColor: '#171d1b',
     autoHideMenuBar: true,
     webPreferences: {

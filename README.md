@@ -2,12 +2,13 @@
 
 Windows 桌面 AI 仓库运营中心。连接 GitHub 与 AI 网关，持续监控仓库，在独立 Worktree 中修复和验证问题，并按授权策略交付 PR 和版本。
 
-**当前公开版本 0.7.0；本地开发分支为 0.8.0 候选，尚未推送、发布或安装。不是 v1.0 稳定版。**
+**0.8.0 开发预览版。安装包未签名，不是 v1.0 稳定版。**
 
 ## 最新更新
 
-### 0.8.0 · 协作与维护（2026-11-13，本地候选）
+### 0.8.0 · 新图标与协作维护（2026-11-13）
 
+- 更换蓝色 N 新图标，统一 Windows 窗口、任务栏、托盘、安装包与应用侧栏，支持多尺寸和高 DPI。
 - 新增协作与维护中心，查看六角色实际分工、模型、消息、测试结果、预算和交付状态。
 - 开发与独立新增测试分别使用隔离副本；暂停后从核实的检查点续跑，不重复未知写入。
 - 批准的源码研究提案可生成隔离实施候选；自身维护有单独策略和确认门禁。
@@ -18,7 +19,7 @@ Windows 桌面 AI 仓库运营中心。连接 GitHub 与 AI 网关，持续监�
 
 ## 安装和首次使用
 
-[下载 Windows x64 安装包](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/download/v0.7.0/PROJECT-NEXUS-0.7.0-win-x64-setup.exe)，[版本说明与校验文件](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.7.0)。此版本为 0.x 开发预览。
+[下载 Windows x64 安装包](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/download/v0.8.0/PROJECT-NEXUS-0.8.0-win-x64-setup.exe)，[版本说明与校验文件](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.0)。此版本为 0.x 开发预览。
 
 1. 在 Windows x64 上运行安装程序。
 2. 启动应用，点击工作台上的蓝色「一键教学」，顶部也可进入。
@@ -86,7 +87,7 @@ Windows 桌面 AI 仓库运营中心。连接 GitHub 与 AI 网关，持续监�
 
 0.3.0 的历史私有测试仓库验收通过了 Bug 复现、AI 修复、回归测试、构建、独立审查、推送、PR、合并、带校验资产的 Release、回复和关闭 Issue。另读取两个真实开源项目的源码与许可证，见 [历史测试报告](docs/V1_TEST_REPORT.md)。0.7.0 新增 CI 门禁下的真实交付闭环仍因 Checks API 权限受阻，不以历史成功替代本版本验收。
 
-0.8.0 本地候选已接入研究提案到实施门禁、安全检查点续跑、独立自我维护策略、资源准入和 ESLint；官方 npm 审计当前为 0。完整原生隔离、签名安装/回滚、通用多语言交付、真实外部服务和 24 小时连续验收仍未完成。当前状态见 [验收矩阵](docs/TEST_ACCEPTANCE_REPORT.md)和[安全报告](docs/SECURITY_HARDENING_REPORT.md)；0.7.0 公开版本边界见[版本说明](docs/releases/v0.7.0.md)。
+0.8.0 开发预览已接入研究提案到实施门禁、安全检查点续跑、独立自我维护策略、资源准入和 ESLint；官方 npm 审计为 0。完整原生隔离、签名安装/回滚、通用多语言交付、真实外部服务和 24 小时连续验收仍未完成。当前状态见 [验收矩阵](docs/TEST_ACCEPTANCE_REPORT.md)和[安全报告](docs/SECURITY_HARDENING_REPORT.md)，本版说明见 [0.8.0](docs/releases/v0.8.0.md)。
 
 ## 文档
 
@@ -99,4 +100,4 @@ Windows 桌面 AI 仓库运营中心。连接 GitHub 与 AI 网关，持续监�
 - [Webhook 配置](docs/GITHUB_WEBHOOKS.md)
 - [历史 Phase 0 审计](docs/V1_PHASE0_AUDIT.md)
 
-0.7.0 的新增能力、验证范围及已知限制见[版本说明](docs/releases/v0.7.0.md)。当前会话无法解密既有 GitHub / AI 凭据时，需在应用中重新连接，或回到能够解密的原 Windows 会话；原凭据文件不会被验收流程覆盖。
+0.8.0 的新增能力、验证范围及已知限制见[版本说明](docs/releases/v0.8.0.md)。当前会话无法解密既有 GitHub / AI 凭据时，需在应用中重新连接，或回到能够解密的原 Windows 会话；原凭据文件不会被验收流程覆盖。

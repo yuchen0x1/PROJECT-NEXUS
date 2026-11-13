@@ -11,6 +11,8 @@ import SetupCenter from './SetupCenter'
 import ProductTour from './ProductTour'
 import ProjectOverview from './ProjectOverview'
 import EvolutionCenter from './EvolutionCenter'
+import appIcon from '../../assets/branding/PROJECT-NEXUS-icon-64.png'
+import appIconRetina from '../../assets/branding/PROJECT-NEXUS-icon-128.png'
 import { api, type AgentInsights, type AgentProvider, type LocalAgentTask } from '../api'
 import { useSettings } from '../i18n/settings'
 import { LANGUAGES } from '../i18n/languages'
@@ -909,7 +911,7 @@ function ActivityBar({ page, onNavigate, remotePage, onRemoteNavigate, remoteLab
   )
   return <nav className={`nx-rail ${collapsed ? 'collapsed' : ''}`} aria-label={t('common:aria.mainNavigation')}>
     <div className="nx-brand">
-      <div className="nx-brand-mark">N</div>
+      <img className="nx-brand-mark" src={appIcon} srcSet={`${appIcon} 1x, ${appIconRetina} 2x`} width={30} height={30} alt="" aria-hidden="true" draggable={false} />
       {!collapsed && <div><strong>{t('common:app.productName')}</strong><span>{t('common:app.tagline')}</span></div>}
     </div>
     {!collapsed && <div className="nx-rail-label">{t('navigation:rail.workspace')}</div>}

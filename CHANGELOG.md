@@ -1,8 +1,10 @@
 # Changelog
 
-## 0.8.0 — 2026-11-13 (local candidate, unpublished)
+## 0.8.0 — 2026-11-13 (development preview)
 
-Six-role collaboration, isolated independently authored Node tests, verified conversation checkpoint recovery, research proposal implementation gates, separate self-maintenance policy, project memory and resource telemetry are available on the local development branch. Persistence, command risk escalation, workspace boundaries and candidate application received focused fixes.
+- Replace the placeholder with the supplied multi-resolution Windows N icon across the executable, installer/uninstaller, window, tray and workstation sidebar.
+
+Six-role collaboration, isolated independently authored Node tests, verified conversation checkpoint recovery, research proposal implementation gates, separate self-maintenance policy, project memory and resource telemetry are included in this development preview. Persistence, command risk escalation, workspace boundaries and candidate application received focused fixes.
 
 Maintained suite: 55 files / 286 tests passed. Native source and packaged-executable fixture acceptance passed. Unsigned installer; strict OS isolation, native update installation/rollback, real external services and 24-hour soak acceptance remain incomplete. See [current delivery report](docs/FINAL_DELIVERY_REPORT.md) and [canonical product release notes](docs/releases/release-notes.md).
 

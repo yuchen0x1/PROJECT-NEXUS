@@ -58,6 +58,8 @@ try {
   app = await _electron.launch({ executablePath: packagedExecutable || require('electron'), args: [...(packagedExecutable ? [] : [root]), '--nexus-smoke-test', ...(process.env.NEXUS_EVOLUTION_SCALE ? [`--force-device-scale-factor=${process.env.NEXUS_EVOLUTION_SCALE}`] : [])], env, timeout: 45000 })
   const page = await app.firstWindow(), errors = []
   page.on('pageerror', (error) => errors.push(error.message))
+  await page.locator('img.nx-brand-mark').waitFor()
+  await page.waitForFunction(() => { const icon = document.querySelector('img.nx-brand-mark'); return icon instanceof HTMLImageElement && icon.complete && icon.naturalWidth >= 64 })
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setContentSize(1280, 720))
   await page.getByRole('button', { name: labels.title, exact: true }).click()
   await page.locator('.nx-evolution').waitFor()

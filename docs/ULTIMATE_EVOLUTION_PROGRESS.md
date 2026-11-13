@@ -1,5 +1,7 @@
 # Ultimate Evolution 实施进度
 
+> 后续图标与发布任务已取得用户明确授权，记录见 [0.8.0 说明](releases/v0.8.0.md)。下文保留发布前的实现检查点；图标变更前的 24h 会话已记 Interrupted，新发布源码将重新计时，不累计旧时长。
+
 基线：2026-11-13，0.7.0，main / 349faa0；初始工作区干净。开发分支 `codex/ultimate-evolution`，本地候选 0.8.0。原始需求保存在 ULTIMATE_EVOLUTION_REQUEST.md。
 
 不沿用此前 v0.7.0 的远程发布授权。不安装候选，不修改系统账户、ACL、网络策略或证书；没有覆盖用户数据和原凭据。桌面验收使用独立 fixture profile。
@@ -17,8 +19,8 @@
 
 最终维护中回归：55 文件 / 286 项 PASS，156.72 秒，`test-results/ultimate-regression-evidence-lock.log`。TypeScript、ESLint、生产构建、NSIS x64 打包通过。源码中文暗色、英文浅色和打包 exe 原生 fixture 流程均通过，包括真实原有/独立新增测试、暂停续跑、记忆下载导出和进程指标。
 
-当前 24h 会话于 **2026-11-13 20:33:23（Asia/Shanghai）** 启动，最早次日 20:33:23 满足时长；仍须检查采样连续性和错误，当前不能记为 PASS。实时状态：`test-results/soak/2026-11-13T12-33-21-033Z/status.json`。固定源码 SHA-256：`f5cb11cef51131e989c90da91ea05bff01ac26d53c9923e9818ce7c7d10c7ef5`。本地代码检查点为 `626af316f9269efa03622004b790aa9c22961652`，未推送。
+新图标 0.8.0 源码的 24h 会话于 **2026-11-13 20:52:50（Asia/Shanghai）** 启动，最早次日 20:52:50 满足时长；仍须检查采样连续性和错误，当前不能记为 PASS。实时状态：`test-results/soak/2026-11-13T12-52-48-723Z/status.json`。固定源码 SHA-256：`272476b72a06961ef4277e517c7faf9d0d1c22cfef37edd61fc513a7c5b2e19e`。图标变更前的旧会话已记 Interrupted，旧时长不累计。
 
 首次短测的父仓库边界错误已修复；此前未取得采样的隐藏 Renderer IPC 测试记录为 FAIL，没有计入正式 24h。改用受认证直连 API 与 Electron 主进程采样后，72 秒后台预检取得 2 次真实采样、1 次完成工作流、9 次 fixture 模型请求，仅标 PARTIAL。
 
-十份指定报告均已创建，详细功能、测试和授权边界见 [当前交付报告](FINAL_DELIVERY_REPORT.md)。当前公开版本仍为 0.7.0；0.8.0 没有远程推送/Release，也没有执行安装。
+十份指定报告均已创建，详细功能边界见 [当前交付报告](FINAL_DELIVERY_REPORT.md)。0.8.0 图标发布单独按用户新授权执行，见 [版本说明](releases/v0.8.0.md)与[发布审计](releases/v0.8.0-audit.md)；本次不执行安装。
