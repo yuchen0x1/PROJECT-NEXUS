@@ -102,14 +102,16 @@ async function findWindowsExecutable(program) {
   return null
 }
 
-function buildChildEnv() {
+export function buildChildEnv() {
   const childEnv = {}
   const allowPrefixes = ['APPDATA', 'LOCALAPPDATA', 'PROGRAMFILES', 'PROGRAMDATA', 'COMSPEC', 'PATHEXT', 'SYSTEMROOT', 'SYSTEMDRIVE', 'TEMP', 'TMP', 'USERPROFILE', 'HOMEDRIVE', 'HOMEPATH', 'WINDIR', 'COMMONPROGRAMFILES', 'PROCESSOR', 'NUMBER_OF_PROCESSORS', 'OS', 'PATH', 'HOME', 'LANG', 'LC_', 'TERM', 'NODE_']
   for (const [key, value] of Object.entries(process.env)) {
     if (value === undefined) continue
     const upper = key.toUpperCase()
     if (envDenyPatterns.some((pattern) => pattern.test(upper))) continue
-    if (allowPrefixes.some((prefix) => upper.startsWith(prefix))) childEnv[key] = value
+    // Windows PowerShell needs the host's module search path. Reconstructing it
+    // can hang module autoload on clean machines with multiple PowerShell versions.
+    if (upper === 'PSMODULEPATH' || allowPrefixes.some((prefix) => upper.startsWith(prefix))) childEnv[key] = value
   }
   delete childEnv.NODE_OPTIONS
   delete childEnv.NODE_PATH

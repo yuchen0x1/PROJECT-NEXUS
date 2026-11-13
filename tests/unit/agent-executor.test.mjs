@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
-import { DEFAULT_ALLOWED_PROGRAMS, isProgramAllowed, runCommand } from '../../server/services/agent/executor.mjs'
+import { buildChildEnv, DEFAULT_ALLOWED_PROGRAMS, isProgramAllowed, runCommand } from '../../server/services/agent/executor.mjs'
 
 let root
 
@@ -106,4 +106,20 @@ describe('agent command executor', () => {
     expect(result.exitCode).toBe(2)
     expect(result.stderr).toContain('boom')
   }, 30_000)
+
+  it('preserves PowerShell module discovery while still excluding host credentials', () => {
+    const keys = ['PSModulePath', 'GITHUB_TOKEN', 'NODE_OPTIONS']
+    const previous = Object.fromEntries(keys.map((key) => [key, process.env[key]]))
+    try {
+      process.env.PSModulePath = 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\Modules'
+      process.env.GITHUB_TOKEN = 'fixture-must-not-reach-commands'
+      process.env.NODE_OPTIONS = '--inspect=127.0.0.1:0'
+      const env = buildChildEnv()
+      expect(Object.entries(env).find(([key]) => key.toUpperCase() === 'PSMODULEPATH')?.[1]).toBe(process.env.PSModulePath)
+      expect(env.GITHUB_TOKEN).toBeUndefined()
+      expect(env.NODE_OPTIONS).toBeUndefined()
+    } finally {
+      for (const key of keys) { if (previous[key] === undefined) delete process.env[key]; else process.env[key] = previous[key] }
+    }
+  })
 })

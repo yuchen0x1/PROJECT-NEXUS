@@ -14,7 +14,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: desktop-release-${{ inputs.release_tag || github.ref }}
+  group: desktop-release-${{ inputs.release_tag || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -46,34 +46,18 @@ jobs:
           $latest = $releases | Where-Object { -not $_.draft -and -not $_.prerelease -and $_.tag_name -match '^v\d+\.\d+\.\d+$' } | Sort-Object { [version]($_.tag_name.Substring(1)) } -Descending | Select-Object -First 1
           if ($latest -and [version]$version -le [version]($latest.tag_name.Substring(1))) { throw 'The new version must be greater than the published version.' }
       - run: npm ci
+      - name: Use an unambiguous temporary test directory
+        shell: pwsh
+        run: |
+          $testTemp = Join-Path $env:RUNNER_TEMP 'nexus-tests'
+          New-Item -ItemType Directory -Force -Path $testTemp | Out-Null
+          "TEMP=$testTemp" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "TMP=$testTemp" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
       - name: Check Windows command runner
         shell: pwsh
         run: |
           @'
-          import { spawnSync } from 'node:child_process'
-          import fs from 'node:fs'
-          import path from 'node:path'
-          import { pathToFileURL } from 'node:url'
           import { runCommand } from './server/services/agent/executor.mjs'
-          console.log('Direct Git:', spawnSync('git', ['--version'], { encoding: 'utf8', timeout: 15000 }).stdout)
-          const ps = path.join(process.env.SystemRoot, 'System32/WindowsPowerShell/v1.0/powershell.exe')
-          const boot = spawnSync(ps, ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', "[Console]::Error.WriteLine('PS_READY'); Add-Type -TypeDefinition 'public class NexusProbe {}'; [Console]::Error.WriteLine('TYPE_READY')"], { encoding: 'utf8', timeout: 20000 })
-          console.log('PowerShell boot:', JSON.stringify({status:boot.status,error:boot.error?.code,stdout:boot.stdout,stderr:boot.stderr}))
-          const traced = path.join(process.env.RUNNER_TEMP, 'nexus-job-traced.ps1')
-          const original = fs.readFileSync('server/services/agent/windows-job-runner.ps1', 'utf8')
-          fs.writeFileSync(traced, original.replace('Add-Type -TypeDefinition', "[Console]::Error.WriteLine('BEFORE_COMPILE')\nAdd-Type -TypeDefinition").replace('exit [NexusJobRunner]::Run', "[Console]::Error.WriteLine('BEFORE_RUN')\nexit [NexusJobRunner]::Run"))
-          const git = spawnSync('where.exe', ['git'], { encoding: 'utf8' }).stdout.trim().split(/\r?\n/)[0]
-          const spec = Buffer.from(JSON.stringify({file:git,arguments:'--version',cwd:process.cwd(),parentPid:process.pid})).toString('base64')
-          const tracedResult = spawnSync(ps, ['-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', traced, '-SpecBase64', spec], {encoding:'utf8',timeout:20000})
-          console.log('Full-environment job runner:', JSON.stringify({status:tracedResult.status,error:tracedResult.error?.code,stdout:tracedResult.stdout,stderr:tracedResult.stderr}))
-          const probePath = path.resolve('server/services/agent/.ci-env-probe.mjs')
-          fs.writeFileSync(probePath, fs.readFileSync('server/services/agent/executor.mjs', 'utf8').replace('function buildChildEnv()', 'export function buildChildEnv()'))
-          const { buildChildEnv } = await import(pathToFileURL(probePath).href)
-          fs.unlinkSync(probePath)
-          for (const [label, additions] of [['filtered', {}], ['system-modules', {PSModulePath:path.join(process.env.SystemRoot,'System32/WindowsPowerShell/v1.0/Modules')}], ['preserved-modules', {PSModulePath:process.env.PSModulePath}]]) {
-            const result = spawnSync(ps, ['-NoLogo','-NoProfile','-NonInteractive','-Command', "[Console]::Error.WriteLine('PS_READY'); '{}' | ConvertFrom-Json | Out-Null; [Console]::Error.WriteLine('JSON_READY'); Add-Type -TypeDefinition 'public class NexusModuleProbe {}'; [Console]::Error.WriteLine('TYPE_READY')"], {encoding:'utf8',timeout:15000,env:{...buildChildEnv(),...additions}})
-            console.log(label, JSON.stringify({status:result.status,error:result.error?.code,stdout:result.stdout,stderr:result.stderr}))
-          }
           for (const command of ['git --version', 'node --version']) {
             const result = await runCommand({ cwd: process.cwd(), command, timeoutMs: 15000 })
             console.log(JSON.stringify(result))
