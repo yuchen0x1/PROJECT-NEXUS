@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   release:
-    runs-on: windows-latest
+    runs-on: windows-2022
     timeout-minutes: 30
     env:
       RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
@@ -31,7 +31,7 @@ jobs:
           ref: ${{ inputs.release_tag || github.ref }}
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '24.20.0'
           cache: npm
       - name: Require a matching, increasing stable version
         shell: pwsh
