@@ -62,6 +62,43 @@
       "download": "Error de descarga o verificación. No se instaló la actualización. Reintente cuando tenga conexión.",
       "install": "Error de instalación. Sus datos se conservan; reintente o reinicie NEXUS.",
       "bridge": "No se pudo conectar con el actualizador. Abra NEXUS de nuevo y reintente."
+    },
+    "history": {
+      "title": "Notas de versión",
+      "hint": "Consulta los cambios de más recientes a más antiguos.",
+      "current": "Versión instalada",
+      "available": "Disponible",
+      "missingNotes": "El editor no ha proporcionado notas para esta versión.",
+      "releases": {
+        "v0_8_3": {
+          "title": "Panel de actualización e historial",
+          "summary": "Corrige la superposición con los títulos. Separa versión, estado y acciones, y añade notas desplegables con historial sin conexión y detalles de nuevas versiones."
+        },
+        "v0_8_2": {
+          "title": "Actualizaciones automáticas",
+          "summary": "Comprueba al iniciar y cada cuatro horas. Muestra progreso, permite reintentar, guarda el estado e instala y vuelve a abrir. Corrige tiempos de espera de comandos de Windows."
+        },
+        "v0_8_0": {
+          "title": "Nuevo icono y mantenimiento colaborativo",
+          "summary": "Unifica la N azul y añade seis roles, pruebas aisladas, recuperación desde puntos de control, memoria de proyecto y métricas de recursos."
+        },
+        "v0_7_0": {
+          "title": "Vista de proyectos y gestión por lotes",
+          "summary": "Añade un gráfico interactivo, ajustes de varios repositorios, guía de configuración, listas de modelos y estados de entrega más claros."
+        },
+        "v0_3_0": {
+          "title": "Motor de desarrollo autónomo",
+          "summary": "Planes de varios turnos, 34 herramientas, pruebas reales, reparaciones limitadas y revisión independiente, con reversión y aplicación confirmada en espacios aislados."
+        },
+        "v0_2_1": {
+          "title": "Experiencia de escritorio y diez idiomas",
+          "summary": "Renueva navegación, ajustes, notificaciones y paleta. Añade diez idiomas y temas claro/oscuro; corrige avisos de tareas en pausa y navegación desde notificaciones."
+        },
+        "v0_1_0": {
+          "title": "Escritorio Windows y Agent local",
+          "summary": "Primera vista previa con propuestas de IA locales, espacios aislados, aplicación confirmada y registros de tareas."
+        }
+      }
     }
   }
 }

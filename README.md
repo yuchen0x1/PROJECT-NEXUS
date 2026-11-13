@@ -2,23 +2,22 @@
 
 Windows 桌面 AI 仓库运营中心。连接 GitHub 与 AI 网关，持续监控仓库，在独立 Worktree 中修复和验证问题，并按授权策略交付 PR 和版本。
 
-**0.8.2 开发预览版。安装包未签名，不是 v1.0 稳定版。**
+**v0.8.3 本地开发预览；GitHub 最新公开安装版仍为 v0.8.2。安装包未签名，不是 v1.0 稳定版。**
 
 ## 最新更新
 
-### v0.8.2 · 应用自动更新（2026-11-13）
+### v0.8.3 · 更新栏布局与应用内日志（2026-11-13，本地预览）
 
-- Windows 安装版启动后及每 4 小时检查 NEXUS 新版本，设置页也可手动检查。
-- 发现新版显示全局提示；点击「立即更新」后下载并校验、保存状态、停止当前任务、自动安装并重新打开应用。
-- 下载或安装失败显示原因并可重试；稍后更新不会退出应用，用户数据保留。
-- 修复部分 Windows 环境下任务命令启动超时的问题。
-- 发布端支持推送匹配版本的 `v*` 标签后自动构建安装包及更新清单，上传齐全后发布 GitHub Release。
+- 修复「检查更新」与设置标题、正文重叠的问题；版本、状态、按钮各自占用清晰空间。
+- 更新提示展开或收起时，页面和底部日志面板正常分配空间；支持较窄窗口及高 DPI 缩放。
+- 新增「更新日志」入口，可离线查看七个版本的摘要；发现新版后显示发布方提供的说明。
+- 日志按版本号从新到旧排列，并标记当前版本与可更新版本；界面与历史摘要支持十种语言。
 
-**0.8.0 及更早版本没有自身自动更新，需要先手动安装 0.8.2。** 普通源码推送不构成更新发布。安装包未签名，真实跨版本安装重启尚未验收。详见[本版说明](docs/releases/v0.8.2.md)、[更新与发布说明](docs/APP_AUTO_UPDATE.md)和[完整发布记录](docs/releases/release-notes.md)。
+本版尚未公开发布，现有 0.8.2 客户端暂时不会收到本次更新。说明见 [v0.8.3](docs/releases/v0.8.3.md)，历史见 [完整发布记录](docs/releases/release-notes.md)。
 
 ## 安装和首次使用
 
-[下载 Windows x64 安装包](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/download/v0.8.2/PROJECT-NEXUS-0.8.2-win-x64-setup.exe)，[版本说明与校验文件](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.2)。此版本为 0.x 开发预览。
+[下载当前公开版 Windows x64 安装包](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/download/v0.8.2/PROJECT-NEXUS-0.8.2-win-x64-setup.exe)，[版本说明与校验文件](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.2)。此版本为 0.x 开发预览。
 
 1. 在 Windows x64 上运行安装程序。
 2. 启动应用，点击工作台上的蓝色「一键教学」，顶部也可进入。

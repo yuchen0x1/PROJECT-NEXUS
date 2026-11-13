@@ -118,10 +118,29 @@ try {
   await page.getByRole('region', { name: 'NEXUS app update', exact: true }).waitFor()
   assert.equal(await page.getByRole('button', { name: 'Check for updates', exact: true }).isDisabled(), true)
   assert.equal(await page.getByText('Updates are available in the installed Windows app.', { exact: true }).isVisible(), true)
+  await page.getByRole('button', { name: 'Release notes', exact: true }).click()
+  const releaseHistory = page.getByRole('region', { name: 'Release notes', exact: true })
+  await releaseHistory.getByText('Installed', { exact: true }).waitFor()
+  const geometry = await page.evaluate(() => ({
+    updateBottom: document.querySelector('.nx-app-update').getBoundingClientRect().bottom,
+    headingTop: document.querySelector('.nx-page-heading').getBoundingClientRect().top,
+    contentHeight: document.querySelector('.nx-content-grid').getBoundingClientRect().height
+  }))
+  assert.ok(geometry.updateBottom <= geometry.headingTop, 'Native settings heading must not overlap the expanded updater.')
+  assert.ok(geometry.contentHeight > 140, 'Native settings must retain scroll space below release notes.')
+  await page.getByRole('combobox', { name: 'Interface language', exact: true }).selectOption('zh-CN')
+  await page.getByRole('heading', { name: '设置', exact: true }).waitFor()
+  await page.getByRole('radio', { name: '浅色', exact: true }).click()
+  await page.waitForFunction(() => document.documentElement.dataset.theme === 'light')
+  await fs.mkdir(path.join(appRoot, 'test-results'), { recursive: true })
+  await page.screenshot({ path: path.join(appRoot, 'test-results/app-update-native-history.png') })
+  await page.getByRole('button', { name: '更新日志', exact: true }).click()
+  await page.screenshot({ path: path.join(appRoot, 'test-results/app-update-native-settings.png') })
 
   console.log('PASS: Electron launched a native BrowserWindow and rendered the Windows workstation.')
   console.log('PASS: The renderer has the narrow preload bridge; direct unauthenticated local API access is rejected.')
   console.log('PASS: The real desktop update bridge and settings status render with development updates disabled.')
+  console.log('PASS: Native settings update layout, offline release history and Chinese language switch.')
 } catch (error) {
   failed = true
   const trace = output.split(/\r?\n/).filter((line) => line.includes('NEXUS_DESKTOP_TRACE:')).join('\n')

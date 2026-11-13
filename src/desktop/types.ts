@@ -111,6 +111,8 @@ export type AppUpdateState = {
   percent: number
   errorCode: 'check' | 'download' | 'install' | null
   retry: 'check' | 'update'
+  releaseNotes?: string
+  releaseDate?: string | null
 }
 
 export type DesktopMetrics = { at: string; processes: { pid: number; type: string; cpuPercent: number; workingSetBytes: number; peakWorkingSetBytes: number; creationTime: number }[]; servicePid: number | null }

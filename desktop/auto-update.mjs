@@ -1,6 +1,21 @@
+// GitHub can supply HTML or a versioned note list. Send bounded plain text over
+// the bridge; the renderer never inserts release content as HTML.
+function releaseDetails(info) {
+  const raw = Array.isArray(info.releaseNotes) ? info.releaseNotes.find((entry) => entry?.version === info.version)?.note : info.releaseNotes
+  const entities = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' }
+  const releaseNotes = typeof raw !== 'string' ? '' : raw.slice(0, 32_768)
+    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, '')
+    .replace(/<\/?(?:p|div|h[1-6]|li|ul|ol|br)\b[^>]*>/gi, '\n')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&(amp|lt|gt|quot|apos|nbsp);/g, (_match, name) => entities[name])
+    .replace(/\n{3,}/g, '\n\n').trim().slice(0, 16_384)
+  const date = typeof info.releaseDate === 'string' ? Date.parse(info.releaseDate) : NaN
+  return { releaseNotes, releaseDate: Number.isFinite(date) ? new Date(date).toISOString() : null }
+}
+
 // The renderer can request a check or an update, never supply a feed or installer.
 export function createAppUpdater({ updater, currentVersion, enabled, onState = () => {}, prepareInstall = async () => {}, recoverInstall = async () => {}, log = () => {} }) {
-  let state = { revision: 0, phase: enabled ? 'idle' : 'disabled', currentVersion, version: null, percent: 0, errorCode: null, retry: 'check' }
+  let state = { revision: 0, phase: enabled ? 'idle' : 'disabled', currentVersion, version: null, percent: 0, errorCode: null, retry: 'check', releaseNotes: '', releaseDate: null }
   let checking = null
   let updating = null
   let downloaded = false
@@ -40,10 +55,10 @@ export function createAppUpdater({ updater, currentVersion, enabled, onState = (
 
   listen('update-available', (info) => {
     downloaded = false
-    publish({ phase: 'available', version: info.version, percent: 0, errorCode: null, retry: 'update' })
+    publish({ phase: 'available', version: info.version, percent: 0, errorCode: null, retry: 'update', ...releaseDetails(info) })
     log('info', 'app-update-available', { version: info.version })
   })
-  listen('update-not-available', () => publish({ phase: 'up-to-date', version: null, errorCode: null, retry: 'check' }))
+  listen('update-not-available', () => publish({ phase: 'up-to-date', version: null, errorCode: null, retry: 'check', releaseNotes: '', releaseDate: null }))
   listen('download-progress', (progress) => publish({ percent: Math.max(0, Math.min(100, Number(progress.percent) || 0)) }))
   listen('update-downloaded', () => {
     downloaded = true

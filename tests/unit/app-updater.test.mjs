@@ -19,6 +19,22 @@ function setup(options = {}) {
 }
 
 describe('NEXUS desktop updater', () => {
+  it('passes version-specific release notes as bounded plain text and clears stale metadata', () => {
+    const { updater, controller } = setup()
+    updater.emit('update-available', { version: '0.8.10', releaseDate: '2026-11-13T12:00:00Z', releaseNotes: [
+      { version: '0.8.2', note: 'Unrelated old note' },
+      { version: '0.8.10', note: '<h2>更新内容</h2><p>修复布局 &amp; 添加日志。</p><script>ignored()</script>' }
+    ] })
+    expect(controller.getStatus()).toMatchObject({ version: '0.8.10', releaseNotes: '更新内容\n\n修复布局 & 添加日志。', releaseDate: '2026-11-13T12:00:00.000Z' })
+    updater.emit('update-available', { version: '0.9.0', releaseDate: 'invalid', releaseNotes: 'x'.repeat(100_000) })
+    expect(controller.getStatus().releaseNotes).toHaveLength(16_384)
+    expect(controller.getStatus().releaseDate).toBeNull()
+    updater.emit('update-not-available')
+    expect(controller.getStatus()).toMatchObject({ releaseNotes: '', releaseDate: null })
+    updater.emit('update-available', { version: '0.9.1', releaseNotes: { unexpected: true } })
+    expect(controller.getStatus().releaseNotes).toBe('')
+  })
+
   it('uses the official feed and requires a click before downloading or installing', async () => {
     const { updater, controller } = setup()
     await controller.check()

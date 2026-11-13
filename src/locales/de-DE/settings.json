@@ -62,6 +62,43 @@
       "download": "Download oder Prüfung fehlgeschlagen. Das Update wurde nicht installiert. Nach dem Verbinden erneut versuchen.",
       "install": "Installation fehlgeschlagen. Ihre Daten bleiben erhalten. Erneut versuchen oder NEXUS neu starten.",
       "bridge": "Update-Dienst nicht erreichbar. NEXUS erneut öffnen und wieder versuchen."
+    },
+    "history": {
+      "title": "Versionshinweise",
+      "hint": "Änderungen von der neuesten zur ältesten Version.",
+      "current": "Installiert",
+      "available": "Verfügbar",
+      "missingNotes": "Für diese Version liegen keine Versionshinweise vor.",
+      "releases": {
+        "v0_8_3": {
+          "title": "Update-Anzeige und Versionsverlauf",
+          "summary": "Behebt überlappende Update- und Seitentitel. Version, Status und Aktionen sind getrennt; ausklappbare Versionshinweise zeigen Offline-Verlauf und neue Updates."
+        },
+        "v0_8_2": {
+          "title": "Automatische App-Updates",
+          "summary": "Prüfung beim Start und alle vier Stunden, Download-Fortschritt, Wiederholung, Speichern und Installation mit Neustart. Behebt Zeitüberschreitungen beim Start von Windows-Befehlen."
+        },
+        "v0_8_0": {
+          "title": "Neues Symbol und gemeinsame Wartung",
+          "summary": "Einheitliches blaues N, sechs Rollen, getrennte Tests, Wiederaufnahme an Prüfpunkten, Projektgedächtnis und Ressourcenwerte."
+        },
+        "v0_7_0": {
+          "title": "Projektübersicht und Stapelverwaltung",
+          "summary": "Interaktiver Projektgraph, Einstellungen für mehrere Repositories, Einrichtungsassistent, Modelllisten sowie klare Ausführungs- und Auslieferungszustände."
+        },
+        "v0_3_0": {
+          "title": "Autonome Entwicklungsengine",
+          "summary": "Mehrstufige Pläne, 34 Werkzeuge, echte Tests, begrenzte Reparaturen und unabhängige Prüfung mit Rücknahme und bestätigter Übernahme in isolierten Arbeitsbereichen."
+        },
+        "v0_2_1": {
+          "title": "Desktop-Oberfläche und zehn Sprachen",
+          "summary": "Navigation, Einstellungen, Benachrichtigungen und Befehlspalette überarbeitet. Zehn Sprachen und helle/dunkle Designs; Korrekturen für pausierte Aufgaben und Benachrichtigungsziele."
+        },
+        "v0_1_0": {
+          "title": "Windows-Desktop und lokaler Agent",
+          "summary": "Erste Desktop-Vorschau mit lokalen KI-Vorschlägen, isolierten Arbeitsbereichen, bestätigter Übernahme und Aufgabenprotokollen."
+        }
+      }
     }
   }
 }

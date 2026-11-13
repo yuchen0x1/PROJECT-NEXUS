@@ -62,6 +62,43 @@
       "download": "Download or verification failed. The update was not installed. Retry when connected.",
       "install": "Installation failed. Your data is preserved; retry or restart NEXUS.",
       "bridge": "Could not reach the desktop updater. Reopen NEXUS and try again."
+    },
+    "history": {
+      "title": "Release notes",
+      "hint": "View changes from newest to oldest.",
+      "current": "Installed",
+      "available": "Available",
+      "missingNotes": "The publisher has not provided notes for this version.",
+      "releases": {
+        "v0_8_3": {
+          "title": "Update layout and release history",
+          "summary": "Fix overlapping update status and page headings. Separate version, status and actions, and add expandable release notes with offline history and new-version details."
+        },
+        "v0_8_2": {
+          "title": "Automatic app updates",
+          "summary": "Check at startup and every four hours. Show download progress, retry failures, save state, install and reopen. Fix Windows command startup timeouts."
+        },
+        "v0_8_0": {
+          "title": "New icon and collaborative maintenance",
+          "summary": "Unify the blue N icon. Add six-role collaboration, separate test workspaces, checkpoint recovery, project memory and resource metrics."
+        },
+        "v0_7_0": {
+          "title": "Project overview and batch hosting",
+          "summary": "Add an interactive project graph, batch repository settings, guided setup, model lists and clearer execution and delivery states."
+        },
+        "v0_3_0": {
+          "title": "Autonomous development engine",
+          "summary": "Introduce multi-turn plans, 34 tools, real tests, bounded repairs and independent review, with rollback and confirmed application in isolated workspaces."
+        },
+        "v0_2_1": {
+          "title": "Desktop experience and ten languages",
+          "summary": "Refresh navigation, settings, notifications and the command palette. Add ten languages and light/dark themes; fix paused-task notifications and notification navigation."
+        },
+        "v0_1_0": {
+          "title": "Windows desktop and local Agent",
+          "summary": "First Windows desktop preview with local AI proposals, isolated workspaces, confirmed application and task logs."
+        }
+      }
     }
   }
 }

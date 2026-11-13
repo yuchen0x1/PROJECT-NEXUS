@@ -688,7 +688,7 @@ export default function Workstation() {
         </div>
       </header>
 
-      <AppUpdate settings={page === 'settings'} />
+      <div className="nx-app-update-slot"><AppUpdate settings={page === 'settings'} /></div>
       <div className="nx-content-grid" data-rail={showActivity && !['remote', 'settings', 'overview', 'evolution'].includes(page) ? 'open' : 'closed'}>
         <main className="nx-workarea">
           {page !== 'remote' && page !== 'overview' && page !== 'evolution' && <div className="nx-page-heading">

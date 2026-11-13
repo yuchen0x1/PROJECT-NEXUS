@@ -62,6 +62,43 @@
       "download": "Falha no download ou na verificação. A atualização não foi instalada. Tente novamente quando estiver conectado.",
       "install": "Falha na instalação. Seus dados foram preservados; tente novamente ou reinicie o NEXUS.",
       "bridge": "Não foi possível acessar o atualizador. Reabra o NEXUS e tente novamente."
+    },
+    "history": {
+      "title": "Notas da versão",
+      "hint": "Veja as alterações da mais recente para a mais antiga.",
+      "current": "Versão instalada",
+      "available": "Disponível",
+      "missingNotes": "O responsável ainda não forneceu notas para esta versão.",
+      "releases": {
+        "v0_8_3": {
+          "title": "Painel de atualização e histórico",
+          "summary": "Corrige a sobreposição com títulos de página. Separa versão, estado e ações e inclui notas expansíveis com histórico offline e detalhes de novas versões."
+        },
+        "v0_8_2": {
+          "title": "Atualizações automáticas",
+          "summary": "Verifica ao iniciar e a cada quatro horas. Exibe progresso, permite tentar novamente, salva o estado, instala e reabre. Corrige tempos limite de comandos no Windows."
+        },
+        "v0_8_0": {
+          "title": "Novo ícone e manutenção colaborativa",
+          "summary": "Unifica o N azul e adiciona seis funções, testes isolados, recuperação por pontos de controle, memória do projeto e métricas de recursos."
+        },
+        "v0_7_0": {
+          "title": "Visão de projetos e gestão em lote",
+          "summary": "Adiciona grafo interativo, configuração de vários repositórios, guia, listas de modelos e estados de execução e entrega mais claros."
+        },
+        "v0_3_0": {
+          "title": "Motor de desenvolvimento autônomo",
+          "summary": "Planos em várias etapas, 34 ferramentas, testes reais, reparos limitados e revisão independente, com reversão e aplicação confirmada em espaços isolados."
+        },
+        "v0_2_1": {
+          "title": "Experiência desktop e dez idiomas",
+          "summary": "Renova navegação, configurações, notificações e paleta. Adiciona dez idiomas e temas claro/escuro; corrige alertas de tarefas pausadas e navegação das notificações."
+        },
+        "v0_1_0": {
+          "title": "Desktop Windows e Agent local",
+          "summary": "Primeira prévia desktop com propostas locais de IA, espaços isolados, aplicação confirmada e registros de tarefas."
+        }
+      }
     }
   }
 }

@@ -62,6 +62,43 @@
       "download": "Échec du téléchargement ou de la vérification. La mise à jour n’a pas été installée. Réessayez une fois connecté.",
       "install": "Échec de l’installation. Vos données sont conservées ; réessayez ou redémarrez NEXUS.",
       "bridge": "Impossible de joindre le service de mise à jour. Rouvrez NEXUS et réessayez."
+    },
+    "history": {
+      "title": "Notes de version",
+      "hint": "Consultez les changements du plus récent au plus ancien.",
+      "current": "Version installée",
+      "available": "Disponible",
+      "missingNotes": "Aucune note fournie pour cette version.",
+      "releases": {
+        "v0_8_3": {
+          "title": "Affichage des mises à jour et historique",
+          "summary": "Corrige le chevauchement avec les titres de page. Sépare version, état et actions ; ajoute un historique dépliable hors ligne et les notes des nouvelles versions."
+        },
+        "v0_8_2": {
+          "title": "Mises à jour automatiques",
+          "summary": "Vérification au démarrage puis toutes les quatre heures, progression, nouvelle tentative, sauvegarde et installation avec relance. Corrige des délais de démarrage de commandes Windows."
+        },
+        "v0_8_0": {
+          "title": "Nouvelle icône et maintenance collaborative",
+          "summary": "Uniformise le N bleu et ajoute six rôles, des tests isolés, la reprise aux points de contrôle, la mémoire de projet et les mesures de ressources."
+        },
+        "v0_7_0": {
+          "title": "Vue des projets et gestion par lots",
+          "summary": "Ajoute un graphe interactif, les réglages de plusieurs dépôts, un guide, les listes de modèles et des états de livraison plus clairs."
+        },
+        "v0_3_0": {
+          "title": "Moteur de développement autonome",
+          "summary": "Plans en plusieurs tours, 34 outils, tests réels, réparations limitées et revue indépendante, avec annulation et application confirmée dans des espaces isolés."
+        },
+        "v0_2_1": {
+          "title": "Expérience de bureau et dix langues",
+          "summary": "Revoit navigation, paramètres, notifications et palette. Ajoute dix langues et deux thèmes ; corrige les notifications des tâches en pause et leur navigation."
+        },
+        "v0_1_0": {
+          "title": "Bureau Windows et Agent local",
+          "summary": "Premier aperçu de bureau avec propositions IA locales, espaces isolés, application confirmée et journaux de tâches."
+        }
+      }
     }
   }
 }
