@@ -14,7 +14,7 @@ Developer 创建独立 Worktree 或有界副本，保存基线提交和实际文
 
 - `ultimate-independent-tests-recheck.log`：3 文件 / 13 项 PASS，包括原有测试通过而新增测试失败时阻断、父 Git 仓库边界保护和六角色执行。
 - `ultimate-final-core-checks.log`：4 文件 / 28 项 PASS，包括暂停、预算保留、恢复、未知模型用量和 API 进程强制退出后的续跑。
-- 最终完整回归：54 文件 / 284 项 PASS，见 `ultimate-regression-sealed.log`。
+- 最终完整回归：55 文件 / 286 项 PASS，见 `ultimate-regression-evidence-lock.log`。
 - 原生 Electron 源码窗口和打包后的 0.8.0 exe 均完成六角色、暂停/确认续跑、真实 Node 测试和独立审查。模型服务由本地 fixture 提供，真实文件和命令确实执行；这不等于真实模型服务能力验收。
 
 ## 现有限制

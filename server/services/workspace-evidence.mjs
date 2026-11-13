@@ -13,7 +13,9 @@ export async function captureWorkspaceEvidence(adapter, { signal } = {}) {
     signal?.throwIfAborted()
     try { lease = await acquireFileLease(lockFile) }
     catch (cause) {
-      if (cause.code !== 'LEASE_HELD' || Date.now() >= deadline) throw cause
+      // Windows may briefly return EPERM for a just-unlinked lock on a synced
+      // or indexed volume. Keep the same atomic lease; never bypass it.
+      if (!['LEASE_HELD', 'EPERM', 'EACCES', 'EBUSY'].includes(cause.code) || Date.now() >= deadline) throw cause
       await new Promise((resolve) => setTimeout(resolve, 25))
     }
   }

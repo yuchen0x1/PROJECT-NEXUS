@@ -15,6 +15,8 @@ const run = promisify(execFile), require = createRequire(import.meta.url)
 const root = path.resolve(import.meta.dirname, '..')
 const hours = Number(process.env.NEXUS_SOAK_HOURS || 24)
 assert.ok(Number.isFinite(hours) && hours > 0 && hours <= 48)
+const jobIntervalMs = Number(process.env.NEXUS_SOAK_JOB_INTERVAL_SECONDS || 3600) * 1000
+assert.ok(Number.isFinite(jobIntervalMs) && jobIntervalMs >= 30000 && jobIntervalMs <= 3600000)
 const id = new Date().toISOString().replace(/[:.]/g, '-')
 const output = path.join(root, 'test-results', 'soak', id), snapshot = path.join(output, 'source'), dataDir = path.join(output, 'fixture-profile'), projectDir = path.join(output, 'fixture-project')
 assert.ok(output.startsWith(path.join(root, 'test-results', 'soak') + path.sep))
@@ -37,6 +39,9 @@ await fs.symlink(path.join(root, 'node_modules'), path.join(snapshot, 'node_modu
 const electronPath = require('electron')
 const manifest = { id, status: 'Prepared', sourceSha256, files, hoursRequested: hours, minimumAcceptanceHours: 24, fixtureModel: true, realExternalModelVerified: false, nativeElectron: true, isolatedProfile: true, dependencies: { linkedToExistingInstall: true, lockSha256: files.find((file) => file.path === 'package-lock.json').sha256, electronExecutableSha256: crypto.createHash('sha256').update(await fs.readFile(electronPath)).digest('hex') }, scope: 'One fixture collaboration workflow per hour, 60-second native/API resource samples; hidden native window between samples. No Windows reboot, signing, installation or production service acceptance.' }
 manifest.harnessSha256 = crypto.createHash('sha256').update(await fs.readFile(import.meta.filename)).digest('hex')
+manifest.jobIntervalSeconds = jobIntervalMs / 1000
+manifest.scope = `Fixture collaboration every ${jobIntervalMs / 1000} seconds, 60-second native/API samples, hidden window. No reboot, production service, signing or installation acceptance.`
+await fs.copyFile(import.meta.filename, path.join(output, 'harness-source.mjs'))
 await fs.writeFile(path.join(output, 'manifest.json'), JSON.stringify(manifest, null, 2))
 await fs.writeFile(path.join(projectDir, 'app.mjs'), 'export const answer = 41\n')
 await fs.writeFile(path.join(projectDir, 'verify.mjs'), 'import { answer } from "./app.mjs"; if(answer !== 42) throw new Error("incorrect answer"); console.log("soak verified 42")\n')
@@ -84,7 +89,7 @@ async function task(number) {
   for (let attempt = 0; attempt < 180; attempt++) {
     const { workflow } = await api(`/workflows/${created.workflow.id}`)
     if (['Completed', 'Blocked', 'Failed', 'TimedOut', 'Cancelled'].includes(workflow.status)) {
-      assert.equal(workflow.status, 'Completed', JSON.stringify(workflow.nodes))
+      assert.equal(workflow.status, 'Completed', JSON.stringify({ status: workflow.status, errorCode: workflow.errorCode, roles: workflow.nodes.filter((node) => node.status !== 'Completed').map(({ role, status, errorCode, errorSummary }) => ({ role, status, errorCode, errorSummary })) }))
       assert.equal(workflow.nodes.find((node) => node.role === 'tester').result.verified, true)
       assert.equal(await fs.readFile(path.join(projectDir, 'app.mjs'), 'utf8'), 'export const answer = 41\n')
       const receipt = { id: workflow.id, status: workflow.status, durationMs: performance.now() - began, tokens: workflow.usage, at: new Date().toISOString() }
@@ -119,7 +124,7 @@ try {
     const elapsed = performance.now() - started
     if (elapsed >= nextTask && !activeJob) {
       activeJob = task(jobs.length).catch((cause) => { errors.push({ kind: 'workflow', message: String(cause.message).slice(0, 1500), at: new Date().toISOString() }); stopped = true }).finally(() => { activeJob = null })
-      nextTask += 3600000
+      nextTask += jobIntervalMs
     }
     if (elapsed >= nextSample) {
       const status = await api('/status')

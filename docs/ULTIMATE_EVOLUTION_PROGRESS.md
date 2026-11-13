@@ -15,7 +15,7 @@
 | G：严格隔离与自身更新 | PARTIAL / BLOCKED | 严格模式无原生宿主时阻断；版本、下载流、摘要、发布者和篡改门禁已测试；签名、安装备份/回滚和健康事务未完成 |
 | H：UI 与最终验收 | PARTIAL | 七中心、十语言、150% DPI、深浅和系统主题、源码/打包 exe 验收通过；24h 正在真实计时，正式交付未封板 |
 
-最终维护中回归：54 文件 / 284 项 PASS，158.46 秒，`test-results/ultimate-regression-sealed.log`。TypeScript、ESLint、生产构建、NSIS x64 打包通过。源码中文暗色、英文浅色和打包 exe 原生 fixture 流程均通过，包括真实原有/独立新增测试、暂停续跑、记忆下载导出和进程指标。
+最终维护中回归：55 文件 / 286 项 PASS，156.72 秒，`test-results/ultimate-regression-evidence-lock.log`。TypeScript、ESLint、生产构建、NSIS x64 打包通过。源码中文暗色、英文浅色和打包 exe 原生 fixture 流程均通过，包括真实原有/独立新增测试、暂停续跑、记忆下载导出和进程指标。
 
 最终退出与预算修复后，旧长稳会话已明确记为 Interrupted，不计入最终 24h。封板候选通过原生复验后启动新会话，再记录准确起点与实时状态路径。
 

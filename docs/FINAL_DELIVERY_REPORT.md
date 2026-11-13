@@ -14,7 +14,7 @@
 
 ## 验证与候选
 
-完整维护中测试集：54 文件 / 284 项 PASS。TypeScript、ESLint、生产构建及 Windows x64 NSIS 打包通过。源码和打包 exe 均在原生 Electron 窗口以独立 profile 完成 fixture 六角色修改、真实原有/新增 Node 测试、独立审查、暂停/确认恢复、资源读取及记忆真实下载导出。十种语言七中心和 150% 缩放通过，系统主题实际跟随通过。
+完整维护中测试集：55 文件 / 286 项 PASS。TypeScript、ESLint、生产构建及 Windows x64 NSIS 打包通过。源码和打包 exe 均在原生 Electron 窗口以独立 profile 完成 fixture 六角色修改、真实原有/新增 Node 测试、独立审查、暂停/确认恢复、资源读取及记忆真实下载导出。十种语言七中心和 150% 缩放通过，系统主题实际跟随通过。
 
 候选位于 `release-ultimate-evolution-rc/`。安装器 Authenticode 为 NotSigned，不能作为已签名正式版本，也没有执行安装。ASAR 清单未发现打包 source map、用户运行数据/凭据库或检测规则命中的实际 token/私钥；Electron fuse 与普通可信脚本边界仍有缺口。
 
