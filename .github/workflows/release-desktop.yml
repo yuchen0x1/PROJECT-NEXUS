@@ -93,8 +93,12 @@ jobs:
         run: |
           $assets = @(Get-ChildItem -LiteralPath release -File | Where-Object { $_.Name -match '\.(exe|blockmap)$' -or $_.Name -in @('latest.yml', 'SHA256SUMS.txt') } | ForEach-Object { $_.FullName })
           $notes = "docs/releases/$($env:RELEASE_TAG).md"
-          $notesArgs = if (Test-Path -LiteralPath $notes) { @('--notes-file', $notes) } else { @('--generate-notes') }
-          gh release create $env:RELEASE_TAG @assets --repo $env:GITHUB_REPOSITORY --verify-tag --title "PROJECT NEXUS $env:RELEASE_TAG" @notesArgs --draft
+          if (-not (Test-Path -LiteralPath $notes)) { throw 'Write version-specific release notes before publishing.' }
+          $heading = Get-Content -LiteralPath $notes -TotalCount 1
+          if ($heading -notmatch '^# (v\d+\.\d+\.\d+ · .+)$') { throw 'Release notes must start with: # vX.Y.Z · 中文主题' }
+          $title = $Matches[1]
+          if (-not $title.StartsWith("$($env:RELEASE_TAG) · ", [StringComparison]::Ordinal)) { throw 'Release note title must match the release tag.' }
+          gh release create $env:RELEASE_TAG @assets --repo $env:GITHUB_REPOSITORY --verify-tag --title $title --notes-file $notes --draft
           if ($LASTEXITCODE -ne 0) { throw 'Upload failed; the release remains unpublished.' }
           gh release edit $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --draft=false --latest
           if ($LASTEXITCODE -ne 0) { throw 'Could not publish the completed release.' }
