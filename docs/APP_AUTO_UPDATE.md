@@ -21,6 +21,7 @@
 
 1. 完成源码及发布说明，将 package.json 与 package-lock.json 递增到一个未发布的更高版本，先提交到仓库。
 2. 推送同版本标签（例如应用版本为 `0.8.1`，则标签为 `v0.8.1`）。`.github/workflows/release-desktop.yml` 运行类型、lint、测试和构建，然后生成 Windows x64 安装包。
+   若标签推送未生成运行，可在 Actions 的「Release Windows desktop」中手动运行，填写已有版本标签；该入口会检出所填标签，不修改标签。CLI 等价命令为 `gh workflow run release-desktop.yml --ref main -f release_tag=v0.8.1`。
 3. 工作流核对安装包版本、SHA512、大小、blockmap 与内置 GitHub 更新源；先上传全部资产到草稿，再公开发布。未上传完成的草稿不会被客户端发现。工作流需允许自身的 `GITHUB_TOKEN` 写入仓库内容；无需把 GitHub Token 嵌入客户端。
 4. 若失败后留下草稿，检查失败原因并清理该版本草稿后再重跑，或使用一个新的更高版本；工作流拒绝修改已经存在的 Release。
 5. 手动发布时，可运行：

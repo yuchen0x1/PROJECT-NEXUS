@@ -3,21 +3,31 @@ name: Release Windows desktop
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing stable version tag to build and publish
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: desktop-release-${{ github.ref }}
+  group: desktop-release-${{ inputs.release_tag || github.ref }}
   cancel-in-progress: false
 
 jobs:
   release:
     runs-on: windows-latest
+    env:
+      RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_tag || github.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -28,10 +38,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $version = node -p "require('./package.json').version"
-          if ($env:GITHUB_REF_NAME -cne "v$version" -or $version -notmatch '^\d+\.\d+\.\d+$') { throw 'Tag must match a stable package.json version, for example v0.8.1.' }
+          if ($env:RELEASE_TAG -cne "v$version" -or $version -notmatch '^\d+\.\d+\.\d+$') { throw 'Tag must match a stable package.json version, for example v0.8.1.' }
           $releases = gh api "repos/$env:GITHUB_REPOSITORY/releases?per_page=100" | ConvertFrom-Json
           if ($LASTEXITCODE -ne 0) { throw 'Could not read existing releases.' }
-          if ($releases | Where-Object { $_.tag_name -eq $env:GITHUB_REF_NAME }) { throw 'This release already exists; use a new version.' }
+          if ($releases | Where-Object { $_.tag_name -eq $env:RELEASE_TAG }) { throw 'This release already exists; use a new version.' }
           $latest = $releases | Where-Object { -not $_.draft -and -not $_.prerelease -and $_.tag_name -match '^v\d+\.\d+\.\d+$' } | Sort-Object { [version]($_.tag_name.Substring(1)) } -Descending | Select-Object -First 1
           if ($latest -and [version]$version -le [version]($latest.tag_name.Substring(1))) { throw 'The new version must be greater than the published version.' }
       - run: npm ci
@@ -45,7 +55,7 @@ jobs:
       - run: npm run desktop:verify-update
       - uses: actions/upload-artifact@v4
         with:
-          name: windows-update-${{ github.ref_name }}
+          name: windows-update-${{ env.RELEASE_TAG }}
           path: |
             release/*.exe
             release/*.blockmap
@@ -58,9 +68,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $assets = @(Get-ChildItem -LiteralPath release -File | Where-Object { $_.Name -match '\.(exe|blockmap)$' -or $_.Name -in @('latest.yml', 'SHA256SUMS.txt') } | ForEach-Object { $_.FullName })
-          $notes = "docs/releases/$($env:GITHUB_REF_NAME).md"
+          $notes = "docs/releases/$($env:RELEASE_TAG).md"
           $notesArgs = if (Test-Path -LiteralPath $notes) { @('--notes-file', $notes) } else { @('--generate-notes') }
-          gh release create $env:GITHUB_REF_NAME @assets --repo $env:GITHUB_REPOSITORY --verify-tag --title "PROJECT NEXUS $env:GITHUB_REF_NAME" @notesArgs --draft
+          gh release create $env:RELEASE_TAG @assets --repo $env:GITHUB_REPOSITORY --verify-tag --title "PROJECT NEXUS $env:RELEASE_TAG" @notesArgs --draft
           if ($LASTEXITCODE -ne 0) { throw 'Upload failed; the release remains unpublished.' }
-          gh release edit $env:GITHUB_REF_NAME --repo $env:GITHUB_REPOSITORY --draft=false --latest
+          gh release edit $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --draft=false --latest
           if ($LASTEXITCODE -ne 0) { throw 'Could not publish the completed release.' }
