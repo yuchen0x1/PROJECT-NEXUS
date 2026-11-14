@@ -3325,6 +3325,7 @@ try {
   registerAutonomyApi(app, {
     engine: autonomyRuntime.engine,
     store: autonomyRuntime.store,
+    delivery: autonomyRuntime.delivery,
     dataDir
   })
   autonomyTicker = startAutonomyTicker(autonomyRuntime.engine, { intervalMs: 60_000, immediate: false })

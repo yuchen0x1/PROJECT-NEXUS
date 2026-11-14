@@ -118,7 +118,7 @@ export class AutonomyEngine {
       monitorItems: Array.isArray(input.monitorItems) ? input.monitorItems : MONITOR_RESOURCES.filter((r) => r.scope === 'core').map((r) => r.id),
       agentAdapterId: input.agentAdapterId || null,
       agentProjectRef: String(input.agentProjectRef || ''),
-      autoFix: Boolean(input.autoFix), autoRelease: Boolean(input.autoRelease),
+      autoFix: Boolean(input.autoFix), autoMerge: Boolean(input.autoMerge), autoRelease: Boolean(input.autoRelease),
       automationMode: input.automationMode || this.settings.automationMode,
       notifyChannel: input.notifyChannel || null,
       webhookEnabled: Boolean(input.webhookEnabled), lastWebhookAt: null,

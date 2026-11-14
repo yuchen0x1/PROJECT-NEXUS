@@ -61,6 +61,23 @@ The role is configured at process level; it is not an authenticated per-user ide
 
 Scan output is bounded and static. `truncated` reports tree limits. A configured signing key, manifest, digest or HTTPS URL is evidence only; signatures, package installation and old-client update success remain unverified.
 
+## Autonomy phase-two routes
+
+| Method | Route | Purpose and gate |
+|---|---|---|
+| GET | `/api/autonomy/security/tools` | Detect CodeQL, Semgrep, Gitleaks and Trivy versions and installation state |
+| POST | `/api/autonomy/security/scan` | Run local plus optional external scans; saves a report and finding history. Set `repoId` or an explicit `root`; external tools are enabled by default |
+| GET | `/api/autonomy/security/scans` | Read persisted scan reports and historical comparisons |
+| POST | `/api/autonomy/security/scans/:id/tasks` | Convert saved findings into an idempotent NEXUS security-fix task |
+| GET | `/api/autonomy/delivery/:repoId/status` | Read branch, PR, Review, checks and Actions evidence from GitHub |
+| POST | `/api/autonomy/delivery/:repoId/commit-push` | Commit and push an isolated `nexus/auto/*` worktree; requires remote writes and `confirm: true` |
+| POST | `/api/autonomy/delivery/:repoId/pull-request` | Create or reuse a draft PR; requires remote writes and `confirm: true` |
+| POST | `/api/autonomy/delivery/:repoId/merge` | Merge only when repository `autoMerge` and the runtime remote-write gate are enabled |
+| POST | `/api/autonomy/delivery/:repoId/release` | Create a stable `vX.Y.Z` GitHub Release; repository `autoRelease`, remote writes and explicit confirmation are required |
+| POST | `/api/autonomy/delivery/:repoId/notify` | Send a bounded JSON notification to the configured HTTP(S) channel after explicit confirmation |
+
+Remote write operations return a machine-readable gate error while the default `remoteWritesEnabled` setting is false. A successful draft PR or release creation response is recorded separately from merge or publication confirmation.
+
 ## AI provider configuration
 
 `GET /api/ai/providers` returns provider ids, task routes, model capabilities and non-secret health metadata. API keys are never returned. `POST /api/ai/diagnose` accepts `{ "prompt": "...", "context": {}, "providerId": "optional" }`; it performs a bounded real request only when a provider is configured and the caller has the Operator role. Without credentials it returns `424 AI_NOT_CONFIGURED` instead of synthetic output.

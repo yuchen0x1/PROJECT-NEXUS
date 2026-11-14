@@ -11,12 +11,13 @@
 
 param(
   [Parameter(Mandatory = $true)]
-  [ValidateSet('probe', 'windows', 'find', 'set-value', 'invoke', 'read-text', 'screenshot')]
+  [ValidateSet('probe', 'windows', 'inspect', 'find', 'set-value', 'invoke', 'read-text', 'screenshot')]
   [string]$Action,
   [string]$WindowMatch = '',
   [string]$ProcessName = '',
   [string]$ControlName = '',
   [string]$AutomationId = '',
+  [string]$ClassName = '',
   [string]$ControlType = '',
   [string]$Value = '',
   [string]$ValueFile = '',
@@ -150,13 +151,36 @@ function Get-TargetControl($windowElement) {
       $conditions += New-Object System.Windows.Automation.PropertyCondition($AE::ControlTypeProperty, $property)
     }
   }
+  if ($ClassName) {
+    $conditions += New-Object System.Windows.Automation.PropertyCondition($AE::ClassNameProperty, $ClassName)
+  }
   if ($conditions.Count -eq 0) {
-    throw 'At least one of AutomationId, ControlName or ControlType is required.'
+    throw 'At least one of AutomationId, ControlName, ControlType or ClassName is required.'
   }
   $condition = if ($conditions.Count -eq 1) { $conditions[0] } else {
     New-Object System.Windows.Automation.AndCondition([System.Windows.Automation.Condition[]]$conditions)
   }
   return $windowElement.FindFirst($TreeScope::Descendants, $condition)
+}
+
+function Get-ControlTree($windowElement) {
+  $controls = @()
+  $descendants = $windowElement.FindAll($TreeScope::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
+  foreach ($element in $descendants) {
+    try {
+      $current = $element.Current
+      $controls += [PSCustomObject]@{
+        name = [string]$current.Name
+        automationId = [string]$current.AutomationId
+        controlType = [string]$current.ControlType.ProgrammaticName
+        enabled = [bool]$current.IsEnabled
+        offscreen = [bool]$current.IsOffscreen
+        framework = [string]$current.FrameworkId
+        className = [string]$current.ClassName
+      }
+    } catch { }
+  }
+  return @($controls | Select-Object -First 2000)
 }
 
 try {
@@ -193,6 +217,14 @@ try {
     exit 4
   }
   $window = $windows[0]
+
+  if ($Action -eq 'inspect') {
+    Write-Result @{
+      ok = $true; action = 'inspect'; window = $window.Name; processName = $window.ProcessName; processId = $window.ProcessId
+      controls = @(Get-ControlTree $window.Element)
+    }
+    exit 0
+  }
 
   switch ($Action) {
     'find' {

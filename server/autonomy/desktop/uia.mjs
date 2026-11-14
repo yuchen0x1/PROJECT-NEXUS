@@ -46,7 +46,7 @@ export function createUiaDriver({
       const mapping = {
         windowMatch: 'WindowMatch', processName: 'ProcessName', controlName: 'ControlName',
         automationId: 'AutomationId', controlType: 'ControlType', value: 'Value',
-        valueFile: 'ValueFile', outputPath: 'OutputPath'
+        valueFile: 'ValueFile', outputPath: 'OutputPath', className: 'ClassName'
       }
       for (const [key, flag] of Object.entries(mapping)) {
         const value = args[key]
@@ -113,6 +113,16 @@ export function createUiaDriver({
       return execute('windows', { windowMatch, processName })
     },
 
+    /** Read-only accessibility tree inspection for capability diagnostics.
+     * This is intentionally separate from find/invoke: inspection never
+     * changes the client and gives operators evidence for control selectors.
+     */
+    async inspect(window) {
+      const capability = await this.probe()
+      if (!capability.available) return { ok: false, code: 'UIA_UNAVAILABLE', capability }
+      return execute('inspect', { windowMatch: window.windowMatch, processName: window.processName })
+    },
+
     async find(window, control = {}) {
       const capability = await this.probe()
       if (!capability.available) return { ok: false, code: 'UIA_UNAVAILABLE', capability }
@@ -155,8 +165,10 @@ export function createUiaDriver({
  */
 export function classifyUiText(lines = []) {
   const text = lines.join('\n').toLowerCase()
+  if (/completed|complete|task finished|done|已完成|完成|成功/.test(text) && !/失败|failed|error/.test(text)) return 'SUCCEEDED'
   if (/approve|allow|authorize|permission required|需要授权|允许访问/.test(text)) return 'AWAITING_AUTHORIZATION'
   if (/waiting for your (input|response)|ask|需要你|请输入/.test(text)) return 'AWAITING_HUMAN_INPUT'
+  if (/processing|处理中|停止/.test(text)) return 'RUNNING_COMMANDS'
   if (/running tests|npm test|pytest|测试/.test(text)) return 'RUNNING_TESTS'
   if (/executing|running command|terminal|命令/.test(text)) return 'RUNNING_COMMANDS'
   if (/editing|writing|patch|apply|修改/.test(text)) return 'MODIFYING_CODE'

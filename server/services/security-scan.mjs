@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { runCommand } from './agent/executor.mjs'
+import { runExternalSecurityScans, detectSecurityTools } from './security-tools.mjs'
 
 // PHASE 4 (spec PART 6): autonomous security and quality scanning for hosted
 // repositories. Runs entirely against the NEXUS-managed cache clone; no tools
@@ -151,19 +152,43 @@ export async function scanDependencyVulnerabilities({ root, signal, timeoutMs = 
 }
 
 // Full security pass over a repository cache clone.
-export async function runSecurityScan({ root, signal } = {}) {
-  const [secrets, framework, dependencies] = await Promise.all([
+export async function runSecurityScan({ root, signal, includeExternal = false, reportDir = null, execImpl = undefined } = {}) {
+  const [secrets, framework] = await Promise.all([
     scanSecrets({ root, signal }),
-    scanFrameworkRisks({ root }),
-    scanDependencyVulnerabilities({ root, signal })
+    scanFrameworkRisks({ root })
   ])
+  let dependencies = null
+  let dependencyAuditError = null
+  try { dependencies = await scanDependencyVulnerabilities({ root, signal }) }
+  catch (error) { dependencyAuditError = { code: error.code || 'DEPENDENCY_AUDIT_FAILED', message: String(error.message || error).slice(0, 500) } }
+  // The legacy local-only contract is intentionally strict: callers that did
+  // not request the external toolchain must not receive a seemingly usable
+  // report when npm audit itself failed. The API's external mode keeps the
+  // structured BLOCKED report so operators can inspect missing tooling and
+  // continue with the rest of the evidence.
+  if (dependencyAuditError && !includeExternal) {
+    throw Object.assign(new Error(dependencyAuditError.message), dependencyAuditError)
+  }
   const findings = [...(secrets || []), ...(framework || []), ...(dependencies || [])]
   findings.sort((a, b) => priorityRank(a.priority) - priorityRank(b.priority))
+  const external = includeExternal
+    ? await runExternalSecurityScans({ root, signal, reportDir: reportDir || path.join(root, '.nexus-security'), ...(execImpl ? { execImpl } : {}) })
+    : null
+  const externalFindings = external?.findings || []
+  const allFindings = [...findings, ...externalFindings]
+  allFindings.sort((a, b) => priorityRank(a.priority) - priorityRank(b.priority))
+  const scanId = external?.id || `security_${Date.now()}_${Math.random().toString(16).slice(2, 10)}`
   return {
+    id: scanId,
     scannedAt: new Date().toISOString(),
+    reportPath: external?.reportPath || null,
     dependencyAuditRan: dependencies !== null,
-    findings,
-    counts: summarizeFindingsByPriority(findings),
-    status: findings.some((item) => item.priority === 'P0') ? 'CRITICAL' : findings.some((item) => item.priority === 'P1') ? 'HIGH_RISK' : findings.length ? 'FINDINGS' : 'CLEAN'
+    external,
+    dependencyAuditError,
+    findings: allFindings,
+    counts: summarizeFindingsByPriority(allFindings),
+    status: external?.status === 'BLOCKED' || (includeExternal && dependencyAuditError) ? 'BLOCKED' : allFindings.some((item) => item.priority === 'P0') ? 'CRITICAL' : allFindings.some((item) => item.priority === 'P1') ? 'HIGH_RISK' : allFindings.length ? 'FINDINGS' : 'CLEAN'
   }
 }
+
+export { detectSecurityTools, runExternalSecurityScans }

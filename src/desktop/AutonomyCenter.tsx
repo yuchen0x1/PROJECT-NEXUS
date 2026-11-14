@@ -42,6 +42,8 @@ type Repo = {
 type Adapter = {
   id: string; name: string; installed: boolean; running: boolean; launcher: string | null
   version: string | null; uia: { available: boolean; reason: string } | null
+  loginState?: string; projectRefs?: string[]
+  uiEvidence?: { hasComposer?: boolean; hasSendControl?: boolean; projectControl?: { name?: string } | null }
   capabilities: Record<string, { level: string; evidence: string }> | null
   checkedAt: string
 }
@@ -79,6 +81,7 @@ const LABELS = {
     add: '添加', remove: '移除', sync: '立即同步', probe: '重新探测客户端', windows: '识别窗口',
     launch: '启动客户端', capability: '能力检测表', verified: '已验证', partial: '部分支持', unsupported: '不支持',
     installed: '已安装', notInstalled: '未安装', active: '运行中', inactive: '未运行', uiaOn: 'UIA 可用', uiaOff: 'UIA 不可用',
+    login: '登录', project: '项目', composer: '输入框', sendControl: '发送控件', visible: '可见', missing: '未暴露',
     tasksTitle: '任务队列与执行监控', noTasks: '当前没有任务。', status: '状态', priority: '优先级',
     attempts: '尝试次数', cancel: '取消', takeover: '人工接管', retry: '重试', details: '详情',
     findings: '问题记录', peers: '同类项目', proposals: '升级建议', license: '许可证', compatible: '兼容',
@@ -105,6 +108,7 @@ const LABELS = {
     add: 'Add', remove: 'Remove', sync: 'Sync now', probe: 'Probe clients', windows: 'Identify windows',
     launch: 'Launch client', capability: 'Capability matrix', verified: 'Verified', partial: 'Partial', unsupported: 'Unsupported',
     installed: 'Installed', notInstalled: 'Not installed', active: 'Running', inactive: 'Not running', uiaOn: 'UIA available', uiaOff: 'UIA unavailable',
+    login: 'Login', project: 'Project', composer: 'Composer', sendControl: 'Send control', visible: 'visible', missing: 'not exposed',
     tasksTitle: 'Task queue and execution monitor', noTasks: 'No tasks yet.', status: 'Status', priority: 'Priority',
     attempts: 'Attempts', cancel: 'Cancel', takeover: 'Take over', retry: 'Retry', details: 'Details',
     findings: 'Findings', peers: 'Peer projects', proposals: 'Upgrade proposals', license: 'License', compatible: 'Compatible',
@@ -369,6 +373,11 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
               {Object.entries(adapter.capabilities || {}).map(([key, value]) => <div className="ax-cap" key={key} title={value.evidence}>
                 <span>{key}</span><Pill tone={value.level === 'verified' ? 'green' : value.level === 'partial' ? 'amber' : 'red'}>{value.level === 'verified' ? text.verified : value.level === 'partial' ? text.partial : text.unsupported}</Pill>
               </div>)}
+            </div>
+            <div className="ax-note">
+              {text.login}: {adapter.loginState || 'UNKNOWN'} · {text.project}: {adapter.projectRefs?.join(', ') || '—'} ·
+              {' '}{text.composer}: {adapter.uiEvidence?.hasComposer ? text.visible : text.missing} ·
+              {' '}{text.sendControl}: {adapter.uiEvidence?.hasSendControl ? text.visible : text.missing}
             </div>
             <div className="ax-row-actions">
               <button onClick={() => void probeWindows(adapter.id)} disabled={Boolean(busy)}><ExternalLink size={13} />{text.windows}</button>

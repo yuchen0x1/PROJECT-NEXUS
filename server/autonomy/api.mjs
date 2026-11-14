@@ -8,6 +8,8 @@ import { openAutonomyStore, defaultAutonomyDbFile, SQLITE_AVAILABLE, AUTONOMY_MI
 import { MONITOR_RESOURCES, DEFAULT_POLL_INTERVALS_MS } from './model.mjs'
 import { assessReadiness } from './intelligence.mjs'
 import { TASK_STATUSES, AGENT_STATES, ISSUE_LIFECYCLES, PRIORITIES, AUTOMATION_MODES } from './model.mjs'
+import { detectSecurityTools, runSecurityScan } from '../services/security-scan.mjs'
+import { GithubDelivery } from './github-delivery.mjs'
 
 function asyncHandler(handler) {
   return (req, res, next) => Promise.resolve(handler(req, res, next)).catch((error) => {
@@ -26,11 +28,12 @@ export function createAutonomyRuntime({ dataDir, token = process.env.GITHUB_TOKE
   const dbFile = defaultAutonomyDbFile(dataDir)
   const store = openAutonomyStore({ file: dbFile })
   const engine = new AutonomyEngine({ store, dataDir, token, tokenResolver, clock, fetchImpl })
+  const delivery = new GithubDelivery({ store, token, tokenResolver, fetchImpl, clock })
   engine.recover()
-  return { store, engine, dbFile }
+  return { store, engine, delivery, dbFile }
 }
 
-export function registerAutonomyApi(app, { engine, store, dataDir }) {
+export function registerAutonomyApi(app, { engine, store, delivery, dataDir }) {
   const routes = []
 
   const add = (method, route, handler) => {
@@ -111,6 +114,88 @@ export function registerAutonomyApi(app, { engine, store, dataDir }) {
   add('get', '/monitor/runs', (req, res) => res.json(page(store.list('monitor_runs', { order: 'desc' }), req, 30)))
 
   add('get', '/monitor/cursors', (req, res) => res.json({ cursors: store.list('sync_cursors') }))
+
+  // ---- Security toolchain --------------------------------------------------
+
+  add('get', '/security/tools', async (_req, res) => res.json(await detectSecurityTools()))
+
+  add('get', '/security/scans', (req, res) => res.json(page(store.list('security_scans', { order: 'desc' }), req, 30)))
+
+  add('post', '/security/scan', async (req, res) => {
+    const repo = req.body?.repoId ? store.get('repositories', req.body.repoId) : null
+    if (req.body?.repoId && !repo) return res.status(404).json({ error: 'Repository not found.', code: 'NOT_FOUND' })
+    const rawRoot = String(req.body?.root || repo?.localPath || '').trim()
+    if (!rawRoot) return res.status(400).json({ error: 'A repository scan root is required.', code: 'SECURITY_ROOT_REQUIRED' })
+    const root = path.resolve(rawRoot)
+    if (root === path.parse(root).root) return res.status(400).json({ error: 'Scanning a filesystem root is not allowed.', code: 'SECURITY_ROOT_INVALID' })
+    const reportDir = path.join(dataDir, 'security-reports', repo?.id || 'standalone')
+    const scan = await runSecurityScan({ root, reportDir, includeExternal: req.body?.includeExternal !== false })
+    const saved = store.put('security_scans', scan.id, { ...scan, repoId: repo?.id || null, repository: repo?.fullName || null })
+    for (const item of scan.findings.slice(0, 500)) {
+      const findingId = `${scan.id}:${item.id || item.key || item.path || 'finding'}`
+      store.put('findings', findingId, {
+        id: findingId, repoId: repo?.id || null, repository: repo?.fullName || null,
+        kind: `security:${item.tool || 'local'}`, severity: item.priority === 'P0' ? 'critical' : item.priority === 'P1' ? 'high' : 'medium',
+        priority: item.priority || 'P2', title: item.summary || item.key || 'Security finding', evidence: item,
+        status: 'OPEN', source: 'security-scan', scanId: scan.id, createdAt: scan.scannedAt
+      })
+    }
+    store.audit('security', 'scan', repo?.fullName || root, { scanId: scan.id, status: scan.status, findings: scan.findings.length, external: Boolean(scan.external) })
+    return res.status(201).json({ scan: saved, reportPath: scan.reportPath })
+  })
+
+  add('post', '/security/scans/:id/tasks', (req, res) => {
+    const scan = store.get('security_scans', req.params.id)
+    if (!scan) return res.status(404).json({ error: 'Security scan not found.', code: 'NOT_FOUND' })
+    if (!scan.repoId) return res.status(400).json({ error: 'A repository-bound scan is required to create a task.', code: 'SECURITY_REPO_REQUIRED' })
+    const selected = Array.isArray(req.body?.findingIds) && req.body.findingIds.length
+      ? scan.findings.filter((item) => req.body.findingIds.includes(item.id)) : scan.findings
+    const findings = selected.map((item, index) => ({
+      id: `${scan.id}:${item.id || index}`, title: item.summary || item.key || 'Security finding',
+      kind: `security:${item.tool || 'local'}`, severity: item.priority === 'P0' ? 'critical' : item.priority === 'P1' ? 'high' : 'medium',
+      priority: item.priority || 'P2', evidence: item
+    }))
+    const priority = findings.some((item) => item.priority === 'P0') ? 'P0' : findings.some((item) => item.priority === 'P1') ? 'P1' : 'P2'
+    return res.status(201).json(engine.createTask({ repoId: scan.repoId, kind: 'security-fix', priority, findings, source: `security-scan:${scan.id}`, writeTask: true, plan: { scanId: scan.id } }))
+  })
+
+  // ---- GitHub delivery -----------------------------------------------------
+
+  add('get', '/delivery/:repoId/status', async (req, res) => {
+    const repo = store.get('repositories', req.params.repoId)
+    if (!repo) return res.status(404).json({ error: 'Repository not found.', code: 'NOT_FOUND' })
+    return res.json(await delivery.inspect(repo, { branch: req.query.branch || repo.defaultBranch || 'main', pullRequest: req.query.pullRequest || null }))
+  })
+
+  add('post', '/delivery/:repoId/commit-push', async (req, res) => {
+    const repo = store.get('repositories', req.params.repoId)
+    if (!repo) return res.status(404).json({ error: 'Repository not found.', code: 'NOT_FOUND' })
+    return res.json(await delivery.commitWorkspace(repo, { ...req.body, remoteWritesEnabled: engine.settings.remoteWritesEnabled, confirm: req.body?.confirm === true }))
+  })
+
+  add('post', '/delivery/:repoId/pull-request', async (req, res) => {
+    const repo = store.get('repositories', req.params.repoId)
+    if (!repo) return res.status(404).json({ error: 'Repository not found.', code: 'NOT_FOUND' })
+    return res.status(201).json(await delivery.createPullRequest(repo, { ...req.body, remoteWritesEnabled: engine.settings.remoteWritesEnabled, confirm: req.body?.confirm === true }))
+  })
+
+  add('post', '/delivery/:repoId/merge', async (req, res) => {
+    const repo = store.get('repositories', req.params.repoId)
+    if (!repo) return res.status(404).json({ error: 'Repository not found.', code: 'NOT_FOUND' })
+    return res.json(await delivery.mergePullRequest(repo, { ...req.body, remoteWritesEnabled: engine.settings.remoteWritesEnabled, confirm: req.body?.confirm === true, autoMerge: repo.autoMerge === true }))
+  })
+
+  add('post', '/delivery/:repoId/release', async (req, res) => {
+    const repo = store.get('repositories', req.params.repoId)
+    if (!repo) return res.status(404).json({ error: 'Repository not found.', code: 'NOT_FOUND' })
+    return res.status(201).json(await delivery.createRelease(repo, { ...req.body, remoteWritesEnabled: engine.settings.remoteWritesEnabled, confirm: req.body?.confirm === true, autoRelease: repo.autoRelease === true }))
+  })
+
+  add('post', '/delivery/:repoId/notify', async (req, res) => {
+    const repo = store.get('repositories', req.params.repoId)
+    if (!repo) return res.status(404).json({ error: 'Repository not found.', code: 'NOT_FOUND' })
+    return res.json(await delivery.notify(repo, { ...req.body, confirm: req.body?.confirm === true }))
+  })
 
   add('post', '/webhook', async (req, res) => {
     const eventType = req.get('x-github-event') || 'unknown'

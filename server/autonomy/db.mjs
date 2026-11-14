@@ -60,7 +60,7 @@ const COLLECTIONS = Object.freeze([
   'repositories', 'sync_cursors', 'events', 'issues', 'tasks', 'task_events',
   'adapters', 'agent_sessions', 'peer_projects', 'porting_proposals',
   'verification_reports', 'releases', 'audit_log', 'settings', 'findings',
-  'monitor_runs'
+  'monitor_runs', 'adapter_probe_runs', 'security_scans', 'soak_runs', 'delivery_runs', 'notifications'
 ])
 
 const APPEND_ONLY = new Set(['audit_log', 'task_events'])

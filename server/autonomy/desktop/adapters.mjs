@@ -97,6 +97,55 @@ function capabilitiesFrom(reason) {
   }
 }
 
+function controlTypeName(control) {
+  return String(control?.controlType || '').replace(/^ControlType\./i, '')
+}
+
+function visibleEnabled(control) {
+  return Boolean(control && control.enabled !== false && control.offscreen !== true)
+}
+
+function selectorForControl(control) {
+  if (!control) return null
+  if (control.automationId) return { automationId: control.automationId, controlType: controlTypeName(control) }
+  if (control.name) return { controlName: control.name, controlType: controlTypeName(control) }
+  if (control.className) return { className: control.className, controlType: controlTypeName(control) }
+  return { controlType: controlTypeName(control) }
+}
+
+function summarizeInspection(inspection) {
+  const controls = Array.isArray(inspection?.controls) ? inspection.controls : []
+  const visible = controls.filter(visibleEnabled)
+  const names = visible.map((control) => String(control.name || '').trim()).filter(Boolean)
+  const projectRefs = visible
+    .filter((control) => ['Button', 'ListItem'].includes(controlTypeName(control)))
+    .map((control) => String(control.name || '').trim())
+    .filter((name) => name && name.length <= 80 && !/[\r\n$;{}]/.test(name) && !/^(返回|前进|首页|项目|最近|新聊天|搜索|操作|停止|处理中)$/i.test(name))
+    .filter((name, index, all) => all.indexOf(name) === index)
+    .slice(0, 80)
+  const loginMarkers = names.filter((name) => /^(?:sign[ -]?in|log[ -]?in|登录|登入|退出登录)$/i.test(name.trim()) || /^(?:打开个人资料菜单|profile menu|account menu)$/i.test(name.trim()))
+  const signedOut = names.some((name) => /^(?:sign[ -]?in|log[ -]?in|登录|登入)$/i.test(name.trim()))
+  const profile = names.some((name) => /profile|个人资料|account|账户/i.test(name))
+  const input = visible.find((control) => controlTypeName(control) === 'Edit') || null
+  const send = visible.find((control) => controlTypeName(control) === 'Button' &&
+    !/停止|stop|处理中|processing|cancel|取消/i.test(String(control.name || '')) &&
+    (/^(?:send|发送|发送消息|提交|执行|运行|继续|start|send message)$/i.test(String(control.name || '').trim()) || /composer-primary|bg-composer-primary|size-token-button-composer/i.test(String(control.className || '')))) || null
+  const project = visible.find((control) => controlTypeName(control) === 'Button' && /PROJECT NEXUS|项目|workspace|工作区/i.test(String(control.name || ''))) || null
+  return {
+    controlCount: controls.length,
+    visibleControlCount: visible.length,
+    names: names.slice(0, 120),
+    projectRefs,
+    loginMarkers,
+    loginState: signedOut ? 'SIGNED_OUT' : (profile && input && project ? 'SIGNED_IN' : 'UNKNOWN'),
+    projectControl: project,
+    inputControl: input,
+    sendControl: send,
+    hasComposer: Boolean(input),
+    hasSendControl: Boolean(send)
+  }
+}
+
 export class BaseDesktopAdapter {
   constructor({ id, name, kind, store, uia = null, probeImpl = runWindowsProbe, clock = () => Date.now(), dataDir = process.cwd(), execImpl = execFile, spawnImpl = spawn } = {}) {
     this.id = id
@@ -120,22 +169,62 @@ export class BaseDesktopAdapter {
     const inventory = await this.probeImpl()
     const resolved = this.resolveInventory(inventory)
     const uiaStatus = await this.uia.probe()
+    const inspection = uiaStatus.available && typeof this.uia.inspect === 'function'
+      ? await this.uia.inspect(this.window).catch(() => null) : null
+    const ui = summarizeInspection(inspection)
     const detection = {
       id: this.id, name: this.name, kind: this.kind,
       installed: Boolean(resolved.installed), running: Boolean(resolved.running),
       launcher: resolved.launcher || null, version: resolved.version || null,
       installLocation: resolved.installLocation || null,
-      projectRefs: resolved.projectRefs || [],
-      loginState: 'UNKNOWN', // never guessed
+      projectRefs: resolved.projectRefs?.length ? resolved.projectRefs : ui.projectRefs,
+      loginState: ui.loginState,
       webhookOrApiInterface: false,
       window: this.window,
       uia: uiaStatus,
       inventoryError: inventory?.error || null,
-      capabilities: capabilitiesFrom(uiaStatus),
+      capabilities: this.capabilitiesForDetection({ base: capabilitiesFrom(uiaStatus), uiaStatus, inspection, ui }),
+      uiEvidence: {
+        controlCount: ui.controlCount,
+        visibleControlCount: ui.visibleControlCount,
+        loginMarkers: ui.loginMarkers,
+        hasComposer: ui.hasComposer,
+        hasSendControl: ui.hasSendControl,
+        projectControl: ui.projectControl ? { name: ui.projectControl.name, automationId: ui.projectControl.automationId, className: ui.projectControl.className } : null,
+        inputControl: ui.inputControl ? { name: ui.inputControl.name, automationId: ui.inputControl.automationId, className: ui.inputControl.className } : null,
+        sendControl: ui.sendControl ? { name: ui.sendControl.name, automationId: ui.sendControl.automationId, className: ui.sendControl.className } : null
+      },
       checkedAt: new Date(this.clock()).toISOString()
     }
     this.store.put('adapters', this.id, { ...detection, id: this.id })
+    this.store.append('adapter_probe_runs', { adapterId: this.id, name: this.name, detection, evidence: detection.uiEvidence })
     return detection
+  }
+
+  capabilitiesForDetection({ base }) { return base }
+
+  async inspectWindow() {
+    if (typeof this.uia.inspect !== 'function') return null
+    const result = await this.uia.inspect(this.window)
+    return result?.ok === false ? null : result
+  }
+
+  resolveUiControls(repo, inspection = null) {
+    const staticControls = { projectControl: this.projectControl, inputControl: this.inputControl, sendControl: this.sendControl }
+    const controls = Array.isArray(inspection?.controls) ? inspection.controls.filter(visibleEnabled) : []
+    if (!controls.length) return staticControls
+    const expected = String(repo?.agentProjectRef || '').trim().toLowerCase()
+    const explicitProject = this.projectControl?.automationId || this.projectControl?.controlName || this.projectControl?.className
+    const project = explicitProject
+      ? this.projectControl
+      : selectorForControl(controls.find((control) => controlTypeName(control) === 'Button' && String(control.name || '').trim().toLowerCase() === expected))
+    const explicitInput = this.inputControl?.automationId || this.inputControl?.controlName || this.inputControl?.className
+    const input = explicitInput ? this.inputControl : selectorForControl(controls.find((control) => controlTypeName(control) === 'Edit'))
+    const explicitSend = this.sendControl?.automationId || this.sendControl?.controlName || this.sendControl?.className
+    const send = explicitSend ? this.sendControl : selectorForControl(controls.find((control) => controlTypeName(control) === 'Button' &&
+      !/停止|stop|处理中|processing|cancel|取消/i.test(String(control.name || '')) &&
+      (/^(?:send|发送|发送消息|提交|执行|运行|继续|start|send message)$/i.test(String(control.name || '').trim()) || /composer-primary|bg-composer-primary|size-token-button-composer/i.test(String(control.className || '')))))
+    return { projectControl: project, inputControl: input, sendControl: send }
   }
 
   async isRunning(detection = null) {
@@ -246,12 +335,17 @@ export class BaseDesktopAdapter {
     if (!windows.ok) {
       return this.enterHandoff(session, pkg, `${windows.code}: ${windows.message || 'window not identifiable'}`)
     }
+    const inspection = await this.inspectWindow()
+    const controls = this.resolveUiControls(repo, inspection)
+    if (!controls.projectControl) return this.enterHandoff(session, pkg, `${BLOCK_CODES.PROJECT_SELECTION_UNCERTAIN}: configured project '${repo.agentProjectRef}' is not exposed by the client accessibility tree`)
+    if (!controls.inputControl) return this.enterHandoff(session, pkg, 'TASK_INPUT_CONTROL_NOT_FOUND: client composer is not exposed by the accessibility tree')
+    if (!controls.sendControl) return this.enterHandoff(session, pkg, 'SEND_CONTROL_NOT_FOUND_OR_CLIENT_BUSY: no enabled send control was exposed by the accessibility tree')
     session = this.transition(session, 'AWAITING_PROJECT_SELECTION', { detail: 'Locating configured client project' })
 
     // Project selection must be confirmed by an identifiable control AND its
     // own accessible name. Anything else stops here; we never assume the
     // currently open project is the right one, and never click a guessed item.
-    const projectControl = await this.uia.find(this.window, this.projectControl)
+    const projectControl = await this.uia.find(this.window, controls.projectControl)
     if (!projectControl.ok) {
       return this.enterHandoff(session, pkg, `${projectControl.code}: project control not identifiable`)
     }
@@ -261,7 +355,7 @@ export class BaseDesktopAdapter {
       return this.enterHandoff(session, pkg,
         `${BLOCK_CODES.PROJECT_SELECTION_UNCERTAIN}: control '${observedName || '(unnamed)'}' does not identify project '${expectedRef}'`)
     }
-    const selected = await this.uia.invoke(this.window, this.projectControl)
+    const selected = await this.uia.invoke(this.window, controls.projectControl)
     if (!selected.ok) {
       return this.enterHandoff(session, pkg, `${selected.code}: could not select the configured project`)
     }
@@ -272,16 +366,16 @@ export class BaseDesktopAdapter {
     session = this.transition(session, 'AWAITING_SEND', { detail: `Project ${expectedRef} confirmed (control: ${observedName})` })
 
     const valueFile = await writeTaskPackage(path.join(this.dataDir, 'autonomy-packages'), pkg)
-    const input = await this.uia.find(this.window, this.inputControl)
+    const input = await this.uia.find(this.window, controls.inputControl)
     if (!input.ok) return this.enterHandoff(session, pkg, `${input.code}: input control not identifiable`, { valueFile })
-    const written = await this.uia.setValue(this.window, this.inputControl, '', { valueFile })
+    const written = await this.uia.setValue(this.window, controls.inputControl, '', { valueFile })
     if (!written.ok) return this.enterHandoff(session, pkg, `${written.code}: could not enter task text`, { valueFile })
-    const send = await this.uia.invoke(this.window, this.sendControl)
+    const send = await this.uia.invoke(this.window, controls.sendControl)
     if (!send.ok) return this.enterHandoff(session, pkg, `${send.code}: send control not identifiable`, { valueFile })
 
     session = this.store.put('agent_sessions', session.id, {
       ...session, sentPackageHash: pkg.hash, sentAt: new Date(this.clock()).toISOString(),
-      packageFile: valueFile, handoff: false
+      packageFile: valueFile, handoff: false, sendEvidence: { project: observedName, input: controls.inputControl, send: controls.sendControl }
     })
     return { session: this.transition(session, 'RUNNING', { detail: 'Task package sent via UI Automation' }), automated: true }
   }
@@ -349,7 +443,10 @@ export class BaseDesktopAdapter {
     }
     const text = await this.uia.readText(this.window)
     if (!text.ok) return { session: next, signal: 'INCONCLUSIVE', reason: text.code }
-    const signal = classifyUiText(text.lines || [])
+    const inspection = await this.inspectWindow()
+    const signal = classifyUiText([...(text.lines || []), ...((inspection?.controls || [])
+      .filter((control) => control.offscreen !== true)
+      .map((control) => control.name).filter(Boolean))])
     if (!signal) return { session: next, signal: 'INCONCLUSIVE', textLines: text.count }
     if (signal === 'FAILED') {
       await this.captureFailure(next, 'client-reported-error')
@@ -409,6 +506,19 @@ export class ChatGptDesktopAdapter extends BaseDesktopAdapter {
       packageFamilyName: pkg?.PackageFamilyName || pkg?.packageFamilyName || null
     }
   }
+
+  capabilitiesForDetection({ base, ui }) {
+    const capabilities = { ...base }
+    if (ui.loginState === 'SIGNED_IN') capabilities.loginState = verified('profile/project/composer controls were visible in the ChatGPT accessibility tree')
+    else if (ui.loginState === 'SIGNED_OUT') capabilities.loginState = verified('sign-in control was visible in the ChatGPT accessibility tree')
+    if (ui.projectControl) {
+      capabilities.listProjects = verified(`project control '${ui.projectControl.name}' is exposed by UI Automation`)
+      capabilities.selectProject = partial('project control is identifiable; selection is only verified when a task send is executed')
+    }
+    if (ui.hasComposer && ui.hasSendControl) capabilities.sendTask = partial('composer and enabled send control are exposed; a task send still requires an isolated end-to-end run')
+    else if (ui.hasComposer) capabilities.sendTask = partial('composer is exposed but the client currently exposes no enabled send control (possibly busy)')
+    return capabilities
+  }
 }
 
 // ---- WorkBuddy ------------------------------------------------------------
@@ -443,6 +553,22 @@ export class WorkBuddyAdapter extends BaseDesktopAdapter {
       installLocation: launcher ? path.dirname(launcher) : null,
       projectRefs: []
     }
+  }
+
+  capabilitiesForDetection({ base, ui }) {
+    const capabilities = { ...base }
+    if (ui.controlCount <= 2) {
+      capabilities.loginState = unsupported('WorkBuddy exposes only legacy child panes; no authenticated account marker is accessible')
+      capabilities.listProjects = unsupported('WorkBuddy project controls are not exposed through the current UIA tree')
+      capabilities.selectProject = unsupported('WorkBuddy project controls are not exposed through the current UIA tree')
+      capabilities.sendTask = unsupported('WorkBuddy composer/send controls are not exposed through the current UIA tree')
+      capabilities.readExecutionState = partial('process liveness only; execution text is not exposed through UIA')
+    } else {
+      if (ui.loginState === 'SIGNED_IN') capabilities.loginState = verified('WorkBuddy profile/project/composer controls were visible in the accessibility tree')
+      if (ui.projectControl) capabilities.listProjects = verified(`project control '${ui.projectControl.name}' is exposed by UI Automation`)
+      if (ui.hasComposer && ui.hasSendControl) capabilities.sendTask = partial('WorkBuddy composer and send controls are exposed; isolated end-to-end send remains required')
+    }
+    return capabilities
   }
 }
 

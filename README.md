@@ -16,7 +16,18 @@
 
 **在线宣传页：[project-nexus.edgeone.dev](https://project-nexus.edgeone.dev/)**（源码在 `website/`）
 
-> **发布状态（如实说明）**：v0.9.0 已发布为 Windows x64 开发预览，安装包未签名，不是 v1.0 稳定版；下载前请核对 SHA-256。完整能力边界见 [已知限制](docs/AUTONOMY_V2_LIMITATIONS.md)。
+> **发布状态（如实说明）**：v0.9.1 已发布为 Windows x64 开发预览，安装包签名状态和 SHA-256 以 Release 资产为准，不是 v1.0 稳定版。完整能力边界见 [已知限制](docs/AUTONOMY_V2_LIMITATIONS.md)。
+
+## 最新更新
+
+### v0.9.1 · 第二阶段闭环能力与真实诊断
+
+- 桌面客户端中心增加 ChatGPT Desktop 与 WorkBuddy 的独立能力检测，按真实 UI Automation 控件识别登录、项目、输入框和发送能力，并在客户端受限时明确转入人工接管。
+- 安全扫描接入 CodeQL、Semgrep、Gitleaks、Trivy 的安装探测、版本记录、结果解析、报告保存和历史对比；工具缺失或依赖审计失败会显示为 `BLOCKED`。
+- GitHub 交付流程支持隔离分支、提交推送、草稿 PR、Review/Checks/Actions 读取，以及受明确授权保护的合并、Release 和通知操作。
+- 任务中心保留重启恢复、网络恢复、幂等防重和短时持续运行证据，并如实展示尚未完成的 24 小时测试与客户端限制。
+
+[查看完整发布记录](docs/releases/release-notes.md)
 
 ## 项目定位
 
