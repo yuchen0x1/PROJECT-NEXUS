@@ -21,5 +21,7 @@
   "providerKeySave": "The API key could not be stored securely.",
   "providerSave": "The provider could not be saved.",
   "agentInsights": "The project could not be analyzed.",
-  "agentBridgeTest": "The Codex connection test failed."
+  "agentBridgeTest": "The Codex connection test failed.",
+  "agentDesktopLaunch": "Could not launch the desktop application.",
+  "agentWorkspaceReveal": "Could not open the workspace folder."
 }

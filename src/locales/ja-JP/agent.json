@@ -74,7 +74,9 @@
     "rollback": "ワークスペースを復元",
     "rollingBack": "復元中…",
     "apply": "プロジェクトに適用",
-    "applying": "適用中…"
+    "applying": "適用中…",
+    "revealWorkspace": "ワークスペースを表示",
+    "revealing": "開いています…"
   },
   "meta": {
     "tokens": "{{value}} トークン",
@@ -226,6 +228,11 @@
     "testFailed": "接続に失敗しました",
     "note": "タスクは NEXUS の隔離ワークスペース内で独立した Codex セッションとして実行されます。開いている Codex Desktop のウィンドウや既存の履歴には影響しません。変更はレビューと検証を通過した後にのみ反映されます。",
     "installHint": "Codex が検出されませんでした。設定 → 開発環境からワンクリックインストール（winget install OpenAI.Codex）するか、NEXUS_CODEX_PATH に codex バイナリを指定して再検出してください。",
-    "usesOwnAccount": "Codex チャネルは独自のサインインを使用します。NEXUS プロバイダーキーは不要です。"
+    "usesOwnAccount": "Codex チャネルは独自のサインインを使用します。NEXUS プロバイダーキーは不要です。",
+    "desktopState": "デスクトップ版 {{name}} {{version}} · {{state}}",
+    "desktopRunning": "実行中",
+    "desktopStopped": "未実行",
+    "desktopLaunch": "起動",
+    "desktopLaunching": "起動中…"
   }
 }

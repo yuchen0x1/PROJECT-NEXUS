@@ -21,5 +21,7 @@
   "providerKeySave": "API キーを安全に保存できませんでした。",
   "providerSave": "プロバイダーを保存できませんでした。",
   "agentInsights": "プロジェクトを分析できませんでした。",
-  "agentBridgeTest": "Codex の接続テストに失敗しました。"
+  "agentBridgeTest": "Codex の接続テストに失敗しました。",
+  "agentDesktopLaunch": "デスクトップアプリを起動できませんでした。",
+  "agentWorkspaceReveal": "ワークスペースフォルダーを開けませんでした。"
 }

@@ -33,6 +33,46 @@ export type UpstreamProfile = {
   checkedAt: string | null
 }
 
+export type UpstreamBaseline = {
+  upstreamFullName: string
+  ref: string
+  refSha: string | null
+  capturedAt: string
+  fileCount: number
+  truncated: boolean
+  skipped: number
+  comparison: ThreeWayComparison | null
+} | null
+
+export type ThreeWayComparison = {
+  at: string
+  userRef: string
+  userTruncated: boolean
+  upstreamRef: string
+  upstreamTruncated: boolean
+  unchanged: number
+  synced: { kind: string; total: number; entries: string[] }
+  conflicts: { kind: string; total: number; entries: { path: string; kind: string }[] }
+  upstreamChanges: { kind: string; total: number; entries: string[] }
+  upstreamDeletes: { kind: string; total: number; entries: string[] }
+  userChanges: { kind: string; total: number; entries: string[] }
+  totals: { trackedPaths: number; conflicts: number; upstreamChanges: number; upstreamDeletes: number; userChanges: number; synced: number }
+}
+
+export type AgentAdapterStatus = {
+  id: string
+  name: string
+  kind: string
+  channel: string
+  installed: boolean
+  version?: string | null
+  running?: boolean
+  appName?: string | null
+  launcherExe?: string | null
+  error?: string | null
+  capabilities: Record<string, boolean | string>
+}
+
 export type OverviewStatus = 'idle' | 'queued' | 'running' | 'blocked' | 'failed' | 'success' | 'cancelled'
 export type OverviewStage = 'inspection' | 'analysis' | 'execution' | 'verification' | 'delivery' | 'research'
 export type OverviewTask = {
@@ -456,6 +496,12 @@ export const api = {
   projects: (query = '') => request<{ projects: Project[]; total: number }>(`/api/projects?query=${encodeURIComponent(query)}`),
   detectUpstream: (id: string, upstreamFullName?: string | null) => request<{ profile: UpstreamProfile }>(`/api/projects/${encodeURIComponent(id)}/upstream/detect`, { method: 'POST', body: JSON.stringify({ upstreamFullName: upstreamFullName || null }) }),
   declareUpstream: (id: string, payload: { upstreamFullName: string; kind: string; version?: string; note?: string }) => request<{ profile: UpstreamProfile }>(`/api/projects/${encodeURIComponent(id)}/upstream/declare`, { method: 'POST', body: JSON.stringify(payload) }),
+  upstreamBaseline: (id: string) => request<{ baseline: UpstreamBaseline }>(`/api/projects/${encodeURIComponent(id)}/upstream/baseline`),
+  captureUpstreamBaseline: (id: string, payload: { upstreamFullName?: string; ref?: string } = {}) => request<{ baseline: Exclude<UpstreamBaseline, null> }>(`/api/projects/${encodeURIComponent(id)}/upstream/baseline/capture`, { method: 'POST', body: JSON.stringify(payload) }),
+  compareUpstreamBaseline: (id: string, payload: { upstreamRef?: string } = {}) => request<{ baseline: Exclude<UpstreamBaseline, null>; comparison: ThreeWayComparison }>(`/api/projects/${encodeURIComponent(id)}/upstream/baseline/compare`, { method: 'POST', body: JSON.stringify(payload) }),
+  agentAssistStatus: () => request<{ adapters: AgentAdapterStatus[] }>('/api/agent-assist/status'),
+  launchAgentDesktop: () => request<{ launched: boolean; name: string }>('/api/agent-assist/desktop/launch', { method: 'POST', body: '{}' }),
+  revealAgentWorkspace: (taskId: string) => request<{ revealed: boolean; folderPath: string }>('/api/agent-assist/reveal', { method: 'POST', body: JSON.stringify({ taskId }) }),
   syncRepositories: (automatic = false) => request<{ task?: Task; skipped?: boolean; reason?: string }>('/api/tasks/sync-repositories', { method: 'POST', body: JSON.stringify({ automatic }) }),
   scanProject: (id: string) => request<{ project: Project }>(`/api/projects/${id}/scan`, { method: 'POST', body: '{}' }),
   integrationScan: (id: string) => request<{ project: Project; job: IntegrationJob; task: Task; reused: boolean }>(`/api/projects/${id}/integration-scan`, { method: 'POST', body: '{}' }),

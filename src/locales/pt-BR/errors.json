@@ -21,5 +21,7 @@
   "providerKeySave": "Não foi possível armazenar a chave de API com segurança.",
   "providerSave": "Não foi possível salvar o provedor.",
   "agentInsights": "Não foi possível analisar o projeto.",
-  "agentBridgeTest": "O teste de conexão do Codex falhou."
+  "agentBridgeTest": "O teste de conexão do Codex falhou.",
+  "agentDesktopLaunch": "Não foi possível iniciar o aplicativo de desktop.",
+  "agentWorkspaceReveal": "Não foi possível abrir a pasta do espaço de trabalho."
 }

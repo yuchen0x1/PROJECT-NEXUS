@@ -90,6 +90,12 @@
     "updateAvailable": {
       "label": "發現新版本",
       "detail": "應用可更新到 v{{version}}。"
+    },
+    "agentDesktopLaunched": {
+      "label": "桌面應用程式已啟動"
+    },
+    "agentWorkspaceRevealed": {
+      "label": "已在檔案總管中開啟工作區"
     }
   },
   "toast": {

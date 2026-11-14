@@ -525,6 +525,36 @@
     "declaredToast": "신고 저장됨: {{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
     "detectFailed": "출처 탐지에 실패했습니다.",
     "declareFailed": "신고를 저장하지 못했습니다.",
-    "repoRequired": "업스트림 저장소를 owner/repo 형식으로 입력하세요."
+    "repoRequired": "업스트림 저장소를 owner/repo 형식으로 입력하세요.",
+    "baseline": {
+      "summary": "ZIP 베이스라인과 삼방 비교",
+      "detail": "베이스라인은 생성 시점의 업스트림 파일 목록(경로 → blob 해시)을 기록합니다. 비교는 \"베이스라인 ↔ 내 저장소 ↔ 업스트림 최신\"을 경로별로 분류하며 파일 내용을 다운로드하지 않고 해시가 같으면 내용도 같다고 판단합니다.",
+      "capturedLabel": "베이스라인",
+      "files": "파일 {{count}}개",
+      "none": "아직 베이스라인 없음",
+      "capture": "베이스라인 생성",
+      "capturing": "생성 중…",
+      "compare": "삼방 비교 실행",
+      "comparing": "비교 중…",
+      "capturedToast": "베이스라인 생성됨: {{upstream}}에서 {{files}}개 파일.",
+      "comparedToast": "비교 완료: 충돌 {{conflicts}}건, 업스트림 변경 {{upstream}}건.",
+      "captureFailed": "베이스라인 생성에 실패했습니다.",
+      "compareFailed": "비교에 실패했습니다.",
+      "conflicts": "충돌",
+      "upstreamChanges": "업스트림 변경",
+      "upstreamDeletes": "업스트림 삭제",
+      "userChanges": "내 변경",
+      "unchanged": "양쪽 모두 없음",
+      "truncatedWarning": "일부 트리가 너무 커서 완전히 나열되지 않았습니다. 아래 수치가 불완전할 수 있습니다.",
+      "conflictFiles": "충돌 파일({{count}})",
+      "upstreamFiles": "업스트림 변경({{count}})",
+      "moreEntries": "{{total}}건 중 {{shown}}건 표시.",
+      "kind": {
+        "both-modified": "양쪽 모두 수정",
+        "both-added": "양쪽 모두 추가(내용 다름)",
+        "user-deleted-upstream-present": "삭제했으나 업스트림에 존재",
+        "user-modified-upstream-deleted": "수정했으나 업스트림에서 삭제"
+      }
+    }
   }
 }

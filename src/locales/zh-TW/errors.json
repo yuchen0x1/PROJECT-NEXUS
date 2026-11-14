@@ -21,5 +21,7 @@
   "providerKeySave": "API 金鑰未能安全儲存。",
   "providerSave": "Provider 儲存失敗。",
   "agentInsights": "專案分析失敗。",
-  "agentBridgeTest": "Codex 連線測試失敗。"
+  "agentBridgeTest": "Codex 連線測試失敗。",
+  "agentDesktopLaunch": "無法啟動桌面應用程式。",
+  "agentWorkspaceReveal": "無法開啟工作區資料夾。"
 }

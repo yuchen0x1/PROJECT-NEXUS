@@ -90,6 +90,12 @@
     "updateAvailable": {
       "label": "新バージョンを検出",
       "detail": "アプリは v{{version}} に更新できます。"
+    },
+    "agentDesktopLaunched": {
+      "label": "デスクトップアプリを起動しました"
+    },
+    "agentWorkspaceRevealed": {
+      "label": "ワークスペースをエクスプローラーで開きました"
     }
   },
   "toast": {

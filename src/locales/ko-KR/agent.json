@@ -74,7 +74,9 @@
     "rollback": "작업 공간 복원",
     "rollingBack": "복원 중…",
     "apply": "프로젝트에 적용",
-    "applying": "적용 중…"
+    "applying": "적용 중…",
+    "revealWorkspace": "작업 공간 열기",
+    "revealing": "여는 중…"
   },
   "meta": {
     "tokens": "{{value}}토큰",
@@ -226,6 +228,11 @@
     "testFailed": "연결 실패",
     "note": "작업은 NEXUS 격리 작업 공간 안에서 독립적인 Codex 세션으로 실행됩니다. 열려 있는 Codex Desktop 창과 기존 기록은 영향을 받지 않으며, 변경 사항은 검토와 검증을 통과한 후에만 전달됩니다.",
     "installHint": "Codex가 감지되지 않았습니다. 설정 → 개발 환경에서 원클릭 설치(winget install OpenAI.Codex)하거나 NEXUS_CODEX_PATH에 codex 바이너리를 지정한 뒤 다시 확인하세요.",
-    "usesOwnAccount": "Codex 채널은 자체 로그인을 사용하므로 NEXUS 공급자 키가 필요 없습니다."
+    "usesOwnAccount": "Codex 채널은 자체 로그인을 사용하므로 NEXUS 공급자 키가 필요 없습니다.",
+    "desktopState": "데스크톱 앱 {{name}} {{version}} · {{state}}",
+    "desktopRunning": "실행 중",
+    "desktopStopped": "실행 안 함",
+    "desktopLaunch": "실행",
+    "desktopLaunching": "실행 중…"
   }
 }

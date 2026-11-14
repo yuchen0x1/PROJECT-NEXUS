@@ -525,6 +525,36 @@
     "declaredToast": "Deklaration gespeichert: {{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
     "detectFailed": "Herkunftserkennung fehlgeschlagen.",
     "declareFailed": "Deklaration konnte nicht gespeichert werden.",
-    "repoRequired": "Bitte das Upstream-Repository als owner/repo angeben."
+    "repoRequired": "Bitte das Upstream-Repository als owner/repo angeben.",
+    "baseline": {
+      "summary": "ZIP-Baseline und dreiseitiger Vergleich",
+      "detail": "Die Baseline erfasst zum Zeitpunkt der Aufnahme das Upstream-Dateimanifest (Pfad → Blob-Hash). Der Vergleich ordnet jeden Pfad über Baseline, Ihr Repository und den Upstream-Neustand ein — Dateiinhalte werden nie heruntergeladen; gleiche Hashes bedeuten gleichen Inhalt.",
+      "capturedLabel": "Baseline",
+      "files": "{{count}} Dateien",
+      "none": "Noch keine Baseline erfasst",
+      "capture": "Baseline erfassen",
+      "capturing": "Erfasse…",
+      "compare": "Dreiseitigen Vergleich ausführen",
+      "comparing": "Vergleiche…",
+      "capturedToast": "Baseline erfasst: {{files}} Dateien aus {{upstream}}.",
+      "comparedToast": "Vergleich fertig: {{conflicts}} Konflikt(e), {{upstream}} Upstream-Änderung(en).",
+      "captureFailed": "Baseline-Erfassung fehlgeschlagen.",
+      "compareFailed": "Vergleich fehlgeschlagen.",
+      "conflicts": "Konflikte",
+      "upstreamChanges": "Upstream-Änderungen",
+      "upstreamDeletes": "Upstream-Löschungen",
+      "userChanges": "Ihre Änderungen",
+      "unchanged": "Unverändert",
+      "truncatedWarning": "Ein Baum war zu groß für eine vollständige Auflistung; die Zählungen können unvollständig sein.",
+      "conflictFiles": "Konfliktdateien ({{count}})",
+      "upstreamFiles": "Upstream-Änderungen ({{count}})",
+      "moreEntries": "{{shown}} von {{total}} angezeigt.",
+      "kind": {
+        "both-modified": "Beidseitig geändert",
+        "both-added": "Beidseitig hinzugefügt (unterschiedlich)",
+        "user-deleted-upstream-present": "Von Ihnen gelöscht, upstream vorhanden",
+        "user-modified-upstream-deleted": "Von Ihnen geändert, upstream gelöscht"
+      }
+    }
   }
 }

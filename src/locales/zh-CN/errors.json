@@ -21,5 +21,7 @@
   "providerKeySave": "API 密钥未能安全保存。",
   "providerSave": "Provider 保存失败。",
   "agentInsights": "项目分析失败。",
-  "agentBridgeTest": "Codex 连接测试失败。"
+  "agentBridgeTest": "Codex 连接测试失败。",
+  "agentDesktopLaunch": "无法启动桌面应用。",
+  "agentWorkspaceReveal": "无法打开工作区文件夹。"
 }

@@ -21,5 +21,7 @@
   "providerKeySave": "La clé API n’a pas pu être stockée de manière sécurisée.",
   "providerSave": "Le fournisseur n’a pas pu être enregistré.",
   "agentInsights": "Le projet n’a pas pu être analysé.",
-  "agentBridgeTest": "Le test de connexion Codex a échoué."
+  "agentBridgeTest": "Le test de connexion Codex a échoué.",
+  "agentDesktopLaunch": "Impossible de lancer l’application de bureau.",
+  "agentWorkspaceReveal": "Impossible d’ouvrir le dossier de l’espace de travail."
 }

@@ -90,6 +90,12 @@
     "updateAvailable": {
       "label": "Nueva versión disponible",
       "detail": "La aplicación puede actualizarse a v{{version}}."
+    },
+    "agentDesktopLaunched": {
+      "label": "Aplicación de escritorio iniciada"
+    },
+    "agentWorkspaceRevealed": {
+      "label": "Espacio de trabajo abierto en el explorador"
     }
   },
   "toast": {

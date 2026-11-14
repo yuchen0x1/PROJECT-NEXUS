@@ -525,6 +525,36 @@
     "declaredToast": "Declaration saved: {{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
     "detectFailed": "Origin detection failed.",
     "declareFailed": "The declaration could not be saved.",
-    "repoRequired": "Enter the upstream repository as owner/repo."
+    "repoRequired": "Enter the upstream repository as owner/repo.",
+    "baseline": {
+      "summary": "ZIP baseline and three-way comparison",
+      "detail": "The baseline records the upstream file manifest (path → blob hash) at capture time. A comparison classifies every path across baseline, your repository and the upstream latest state — content is never downloaded; equal hashes mean equal content.",
+      "capturedLabel": "Baseline",
+      "files": "{{count}} files",
+      "none": "No baseline captured yet",
+      "capture": "Capture baseline",
+      "capturing": "Capturing…",
+      "compare": "Run three-way comparison",
+      "comparing": "Comparing…",
+      "capturedToast": "Baseline captured: {{files}} files from {{upstream}}.",
+      "comparedToast": "Comparison done: {{conflicts}} conflict(s), {{upstream}} upstream change(s).",
+      "captureFailed": "Baseline capture failed.",
+      "compareFailed": "Comparison failed.",
+      "conflicts": "Conflicts",
+      "upstreamChanges": "Upstream changes",
+      "upstreamDeletes": "Upstream deletions",
+      "userChanges": "Your changes",
+      "unchanged": "Unchanged",
+      "truncatedWarning": "One of the trees was too large to list completely; the counts below may be incomplete.",
+      "conflictFiles": "Conflict files ({{count}})",
+      "upstreamFiles": "Upstream changes ({{count}})",
+      "moreEntries": "Showing {{shown}} of {{total}}.",
+      "kind": {
+        "both-modified": "Both sides modified",
+        "both-added": "Both sides added (different content)",
+        "user-deleted-upstream-present": "You deleted it, upstream still has it",
+        "user-modified-upstream-deleted": "You modified it, upstream deleted it"
+      }
+    }
   }
 }

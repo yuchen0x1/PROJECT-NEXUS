@@ -525,6 +525,36 @@
     "declaredToast": "申告を保存しました：{{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
     "detectFailed": "由来の検出に失敗しました。",
     "declareFailed": "申告を保存できませんでした。",
-    "repoRequired": "上流リポジトリを owner/repo 形式で入力してください。"
+    "repoRequired": "上流リポジトリを owner/repo 形式で入力してください。",
+    "baseline": {
+      "summary": "ZIP ベースラインと三方比較",
+      "detail": "ベースラインは作成時点の上流ファイル一覧（パス → blob ハッシュ）を記録します。比較は「ベースライン ↔ あなたのリポジトリ ↔ 上流の最新」をパス単位で分類します。ファイル内容はダウンロードせず、ハッシュが同じなら内容も同じです。",
+      "capturedLabel": "ベースライン",
+      "files": "{{count}} ファイル",
+      "none": "ベースラインは未作成",
+      "capture": "ベースラインを作成",
+      "capturing": "作成中…",
+      "compare": "三方比較を実行",
+      "comparing": "比較中…",
+      "capturedToast": "ベースラインを作成しました：{{upstream}} から {{files}} ファイル。",
+      "comparedToast": "比較完了：衝突 {{conflicts}} 件、上流の変更 {{upstream}} 件。",
+      "captureFailed": "ベースラインの作成に失敗しました。",
+      "compareFailed": "比較に失敗しました。",
+      "conflicts": "衝突",
+      "upstreamChanges": "上流の変更",
+      "upstreamDeletes": "上流の削除",
+      "userChanges": "あなたの変更",
+      "unchanged": "双方未変更",
+      "truncatedWarning": "一部のツリーが大きく完全に列挙できなかったため、数値が不完全な場合があります。",
+      "conflictFiles": "衝突ファイル（{{count}}）",
+      "upstreamFiles": "上流の変更（{{count}}）",
+      "moreEntries": "{{total}} 件中 {{shown}} 件を表示。",
+      "kind": {
+        "both-modified": "双方が変更",
+        "both-added": "双方が追加（内容が異なる）",
+        "user-deleted-upstream-present": "あなたが削除、上流には存在",
+        "user-modified-upstream-deleted": "あなたが変更、上流では削除"
+      }
+    }
   }
 }

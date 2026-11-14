@@ -21,6 +21,9 @@ import { executeAgentRuntimeTask, rollbackAgentTask, applyAgentTaskToProject, ag
 import { executeAgentBridgeTask } from './services/agent/bridge-executor.mjs'
 import { detectCodexInstall, probeCodexBridge } from './services/agent/codex-app-server.mjs'
 import { deriveUpstreamProfile, applyDeclaration, emptyUpstreamProfile, normalizeUpstreamFullName } from './services/upstream-profile.mjs'
+import { captureBaseline, runThreeWayComparison, loadBaselineStore, getBaseline, publicBaseline } from './services/upstream-baseline.mjs'
+import { detectAgentAdapters } from './services/agent/adapters.mjs'
+import { detectCodexDesktop, launchDesktopApp, revealFolderInExplorer } from './services/agent/desktop-assist.mjs'
 import { listPublicProviders, createProviderRecord, updateProviderRecord, deleteProviderRecord, testProviderRecord, setRuntimeProviderKeys } from './services/provider-store.mjs'
 import { resolveApprovalInTask, expireStaleApprovals, APPROVAL_POLICIES } from './services/agent/approval.mjs'
 import { buildProjectIndex } from './services/agent/indexer.mjs'
@@ -1499,6 +1502,55 @@ app.get('/api/agent-bridge/status', async (req, res) => {
   } catch (error) { res.status(500).json({ code: error.code || 'AGENT_BRIDGE_STATUS_FAILED', message: safeError(error) }) }
 })
 
+// Agent Adapter registry + desktop assist channel (PART 6.3/6.5). Detection
+// spawns short-lived reg/tasklist probes and is cached briefly.
+let agentAssistCache = { at: 0, value: null }
+
+app.get('/api/agent-assist/status', async (_req, res) => {
+  if (!requireDesktopLocalAgent(res)) return
+  try {
+    if (!agentAssistCache.value || Date.now() - agentAssistCache.at > 30_000) {
+      const adapters = await detectAgentAdapters()
+      agentAssistCache = { at: Date.now(), value: { adapters } }
+    }
+    res.json(agentAssistCache.value)
+  } catch (error) { res.status(500).json({ code: 'AGENT_ASSIST_STATUS_FAILED', message: safeError(error) }) }
+})
+
+app.post('/api/agent-assist/desktop/launch', async (req, res) => {
+  if (!requireRole(req, res, 'Operator')) return
+  if (!requireDesktopLocalAgent(res)) return
+  try {
+    const desktop = (await detectAgentAdapters()).find((adapter) => adapter.id === 'codex-desktop-assist')
+    if (!desktop?.installed) return res.status(400).json({ code: 'DESKTOP_NOT_DETECTED', message: 'No Codex desktop application was detected on this machine.' })
+    if (!desktop.launcherExe) return res.status(400).json({ code: 'DESKTOP_LAUNCHER_UNKNOWN', message: 'The desktop application was detected but no launcher executable was found.' })
+    const result = await launchDesktopApp({ launcherExe: desktop.launcherExe })
+    audit(req, 'agent_desktop_launch', desktop.name || 'Codex Desktop', 'success', 'low', { exe: desktop.launcherExe })
+    res.json({ ...result, name: desktop.name })
+  } catch (error) { res.status(500).json({ code: error.code || 'DESKTOP_LAUNCH_FAILED', message: safeError(error) }) }
+})
+
+app.post('/api/agent-assist/reveal', async (req, res) => {
+  if (!requireRole(req, res, 'Operator')) return
+  if (!requireDesktopLocalAgent(res)) return
+  const taskId = typeof req.body?.taskId === 'string' ? req.body.taskId : ''
+  if (!taskId) return res.status(400).json({ code: 'TASK_ID_REQUIRED', message: 'A task id is required.' })
+  try {
+    const task = await getLocalAgentTask({ dataDir, taskId })
+    if (!task) return res.status(404).json({ code: 'LOCAL_AGENT_TASK_NOT_FOUND', message: 'Local Agent task was not found.' })
+    const runtimeHandle = agentWorkspaceHandleFor(task, dataDir)
+    const legacyHandle = localAgentWorkspaceHandle(task)
+    const folder = runtimeHandle?.source || legacyHandle?.source || runtimeHandle?.root || legacyHandle?.root || null
+    if (!folder) return res.status(400).json({ code: 'AGENT_WORKSPACE_MISSING', message: 'This task has no workspace folder to reveal.' })
+    const result = await revealFolderInExplorer({ folderPath: folder })
+    audit(req, 'agent_workspace_reveal', `${task.projectName} (${task.id})`, 'success', 'low', { taskId: task.id, folder: result.folderPath })
+    res.json(result)
+  } catch (error) {
+    if (error.code?.startsWith('REVEAL_')) return res.status(400).json({ code: error.code, message: safeError(error) })
+    res.status(500).json({ code: error.code || 'REVEAL_FAILED', message: safeError(error) })
+  }
+})
+
 app.get('/api/local-agent/tasks', async (_req, res) => {
   if (!requireDesktopLocalAgent(res)) return
   try {
@@ -2661,6 +2713,75 @@ app.post('/api/projects/:id/upstream/declare', async (req, res) => {
   } catch (error) {
     if (error.code?.startsWith('UPSTREAM_')) return res.status(400).json({ code: error.code, message: safeError(error) })
     res.status(502).json({ code: error.code || 'UPSTREAM_DECLARE_FAILED', message: safeError(error) })
+  }
+})
+
+// ZIP baseline capture + content-level three-way diff (PART 3.2). Trees are
+// compared by git blob SHA, so no file content ever leaves the repositories.
+const upstreamTreeFetcherFor = (project) => async (fullName, treeRef) =>
+  githubFetchForProject(project, `/repos/${fullName}/git/trees/${encodeURIComponent(treeRef)}?recursive=1`)
+
+app.get('/api/projects/:id/upstream/baseline', async (req, res) => {
+  if (!requireRole(req, res, 'Operator')) return
+  const project = state.projects.find((item) => item.id === req.params.id && repositoryAvailable(item))
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'The project was not found.' })
+  try {
+    const store = await loadBaselineStore(dataDir)
+    res.json({ baseline: publicBaseline(getBaseline(store, project.id)) })
+  } catch (error) { res.status(500).json({ code: error.code || 'BASELINE_READ_FAILED', message: safeError(error) }) }
+})
+
+app.post('/api/projects/:id/upstream/baseline/capture', async (req, res) => {
+  if (!requireRole(req, res, 'Operator')) return
+  const project = state.projects.find((item) => item.id === req.params.id && repositoryAvailable(item))
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'The project was not found.' })
+  const declared = project.upstreamProfile?.declared?.upstreamFullName || project.upstreamProfile?.upstreamFullName || null
+  const upstreamFullName = typeof req.body?.upstreamFullName === 'string' && req.body.upstreamFullName.trim() ? req.body.upstreamFullName.trim() : declared
+  if (!upstreamFullName) return res.status(400).json({ code: 'UPSTREAM_REPO_REQUIRED', message: 'Declare or specify an upstream repository before capturing a baseline.' })
+  try { normalizeUpstreamFullName(upstreamFullName) } catch (error) { return res.status(400).json({ code: error.code, message: safeError(error) }) }
+  const ref = typeof req.body?.ref === 'string' && req.body.ref.trim() ? req.body.ref.trim() : null
+  try {
+    let resolvedRef = ref
+    if (!resolvedRef) {
+      const upstreamRepo = await githubFetchForProject(project, `/repos/${upstreamFullName}`)
+      resolvedRef = upstreamRepo?.default_branch || 'main'
+    }
+    const baseline = await captureBaseline({
+      dataDir,
+      projectId: project.id,
+      upstreamFullName,
+      ref: resolvedRef,
+      fetchTree: upstreamTreeFetcherFor(project)
+    })
+    audit(req, 'upstream_baseline_capture', project.fullName, 'success', 'low', { projectId: project.id, upstream: upstreamFullName, ref: resolvedRef, files: baseline.fileCount })
+    await saveState()
+    res.json({ baseline })
+  } catch (error) {
+    if (error.code?.startsWith('BASELINE_') || error.code?.startsWith('UPSTREAM_')) return res.status(400).json({ code: error.code, message: safeError(error) })
+    res.status(502).json({ code: error.code || 'BASELINE_CAPTURE_FAILED', message: safeError(error) })
+  }
+})
+
+app.post('/api/projects/:id/upstream/baseline/compare', async (req, res) => {
+  if (!requireRole(req, res, 'Operator')) return
+  const project = state.projects.find((item) => item.id === req.params.id && repositoryAvailable(item))
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'The project was not found.' })
+  const upstreamRef = typeof req.body?.upstreamRef === 'string' && req.body.upstreamRef.trim() ? req.body.upstreamRef.trim() : null
+  try {
+    const result = await runThreeWayComparison({
+      dataDir,
+      projectId: project.id,
+      projectFullName: repoFromProject(project),
+      projectDefaultBranch: project.defaultBranch || 'main',
+      upstreamDefaultBranch: upstreamRef,
+      fetchTree: upstreamTreeFetcherFor(project),
+      fetchRepo: async (fullName) => githubFetchForProject(project, `/repos/${fullName}`)
+    })
+    audit(req, 'upstream_baseline_compare', project.fullName, 'success', 'low', { projectId: project.id, conflicts: result.comparison.totals.conflicts, upstreamChanges: result.comparison.totals.upstreamChanges })
+    res.json(result)
+  } catch (error) {
+    if (error.code?.startsWith('BASELINE_')) return res.status(400).json({ code: error.code, message: safeError(error) })
+    res.status(502).json({ code: error.code || 'BASELINE_COMPARE_FAILED', message: safeError(error) })
   }
 })
 

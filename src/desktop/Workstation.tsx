@@ -101,6 +101,7 @@ export default function Workstation() {
   const [agentDisclosureConfirmed, setAgentDisclosureConfirmed] = useState(false)
   const [agentTaskType, setAgentTaskType] = useState<'agent-bridge' | 'local-agent-runtime' | 'local-agent'>('local-agent-runtime')
   const [agentBridge, setAgentBridge] = useState<Awaited<ReturnType<typeof api.agentBridgeStatus>> | null>(null)
+  const [agentAssist, setAgentAssist] = useState<Awaited<ReturnType<typeof api.agentAssistStatus>> | null>(null)
   const [agentApprovalPolicy, setAgentApprovalPolicy] = useState('standard')
   const [agentWorkspaceMode, setAgentWorkspaceMode] = useState('auto')
   const [agentProviders, setAgentProviders] = useState<AgentProvider[]>([])
@@ -289,6 +290,8 @@ export default function Workstation() {
     api.agentProviders().then((result) => { if (active) setAgentProviders(result.providers) }).catch(() => {})
     // Local Agent Bridge: local Codex detection (no process spawned).
     api.agentBridgeStatus().then((status) => { if (active) setAgentBridge(status) }).catch(() => {})
+    // Agent adapters incl. the desktop assist channel (detection is cached server-side).
+    api.agentAssistStatus().then((status) => { if (active) setAgentAssist(status) }).catch(() => {})
     bridge?.getProviderKeyStatus?.().then((status) => { if (active) setAgentKeyStatus(status) }).catch(() => {})
     return () => { active = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -522,6 +525,29 @@ export default function Workstation() {
       setAgentBridge(await api.agentBridgeStatus(true))
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : t('errors:agentBridgeTest'))
+    } finally { setBusy(null) }
+  }
+
+  // Desktop assist channel: start the locally installed Codex desktop app.
+  const handleLaunchAgentDesktop = async () => {
+    setBusy('desktop-launch')
+    try {
+      const result = await api.launchAgentDesktop()
+      addActivity({ kind: 'note', labelKey: 'notifications:activity.agentDesktopLaunched.label', detailText: result.name, page: 'agent' })
+      api.agentAssistStatus().then((status) => setAgentAssist(status)).catch(() => {})
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t('errors:agentDesktopLaunch'))
+    } finally { setBusy(null) }
+  }
+
+  // Desktop assist channel: reveal a finished task's workspace in Explorer.
+  const handleRevealAgentWorkspace = async (task: LocalAgentTask) => {
+    setBusy(`reveal-${task.id}`)
+    try {
+      await api.revealAgentWorkspace(task.id)
+      addActivity({ kind: 'note', labelKey: 'notifications:activity.agentWorkspaceRevealed.label', detailText: task.projectName, page: 'agent' })
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t('errors:agentWorkspaceReveal'))
     } finally { setBusy(null) }
   }
 
@@ -875,6 +901,10 @@ export default function Workstation() {
             bridge={agentBridge}
             bridgeTestBusy={busy === 'bridge-test'}
             onBridgeTest={() => void handleTestAgentBridge()}
+            assist={agentAssist}
+            desktopLaunchBusy={busy === 'desktop-launch'}
+            onLaunchDesktop={() => void handleLaunchAgentDesktop()}
+            onRevealWorkspace={(task) => void handleRevealAgentWorkspace(task)}
             taskType={agentTaskType}
             approvalPolicy={agentApprovalPolicy}
             workspaceMode={agentWorkspaceMode}
@@ -1497,7 +1527,7 @@ function WorkstationSettings({ info, systemLocale, onAutoStartChange }: {
     </section>
   </div>
 }
-function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, prompt, projectId, providerId, disclosureConfirmed, bridge, bridgeTestBusy, onBridgeTest, taskType, approvalPolicy, workspaceMode, providers, keyStatus, insights, busy, insightsBusy, actionBusy, onPromptChange, onProjectChange, onProviderChange, onDisclosureChange, onTaskTypeChange, onApprovalPolicyChange, onWorkspaceModeChange, onStart, onSelectTask, onCancel, onRetry, onRefresh, onResolveApproval, onRollback, onApply, onProvidersChanged, onProviderKeySet, onProviderKeyDelete, onProviderDelete, onProviderTest, onLoadInsights }: {
+function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, prompt, projectId, providerId, disclosureConfirmed, bridge, bridgeTestBusy, onBridgeTest, assist, desktopLaunchBusy, onLaunchDesktop, onRevealWorkspace, taskType, approvalPolicy, workspaceMode, providers, keyStatus, insights, busy, insightsBusy, actionBusy, onPromptChange, onProjectChange, onProviderChange, onDisclosureChange, onTaskTypeChange, onApprovalPolicyChange, onWorkspaceModeChange, onStart, onSelectTask, onCancel, onRetry, onRefresh, onResolveApproval, onRollback, onApply, onProvidersChanged, onProviderKeySet, onProviderKeyDelete, onProviderDelete, onProviderTest, onLoadInsights }: {
   projects: LocalProject[]
   config: Awaited<ReturnType<typeof api.localAgentConfig>> | null
   tasks: LocalAgentTask[]
@@ -1510,6 +1540,10 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
   bridge: Awaited<ReturnType<typeof api.agentBridgeStatus>> | null
   bridgeTestBusy: boolean
   onBridgeTest: () => void
+  assist: Awaited<ReturnType<typeof api.agentAssistStatus>> | null
+  desktopLaunchBusy: boolean
+  onLaunchDesktop: () => void
+  onRevealWorkspace: (task: LocalAgentTask) => void
   taskType: 'agent-bridge' | 'local-agent-runtime' | 'local-agent'
   approvalPolicy: string
   workspaceMode: string
@@ -1628,6 +1662,14 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
           {bridgeInstalled
             ? <div className="nx-agent-inline-note">{t('agent:bridge.note')}</div>
             : <div className="nx-agent-inline-note warning">{t('agent:bridge.installHint')}</div>}
+          {(() => {
+            const desktop = assist?.adapters?.find((adapter) => adapter.id === 'codex-desktop-assist')
+            if (!desktop?.installed) return null
+            return <div className="nx-agent-bridge-line">
+              <span>{t('agent:bridge.desktopState', { name: desktop.appName || 'Codex Desktop', version: desktop.version || '—', state: desktop.running ? t('agent:bridge.desktopRunning') : t('agent:bridge.desktopStopped') })}</span>
+              {!desktop.running && <button className="ghost-button compact" onClick={onLaunchDesktop} disabled={desktopLaunchBusy}>{desktopLaunchBusy ? t('agent:bridge.desktopLaunching') : t('agent:bridge.desktopLaunch')}</button>}
+            </div>
+          })()}
         </div>}
         {taskType === 'local-agent-runtime' && <div className="nx-agent-inline-note">{t('agent:compose.runtimeNote')}</div>}
         <div className="nx-agent-field-row nx-agent-insights-row">
@@ -1811,11 +1853,13 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
                 <button className="nx-primary" onClick={() => onApply(selectedTask)} disabled={actionBusy === `agent-apply-${selectedTask.id}`}><Upload size={13} />{actionBusy === `agent-apply-${selectedTask.id}` ? t('agent:review.applying') : t('agent:review.apply')}</button>
               </>}
               <span>{t('agent:review.retryNote')}</span>
-              <button className="nx-secondary" onClick={() => onRetry(selectedTask)} disabled={!disclosureConfirmed || !configuredProviders.some((provider) => provider.id === selectedTask.providerId)}>{t('agent:review.retryAction')}</button>
+              <button className="nx-secondary" onClick={() => onRevealWorkspace(selectedTask)} disabled={actionBusy === `reveal-${selectedTask.id}`}>{actionBusy === `reveal-${selectedTask.id}` ? t('agent:review.revealing') : t('agent:review.revealWorkspace')}</button>
+              <button className="nx-secondary" onClick={() => onRetry(selectedTask)} disabled={!disclosureConfirmed || (selectedTask.type !== 'agent-bridge' && !configuredProviders.some((provider) => provider.id === selectedTask.providerId))}>{t('agent:review.retryAction')}</button>
             </div>}
             {!finishedTask && selectedTask.status !== 'Queued' && selectedTask.status !== 'Running' && <div className="nx-agent-retry-row">
               <span>{t('agent:review.retryNote')}</span>
-              <button className="nx-secondary" onClick={() => onRetry(selectedTask)} disabled={!disclosureConfirmed || !configuredProviders.some((provider) => provider.id === selectedTask.providerId)}>{t('agent:review.retryAction')}</button>
+              <button className="nx-secondary" onClick={() => onRevealWorkspace(selectedTask)} disabled={actionBusy === `reveal-${selectedTask.id}`}>{actionBusy === `reveal-${selectedTask.id}` ? t('agent:review.revealing') : t('agent:review.revealWorkspace')}</button>
+              <button className="nx-secondary" onClick={() => onRetry(selectedTask)} disabled={!disclosureConfirmed || (selectedTask.type !== 'agent-bridge' && !configuredProviders.some((provider) => provider.id === selectedTask.providerId))}>{t('agent:review.retryAction')}</button>
             </div>}
           </div>}
       </section>

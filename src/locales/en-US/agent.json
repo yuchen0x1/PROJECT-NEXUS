@@ -74,7 +74,9 @@
     "rollback": "Roll back workspace",
     "rollingBack": "Rolling back…",
     "apply": "Apply to project",
-    "applying": "Applying…"
+    "applying": "Applying…",
+    "revealWorkspace": "Reveal workspace",
+    "revealing": "Opening…"
   },
   "meta": {
     "tokens": "{{value}} tokens",
@@ -226,6 +228,11 @@
     "testFailed": "Connection failed",
     "note": "Tasks run as independent Codex sessions inside an isolated NEXUS workspace. Your open Codex Desktop windows and existing history are not touched; changes are delivered only after review and verification.",
     "installHint": "Codex was not detected. Install it via Settings → Development environment (winget install OpenAI.Codex) or set NEXUS_CODEX_PATH to the codex binary, then re-check.",
-    "usesOwnAccount": "The Codex channel uses its own sign-in — no NEXUS provider key is needed."
+    "usesOwnAccount": "The Codex channel uses its own sign-in — no NEXUS provider key is needed.",
+    "desktopState": "Desktop app {{name}} {{version}} · {{state}}",
+    "desktopRunning": "running",
+    "desktopStopped": "not running",
+    "desktopLaunch": "Launch",
+    "desktopLaunching": "Launching…"
   }
 }

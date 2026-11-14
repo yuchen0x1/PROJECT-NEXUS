@@ -525,6 +525,36 @@
     "declaredToast": "Déclaration enregistrée : {{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
     "detectFailed": "Échec de la détection d’origine.",
     "declareFailed": "Impossible d’enregistrer la déclaration.",
-    "repoRequired": "Saisissez le dépôt amont sous la forme owner/repo."
+    "repoRequired": "Saisissez le dépôt amont sous la forme owner/repo.",
+    "baseline": {
+      "summary": "Base de référence ZIP et comparaison à trois",
+      "detail": "La base de référence enregistre le manifeste des fichiers amont (chemin → hash de blob) lors de la capture. La comparaison classe chaque chemin entre la base, votre dépôt et le dernier état amont — aucun contenu n’est téléchargé ; des hachages identiques signifient un contenu identique.",
+      "capturedLabel": "Base de référence",
+      "files": "{{count}} fichiers",
+      "none": "Aucune base capturée",
+      "capture": "Capturer la base",
+      "capturing": "Capture…",
+      "compare": "Lancer la comparaison",
+      "comparing": "Comparaison…",
+      "capturedToast": "Base capturée : {{files}} fichiers depuis {{upstream}}.",
+      "comparedToast": "Comparaison terminée : {{conflicts}} conflit(s), {{upstream}} changement(s) amont.",
+      "captureFailed": "Échec de la capture de la base.",
+      "compareFailed": "Échec de la comparaison.",
+      "conflicts": "Conflits",
+      "upstreamChanges": "Changements amont",
+      "upstreamDeletes": "Suppressions amont",
+      "userChanges": "Vos changements",
+      "unchanged": "Inchangés",
+      "truncatedWarning": "Un arbre était trop grand pour être listé entièrement ; les comptages peuvent être incomplets.",
+      "conflictFiles": "Fichiers en conflit ({{count}})",
+      "upstreamFiles": "Changements amont ({{count}})",
+      "moreEntries": "{{shown}} sur {{total}} affichés.",
+      "kind": {
+        "both-modified": "Modifié des deux côtés",
+        "both-added": "Ajouté des deux côtés (contenus différents)",
+        "user-deleted-upstream-present": "Supprimé de votre côté, présent amont",
+        "user-modified-upstream-deleted": "Modifié de votre côté, supprimé amont"
+      }
+    }
   }
 }

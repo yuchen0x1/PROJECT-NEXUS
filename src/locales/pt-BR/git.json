@@ -525,6 +525,36 @@
     "declaredToast": "Declaração salva: {{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
     "detectFailed": "Falha ao detectar a origem.",
     "declareFailed": "Não foi possível salvar a declaração.",
-    "repoRequired": "Informe o repositório de origem como owner/repo."
+    "repoRequired": "Informe o repositório de origem como owner/repo.",
+    "baseline": {
+      "summary": "Linha de base ZIP e comparação de três vias",
+      "detail": "A linha de base registra o manifesto de arquivos do upstream (caminho → hash de blob) na captura. A comparação classifica cada caminho entre linha de base, seu repositório e o estado mais recente do upstream — nenhum conteúdo é baixado; hashes iguais significam conteúdo igual.",
+      "capturedLabel": "Linha de base",
+      "files": "{{count}} arquivos",
+      "none": "Nenhuma linha de base capturada",
+      "capture": "Capturar linha de base",
+      "capturing": "Capturando…",
+      "compare": "Executar comparação",
+      "comparing": "Comparando…",
+      "capturedToast": "Linha de base capturada: {{files}} arquivos de {{upstream}}.",
+      "comparedToast": "Comparação concluída: {{conflicts}} conflito(s), {{upstream}} mudança(s) do upstream.",
+      "captureFailed": "Falha ao capturar a linha de base.",
+      "compareFailed": "Falha na comparação.",
+      "conflicts": "Conflitos",
+      "upstreamChanges": "Mudanças do upstream",
+      "upstreamDeletes": "Exclusões do upstream",
+      "userChanges": "Suas mudanças",
+      "unchanged": "Inalterados",
+      "truncatedWarning": "Uma das árvores era grande demais para listar completamente; as contagens podem estar incompletas.",
+      "conflictFiles": "Arquivos em conflito ({{count}})",
+      "upstreamFiles": "Mudanças do upstream ({{count}})",
+      "moreEntries": "Mostrando {{shown}} de {{total}}.",
+      "kind": {
+        "both-modified": "Modificado por ambos",
+        "both-added": "Adicionado por ambos (conteúdo diferente)",
+        "user-deleted-upstream-present": "Você excluiu, o upstream mantém",
+        "user-modified-upstream-deleted": "Você modificou, o upstream excluiu"
+      }
+    }
   }
 }

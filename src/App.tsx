@@ -7,7 +7,7 @@ import {
   GitFork, GitPullRequest, Hammer, LayoutDashboard, ListChecks, Loader2, Menu, PackageCheck, Plus, Radio, RefreshCw,
   Rocket, Search, Settings2, ShieldCheck, Sparkles, TerminalSquare, Webhook, XCircle
 } from 'lucide-react'
-import { api, HostingProject, HostingRun, IntegrationJob, IntegrationReport, IssueActivity, Project, ResearchReport, UpgradeProposal, SecurityFinding, Task, UpstreamProfile } from './api'
+import { api, HostingProject, HostingRun, IntegrationJob, IntegrationReport, IssueActivity, Project, ResearchReport, UpgradeProposal, SecurityFinding, Task, ThreeWayComparison, UpstreamBaseline, UpstreamProfile } from './api'
 import { formatStamp } from './i18n/format'
 
 export type RemotePage = 'Overview' | 'Projects' | 'Build Center' | 'Release Center' | 'Auto Update' | 'Repository Scanner' | 'AI Pipeline' | 'Adapter Center' | 'Update Security' | 'Integration History' | 'GitHub Connections' | 'Monitoring' | 'AI Operations' | 'Task Center' | 'Security Center' | 'Hosting' | 'Issues' | 'Security Findings' | 'Research' | 'Settings'
@@ -210,8 +210,13 @@ function UpstreamPanel({ project, onToast }: { project: Project; onToast: (messa
   const [upstream, setUpstream] = useState('')
   const [kind, setKind] = useState('zip-reupload')
   const [version, setVersion] = useState('')
-  const [busy, setBusy] = useState<'detect' | 'declare' | null>(null)
-  useEffect(() => { setProfile(project.upstreamProfile || null); setUpstream(''); setVersion('') }, [project.id, project.upstreamProfile]) // eslint-disable-line react-hooks/exhaustive-deps
+  const [busy, setBusy] = useState<'detect' | 'declare' | 'capture' | 'compare' | null>(null)
+  const [baseline, setBaseline] = useState<UpstreamBaseline>(null)
+  const [comparison, setComparison] = useState<ThreeWayComparison | null>(null)
+  useEffect(() => {
+    setProfile(project.upstreamProfile || null); setUpstream(''); setVersion('')
+    api.upstreamBaseline(project.id).then((result) => { setBaseline(result.baseline); setComparison(result.baseline?.comparison || null) }).catch(() => { setBaseline(null); setComparison(null) })
+  }, [project.id, project.upstreamProfile]) // eslint-disable-line react-hooks/exhaustive-deps
   const badge = t(`git:upstream.badge.${upstreamBadgeKey(profile?.type)}`)
   const detect = async (candidate?: string) => {
     setBusy('detect')
@@ -233,6 +238,24 @@ function UpstreamPanel({ project, onToast }: { project: Project; onToast: (messa
     } catch (error) { onToast(error instanceof Error ? error.message : t('git:upstream.declareFailed')) }
     finally { setBusy(null) }
   }
+  const capture = async () => {
+    setBusy('capture')
+    try {
+      const result = await api.captureUpstreamBaseline(project.id, upstream.trim() ? { upstreamFullName: upstream.trim() } : {})
+      setBaseline(result.baseline); setComparison(result.baseline.comparison || null)
+      onToast(t('git:upstream.baseline.capturedToast', { files: result.baseline.fileCount, upstream: result.baseline.upstreamFullName }))
+    } catch (error) { onToast(error instanceof Error ? error.message : t('git:upstream.baseline.captureFailed')) }
+    finally { setBusy(null) }
+  }
+  const compare = async () => {
+    setBusy('compare')
+    try {
+      const result = await api.compareUpstreamBaseline(project.id, upstream.trim() ? { upstreamRef: version.trim() || undefined } : {})
+      setBaseline(result.baseline); setComparison(result.comparison)
+      onToast(t('git:upstream.baseline.comparedToast', { conflicts: result.comparison.totals.conflicts, upstream: result.comparison.totals.upstreamChanges }))
+    } catch (error) { onToast(error instanceof Error ? error.message : t('git:upstream.baseline.compareFailed')) }
+    finally { setBusy(null) }
+  }
   return <div className="panel upstream-panel">
     <div className="panel-head"><div><div className="panel-kicker">{t('git:upstream.kicker')}</div><h2>{t('git:upstream.title')}</h2></div><button className="secondary-button compact" onClick={() => void detect()} disabled={busy !== null}><Search size={13} /> {busy === 'detect' ? t('git:upstream.detecting') : t('git:upstream.detect')}</button></div>
     <div className="upstream-state">
@@ -251,6 +274,27 @@ function UpstreamPanel({ project, onToast }: { project: Project; onToast: (messa
         <label>{t('git:upstream.versionLabel')}<input value={version} onChange={(event) => setVersion(event.target.value)} placeholder="v1.2.3" /></label>
       </div>
       <button className="secondary-button compact" onClick={() => void declare()} disabled={busy !== null}>{busy === 'declare' ? t('git:upstream.declaring') : t('git:upstream.declare')}</button>
+    </details>
+    <details className="upstream-declare" open={Boolean(baseline)}>
+      <summary>{t('git:upstream.baseline.summary')}</summary>
+      <p className="helper-copy">{t('git:upstream.baseline.detail')}</p>
+      <div className="upstream-state-line"><span>{t('git:upstream.baseline.capturedLabel')}</span><strong>{baseline ? `${formatStamp(baseline.capturedAt)} · ${baseline.ref} · ${t('git:upstream.baseline.files', { count: baseline.fileCount })}` : t('git:upstream.baseline.none')}</strong></div>
+      <div className="upstream-declare-row">
+        <button className="secondary-button compact" onClick={() => void capture()} disabled={busy !== null}>{busy === 'capture' ? t('git:upstream.baseline.capturing') : t('git:upstream.baseline.capture')}</button>
+        <button className="secondary-button compact" onClick={() => void compare()} disabled={busy !== null || !baseline}>{busy === 'compare' ? t('git:upstream.baseline.comparing') : t('git:upstream.baseline.compare')}</button>
+      </div>
+      {comparison && <>
+        <div className="update-summary">
+          <div><span>{t('git:upstream.baseline.conflicts')}</span><strong className={comparison.totals.conflicts ? 'danger-text' : ''}>{comparison.totals.conflicts}</strong></div>
+          <div><span>{t('git:upstream.baseline.upstreamChanges')}</span><strong>{comparison.totals.upstreamChanges}</strong></div>
+          <div><span>{t('git:upstream.baseline.upstreamDeletes')}</span><strong>{comparison.totals.upstreamDeletes}</strong></div>
+          <div><span>{t('git:upstream.baseline.userChanges')}</span><strong>{comparison.totals.userChanges}</strong></div>
+          <div><span>{t('git:upstream.baseline.unchanged')}</span><strong>{comparison.unchanged}</strong></div>
+        </div>
+        {(comparison.userTruncated || comparison.upstreamTruncated || baseline?.truncated) && <p className="helper-copy">{t('git:upstream.baseline.truncatedWarning')}</p>}
+        {comparison.conflicts.total > 0 && <div className="change-files"><strong>{t('git:upstream.baseline.conflictFiles', { count: comparison.conflicts.total })}</strong><ul>{comparison.conflicts.entries.map((entry) => <li key={`${entry.kind}:${entry.path}`}><code>{entry.path}</code> · {t(`git:upstream.baseline.kind.${entry.kind}`, { defaultValue: entry.kind })}</li>)}</ul></div>}
+        {comparison.upstreamChanges.total > 0 && <div className="change-files"><strong>{t('git:upstream.baseline.upstreamFiles', { count: comparison.upstreamChanges.total })}</strong><ul>{comparison.upstreamChanges.entries.map((entry) => <li key={entry}><code>{entry}</code></li>)}</ul>{comparison.upstreamChanges.total > comparison.upstreamChanges.entries.length && <small>{t('git:upstream.baseline.moreEntries', { shown: comparison.upstreamChanges.entries.length, total: comparison.upstreamChanges.total })}</small>}</div>}
+      </>}
     </details>
     {profile?.evidence?.length ? <details className="upstream-evidence"><summary>{t('git:upstream.evidenceSummary', { count: profile.evidence.length })}</summary><ul>{profile.evidence.slice().reverse().map((entry, index) => <li key={index}><code>{entry.kind}</code> {entry.detail} <small>{formatStamp(entry.at)}</small></li>)}</ul></details> : null}
   </div>

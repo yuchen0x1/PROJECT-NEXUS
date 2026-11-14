@@ -525,6 +525,36 @@
     "declaredToast": "申报已保存：{{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
     "detectFailed": "来源检测失败。",
     "declareFailed": "申报保存失败。",
-    "repoRequired": "请以 owner/repo 形式填写上游仓库。"
+    "repoRequired": "请以 owner/repo 形式填写上游仓库。",
+    "baseline": {
+      "summary": "ZIP 基线与三方比较",
+      "detail": "基线在建立时记录上游文件清单（路径 → blob 哈希）。比较会把「基线 ↔ 你的仓库 ↔ 上游最新」逐路径分类——不下载任何文件内容，哈希相同即内容相同。",
+      "capturedLabel": "基线",
+      "files": "{{count}} 个文件",
+      "none": "尚未建立基线",
+      "capture": "建立基线",
+      "capturing": "正在建立…",
+      "compare": "运行三方比较",
+      "comparing": "正在比较…",
+      "capturedToast": "基线已建立：来自 {{upstream}} 的 {{files}} 个文件。",
+      "comparedToast": "比较完成：{{conflicts}} 处冲突，{{upstream}} 项上游变更。",
+      "captureFailed": "基线建立失败。",
+      "compareFailed": "比较失败。",
+      "conflicts": "冲突",
+      "upstreamChanges": "上游变更",
+      "upstreamDeletes": "上游删除",
+      "userChanges": "你的改动",
+      "unchanged": "双方未动",
+      "truncatedWarning": "其中一棵文件树过大未能完整列举，以下计数可能不完整。",
+      "conflictFiles": "冲突文件（{{count}}）",
+      "upstreamFiles": "上游变更（{{count}}）",
+      "moreEntries": "已显示 {{shown}} / {{total}} 项。",
+      "kind": {
+        "both-modified": "双方都修改了",
+        "both-added": "双方都新增（内容不同）",
+        "user-deleted-upstream-present": "你已删除，上游仍存在",
+        "user-modified-upstream-deleted": "你修改过，上游已删除"
+      }
+    }
   }
 }

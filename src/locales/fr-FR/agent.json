@@ -74,7 +74,9 @@
     "rollback": "Restaurer l’espace de travail",
     "rollingBack": "Restauration…",
     "apply": "Appliquer au projet",
-    "applying": "Application…"
+    "applying": "Application…",
+    "revealWorkspace": "Afficher l’espace de travail",
+    "revealing": "Ouverture…"
   },
   "meta": {
     "tokens": "{{value}} jetons",
@@ -226,6 +228,11 @@
     "testFailed": "Échec de la connexion",
     "note": "Les tâches s’exécutent comme des sessions Codex indépendantes dans un espace de travail NEXUS isolé. Les fenêtres Codex Desktop ouvertes et l’historique existant ne sont pas touchés ; les modifications ne sont livrées qu’après revue et vérification.",
     "installHint": "Codex n’a pas été détecté. Installez-le via Paramètres → Environnement de développement (winget install OpenAI.Codex) ou définissez NEXUS_CODEX_PATH vers le binaire codex, puis revérifiez.",
-    "usesOwnAccount": "Le canal Codex utilise sa propre connexion — aucune clé de fournisseur NEXUS requise."
+    "usesOwnAccount": "Le canal Codex utilise sa propre connexion — aucune clé de fournisseur NEXUS requise.",
+    "desktopState": "Application de bureau {{name}} {{version}} · {{state}}",
+    "desktopRunning": "en cours",
+    "desktopStopped": "arrêtée",
+    "desktopLaunch": "Lancer",
+    "desktopLaunching": "Lancement…"
   }
 }

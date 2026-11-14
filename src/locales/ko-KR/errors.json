@@ -21,5 +21,7 @@
   "providerKeySave": "API 키를 안전하게 저장할 수 없습니다.",
   "providerSave": "공급자를 저장할 수 없습니다.",
   "agentInsights": "프로젝트를 분석할 수 없습니다.",
-  "agentBridgeTest": "Codex 연결 테스트에 실패했습니다."
+  "agentBridgeTest": "Codex 연결 테스트에 실패했습니다.",
+  "agentDesktopLaunch": "데스크톱 앱을 실행하지 못했습니다.",
+  "agentWorkspaceReveal": "작업 공간 폴더를 열지 못했습니다."
 }

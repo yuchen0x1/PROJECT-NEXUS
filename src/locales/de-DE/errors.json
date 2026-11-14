@@ -21,5 +21,7 @@
   "providerKeySave": "Der API-Schlüssel konnte nicht sicher gespeichert werden.",
   "providerSave": "Der Anbieter konnte nicht gespeichert werden.",
   "agentInsights": "Das Projekt konnte nicht analysiert werden.",
-  "agentBridgeTest": "Der Codex-Verbindungstest ist fehlgeschlagen."
+  "agentBridgeTest": "Der Codex-Verbindungstest ist fehlgeschlagen.",
+  "agentDesktopLaunch": "Die Desktop-App konnte nicht gestartet werden.",
+  "agentWorkspaceReveal": "Der Arbeitsbereich-Ordner konnte nicht geöffnet werden."
 }

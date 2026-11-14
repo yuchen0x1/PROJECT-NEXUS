@@ -74,7 +74,9 @@
     "rollback": "回復工作區",
     "rollingBack": "回復中…",
     "apply": "套用到專案",
-    "applying": "套用中…"
+    "applying": "套用中…",
+    "revealWorkspace": "開啟工作區",
+    "revealing": "正在開啟…"
   },
   "meta": {
     "tokens": "{{value}} 個 Token",
@@ -226,6 +228,11 @@
     "testFailed": "連線失敗",
     "note": "任務以獨立 Codex 工作階段在 NEXUS 隔離工作區內執行。已開啟的 Codex Desktop 視窗與既有歷史工作階段不受影響；變更僅在審查並通過驗證後才會交付。",
     "installHint": "未偵測到本機 Codex。可在設定頁「開發環境」一鍵安裝（winget install OpenAI.Codex），或設定 NEXUS_CODEX_PATH 指向 codex 執行檔後重新偵測。",
-    "usesOwnAccount": "Codex 通道使用其自身登入，無需設定 NEXUS 提供商金鑰。"
+    "usesOwnAccount": "Codex 通道使用其自身登入，無需設定 NEXUS 提供商金鑰。",
+    "desktopState": "桌面端 {{name}} {{version}} · {{state}}",
+    "desktopRunning": "執行中",
+    "desktopStopped": "未執行",
+    "desktopLaunch": "啟動",
+    "desktopLaunching": "正在啟動…"
   }
 }

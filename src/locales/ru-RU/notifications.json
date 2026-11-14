@@ -92,6 +92,12 @@
     "updateAvailable": {
       "label": "Доступна новая версия",
       "detail": "Приложение можно обновить до v{{version}}."
+    },
+    "agentDesktopLaunched": {
+      "label": "Настольное приложение запущено"
+    },
+    "agentWorkspaceRevealed": {
+      "label": "Рабочая область открыта в Проводнике"
     }
   },
   "toast": {

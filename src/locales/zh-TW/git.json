@@ -525,6 +525,36 @@
     "declaredToast": "申報已儲存：{{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
     "detectFailed": "來源偵測失敗。",
     "declareFailed": "申報儲存失敗。",
-    "repoRequired": "請以 owner/repo 形式填寫上游儲存庫。"
+    "repoRequired": "請以 owner/repo 形式填寫上游儲存庫。",
+    "baseline": {
+      "summary": "ZIP 基線與三方比較",
+      "detail": "基線在建立時記錄上游檔案清單（路徑 → blob 雜湊）。比較會把「基線 ↔ 你的儲存庫 ↔ 上游最新」逐路徑分類——不下載任何檔案內容，雜湊相同即內容相同。",
+      "capturedLabel": "基線",
+      "files": "{{count}} 個檔案",
+      "none": "尚未建立基線",
+      "capture": "建立基線",
+      "capturing": "正在建立…",
+      "compare": "執行三方比較",
+      "comparing": "正在比較…",
+      "capturedToast": "基線已建立：來自 {{upstream}} 的 {{files}} 個檔案。",
+      "comparedToast": "比較完成：{{conflicts}} 處衝突，{{upstream}} 項上游變更。",
+      "captureFailed": "基線建立失敗。",
+      "compareFailed": "比較失敗。",
+      "conflicts": "衝突",
+      "upstreamChanges": "上游變更",
+      "upstreamDeletes": "上游刪除",
+      "userChanges": "你的改動",
+      "unchanged": "雙方未動",
+      "truncatedWarning": "其中一棵檔案樹過大未能完整列舉，以下計數可能不完整。",
+      "conflictFiles": "衝突檔案（{{count}}）",
+      "upstreamFiles": "上游變更（{{count}}）",
+      "moreEntries": "已顯示 {{shown}} / {{total}} 項。",
+      "kind": {
+        "both-modified": "雙方都修改了",
+        "both-added": "雙方都新增（內容不同）",
+        "user-deleted-upstream-present": "你已刪除，上游仍存在",
+        "user-modified-upstream-deleted": "你修改過，上游已刪除"
+      }
+    }
   }
 }

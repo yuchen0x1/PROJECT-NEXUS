@@ -59,6 +59,16 @@ PROJECT NEXUS 与本机 **Codex**（Windows 桌面版 Codex 背后的同一官�
 4. `npm run check` — typecheck + eslint（0 警告）+ 340 测试 + 生产构建 全部通过。
 5. i18n 深审：10 语言 0 问题。
 
+## 统一 Agent Adapter 与桌面辅助通道（2026-11-15 补充）
+
+- **适配器注册表**（`server/services/agent/adapters.mjs`，指令 §6.5）：系统不再写死 Codex。每个本机 AI 编程工具以适配器接入 `{id, name, kind, channel, detect()}`，如实上报安装状态与能力矩阵（缺失能力显示为缺失，不伪造）。当前注册两个适配器：
+  - `codex-app-server`（原生通道）：官方 app-server 会话，具备隔离工作区/实时事件/验收；
+  - `codex-desktop-assist`（辅助通道）：检测本机桌面端应用。
+  新增 ACP 或其他工具时注册一个适配器对象即可，状态 API 与 UI 自动纳管。
+- **桌面辅助通道**（`server/services/agent/desktop-assist.mjs`，指令 §6.3，仅辅助）：通过卸载注册表（HKCU/HKLM Uninstall）与进程列表检测本机 Codex 桌面端（本机实测识别 Codex++ 2.6.9 及其启动器），支持用户显式触发的「启动桌面端」「在资源管理器中打开任务工作区」。
+  - **明确不做**：窗口自动化、固定坐标点击、任务注入桌面窗口、读取屏幕结果——在已有官方 app-server 通道的前提下这些属低可靠性路径，按指令 §6.4 标记为 assist-only，永不参与交付门禁。能力矩阵中 `taskInjection/windowAutomation/resultReading` 恒为 false 并在 UI 如实展示。
+- API：`GET /api/agent-assist/status`（适配器列表，检测缓存 30 秒）、`POST /api/agent-assist/desktop/launch`、`POST /api/agent-assist/reveal`（均为用户显式操作并写入审计）。
+
 ## 当前边界（如实声明）
 
 - 独立会话通道：通过 App Server 创建的会话不会出现在用户已打开的 Codex Desktop 窗口里（官方不提供接管现有桌面会话的接口）；用户可在 Codex Desktop 打开同一项目查看工作区。
