@@ -70,6 +70,10 @@
       "available": "Available",
       "missingNotes": "The publisher has not provided notes for this version.",
       "releases": {
+        "v0_8_9": {
+          "title": "ZIP baseline three-way diff and agent adapters",
+          "summary": "The upstream profile gains a ZIP baseline: capture the upstream file manifest once, then classify every path across baseline, your repository and the upstream latest state — conflicts, portable upstream changes and your own edits — without downloading file contents. Local AI coding tools now integrate through a unified adapter registry, and a new desktop assist channel detects the installed Codex desktop app, can start it and reveal task workspaces in Explorer."
+        },
         "v0_8_8": {
           "title": "Local Codex bridge and repository origin profiles",
           "summary": "Tasks can be delegated to the local Codex through the official app-server interface: independent sessions write only inside an isolated workspace, stream live events and are independently accepted. Repositories also gain an origin profile with GitHub-verified forks, proven shared histories and explicit ZIP or third-party declarations. New update discoveries now raise a toast and a notification entry."

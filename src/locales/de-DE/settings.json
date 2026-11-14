@@ -70,6 +70,10 @@
       "available": "Verfügbar",
       "missingNotes": "Für diese Version liegen keine Versionshinweise vor.",
       "releases": {
+        "v0_8_9": {
+          "title": "ZIP-Baseline dreiseitiger Vergleich und Agent-Adapter",
+          "summary": "Das Upstream-Profil erhält eine ZIP-Baseline: Nach der Erfassung wird jeder Pfad über Baseline, Ihr Repository und den Upstream-Neustand klassifiziert — Konflikte, portierbare Upstream-Änderungen und Ihre eigenen Bearbeitungen — ohne Dateiinhalte herunterzuladen. Lokale KI-Tools integrieren sich über eine einheitliche Adapter-Registrierung; ein Desktop-Assistenzkanal erkennt die installierte Codex-Desktop-App, kann sie starten und Arbeitsbereiche im Explorer anzeigen."
+        },
         "v0_8_8": {
           "title": "Lokale Codex-Brücke und Repository-Herkunftsprofile",
           "summary": "Aufgaben lassen sich über die offizielle App-Server-Schnittstelle an den lokalen Codex übergeben: unabhängige Sitzungen schreiben ausschließlich in einen isolierten Arbeitsbereich, streamen Ereignisse live und werden eigenständig abgenommen. Repositories erhalten ein Herkunftsprofil mit GitHub-verifizierten Forks, nachgewiesenen gemeinsamen Historien und expliziten ZIP- bzw. Drittanbieter-Deklarationen. Neue Update-Funde erscheinen zusätzlich als Toast und Benachrichtigung."

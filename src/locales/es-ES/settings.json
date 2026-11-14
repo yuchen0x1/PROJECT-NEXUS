@@ -70,6 +70,10 @@
       "available": "Disponible",
       "missingNotes": "El editor no ha proporcionado notas para esta versión.",
       "releases": {
+        "v0_8_9": {
+          "title": "Diff de tres vías de la línea base ZIP y adaptadores de agente",
+          "summary": "El perfil de procedencia incorpora una línea base ZIP: tras capturarla, cada ruta se clasifica entre línea base, tu repositorio y el upstream más reciente — conflictos, cambios portables del upstream y tus propias ediciones — sin descargar contenido. Las herramientas locales de IA se integran mediante un registro unificado de adaptadores, y un nuevo canal de asistencia de escritorio detecta la aplicación Codex instalada, puede iniciarla y abrir espacios de trabajo en el explorador."
+        },
         "v0_8_8": {
           "title": "Puente Codex local y perfiles de procedencia",
           "summary": "Las tareas pueden delegarse en el Codex local mediante la interfaz oficial de app-server: sesiones independientes que solo escriben en un espacio de trabajo aislado, transmiten eventos en vivo y se aceptan de forma independiente. Los repositorios incorporan un perfil de procedencia con forks verificados por GitHub, historiales compartidos probados y declaraciones explícitas de ZIP o terceros. Los nuevos hallazgos de actualización muestran un toast y una entrada en el centro de notificaciones."
