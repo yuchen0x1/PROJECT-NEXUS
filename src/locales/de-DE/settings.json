@@ -70,6 +70,10 @@
       "available": "Verfügbar",
       "missingNotes": "Für diese Version liegen keine Versionshinweise vor.",
       "releases": {
+        "v0_8_8": {
+          "title": "Lokale Codex-Brücke und Repository-Herkunftsprofile",
+          "summary": "Aufgaben lassen sich über die offizielle App-Server-Schnittstelle an den lokalen Codex übergeben: unabhängige Sitzungen schreiben ausschließlich in einen isolierten Arbeitsbereich, streamen Ereignisse live und werden eigenständig abgenommen. Repositories erhalten ein Herkunftsprofil mit GitHub-verifizierten Forks, nachgewiesenen gemeinsamen Historien und expliziten ZIP- bzw. Drittanbieter-Deklarationen. Neue Update-Funde erscheinen zusätzlich als Toast und Benachrichtigung."
+        },
         "v0_8_3": {
           "title": "Update-Anzeige und Versionsverlauf",
           "summary": "Behebt überlappende Update- und Seitentitel. Version, Status und Aktionen sind getrennt; ausklappbare Versionshinweise zeigen Offline-Verlauf und neue Updates."

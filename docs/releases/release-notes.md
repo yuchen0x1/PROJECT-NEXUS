@@ -6,6 +6,7 @@
 
 | 版本 | 日期 | 更新主题 | 详细说明 |
 | --- | --- | --- | --- |
+| [v0.8.8](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.8) | 2026-11-15 | 本机 Codex 桥接与仓库来源档案 | [更新、下载与校验](v0.8.8.md) |
 | [v0.8.7](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.7) | 2026-11-14 | 一键下载开发环境 | [更新、下载与校验](v0.8.7.md) |
 | [v0.8.6](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.6) | 2026-11-14 | 首次启动自动教学 | [更新、下载与校验](v0.8.6.md) |
 | [v0.8.2](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.2) | 2026-11-13 | 应用自动更新 | [更新、下载与校验](v0.8.2.md) |

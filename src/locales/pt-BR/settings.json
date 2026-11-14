@@ -70,6 +70,10 @@
       "available": "Disponível",
       "missingNotes": "O responsável ainda não forneceu notas para esta versão.",
       "releases": {
+        "v0_8_8": {
+          "title": "Ponte Codex local e perfis de procedência",
+          "summary": "Tarefas podem ser delegadas ao Codex local pela interface oficial de app-server: sessões independentes escrevem apenas em um espaço de trabalho isolado, transmitem eventos em tempo real e passam por aceite independente. Os repositórios ganham um perfil de procedência com forks verificados pelo GitHub, históricos compartilhados comprovados e declarações explícitas de ZIP ou terceiros. Novas descobertas de atualização exibem toast e entrada na central de notificações."
+        },
         "v0_8_3": {
           "title": "Painel de atualização e histórico",
           "summary": "Corrige a sobreposição com títulos de página. Separa versão, estado e ações e inclui notas expansíveis com histórico offline e detalhes de novas versões."

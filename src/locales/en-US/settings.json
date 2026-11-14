@@ -70,6 +70,10 @@
       "available": "Available",
       "missingNotes": "The publisher has not provided notes for this version.",
       "releases": {
+        "v0_8_8": {
+          "title": "Local Codex bridge and repository origin profiles",
+          "summary": "Tasks can be delegated to the local Codex through the official app-server interface: independent sessions write only inside an isolated workspace, stream live events and are independently accepted. Repositories also gain an origin profile with GitHub-verified forks, proven shared histories and explicit ZIP or third-party declarations. New update discoveries now raise a toast and a notification entry."
+        },
         "v0_8_3": {
           "title": "Update layout and release history",
           "summary": "Fix overlapping update status and page headings. Separate version, status and actions, and add expandable release notes with offline history and new-version details."

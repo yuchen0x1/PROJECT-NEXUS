@@ -70,6 +70,10 @@
       "available": "Disponible",
       "missingNotes": "Aucune note fournie pour cette version.",
       "releases": {
+        "v0_8_8": {
+          "title": "Pont Codex local et profils d’origine des dépôts",
+          "summary": "Les tâches peuvent être confiées au Codex local via l’interface officielle app-server : des sessions indépendantes n’écrivent que dans un espace de travail isolé, diffusent les événements en direct et font l’objet d’une acceptation indépendante. Les dépôts gagnent un profil d’origine avec forks vérifiés par GitHub, historiques partagés prouvés et déclarations explicites ZIP ou tierces. Les nouvelles découvertes de mise à jour déclenchent un toast et une entrée dans le centre de notifications."
+        },
         "v0_8_3": {
           "title": "Affichage des mises à jour et historique",
           "summary": "Corrige le chevauchement avec les titres de page. Sépare version, état et actions ; ajoute un historique dépliable hors ligne et les notes des nouvelles versions."
