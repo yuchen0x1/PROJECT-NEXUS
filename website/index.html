@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROJECT NEXUS — Windows 桌面 AI 仓库运营中心</title>
+<meta name="description" content="连接 GitHub 与 AI 网关，持续监控仓库，在隔离工作区中修复和验证问题，按授权策略交付 PR 和版本。Windows x64 开发预览免费下载。">
+<link rel="icon" type="image/png" href="PROJECT-NEXUS-icon-256.png">
+<style>
+  :root {
+    --bg: #0b0f17; --bg2: #101725; --card: #141c2e; --line: #23304a;
+    --text: #e8edf7; --muted: #8fa0bd; --accent: #4f8cff; --accent2: #38d0c6; --ok: #34d399;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif; line-height: 1.7; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  header { position: sticky; top: 0; background: rgba(11,15,23,.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); z-index: 10; }
+  .nav { display: flex; align-items: center; gap: 14px; padding: 14px 0; }
+  .nav img { width: 34px; height: 34px; border-radius: 8px; }
+  .nav strong { font-size: 17px; }
+  .nav span { color: var(--muted); font-size: 13px; }
+  .nav .right { margin-left: auto; display: flex; gap: 18px; align-items: center; font-size: 14px; }
+  .hero { padding: 90px 0 60px; text-align: center; background: radial-gradient(ellipse at 50% -10%, #16233c 0, transparent 60%), radial-gradient(ellipse at 50% 0%, rgba(79,140,255,.14) 0, transparent 55%); }
+  .hero img.mark { width: 92px; height: 92px; border-radius: 20px; box-shadow: 0 10px 40px rgba(79,140,255,.35); }
+  .hero h1 { font-size: 44px; margin: 22px 0 8px; letter-spacing: .5px; }
+  .hero p.tag { font-size: 20px; color: var(--muted); max-width: 720px; margin: 0 auto; }
+  .pills { margin-top: 18px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .pill { font-size: 13px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; background: var(--bg2); }
+  .pill.free { color: var(--ok); border-color: rgba(52,211,153,.4); }
+  .cta { margin-top: 34px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn { display: inline-block; padding: 13px 30px; border-radius: 12px; font-size: 16px; font-weight: 600; }
+  .btn.primary { background: linear-gradient(135deg, var(--accent), #7a5cff); color: #fff; box-shadow: 0 8px 26px rgba(79,140,255,.4); }
+  .btn.primary:hover { text-decoration: none; transform: translateY(-1px); }
+  .btn.ghost { border: 1px solid var(--line); color: var(--text); background: var(--card); }
+  .btn.ghost:hover { text-decoration: none; border-color: var(--accent); }
+  .shot { margin: 40px auto 0; max-width: 960px; }
+  .shot img { width: 100%; border-radius: 14px; border: 1px solid var(--line); box-shadow: 0 24px 80px rgba(0,0,0,.5); }
+  section { padding: 64px 0; }
+  h2 { font-size: 30px; text-align: center; margin-bottom: 10px; }
+  .sub { text-align: center; color: var(--muted); margin-bottom: 40px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 24px; }
+  .card h3 { font-size: 17px; margin-bottom: 8px; }
+  .card h3::before { content: "◆ "; color: var(--accent2); font-size: 13px; }
+  .card p { color: var(--muted); font-size: 14.5px; }
+  table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
+  th, td { padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--line); font-size: 14.5px; }
+  th { background: var(--bg2); color: var(--muted); font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  td b { color: var(--accent2); }
+  .honest { background: var(--bg2); border: 1px solid var(--line); border-radius: 14px; padding: 24px 28px; font-size: 14.5px; color: var(--muted); }
+  .honest strong { color: var(--text); }
+  .honest ul { margin: 10px 0 0 20px; }
+  .honest li { margin: 4px 0; }
+  footer { border-top: 1px solid var(--line); padding: 30px 0; color: var(--muted); font-size: 13.5px; text-align: center; }
+  @media (max-width: 640px) { .hero h1 { font-size: 32px; } .hero p.tag { font-size: 16px; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <img src="PROJECT-NEXUS-icon-256.png" alt="PROJECT NEXUS 图标">
+    <div><strong>PROJECT NEXUS</strong><br><span>Windows 工作站</span></div>
+    <div class="right">
+      <a href="#features">功能</a>
+      <a href="#policies">策略</a>
+      <a href="#download">下载</a>
+      <a href="https://github.com/yuchen0x1/PROJECT-NEXUS" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <img class="mark" src="PROJECT-NEXUS-icon-256.png" alt="PROJECT NEXUS">
+    <h1>PROJECT NEXUS</h1>
+    <p class="tag">Windows 桌面 AI 仓库运营中心 —— 连接 GitHub 与 AI 网关，持续监控仓库，在隔离工作区中修复和验证问题，按授权策略交付 PR 和版本。</p>
+    <div class="pills">
+      <span class="pill free">免费下载</span>
+      <span class="pill">Windows x64</span>
+      <span class="pill">十种语言界面</span>
+      <span class="pill">应用内自动更新</span>
+      <span class="pill">v0.8.6 开发预览</span>
+    </div>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/yuchen0x1/PROJECT-NEXUS/releases/download/v0.8.6/PROJECT-NEXUS-0.8.6-win-x64-setup.exe">下载 Windows 安装包</a>
+      <a class="btn ghost" href="https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.6" target="_blank" rel="noopener">版本说明与校验</a>
+    </div>
+    <div class="shot"><img src="overview.png" alt="PROJECT NEXUS 工作台界面" loading="lazy"></div>
+  </div>
+</div>
+
+<section id="features">
+  <div class="wrap">
+    <h2>首次启动就会教你用</h2>
+    <p class="sub">安装后自动打开七步教学，每一步说明位置、填写内容和完成条件，失败可原地重试。</p>
+    <div class="grid">
+      <div class="card"><h3>一键教学上手</h3><p>连接 GitHub、配置 AI、选择仓库、检测本机工具、设置策略，逐步引导；工作台随时可重看教学。</p></div>
+      <div class="card"><h3>批量仓库托管</h3><p>勾选多个仓库统一开启托管，逐仓库显示进度；归档仓库自动隐藏，状态一目了然。</p></div>
+      <div class="card"><h3>AI 修复与验证</h3><p>Issue 巡检、分类，符合条件的进入修复流程：在隔离工作区修改、运行真实测试、独立审查后按策略交付。</p></div>
+      <div class="card"><h3>明确授权边界</h3><p>脚本执行、远程写入、合并发布都需要你逐项授权；未授权的操作不会发生，也不会替你勾选。</p></div>
+      <div class="card"><h3>应用内自动更新</h3><p>设置中一键检查更新，版本按数值排列；下载校验后安装，本地服务随更新恢复。</p></div>
+      <div class="card"><h3>十种语言界面</h3><p>简体中文、English、日本語等十种语言，深浅色与系统主题跟随，语言切换即刻生效。</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="policies">
+  <div class="wrap">
+    <h2>三档授权策略，你决定 AI 能做多少</h2>
+    <p class="sub">所有远程写入动作都以策略和授权为准，观察模式不会碰你的仓库。</p>
+    <table>
+      <tr><th style="width:160px">策略</th><th>行为</th></tr>
+      <tr><td><b>观察</b></td><td>监控、分析、报告，不自动修复</td></tr>
+      <tr><td><b>自动维护</b></td><td>隔离修复，验证后按策略推送分支和创建 PR</td></tr>
+      <tr><td><b>全自主</b></td><td>还允许在验证与发布检查后合并、发布和条件关闭 Issue</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="download">
+  <div class="wrap">
+    <h2>下载</h2>
+    <p class="sub">Windows 10 / 11 x64 · 0.8.2 及以上版本支持应用内「检查更新」直接升级</p>
+    <div class="cta" style="margin-top:0">
+      <a class="btn primary" href="https://github.com/yuchen0x1/PROJECT-NEXUS/releases/download/v0.8.6/PROJECT-NEXUS-0.8.6-win-x64-setup.exe">v0.8.6 · Windows x64 安装包</a>
+      <a class="btn ghost" href="https://github.com/yuchen0x1/PROJECT-NEXUS/releases" target="_blank" rel="noopener">全部版本</a>
+    </div>
+    <p style="text-align:center;color:var(--muted);font-size:13.5px;margin-top:16px">安装包大小与 SHA256 校验值见 <a href="https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.6" target="_blank" rel="noopener">发布页</a>，下载后请核对校验文件。</p>
+    <div class="honest" style="margin-top:40px">
+      <strong>发布状态（如实说明）</strong>
+      <ul>
+        <li>当前版本为 <strong>0.x 开发预览</strong>，不是 v1.0 稳定版，功能仍在快速迭代。</li>
+        <li>安装包<strong>未经代码签名</strong>，Windows SmartScreen 可能提示未知发布者；安装前请通过发布页的 SHA256 校验文件核对完整性。</li>
+        <li>仅支持 <strong>Windows 10 / 11 x64</strong>，不支持 ARM64 与 32 位系统。</li>
+        <li>AI 修复默认只在隔离工作区进行；推送分支、创建 PR、合并发布需要你在策略中明确授权。</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    PROJECT NEXUS · 开源（MIT）·
+    <a href="https://github.com/yuchen0x1/PROJECT-NEXUS" target="_blank" rel="noopener">github.com/yuchen0x1/PROJECT-NEXUS</a>
+    · © 2026 冷漠不是神
+  </div>
+</footer>
+
+</body>
+</html>

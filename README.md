@@ -2,6 +2,8 @@
 
 Windows 桌面 AI 仓库运营中心。连接 GitHub 与 AI 网关，持续监控仓库，在独立 Worktree 中修复和验证问题，并按授权策略交付 PR 和版本。
 
+**在线宣传页：[project-nexus.edgeone.dev](https://project-nexus.edgeone.dev/)**（源码位于 `website/`，纯静态、零依赖）
+
 **v0.8.6 已发布为 Windows x64 开发预览，并进入自动更新通道。安装包未签名，不是 v1.0 稳定版。**
 
 ## 最新更新
