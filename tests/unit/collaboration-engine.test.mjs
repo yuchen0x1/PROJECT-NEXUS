@@ -66,8 +66,21 @@ it('never declares completion from a missing test or declined independent review
   expect((await engine.run(job.id)).status).toBe('Blocked')
 })
 it('actually runs eligible read roles concurrently while respecting the configured cap', async () => {
-  let active = 0, maximum = 0
-  const read = async () => { active++; maximum = Math.max(maximum, active); await new Promise((resolve) => setTimeout(resolve, 30)); active--; return { totalTokens: 1 } }
+  // A fixed 30ms sleep is not a concurrency proof: under a loaded CI worker a
+  // timer can fire before the second handler is even admitted. Use a barrier
+  // so overlap is deterministic - sequential execution still fails this test.
+  let active = 0, maximum = 0, started = 0
+  let bothStarted
+  const barrier = new Promise((resolve) => { bothStarted = resolve })
+  const read = async () => {
+    active++
+    maximum = Math.max(maximum, active)
+    started++
+    if (started === 2) bothStarted()
+    await Promise.race([barrier, new Promise((resolve) => setTimeout(resolve, 1000))])
+    active--
+    return { totalTokens: 1 }
+  }
   const { engine } = await environment({ planner: read, researcher: read })
   const job = await engine.create({ projectId: 'p', prompt: 'work', nodes: [{ id: 'a', role: 'planner', dependencies: [] }, { id: 'b', role: 'researcher', dependencies: [] }] })
   await engine.run(job.id)

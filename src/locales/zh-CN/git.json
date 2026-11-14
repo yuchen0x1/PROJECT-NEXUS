@@ -24,7 +24,8 @@
       "hosting": "托管",
       "issues": "Issue",
       "securityFindings": "安全发现",
-      "research": "研究"
+      "research": "研究",
+      "autonomy": "AI 自动运维"
     },
     "connection": {
       "connected": "GitHub 已连接",

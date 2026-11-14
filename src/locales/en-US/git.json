@@ -24,7 +24,8 @@
       "hosting": "Hosting",
       "issues": "Issues",
       "securityFindings": "Security findings",
-      "research": "Research"
+      "research": "Research",
+      "autonomy": "AI Autonomy"
     },
     "connection": {
       "connected": "GitHub connected",

@@ -1,0 +1,126 @@
+{
+  "ranAt": "2026-11-14T21:24:19.600Z",
+  "probe": {
+    "available": true,
+    "reason": "UIA_LOADED",
+    "message": "UIAutomationClient loaded from GAC",
+    "diagnostics": {
+      "interactive": true,
+      "sessionId": 1,
+      "rootName": "",
+      "rootChildren": 12,
+      "apartment": "STA"
+    },
+    "platform": "Microsoft Windows NT 10.0.26300.0",
+    "checkedAt": "2026-11-14T21:24:19.598Z"
+  },
+  "targets": [
+    {
+      "label": "ChatGPT Desktop",
+      "ok": true,
+      "code": null,
+      "count": 1,
+      "enumerated": 12,
+      "windows": [
+        {
+          "name": "ChatGPT",
+          "processName": "ChatGPT",
+          "processId": 45856,
+          "className": "Chrome_WidgetWin_1",
+          "automationId": "",
+          "handle": 91161044,
+          "bounds": {
+            "Y": 0,
+            "Width": 0,
+            "Height": 0,
+            "X": 0
+          }
+        }
+      ]
+    },
+    {
+      "label": "WorkBuddy",
+      "ok": true,
+      "code": null,
+      "count": 1,
+      "enumerated": 12,
+      "windows": [
+        {
+          "name": "WorkBuddy",
+          "processName": "WorkBuddy",
+          "processId": 7316,
+          "className": "Chrome_WidgetWin_1",
+          "automationId": "",
+          "handle": 1247290,
+          "bounds": {
+            "Y": 217,
+            "Width": 1747,
+            "Height": 1288,
+            "X": 600
+          }
+        }
+      ]
+    }
+  ],
+  "all": {
+    "ok": true,
+    "count": 12,
+    "enumerated": 12,
+    "sample": [
+      {
+        "name": "",
+        "processName": "explorer"
+      },
+      {
+        "name": "Clash Party Floating",
+        "processName": "Clash Party"
+      },
+      {
+        "name": "WorkBuddy",
+        "processName": "WorkBuddy"
+      },
+      {
+        "name": "PROJECT NEXUS �� Windows ����վ",
+        "processName": "PROJECT NEXUS"
+      },
+      {
+        "name": "QQ",
+        "processName": "QQ"
+      },
+      {
+        "name": "��д������ʾ�� - Google Chrome",
+        "processName": "chrome"
+      },
+      {
+        "name": "ZCode",
+        "processName": "ZCode"
+      },
+      {
+        "name": "ChatGPT",
+        "processName": "ChatGPT"
+      },
+      {
+        "name": "Zcode Ghost Cursor",
+        "processName": "ZCode"
+      },
+      {
+        "name": "apkstart.avd - �ļ���Դ������",
+        "processName": "explorer"
+      },
+      {
+        "name": "���� - �ļ���Դ������",
+        "processName": "explorer"
+      },
+      {
+        "name": "Program Manager",
+        "processName": "explorer"
+      }
+    ]
+  },
+  "readText": {
+    "ok": true,
+    "code": null,
+    "count": 0,
+    "sampleLines": []
+  }
+}

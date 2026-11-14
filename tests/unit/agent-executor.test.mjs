@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
@@ -6,16 +6,16 @@ import { buildChildEnv, DEFAULT_ALLOWED_PROGRAMS, isProgramAllowed, runCommand }
 
 let root
 
-beforeEachHelper()
-
-async function beforeEachHelper() {
+// A module-level `beforeEachHelper()` call was never awaited, so `root` could
+// be undefined when the first test ran. Use a real hook and recreate echo.js
+// for every test instead of only once.
+beforeEach(async () => {
   root = await fs.mkdtemp(path.join(os.tmpdir(), 'nexus-exec-'))
   await fs.writeFile(path.join(root, 'echo.js'), 'process.stdout.write(process.argv.slice(2).join(" "))\n', 'utf8')
-}
+})
 
 afterEach(async () => {
-  await fs.rm(root, { recursive: true, force: true }).catch(() => {})
-  root = await fs.mkdtemp(path.join(os.tmpdir(), 'nexus-exec-'))
+  await fs.rm(root, { recursive: true, force: true, maxRetries: 8, retryDelay: 40 }).catch(() => {})
 })
 
 describe('agent command executor', () => {

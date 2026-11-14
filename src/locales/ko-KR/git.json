@@ -24,7 +24,8 @@
       "hosting": "호스팅",
       "issues": "이슈",
       "securityFindings": "보안 발견",
-      "research": "리서치"
+      "research": "리서치",
+      "autonomy": "자율 운영"
     },
     "connection": {
       "connected": "GitHub 연결됨",

@@ -1,0 +1,228 @@
+
+> project-nexus@0.8.9 test
+> vitest run
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.1.0 [39m[90mE:/移动云盘同步盘/PROJECT NEXUS[39m
+
+ [32m✓[39m tests/unit/security-scan.test.mjs [2m([22m[2m6 tests[22m[2m)[22m[32m 173[2mms[22m[39m
+ [32m✓[39m tests/unit/project-memory-resource.test.mjs [2m([22m[2m3 tests[22m[2m)[22m[33m 363[2mms[22m[39m
+   [33m[2m✓[22m[39m reuses unchanged file analysis, keeps source hashes and isolates knowledge between projects[33m 354[2mms[22m[39m
+ [32m✓[39m tests/unit/candidate-apply.test.mjs [2m([22m[2m3 tests[22m[2m)[22m[33m 411[2mms[22m[39m
+ [32m✓[39m tests/unit/workspace-evidence.test.mjs [2m([22m[2m2 tests[22m[2m)[22m[33m 387[2mms[22m[39m
+warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src.txt', LF will be replaced by CRLF the next time Git touches it
+ [32m✓[39m tests/unit/codex-app-server.test.mjs [2m([22m[2m10 tests[22m[2m)[22m[33m 344[2mms[22m[39m
+ [32m✓[39m tests/unit/runtime-checkpoint.test.mjs [2m([22m[2m2 tests[22m[2m)[22m[32m 279[2mms[22m[39m
+ [32m✓[39m tests/unit/software-updates.test.mjs [2m([22m[2m4 tests[22m[2m)[22m[33m 531[2mms[22m[39m
+ [32m✓[39m tests/unit/agent-assist.test.mjs [2m([22m[2m5 tests[22m[2m)[22m[33m 324[2mms[22m[39m
+ [32m✓[39m tests/unit/app-updater.test.mjs [2m([22m[2m12 tests[22m[2m)[22m[33m 536[2mms[22m[39m
+ [32m✓[39m tests/unit/i18n-resources.test.mjs [2m([22m[2m5 tests[22m[2m)[22m[33m 496[2mms[22m[39m
+ [32m✓[39m tests/unit/ai-provider.test.mjs [2m([22m[2m16 tests[22m[2m)[22m[33m 604[2mms[22m[39m
+ [32m✓[39m tests/unit/project-index.test.mjs [2m([22m[2m7 tests[22m[2m)[22m[33m 926[2mms[22m[39m
+   [32m✓[39m project indexer [2m(4)[22m
+     [33m[2m✓[22m[39m inventories files, extracts symbols and imports, detects manifests, entries and tests[33m 330[2mms[22m[39m
+ [32m✓[39m tests/unit/project-overview.test.mjs [2m([22m[2m6 tests[22m[2m)[22m[33m 1025[2mms[22m[39m
+   [32m✓[39m project overview API [2m(1)[22m
+     [33m[2m✓[22m[39m requires the desktop API credential and performs no GitHub or provider requests[33m 994[2mms[22m[39m
+(node:13212) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:608) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m tests/unit/local-projects.test.mjs [2m([22m[2m4 tests[22m[2m)[22m[32m 292[2mms[22m[39m
+ [32m✓[39m tests/unit/autonomy-store.test.mjs [2m([22m[2m6 tests[22m[2m)[22m[32m 132[2mms[22m[39m
+(node:14232) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:32892) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m tests/unit/overview-layout.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 118[2mms[22m[39m
+ [32m✓[39m tests/unit/state-store.test.mjs [2m([22m[2m6 tests[22m[2m)[22m[32m 148[2mms[22m[39m
+ [32m✓[39m tests/unit/upstream-baseline.test.mjs [2m([22m[2m6 tests[22m[2m)[22m[32m 223[2mms[22m[39m
+ [32m✓[39m tests/unit/autonomy-engine.test.mjs [2m([22m[2m8 tests[22m[2m)[22m[32m 82[2mms[22m[39m
+ [32m✓[39m tests/unit/self-maintenance.test.mjs [2m([22m[2m2 tests[22m[2m)[22m[33m 1233[2mms[22m[39m
+   [33m[2m✓[22m[39m reserves diagnostic admission before asynchronous validation to prevent double starts[33m 1066[2mms[22m[39m
+ [32m✓[39m tests/unit/autonomy-reviewer.test.mjs [2m([22m[2m13 tests[22m[2m)[22m[32m 209[2mms[22m[39m
+ [32m✓[39m tests/unit/issue-classifier.test.mjs [2m([22m[2m9 tests[22m[2m)[22m[33m 331[2mms[22m[39m
+   [32m✓[39m AI classification [2m(3)[22m
+     [33m[2m✓[22m[39m falls back to the heuristic result when the AI output is invalid[33m 319[2mms[22m[39m
+ [32m✓[39m tests/unit/i18n-keys.test.mjs [2m([22m[2m2 tests[22m[2m)[22m[32m 44[2mms[22m[39m
+ [32m✓[39m tests/unit/remote-ci.test.mjs [2m([22m[2m3 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32m✓[39m tests/unit/autonomy-adapters.test.mjs [2m([22m[2m9 tests[22m[2m)[22m[33m 479[2mms[22m[39m
+   [32m✓[39m desktop agent adapters [2m(9)[22m
+     [33m[2m✓[22m[39m enters a reliable human handoff when UI Automation is unavailable[33m 319[2mms[22m[39m
+ [32m✓[39m tests/unit/setup-batch.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 40[2mms[22m[39m
+ [32m✓[39m tests/unit/provider-store.test.mjs [2m([22m[2m5 tests[22m[2m)[22m[33m 329[2mms[22m[39m
+ [32m✓[39m tests/unit/release-plan.test.mjs [2m([22m[2m2 tests[22m[2m)[22m[32m 66[2mms[22m[39m
+ [32m✓[39m tests/unit/autonomy-model.test.mjs [2m([22m[2m13 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+ [32m✓[39m tests/unit/hosting.test.mjs [2m([22m[2m10 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m tests/unit/local-environment-install.test.mjs [2m([22m[2m11 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+(node:46592) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m tests/unit/autonomy-monitor.test.mjs [2m([22m[2m6 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32m✓[39m tests/unit/durable-effects.test.mjs [2m([22m[2m4 tests[22m[2m)[22m[33m 476[2mms[22m[39m
+   [32m✓[39m durable effects and host ownership [2m(4)[22m
+     [33m[2m✓[22m[39m holds a file lease across independent callers and recovers a dead owner[33m 463[2mms[22m[39m
+ [32m✓[39m tests/unit/security-audit-failure.test.mjs [2m([22m[2m1 test[22m[2m)[22m[32m 73[2mms[22m[39m
+ [32m✓[39m tests/unit/runtime-durability.test.mjs [2m([22m[2m1 test[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/competitor-research.test.mjs [2m([22m[2m7 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/repository-sync.test.mjs [2m([22m[2m6 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+[90mstdout[2m | tests/unit/i18n-format.test.mjs[2m > [22m[2mformatting service
+[22m[39m🌐 i18next is made possible by our own product, Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙
+
+ [32m✓[39m tests/unit/local-agent-workspace.test.mjs [2m([22m[2m9 tests[22m[2m)[22m[33m 2328[2mms[22m[39m
+   [32m✓[39m local Agent isolated workspaces [2m(9)[22m
+     [33m[2m✓[22m[39m copies only bounded regular project files and keeps the baseline outside the editable source[33m 302[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects traversal, Windows device names, deletes, and symlink escapes[33m 437[2mms[22m[39m
+     [33m[2m✓[22m[39m applies exact, directory, wildcard, nested, and safe file-negation rules to copy, reads, writes, and diffs[33m 629[2mms[22m[39m
+ [32m✓[39m tests/unit/repository-scanner.test.mjs [2m([22m[2m4 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+ [32m✓[39m tests/unit/agent-runner.test.mjs [2m([22m[2m2 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/i18n-format.test.mjs [2m([22m[2m8 tests[22m[2m)[22m[32m 47[2mms[22m[39m
+ [32m✓[39m tests/unit/agent-api-v2.test.mjs [2m([22m[2m2 tests[22m[2m)[22m[33m 2329[2mms[22m[39m
+   [32m✓[39m PHASE 6 agent API surface [2m(2)[22m
+     [33m[2m✓[22m[39m manages providers over the API without ever exposing keys, and syncs keys from the host process[33m 1336[2mms[22m[39m
+     [33m[2m✓[22m[39m resolves agent approvals through the API and exposes them on the task detail[33m 991[2mms[22m[39m
+ [32m✓[39m tests/unit/upstream-profile.test.mjs [2m([22m[2m7 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/delivery-stage.test.mjs [2m([22m[2m14 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/github-pagination.test.mjs [2m([22m[2m6 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/local-agent-api.test.mjs [2m([22m[2m1 test[22m[2m)[22m[33m 2469[2mms[22m[39m
+   [32m✓[39m authenticated local Agent API [2m(1)[22m
+     [33m[2m✓[22m[39m generates a multi-file proposal in a registered project copy, preserves the source, persists it, and recovers interrupted work[33m 2467[2mms[22m[39m
+ [32m✓[39m tests/unit/adapter-assessment.test.mjs [2m([22m[2m4 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+To C:\Users\lenmo\AppData\Local\Temp\nexus-repo-bare-l0W08S
+ * [new branch]      main -> main
+ [32m✓[39m tests/unit/delivery-safety.test.mjs [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/proposal-implementation.test.mjs [2m([22m[2m3 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/local-environment.test.mjs [2m([22m[2m3 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/language-detection.test.mjs [2m([22m[2m3 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/hosted-queue.test.mjs [2m([22m[2m4 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/github-issues.test.mjs [2m([22m[2m8 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/hosting-gates.test.mjs [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/issue-activity.test.mjs [2m([22m[2m1 test[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/issue-fix-pipeline.test.mjs [2m([22m[2m7 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/setup-readiness.test.mjs [2m([22m[2m1 test[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/provider-models.test.mjs [2m([22m[2m14 tests[22m[2m)[22m[33m 3286[2mms[22m[39m
+   [32m✓[39m read-only provider model discovery [2m(14)[22m
+     [33m[2m✓[22m[39m rejects invalid and oversized responses; reports empty valid lists[33m 3034[2mms[22m[39m
+ [31m❯[39m tests/unit/collaboration-engine.test.mjs [2m([22m[2m10 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 3611[2mms[22m[39m
+   [33m[2m✓[22m[39m reconciles a verified completed child after loss of the parent receipt without rerunning the developer[33m 500[2mms[22m[39m
+   [32m✓[39m rejects cycles, unknown dependencies, repeated nodes and unbounded limits[32m 31[2mms[22m[39m
+   [33m[2m✓[22m[39m executes independent role contexts, messages, durable receipts and final arbitration[33m 679[2mms[22m[39m
+   [33m[2m✓[22m[39m never declares completion from a missing test or declined independent review[33m 732[2mms[22m[39m
+[31m   [31m×[31m actually runs eligible read roles concurrently while respecting the configured cap[39m[33m 302[2mms[22m[39m
+   [32m✓[39m recovers completed receipts without replay and refuses an uncertain writing step[32m 140[2mms[22m[39m
+   [33m[2m✓[22m[39m retains a role budget reservation across a hard crash before any response receipt exists[33m 490[2mms[22m[39m
+   [32m✓[39m times out cooperative operations, records uncertainty and blocks downstream work[32m 166[2mms[22m[39m
+   [33m[2m✓[22m[39m pauses cooperatively and resumes remaining roles without silently resetting the uncertain budget[33m 510[2mms[22m[39m
+   [32m✓[39m does not overwrite damaged JSON or accept a stale revision[32m 57[2mms[22m[39m
+ [32m✓[39m tests/unit/service-health.test.mjs [2m([22m[2m3 tests[22m[2m)[22m[33m 3723[2mms[22m[39m
+   [32m✓[39m host lifecycle and repository trust [2m(3)[22m
+     [33m[2m✓[22m[39m cleans a running child when the host crashes[33m 3716[2mms[22m[39m
+warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src.txt', LF will be replaced by CRLF the next time Git touches it
+ [32m✓[39m tests/unit/server-api.test.mjs [2m([22m[2m5 tests[22m[2m)[22m[33m 4804[2mms[22m[39m
+   [32m✓[39m isolated Phase 3 API and schema migration [2m(5)[22m
+     [33m[2m✓[22m[39m updates current counts after deletion, reuses concurrent syncs, validates ETags and backs off on rate limits[33m 1717[2mms[22m[39m
+     [33m[2m✓[22m[39m preserves archive metadata on sync and rejects archived or newly archived hosting selections[33m 1141[2mms[22m[39m
+     [33m[2m✓[22m[39m migrates a 24-repository v2 fixture additively and exposes real integration routes[33m 637[2mms[22m[39m
+     [33m[2m✓[22m[39m uses an installation token for project-scoped GitHub operations when no legacy token is configured[33m 632[2mms[22m[39m
+     [33m[2m✓[22m[39m requires and consumes a one-time GitHub App installation state token[33m 674[2mms[22m[39m
+To C:\Users\lenmo\AppData\Local\Temp\nexus-repo-bare-l0W08S
+   b0d9023..ce8100a  main -> main
+ [32m✓[39m tests/unit/independent-testing.test.mjs [2m([22m[2m1 test[22m[2m)[22m[33m 6721[2mms[22m[39m
+   [33m[2m✓[22m[39m blocks candidate acceptance when independently authored tests fail despite existing tests passing[33m 6719[2mms[22m[39m
+ [32m✓[39m tests/unit/local-agent-tasks.test.mjs [2m([22m[2m5 tests[22m[2m)[22m[33m 6979[2mms[22m[39m
+   [32m✓[39m local Agent task JSON persistence [2m(5)[22m
+     [33m[2m✓[22m[39m keeps task and event counts bounded without discarding recent task records[33m 6697[2mms[22m[39m
+Preparing worktree (new branch 'nexus-fix/task-1')
+Preparing worktree (new branch 'nexus-fix/task-2')
+ [32m✓[39m tests/unit/repo-workspace.test.mjs [2m([22m[2m8 tests[22m[2m)[22m[33m 10455[2mms[22m[39m
+   [32m✓[39m ensureRepoCache [2m(2)[22m
+     [33m[2m✓[22m[39m clones once, reuses the cache, and fast-forwards to new commits[33m 3373[2mms[22m[39m
+   [32m✓[39m commitAndPushBranch [2m(2)[22m
+     [33m[2m✓[22m[39m commits worktree changes and pushes the branch to origin[33m 1689[2mms[22m[39m
+   [32m✓[39m workspace lifecycle [2m(1)[22m
+     [33m[2m✓[22m[39m removes a managed workspace and sweeps stale ones[33m 1205[2mms[22m[39m
+   [32m✓[39m disposeRepoWorktree [2m(1)[22m
+     [33m[2m✓[22m[39m removes task worktrees and branches from the cache clone[33m 1032[2mms[22m[39m
+ [32m✓[39m tests/unit/agent-executor.test.mjs [2m([22m[2m10 tests[22m[2m)[22m[33m 11918[2mms[22m[39m
+   [32m✓[39m agent command executor [2m(10)[22m
+     [33m[2m✓[22m[39m runs an allowlisted command and captures output and exit code[33m 3034[2mms[22m[39m
+     [33m[2m✓[22m[39m enforces timeouts by killing the process tree[33m 2472[2mms[22m[39m
+     [33m[2m✓[22m[39m supports cancellation through an abort signal[33m 1016[2mms[22m[39m
+     [33m[2m✓[22m[39m truncates oversized output at the byte limit[33m 1797[2mms[22m[39m
+     [33m[2m✓[22m[39m strips credential-bearing environment variables from the child environment[33m 1758[2mms[22m[39m
+     [33m[2m✓[22m[39m reports non-zero exit codes as failures with stderr[33m 1615[2mms[22m[39m
+ [32m✓[39m tests/unit/evolution-api.test.mjs [2m([22m[2m4 tests[22m[2m)[22m[33m 22097[2mms[22m[39m
+   [33m[2m✓[22m[39m stops the API host after its owning desktop IPC disconnects and releases the data-directory lease[33m 1758[2mms[22m[39m
+   [33m[2m✓[22m[39m recovers after a real API process kill and reuses the child workspace without repeating planning or writing[33m 11352[2mms[22m[39m
+   [33m[2m✓[22m[39m requires authenticated access and explicit consent, blocks unavailable strict mode, and manages project memory[33m 518[2mms[22m[39m
+   [33m[2m✓[22m[39m runs the six real role adapters with a fixture model, real file edit/tests/review, and an idempotent request[33m 8466[2mms[22m[39m
+ [32m✓[39m tests/unit/agent-bridge-executor.test.mjs [2m([22m[2m4 tests[22m[2m)[22m[33m 43779[2mms[22m[39m
+   [32m✓[39m agent bridge executor [2m(4)[22m
+     [33m[2m✓[22m[39m blocks before creating any workspace when Codex is not installed[33m 7826[2mms[22m[39m
+     [33m[2m✓[22m[39m blocks when the app server reports no usable account[33m 12875[2mms[22m[39m
+     [33m[2m✓[22m[39m runs a full bridge task: isolated worktree, codex turn, diff and evidence[33m 23069[2mms[22m[39m
+ [32m✓[39m tests/unit/agent-workspace.test.mjs [2m([22m[2m9 tests[22m[2m)[22m[33m 117432[2mms[22m[39m
+   [32m✓[39m worktree workspace adapter [2m(6)[22m
+     [33m[2m✓[22m[39m never includes a Git ancestor when only its nested project was authorized[33m 14453[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps committed candidate changes visible against its original baseline and rolls them back[33m 29225[2mms[22m[39m
+     [33m[2m✓[22m[39m refuses linked parent directories for reading, writing and deleting[33m 13831[2mms[22m[39m
+     [33m[2m✓[22m[39m creates an isolated worktree, tracks modifications, diffs, restores and disposes[33m 31584[2mms[22m[39m
+     [33m[2m✓[22m[39m reads files from the worktree with secret-like paths excluded[33m 13795[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects a second worktree for the same task id and invalid task ids[33m 11602[2mms[22m[39m
+   [32m✓[39m copy workspace adapter with delete and restore [2m(3)[22m
+     [33m[2m✓[22m[39m applies operations, deletes files, and restores from the baseline[33m 1561[2mms[22m[39m
+     [33m[2m✓[22m[39m falls back to copy mode with a recorded reason when the project has no git[33m 1328[2mms[22m[39m
+ [32m✓[39m tests/unit/agent-tools.test.mjs [2m([22m[2m10 tests[22m[2m)[22m[33m 134227[2mms[22m[39m
+   [32m✓[39m agent tool registry [2m(10)[22m
+     [33m[2m✓[22m[39m reads, lists, searches files and code with bounds[33m 18330[2mms[22m[39m
+     [33m[2m✓[22m[39m creates, edits, writes, moves and deletes files with validation[33m 14611[2mms[22m[39m
+     [33m[2m✓[22m[39m runs inspect tools against the real index[33m 14336[2mms[22m[39m
+     [33m[2m✓[22m[39m executes git tools against the worktree and restores files[33m 23142[2mms[22m[39m
+     [33m[2m✓[22m[39m runs project tests and build via manifest scripts[33m 19185[2mms[22m[39m
+     [33m[2m✓[22m[39m edits files with CRLF line endings without corrupting them[33m 14018[2mms[22m[39m
+     [33m[2m✓[22m[39m runs allowlisted commands and marks unlisted programs for approval[33m 16909[2mms[22m[39m
+     [33m[2m✓[22m[39m reports progress, checkpoints and validates helper tools[33m 13670[2mms[22m[39m
+ [32m✓[39m tests/unit/agent-task-executor.test.mjs [2m([22m[2m5 tests[22m[2m)[22m[33m 145636[2mms[22m[39m
+   [32m✓[39m agent task executor pipeline [2m(5)[22m
+     [33m[2m✓[22m[39m runs the full pipeline and persists a complete, verifiable task record[33m 43645[2mms[22m[39m
+     [33m[2m✓[22m[39m rolls a completed task back to a clean workspace state[33m 37240[2mms[22m[39m
+     [33m[2m✓[22m[39m applies finished task changes to the original project only with confirmation and a clean tree[33m 60800[2mms[22m[39m
+     [33m[2m✓[22m[39m reports provider-not-configured as a blocked task[33m 3941[2mms[22m[39m
+ [32m✓[39m tests/unit/agent-runtime.test.mjs [2m([22m[2m9 tests[22m[2m)[22m[33m 175345[2mms[22m[39m
+   [32m✓[39m agent runtime end-to-end loop [2m(7)[22m
+     [33m[2m✓[22m[39m does not mark an edited task successful without reviewer approval: "malformed reviewer output"[33m 38225[2mms[22m[39m
+     [33m[2m✓[22m[39m does not mark an edited task successful without reviewer approval: {"findings":[],"verdict":"request_changes"}[33m 31701[2mms[22m[39m
+     [33m[2m✓[22m[39m plans, edits files, fails verification, repairs itself, re-verifies, and reviews the diff[33m 36825[2mms[22m[39m
+     [33m[2m✓[22m[39m stops after repeated unparseable model output with a clear error[33m 13936[2mms[22m[39m
+     [33m[2m✓[22m[39m honors cancellation immediately[33m 13484[2mms[22m[39m
+     [33m[2m✓[22m[39m records autonomous allowlist approvals without blocking and preserves history[33m 22631[2mms[22m[39m
+     [33m[2m✓[22m[39m records denials when the user rejects a high-risk approval[33m 18513[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/unit/collaboration-engine.test.mjs[2m > [22mactually runs eligible read roles concurrently while respecting the configured cap
+[31m[1mAssertionError[22m: expected 1 to be 2 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 2[39m
+[31m+ 1[39m
+
+[36m [2m❯[22m tests/unit/collaboration-engine.test.mjs:[2m74:19[22m[39m
+    [90m 72|[39m   const job = await engine.create({ projectId: 'p', prompt: 'work', no…
+    [90m 73|[39m   [35mawait[39m engine[33m.[39m[34mrun[39m(job[33m.[39mid)
+    [90m 74|[39m   [34mexpect[39m(maximum)[33m.[39m[34mtoBe[39m([34m2[39m)
+    [90m   |[39m                   [31m^[39m
+    [90m 75|[39m })
+    [90m 76|[39m it('recovers completed receipts without replay and refuses an uncertai…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m70 passed[39m[22m[90m (71)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m413 passed[39m[22m[90m (414)[39m
+[2m   Start at [22m 05:47:54
+[2m   Duration [22m 175.97s[2m (tests 99%, import 1%)[22m
+

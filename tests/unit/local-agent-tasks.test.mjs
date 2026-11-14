@@ -22,7 +22,10 @@ async function tempDirectory() {
 }
 
 afterEach(async () => {
-  await Promise.all(temporaryDirectories.splice(0).map((directory) => fs.rm(directory, { recursive: true, force: true })))
+  // Windows releases file handles asynchronously. Retry the cleanup so a slow
+  // atomic-write queue cannot leave an ENOTEMPTY failure behind after the test.
+  await Promise.all(temporaryDirectories.splice(0).map((directory) =>
+    fs.rm(directory, { recursive: true, force: true, maxRetries: 8, retryDelay: 50 })))
 })
 
 describe('local Agent task JSON persistence', () => {
@@ -86,7 +89,7 @@ describe('local Agent task JSON persistence', () => {
     const task = await getLocalAgentTask({ dataDir, taskId: 'task_0' })
     expect(task.events).toHaveLength(MAX_LOCAL_AGENT_TASK_EVENTS)
     expect(task.events.at(-1).detail).toBe(`progress ${MAX_LOCAL_AGENT_TASK_EVENTS}`)
-  })
+  }, 60_000) // 100 creates + 201 atomic rewrites are I/O bound on Windows.
 
   it('refuses malformed stores without replacing the original file and cleans up temp files', async () => {
     const dataDir = await tempDirectory()

@@ -4,6 +4,7 @@
 
 | 版本 | 日期 | 更新主题 | 分发状态 |
 | --- | --- | --- | --- |
+| v0.9.0 | 2026-11-15 | 24/7 自主运维运行时与桌面 AI 客户端接入 | 本地开发预览，未公开发布（详见 [v0.9.0 说明](docs/releases/v0.9.0.md)） |
 | v0.8.9 | 2026-11-15 | ZIP 基线三方比较与 Agent 适配器 | [已发布](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.9) |
 | v0.8.8 | 2026-11-15 | 本机 Codex 桥接与仓库来源档案 | [已发布](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.8) |
 | v0.8.7 | 2026-11-14 | 一键下载开发环境 | [已发布](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.7) |

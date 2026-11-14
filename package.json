@@ -1,6 +1,6 @@
 {
   "name": "project-nexus",
-  "version": "0.8.9",
+  "version": "0.9.0",
   "description": "Windows AI development and project operations workstation",
   "license": "MIT",
   "author": {
@@ -74,7 +74,8 @@
       "releaseType": "release"
     },
     "asarUnpack": [
-      "server/services/agent/windows-job-runner.ps1"
+      "server/services/agent/windows-job-runner.ps1",
+      "server/autonomy/desktop/uia-driver.ps1"
     ],
     "directories": {
       "buildResources": "desktop/assets",

@@ -9,12 +9,14 @@ import {
 } from 'lucide-react'
 import { api, HostingProject, HostingRun, IntegrationJob, IntegrationReport, IssueActivity, Project, ResearchReport, UpgradeProposal, SecurityFinding, Task, ThreeWayComparison, UpstreamBaseline, UpstreamProfile } from './api'
 import { formatStamp } from './i18n/format'
+import AutonomyCenter from './desktop/AutonomyCenter'
 
-export type RemotePage = 'Overview' | 'Projects' | 'Build Center' | 'Release Center' | 'Auto Update' | 'Repository Scanner' | 'AI Pipeline' | 'Adapter Center' | 'Update Security' | 'Integration History' | 'GitHub Connections' | 'Monitoring' | 'AI Operations' | 'Task Center' | 'Security Center' | 'Hosting' | 'Issues' | 'Security Findings' | 'Research' | 'Settings'
+export type RemotePage = 'Autonomy' | 'Overview' | 'Projects' | 'Build Center' | 'Release Center' | 'Auto Update' | 'Repository Scanner' | 'AI Pipeline' | 'Adapter Center' | 'Update Security' | 'Integration History' | 'GitHub Connections' | 'Monitoring' | 'AI Operations' | 'Task Center' | 'Security Center' | 'Hosting' | 'Issues' | 'Security Findings' | 'Research' | 'Settings'
 
 // Internal page identifiers stay stable; labels are resolved through i18n.
 type Page = RemotePage
 export const REMOTE_NAV_PAGES: { page: Page; key: string; icon: typeof LayoutDashboard }[] = [
+  { page: 'Autonomy', key: 'autonomy', icon: Radio },
   { page: 'Overview', key: 'overview', icon: LayoutDashboard },
   { page: 'Projects', key: 'projects', icon: Boxes },
   { page: 'Build Center', key: 'buildCenter', icon: Hammer },
@@ -154,6 +156,7 @@ export default function App({ embedded = false, onSetup, activePage, onNavigate,
       <header className="topbar"><button className="mobile-menu" onClick={() => setMobileNav(!mobileNav)}><Menu size={20} /></button><div className="breadcrumb"><span>PROJECT NEXUS</span><span>/</span><strong>{page === 'Overview' ? t('git:overview.title') : navLabels[page]}</strong></div><div className="top-actions"><div className="search-box"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t('git:shell.topbar.searchPlaceholder')} aria-label={t('git:shell.topbar.searchPlaceholder')} /></div><button className="icon-button" onClick={() => void sync()} disabled={syncing || syncStatus?.running} aria-label={t('git:shell.topbar.refresh')}><RefreshCw size={16} /></button><div className="avatar">{status?.owner?.slice(0, 2).toUpperCase() || <GitFork size={16} />}</div></div></header>
       <div className="content" data-repository-syncing={syncing || syncStatus?.running ? 'true' : 'false'}>
         <div className="repository-sync-status" role="status"><span>{t(syncing || syncStatus?.running ? 'git:syncStatus.running' : 'git:syncStatus.last', { time: syncStatus?.lastSuccessAt ? formatStamp(syncStatus.lastSuccessAt) : t('git:syncStatus.never') })}</span><small>{syncStatus?.lastErrorCode ? t('git:syncStatus.retry', { time: syncStatus.nextSyncAt ? formatStamp(syncStatus.nextSyncAt) : '' }) : t('git:syncStatus.interval')}</small></div>
+        {page === 'Autonomy' && <AutonomyCenter onToast={setToast} />}
         {page === 'Overview' && <Overview metrics={metrics} projects={overview?.projects || []} tasks={overview?.tasks || []} activity={overview?.activity || []} configured={Boolean(status?.configured)} onSync={sync} onOpen={openProject} loading={loading} onSetup={onSetup || (() => setPage('GitHub Connections'))} />}
         {page === 'Projects' && <Projects projects={projects} query={query} onSync={sync} onOpen={openProject} onScan={(project) => api.integrationScan(project.id).then(() => { setToast(t('git:projects.scanToast', { repository: project.fullName })); void refresh() }).catch((error) => setToast(error.message))} />}
         {page === 'Build Center' && <BuildCenter projects={projects} selectedProject={selectedProject} onSelect={setSelectedProject} onToast={setToast} />}

@@ -24,7 +24,8 @@
       "hosting": "Alojamiento",
       "issues": "Incidencias",
       "securityFindings": "Hallazgos de seguridad",
-      "research": "Investigación"
+      "research": "Investigación",
+      "autonomy": "Operaciones autónomas"
     },
     "connection": {
       "connected": "GitHub conectado",

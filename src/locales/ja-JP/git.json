@@ -24,7 +24,8 @@
       "hosting": "ホスティング",
       "issues": "Issue",
       "securityFindings": "セキュリティ検出",
-      "research": "リサーチ"
+      "research": "リサーチ",
+      "autonomy": "自律運用"
     },
     "connection": {
       "connected": "GitHub に接続済み",

@@ -1,6 +1,6 @@
 # PHASE 5 — Translation Coverage
 
-Generated 2026-11-14 by `scripts/i18n-coverage.mjs`. The baseline is the en-US locale set (1536 keys across 14 namespaces). ru-RU additionally carries CLDR plural variants (_few/_many) next to the baseline keys.
+Generated 2026-11-14 by `scripts/i18n-coverage.mjs`. The baseline is the en-US locale set (1578 keys across 14 namespaces). ru-RU additionally carries CLDR plural variants (_few/_many) next to the baseline keys.
 
 | Language | Coverage | Missing keys |
 | --- | --- | --- |

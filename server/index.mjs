@@ -52,6 +52,7 @@ import { queueHostedJob, nextHostedJobIndex, recoverHostedJobs } from './service
 import { buildProjectOverview } from './services/project-overview.mjs'
 import { registerEvolutionApi } from './services/evolution-api.mjs'
 import { proposalLifecycle, startProposalImplementation } from './services/proposal-implementation.mjs'
+import { createAutonomyRuntime, registerAutonomyApi, startAutonomyTicker } from './autonomy/api.mjs'
 
 const activeOverviewResearch = new Map()
 
@@ -3304,6 +3305,34 @@ async function recoverIntegrationWork() {
   }
 }
 
+// --- Autonomy Runtime v2 ---------------------------------------------------
+// Registered after every legacy route so nothing is shadowed. The worker lives
+// in this Node service process: hiding the Electron window to the tray does
+// not stop it. Initialization is isolated so a storage backend problem can
+// never take down the existing workstation.
+let autonomyRuntime = null
+let autonomyTicker = null
+try {
+  autonomyRuntime = createAutonomyRuntime({
+    dataDir,
+    token: process.env.GITHUB_TOKEN || '',
+    // Reuse the user's in-app GitHub credentials (PAT or GitHub App install).
+    tokenResolver: async (autonomyRepo) => {
+      const project = (state.projects || []).find((item) => item.fullName === autonomyRepo.fullName)
+      return githubTokenForProject(project)
+    }
+  })
+  registerAutonomyApi(app, {
+    engine: autonomyRuntime.engine,
+    store: autonomyRuntime.store,
+    dataDir
+  })
+  autonomyTicker = startAutonomyTicker(autonomyRuntime.engine, { intervalMs: 60_000, immediate: false })
+  console.log(`NEXUS_AUTONOMY_READY:${autonomyRuntime.store.backend}`)
+} catch (error) {
+  console.error('[autonomy] initialization failed; legacy workstation continues:', safeError(error))
+}
+
 const hostLease = await acquireFileLease(`${stateFile}.host.lock`)
 await loadState()
 await recoverIntegrationWork()
@@ -3324,6 +3353,9 @@ const server = app.listen(port, host, () => {
   timer.unref?.()
   void runScheduledIntegrationScan()
   setTimeout(() => void runScheduledHostingTick(), 5_000).unref?.()
+  // The autonomy ticker is driven here, in the service process. No renderer
+  // page is required for monitoring, scheduling or recovery to keep running.
+  if (autonomyTicker) setTimeout(() => void autonomyTicker.tickNow(), 4_000).unref?.()
 })
 
 async function stopHost() {
@@ -3338,6 +3370,8 @@ async function stopHost() {
     const deadline = Date.now() + 6000
     while ((localAgentControllers.size || integrationControllers.size || hostedControllers.size) && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 25))
     await saveState(); await stateWriteQueue
+    autonomyTicker?.stop()
+    try { autonomyRuntime?.store.close() } catch { /* already closed */ }
     await hostLease.release()
     process.exit(0)
   } catch { process.exit(1) }

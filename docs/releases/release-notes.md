@@ -6,6 +6,7 @@
 
 | 版本 | 日期 | 更新主题 | 详细说明 |
 | --- | --- | --- | --- |
+| v0.9.0（未公开发布） | 2026-11-15 | 24/7 自主运维运行时与桌面 AI 客户端接入 | [完整版本更新说明](v0.9.0.md) |
 | [v0.8.9](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.9) | 2026-11-15 | ZIP 基线三方比较与 Agent 适配器 | [更新、下载与校验](v0.8.9.md) |
 | [v0.8.8](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.8) | 2026-11-15 | 本机 Codex 桥接与仓库来源档案 | [更新、下载与校验](v0.8.8.md) |
 | [v0.8.7](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.7) | 2026-11-14 | 一键下载开发环境 | [更新、下载与校验](v0.8.7.md) |
@@ -18,6 +19,21 @@
 | [v0.1.0](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.1.0) | 2026-11-13 | Windows 桌面与本地 Agent | [更新、下载与校验](v0.1.0.md) |
 
 未单独发布安装包的 v0.2.0、v0.4.0、v0.5.0、v0.5.1、v0.6.0 作为开发阶段记录保留。v0.8.1 只有源码标签；不为这些版本补造 Release 或下载地址。以下验证结果均为对应版本的历史记录，不表示本次重新运行验收。
+
+## v0.9.0 · 24/7 自主运维运行时（本地开发预览，未公开发布）
+
+2026-11-15 · 源码与本地构建产物，无公开 GitHub Release 与安装包资产
+
+- 新增独立命名空间 `server/autonomy/`：SQLite 持久化（schema v2，含 JSON 降级）、统一任务与 16 态执行状态机、append-only 审计。
+- 新增由服务进程驱动的 60 秒后台 ticker，窗口关闭/最小化到托盘仍运行；重启恢复保留现场且不重发任务。
+- 新增 GitHub 增量监控（13 类资源、ETag 304、游标、去重、限流退避、Webhook 自动回退）与 Issue 9 态生命周期判定。
+- 新增 ChatGPT Desktop / WorkBuddy / Codex CLI / Generic 四个桌面客户端适配器、独立能力检测表、Windows UI Automation 驱动、项目归属强制校验、幂等发送与人工接管。
+- 新增持久化调度中心（P0–P4、并发、同仓写锁、客户端占用、退避、超时、暂停/取消/接管）。
+- 新增 Git Worktree 隔离、独立 Reviewer Engine、发布门禁、精确就绪诊断、同类项目情报与 12 项移植分析。
+- 新增 `/api/autonomy/*` REST 与「AI 自动运维」指挥中心页面（12 项真实指标 + 全局开关）。
+- 保留全部既有页面、服务、路由与 `state.json`；未迁移、未覆盖既有状态。
+- 真实验收：GitHub 7 端点 200、增量 304、UIA 真实识别两个客户端窗口；新增 55 项单元测试；十语言 i18n 审计 0 问题。
+- 未验证/未完成项见 [已知限制](../AUTONOMY_V2_LIMITATIONS.md)，完整说明见 [v0.9.0](v0.9.0.md)。
 
 ## v0.8.7 · 一键下载开发环境
 

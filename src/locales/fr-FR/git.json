@@ -24,7 +24,8 @@
       "hosting": "Hébergement",
       "issues": "Issues",
       "securityFindings": "Constats de sécurité",
-      "research": "Recherche"
+      "research": "Recherche",
+      "autonomy": "Opérations autonomes"
     },
     "connection": {
       "connected": "GitHub connecté",

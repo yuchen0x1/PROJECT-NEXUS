@@ -1,0 +1,71 @@
+{
+  "probedAt": "2026-11-14T20:59:33.642Z",
+  "credentialPresent": true,
+  "endpoints": [
+    {
+      "name": "rate_limit",
+      "status": 200,
+      "etag": null,
+      "xRateRemaining": "2867",
+      "sample": {
+        "core": {
+          "limit": 5000,
+          "used": 2133,
+          "remaining": 2867,
+          "reset": 1794691274
+        }
+      }
+    },
+    {
+      "name": "repository",
+      "status": 200,
+      "etag": "W/\"8c165f2209d80313ac4deddd9f3aa530904c218e1f2a1081194cc94d78042197\"",
+      "xRateRemaining": "2866",
+      "sample": {
+        "full_name": "yuchen0x1/PROJECT-NEXUS",
+        "default_branch": "main",
+        "pushed_at": "2026-11-14T17:04:31Z",
+        "open_issues_count": 0
+      }
+    },
+    {
+      "name": "issues",
+      "status": 200,
+      "etag": "\"669553852effa606bc67620cd033985604eca9356c217384d5a55ddb2d7fea60\"",
+      "xRateRemaining": "2865",
+      "sample": {
+        "count": 0,
+        "firstId": null
+      }
+    },
+    {
+      "name": "commits",
+      "status": 200,
+      "etag": "W/\"a783c77d09a638f4ebcc0c380ae7ccc2ab5cde22b4f8c725ba24a6706e36198b\"",
+      "xRateRemaining": "2864",
+      "sample": {
+        "count": 3,
+        "firstId": null
+      }
+    },
+    {
+      "name": "actions_runs",
+      "status": 200,
+      "etag": "W/\"e77fd25bcf5f88bbd0f5d21f1416af4c2bed5be0b708112ab201d32922128a59\"",
+      "xRateRemaining": "2863",
+      "sample": {
+        "total_count": 15
+      }
+    },
+    {
+      "name": "releases",
+      "status": 200,
+      "etag": "W/\"7df72dac6c7c9569b7d61361d4187072ff93f6bfd6f3652d81009109286f5c22\"",
+      "xRateRemaining": "2862",
+      "sample": {
+        "count": 3,
+        "firstId": 445455071
+      }
+    }
+  ]
+}

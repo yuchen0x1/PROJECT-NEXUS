@@ -12,97 +12,209 @@
   <a href="https://project-nexus.edgeone.dev/"><img src="https://img.shields.io/badge/%E5%AE%98%E7%BD%91-project--nexus.edgeone.dev-teal" alt="官网"></a>
 </p>
 
-**Windows 桌面 AI 仓库运营中心。** 连接 GitHub 与 AI 网关，持续监控仓库，在独立 Worktree 中修复和验证问题，并按授权策略交付 PR 和版本。
+**Windows 桌面 AI 仓库研发与运维工作站。** 连接 GitHub、本地项目目录与已安装的桌面 AI 编程客户端，持续监控仓库、主动研究同类开源项目、生成升级建议、在隔离工作区中修复与独立验证，并按授权策略交付变更。
 
-**在线宣传页：[project-nexus.edgeone.dev](https://project-nexus.edgeone.dev/)**（源码位于 `website/`，纯静态、零依赖，通过 [EdgeOne Pages](https://pages.edgeone.ai/) 免费托管）
+**在线宣传页：[project-nexus.edgeone.dev](https://project-nexus.edgeone.dev/)**（源码在 `website/`）
 
-> **发布状态（如实说明）**：v0.8.9 为 Windows x64 开发预览，已进入应用内自动更新通道；安装包未签名，不是 v1.0 稳定版。下载前请通过发布页的 SHA256 校验文件核对完整性。
+> **发布状态（如实说明）**：v0.9.0 为 Windows x64 开发预览，安装包未签名，不是 v1.0 稳定版。完整能力边界见 [已知限制](docs/AUTONOMY_V2_LIMITATIONS.md)。
+
+## 项目定位
+
+用户只需：添加 GitHub 仓库 → 绑定本地目录 → 配置 GitHub 连接与桌面 AI 客户端 → 设置运行周期和权限 → 启动自动运维。此后由 NEXUS 在后台完成监控、分析、任务生成、AI 执行调度、独立验收与受控交付。
+
+**桌面客户端模式不需要 AI API Key**：直接利用 Windows 上已安装、已登录的 ChatGPT Desktop 或 WorkBuddy。传统 API 模式保留且与之独立。
+
+## 核心功能
+
+### 自主运维（v0.9.0 新增，Autonomy Runtime V2）
+
+- **24/7 后台运行**：调度器运行在 Node 服务进程内，窗口最小化到托盘或关闭主窗口都继续工作；服务崩溃自动重启；重启后恢复未完成任务现场。
+- **增量仓库监控**：13 类资源（Issues、评论、PR、Review、提交、分支、Release、Actions、安全公告、Dependabot、Code/Secret Scanning、仓库配置），ETag 条件请求、游标续查、分页、事件指纹去重、限流指数退避、Webhook 优先且自动回退轮询。
+- **Issue 生命周期**：关闭 ≠ 解决。真实核对关联 PR、合并状态、修复是否进入目标分支、测试、Review、新评论与回归，输出 9 态结论与置信度。
+- **持久化调度**：P0–P4 优先级、全局并发上限、同仓库写入互斥、客户端占用管理、任务幂等去重、失败退避、超时终止、暂停/取消/人工接管、append-only 审计日志。
+- **桌面 AI 客户端适配器**：ChatGPT Desktop、WorkBuddy、Codex CLI（明确区分同包不同入口）、Generic 配置驱动；独立能力检测表；Windows UI Automation 按窗口/控件识别（不用固定坐标、不用固定 Sleep）；项目归属强制校验；幂等发送；失败截图与可靠人工接管。
+- **完整任务包**：仓库信息、base SHA、问题证据、复现方法、预期结果、关联 Issue、同类项目参考、推荐方案、禁止修改项、测试要求、验收标准与文档要求；发送前双重脱敏检查。
+- **独立验收**：Git Worktree 隔离（脏工作区直接拒绝）、diff 范围/删除/敏感文件/密钥审查、按项目真实配置探测并执行测试与构建、失败有限轮次重派。
+- **发布门禁**：9 项独立条件、patch/minor/major 版本计算、CHANGELOG 生成、内容指纹防止重复发布。
+- **同类项目情报**：GitHub Search 发现并持久化、跟踪真实 release/commit/issue/PR、12 项移植分析、开源许可证兼容矩阵。
+- **精确就绪诊断**：把「AI API 未配置 / 桌面客户端未连接 / 扫描未完成 / manifest 按技术栈判断 / 任务尚未生成 / 任务不可执行」分开报告，桌面模式不因缺少 API Key 被阻断。
+- **指挥中心界面**：首页 12 项真实指标、全局自动运维开关与立即动作、仓库监控、客户端能力表、任务与执行监控、智能研究、审计日志。无演示数据。
+
+### 既有能力（全部保留）
+
+- 七步教学上手、批量仓库托管、十语言界面、深浅色跟随系统。
+- Issue 巡检分类、AI 修复流水线、仓库扫描、安全扫描、竞品研究、升级提案。
+- 本机 Codex `app-server` 官方桥接、Agent runtime（plan → edit → verify → review）、隔离沙箱。
+- 仓库来源档案（Fork/共同提交证据、ZIP 基线三方比较）。
+- 应用内自动更新、Draft PR / Release 管理、GitHub App 与 Webhook HMAC。
+- 明确授权边界：脚本执行、远程写入、合并发布均需逐项授权。
+
+## 系统架构
+
+```
+Electron 主进程 (托盘常驻 / 崩溃重启 / DPAPI 凭据)
+   └─ Node 服务进程 server/index.mjs (Express, 127.0.0.1:4317)
+        ├─ 既有 /api/* 与 60+ services（未改动）
+        └─ /api/autonomy/*  ←  server/autonomy/  (Autonomy Runtime V2)
+             ├─ engine.mjs        调度与编排
+             ├─ monitor.mjs       GitHub 增量监控
+             ├─ desktop/          桌面客户端适配器 + UIA 驱动
+             ├─ workspace.mjs     Git Worktree 隔离
+             ├─ reviewer.mjs      独立验收与发布门禁
+             ├─ intelligence.mjs  就绪诊断与同类项目情报
+             ├─ db.mjs            SQLite (schema v2) + JSON 降级
+             └─ api.mjs           REST + 后台 ticker
+React / Vite 前端（20 个既存页面 + 1 个指挥中心）
+```
+
+数据：`data/state.json`（既有 schema v4，不迁移）与 `data/autonomy.db`（新增，独立）。详见 [架构说明](docs/AUTONOMY_V2_ARCHITECTURE.md)。
+
+## 安装方式
+
+[下载 Windows x64 安装包](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/latest) · [版本说明与 SHA256 校验](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/latest)。0.8.2 及更高安装版可在设置中「检查更新」。
+
+1. 在 Windows 10/11 x64 运行安装程序。
+2. 首次启动自动进入教学；之后可从工作台或顶部「一键教学」重看。
+3. 配置 GitHub 连接与（可选）AI API。
+4. 添加要管理的仓库，绑定本地目录与桌面客户端项目。
+5. 设置自动化等级，开启自动运维。
+
+窗口可最小化到托盘继续运行；退出应用或关机后本机任务停止，开机启动由用户在设置中启用。后台是 Electron 管理的 Node 子进程，不安装 Windows 系统服务。
+
+### 开发者运行
+
+需要 Node.js 22+、npm、Git。
+
+```bash
+npm ci
+npm run desktop:dev
+```
+
+网页/API 开发：`npm run dev`；生产后端：`npm run build && npm start`。环境模板见 `.env.example`；`npm start` 不自动加载 `.env`，需要时 `node --env-file=.env server/index.mjs`。默认 API 仅监听 `127.0.0.1:4317`。
+
+## AI 客户端接入方式
+
+| 客户端 | 检测 | 说明 |
+| --- | --- | --- |
+| ChatGPT Desktop | MSIX 包 `OpenAI.Codex` + 进程 `ChatGPT` | 与同包的 Codex CLI 是不同入口 |
+| WorkBuddy | 卸载注册表 + 进程 `WorkBuddy` | 独立安装 |
+| Codex CLI / Generic | 进程 / 配置驱动 | 见文档 |
+
+- **无需 AI API Key**：桌面客户端模式直接驱动已登录的客户端。
+- 每个仓库单独配置 `agentAdapterId` 与 `agentProjectRef`，发送前强制校验项目归属，不确定即停止。
+- 若 UI Automation 不可用或控件无法识别，NEXUS 生成完整任务包并进入人工接管；结果仍由 Git diff 与测试独立验收，不采信 AI 自我报告。
+- 传统 API 模式（AI_BASE_URL / AI_API_KEY / AI_MODEL）保留，二者独立。
+
+完整说明：[桌面 AI 客户端接入](docs/AUTONOMY_V2_DESKTOP_CLIENTS.md)。
+
+## GitHub 接入方式
+
+- 应用内 GitHub Token 或 GitHub App 安装；只读监控需要 `repo` / `actions:read` / `security_events:read`。
+- 每个仓库可配置监控周期（5/15/30/60 分钟或自定义）、监控项、Webhook 开关。
+- Webhook 有效时事件驱动，停止投递后自动回到轮询；既有 `/api/github/webhook` 继续可用。
+- 默认不做任何远程写入；PR / 合并 / Release 需显式授权与发布门禁。
+
+完整说明：[GitHub 配置](docs/AUTONOMY_V2_GITHUB_SETUP.md)。
+
+## 自动运维使用方法
+
+指挥中心（导航「AI 自动运维」）提供：
+
+- **启动 / 暂停 / 恢复**：全局自动运维开关。
+- **立即扫描 / 立即研究 / 执行待处理任务 / 停止当前任务**：手动触发。
+- **12 项首页指标**：管理仓库、正常仓库、新问题、待修复、AI 执行中、已修复、待验收、安全风险、同类项目更新、最近版本、执行记录、客户端状态。
+- **六个页签**：总览（含就绪诊断）、仓库监控、桌面客户端（能力表 + 真实窗口识别）、任务与执行、智能研究、审计日志。
+
+REST 控制示例：
+
+```bash
+curl -X POST http://127.0.0.1:4317/api/autonomy/control/scan-now
+curl -X POST http://127.0.0.1:4317/api/autonomy/adapters/probe
+curl http://127.0.0.1:4317/api/autonomy/overview
+```
+
+## 权限设置
+
+| 模式 | 能力 |
+| --- | --- |
+| `observe`（默认） | 只监控、扫描、分析、生成建议，不改代码 |
+| `repair` | 允许隔离分支修改 + 测试；合并与发布需人工确认 |
+| `autonomous` | 额外允许符合规则的低风险修复、PR、合并与发布 |
+
+始终需人工确认：删除远程仓库、强推、覆盖未提交修改、删除用户数据、修改凭据、高危安全事件、仓库权限变更、发布有严重问题的版本。自动合并与自动发布是**两个独立开关**。详见 [权限与安全策略](docs/AUTONOMY_V2_PERMISSIONS.md)。
+
+## 常见问题
+
+**没有 AI API Key 能用吗？** 能。桌面客户端模式完全独立，不会因为缺少 API Key 被判为不可用（诊断里 `AI_API` 与 `DESKTOP_CLIENT` 分开报告）。
+
+**为什么任务停在「等待人工接管」？** 通常是 UI Automation 不可用、项目控件无法识别、或项目归属不确定。界面会显示原因与任务包路径；按指引在客户端粘贴任务包后，用「会话处理」标记完成，NEXUS 会独立验收。
+
+**为什么 Issue 关闭了仍显示「无法确认」？** 设计如此。关闭不等于解决，必须有 PR、合并、分支包含、测试、Review 及独立回归测试证据。
+
+**会改动我未提交的代码吗？** 不会。原工作区有任何未提交修改时，任务直接被拒绝；任务只在独立 Git Worktree 的 `nexus/auto/*` 分支进行。
+
+**会自动 push / 发布吗？** 默认不会。需显式开启远程写入、`autoRelease`、`autonomous` 模式与发布批准，且通过全部 9 项门禁。
+
+**监控会重复下载仓库吗？** 不会。ETag 条件请求命中 304 时直接跳过；只处理游标之前的新条目；事件指纹去重。
+
+**数据库在哪？** `%LOCALAPPDATA%\PROJECT NEXUS` 或源码运行的 `data/`：`autonomy.db`（新增）与 `state.json`（既有，未迁移）。
+
+## 截图
 
 <p align="center">
-  <img src="docs/screenshots/overview.png" width="720" alt="PROJECT NEXUS 工作台界面">
+  <img src="docs/screenshots/autonomy-v2-overview.png" width="720" alt="PROJECT NEXUS 自动运维指挥中心">
 </p>
 
-## 核心特性
+**自动运维指挥中心**（v0.9.0，真实运行截图）：[查看大图](docs/screenshots/autonomy-v2-overview.png) — 12 项实时指标、全局自动运维开关、6 个页签、六类精确就绪诊断与真实扫描记录。
 
-- **七步教学上手**：首次启动自动进入教学，逐步说明连接 GitHub、配置 AI、选择仓库、检测工具和开启托管；工作台随时可重看「一键教学」。
-- **批量仓库托管**：勾选多个仓库统一开启托管，逐仓库显示进度；归档仓库自动隐藏并标记状态。
-- **AI 修复与验证**：Issue 巡检分类，符合条件的进入修复流程——隔离工作区修改、运行真实测试、独立审查，按策略交付。
-- **本机 Codex 桥接**：通过官方 `codex app-server` 接口把任务交给本机 Codex 执行——独立会话、隔离工作区写入、实时事件流、完成后独立验收；你已打开的 Codex Desktop 窗口与历史会话不受影响。
-- **仓库来源档案**：自动识别 Fork 关系与共同提交历史（GitHub 证据 + 跨仓库 compare），支持申报 ZIP 重传或第三方来源；候选上游绝不按名称猜测绑定，全部结论带证据与置信度。
-- **明确授权边界**：脚本执行、远程写入、合并发布都需要逐项授权；未授权的操作不会发生。
-- **应用内自动更新**：设置中一键检查更新，版本按数值从新到旧排列，应用内可直接查看更新日志。
-- **十种语言界面**：简体中文、English、日本語等十种语言，深浅色与系统主题跟随。
+工作台总览：[docs/screenshots/overview.png](docs/screenshots/overview.png)。
 
-## 三档授权策略
+### 本地构建产物（v0.9.0）
 
-| 策略 | 行为 |
-| --- | --- |
-| 观察 | 监控、分析、报告，不自动修复 |
-| 自动维护 | 隔离修复，验证后按策略推送分支和创建 PR |
-| 全自主 | 还允许在验证与发布检查后合并、发布和条件关闭 Issue |
+构建命令（本次因 `release/win-unpacked` 被运行中的旧实例占用，改用独立输出目录）：
 
-仓库策略与应用远程写入开关同时生效。工具、依赖、网络、权限或验证不满足时停止并保留证据；中断交付可在任务中心核对回执，后续处理仍需人工评估。
+```bash
+npm run build
+npx electron-builder --win nsis --x64 --publish never -c.directories.output=release-v090
+```
 
-## 安装与首次使用
+产出：
 
-[下载当前公开版 Windows x64 安装包](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/latest) · [版本说明与校验文件](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/latest)。0.8.2 及更高安装版可在设置中点击「检查更新」直接升级。
+| 文件 | 大小 | SHA256 |
+| --- | --- | --- |
+| `release-v090/PROJECT-NEXUS-0.9.0-win-x64-setup.exe` | 118 MB | `dc96e52721d51ffe902b296c1e5fdd5f0619ed145a8fea7f419c140110acc999` |
 
-1. 在 Windows 10 / 11 x64 上运行安装程序。
-2. 首次启动自动打开教学；之后可从工作台或顶部的「一键教学」重新进入。
-3. 使用 GitHub 访问令牌连接账号；已有 GitHub App 也可在远程控制台管理。
-4. 输入 API 类型、Base URL 和 API Key，点击「获取模型」从下拉列表选择后保存并测试。
-5. 勾选仓库，按下一步完成工具检测、统一策略与逐仓库检查。执行代码需要明确授权所选仓库的脚本。
-6. 需要远程交付时，明确允许应用按各仓库策略写入 GitHub。
-7. 如果全局巡检暂停，先明确恢复，再开启托管。
+未签名，仅本地开发预览；未上传 GitHub Release，不对外提供下载地址。`release-v090/` 已由 `.gitignore` 忽略。
 
-窗口关闭后可留在托盘运行；退出应用或关机后本机任务无法继续，开机启动由用户在设置中启用。后台是 Electron 管理的 Node 子进程，不安装 Windows 系统服务。缺少工具只检测，不自动安装 Ollama、Docker 或本地模型。
+## 测试方法
 
-## 开发者运行
+```bash
+npm run check          # typecheck + lint + 全量单元测试 + 构建
+npm run i18n:audit     # 十语言审计
+npm run i18n:coverage  # 翻译覆盖率
+node tests/autonomy-live-github.mjs   # 真实 GitHub 只读 + 真实 UIA 验收（需 GITHUB_TOKEN）
+```
 
-需要已安装的 Node.js、npm 和 Git。
+真实测试记录：[测试报告](docs/AUTONOMY_V2_TEST_REPORT.md)、`docs/evidence/autonomy-v2-live-acceptance.json`、`docs/evidence/autonomy-v2-full-test.log`。
 
-    npm ci
-    npm run desktop:dev
+`tests/v1-live-acceptance.mjs` 需要真实 GitHub/AI 凭据与严格命名的临时测试仓库，**会写入该仓库**，不得指向业务项目。
 
-网页/API 开发使用 `npm run dev`；生产后端先 `npm run build` 再 `npm start`。环境模板见 `.env.example`；`npm start` 不自动加载 `.env`，需要时显式执行：
+## 未来规划
 
-    node --env-file=.env server/index.mjs
-
-不要提交真实凭据。默认 API 仅监听 127.0.0.1:4317；独立后端不具备公网多用户认证。
-
-### 验证与构建
-
-    npx tsc --noEmit
-    npm test
-    npm run build
-    npm run i18n:audit
-    npm run i18n:coverage
-    npm run desktop:package:win
-
-桌面冒烟、i18n 与质量回归脚本见 `tests/`。真实验收脚本 `tests/v1-live-acceptance.mjs` 要求真实 GitHub/AI 凭据和严格命名的临时测试仓库，会写入该仓库，不应指向业务项目。
-
-## 数据与安全
-
-桌面数据在 `%LOCALAPPDATA%\PROJECT NEXUS`：`state.json` 为 schema v4；`provider-keys.json` 与 `github-credentials.json` 保存 DPAPI 加密凭据；`repositories/` 与 `agent-workspaces/` 保存隔离工作区；`logs/` 与任务文件保存执行证据。
-
-状态使用原子替换、上一份有效副本和迁移前快照。不会自动用备份覆盖当前数据；恢复前退出应用，复制当前数据并人工核对。
-
-本机命令具有超时、程序允许列表与凭据环境过滤，**不是 Windows 操作系统安全沙箱**。只为可信仓库开启脚本执行。DPAPI 不能防御同一 Windows 用户权限下的恶意程序。当前 Windows 会话无法解密既有 GitHub / AI 凭据时，需在应用中重新连接；原凭据文件不会被覆盖。详见[安全说明](docs/SECURITY.md)。
-
-## 验收与限制
-
-完整的原生隔离宿主、签名安装/回滚、真实外部模型服务、24 小时连续验收**尚未完成**——不以历史成功或本地候选替代当前版本验收。当前能力矩阵见[验收矩阵](docs/TEST_ACCEPTANCE_REPORT.md)与[安全加固报告](docs/SECURITY_HARDENING_REPORT.md)；各版本已知限制见对应发布说明。
-
-历史基线：0.3.0 在私有测试仓库通过了 Bug 复现、AI 修复、回归测试、构建、独立审查、推送、PR、合并与带校验资产的 Release 全链路（[历史测试报告](docs/V1_TEST_REPORT.md)）。0.7.0 起 CI 门禁下的真实交付闭环因 Checks API 权限受阻，属未完成项。
-
-自动发布当前面向具有 `package.json` 且可运行 `npm test` 的项目；尚不是任意语言项目的通用发布器。
+- 完成控件级桌面客户端自动化的真实端到端验证与客户端控件指纹库。
+- 集成与项目技术栈匹配的安全工具链（CodeQL / Semgrep / Gitleaks / npm audit 等）。
+- 引入专门的静态 Bug 分析引擎与更深的质量评分模型。
+- 完善同类项目相关性量化评分与自动升级建议优先级。
+- 新增指挥中心页面的完整十语言文案。
+- 真实 24 小时浸泡运行与完整远程交付闭环验收。
+- 签名安装包与更严格的隔离宿主。
 
 ## 文档
 
-- [用户指南](docs/USER_GUIDE.md) · [快速开始（中文）](docs/QUICK_START.zh-CN.md)
-- [架构](docs/ARCHITECTURE.md) · [更新日志](CHANGELOG.md) · [完整发布记录](docs/releases/release-notes.md)
-- [验收矩阵](docs/TEST_ACCEPTANCE_REPORT.md) · [安全说明](docs/SECURITY.md) · [Windows 桌面架构决策](docs/WINDOWS_DESKTOP_DECISION.md)
-- [GitHub App 配置](docs/GITHUB_APP_SETUP.md) · [Webhook 配置](docs/GITHUB_WEBHOOKS.md)
+- [现状审计](docs/AUTONOMY_V2_BASELINE_AUDIT.md) · [新版架构](docs/AUTONOMY_V2_ARCHITECTURE.md) · [更新日志](CHANGELOG.md)
+- [桌面客户端接入](docs/AUTONOMY_V2_DESKTOP_CLIENTS.md) · [GitHub 配置](docs/AUTONOMY_V2_GITHUB_SETUP.md) · [权限](docs/AUTONOMY_V2_PERMISSIONS.md)
+- [数据库迁移](docs/AUTONOMY_V2_DATABASE.md) · [测试报告](docs/AUTONOMY_V2_TEST_REPORT.md) · [安全审计](docs/AUTONOMY_V2_SECURITY_AUDIT.md) · [已知限制](docs/AUTONOMY_V2_LIMITATIONS.md)
+- [用户指南](docs/USER_GUIDE.md) · [安全说明](docs/SECURITY.md) · [完整发布记录](docs/releases/release-notes.md)
 
 ## 许可证
 

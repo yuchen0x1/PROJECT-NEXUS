@@ -24,7 +24,8 @@
       "hosting": "Хостинг",
       "issues": "Задачи",
       "securityFindings": "Находки безопасности",
-      "research": "Исследование"
+      "research": "Исследование",
+      "autonomy": "Автономные операции"
     },
     "connection": {
       "connected": "GitHub подключён",

@@ -18,6 +18,10 @@
 *.key
 *.pem
 
+# Local agent workspace data (work logs, session state). Not a temp cache,
+# but internal-only and must not be published to a public repository.
+/.workbuddy/
+
 # Generated reports and caches. Curated historical evidence stays tracked.
 /playwright-report/
 /test-results/

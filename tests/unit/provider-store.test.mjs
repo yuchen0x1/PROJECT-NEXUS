@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import fs from 'node:fs/promises'
 import http from 'node:http'
 import os from 'node:os'
@@ -19,19 +19,19 @@ const originalEnv = { ...process.env }
 const servers = []
 let dataDir
 
-beforeEachHelper()
-
-async function beforeEachHelper() {
+// The original module-level `beforeEachHelper()` call was never awaited, so
+// `dataDir` could still be undefined when the first test started. A real hook
+// makes every test start from a fresh, absolute temporary directory.
+beforeEach(async () => {
   dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'nexus-providers-'))
-}
+})
 
 afterEach(async () => {
   for (const server of servers.splice(0)) await new Promise((resolve) => server.close(resolve))
   for (const key of Object.keys(process.env)) if (!(key in originalEnv)) delete process.env[key]
   for (const [key, value] of Object.entries(originalEnv)) process.env[key] = value
   clearRuntimeProviderKeys()
-  await fs.rm(dataDir, { recursive: true, force: true }).catch(() => {})
-  dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'nexus-providers-'))
+  await fs.rm(dataDir, { recursive: true, force: true, maxRetries: 8, retryDelay: 40 }).catch(() => {})
 })
 
 function startModelServer(replyBody, { status = 200, capture } = {}) {
