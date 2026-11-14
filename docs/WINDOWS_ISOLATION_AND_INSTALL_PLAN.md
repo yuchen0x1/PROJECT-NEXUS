@@ -2,6 +2,8 @@
 
 本文件是待实施/验收方案，不代表能力已实现或已取得系统修改授权。当前严格任务被阻断，更新不能启动安装。
 
+具体执行计划（2026-11-14 新增，均为待实施状态）：原生执行宿主见 [WINDOWS_STRICT_ISOLATION_EXECUTION_PLAN.md](WINDOWS_STRICT_ISOLATION_EXECUTION_PLAN.md)，代码签名见 [WINDOWS_SIGNING_PLAN.md](WINDOWS_SIGNING_PLAN.md)，跨版本安装与重启验收见 [WINDOWS_UPDATE_INSTALL_ACCEPTANCE_PLAN.md](WINDOWS_UPDATE_INSTALL_ACCEPTANCE_PLAN.md)。
+
 ## 原生执行宿主
 
 拟交付独立、可签名的原生 broker，使用明确的窄协议接收工作区 ID、允许命令、超时和输出上限。模型服务凭据留在宿主，不进入执行子进程。broker 不能接受任意项目外路径或开放式 PowerShell 字符串。
