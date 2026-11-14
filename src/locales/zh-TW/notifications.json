@@ -86,6 +86,10 @@
     },
     "agentApplyFailed": {
       "label": "套用 Agent 修改失敗"
+    },
+    "updateAvailable": {
+      "label": "發現新版本",
+      "detail": "應用可更新到 v{{version}}。"
     }
   },
   "toast": {
@@ -96,6 +100,7 @@
     "scanQueued": "掃描已排入佇列",
     "agentRolledBack": "工作區已回復到原始狀態。",
     "agentApplied": "Agent 修改已套用到您的專案。",
-    "providerSaved": "Provider 已儲存。"
+    "providerSaved": "Provider 已儲存。",
+    "updateAvailable": "發現新版本 v{{version}}，可在更新卡中立即更新。"
   }
 }

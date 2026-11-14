@@ -86,6 +86,10 @@
     },
     "agentApplyFailed": {
       "label": "Échec de l’application des modifications de l’agent"
+    },
+    "updateAvailable": {
+      "label": "Nouvelle version disponible",
+      "detail": "L'application peut passer en v{{version}}."
     }
   },
   "toast": {
@@ -96,6 +100,7 @@
     "scanQueued": "Analyse mise en file d'attente",
     "agentRolledBack": "L’espace de travail a été restauré à son état d’origine.",
     "agentApplied": "Les modifications de l’agent ont été appliquées à votre projet.",
-    "providerSaved": "Fournisseur enregistré."
+    "providerSaved": "Fournisseur enregistré.",
+    "updateAvailable": "Une nouvelle version v{{version}} est disponible — mettez à jour depuis la carte de mise à jour."
   }
 }

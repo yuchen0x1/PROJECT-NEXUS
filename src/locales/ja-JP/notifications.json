@@ -86,6 +86,10 @@
     },
     "agentApplyFailed": {
       "label": "エージェント変更の適用に失敗"
+    },
+    "updateAvailable": {
+      "label": "新バージョンを検出",
+      "detail": "アプリは v{{version}} に更新できます。"
     }
   },
   "toast": {
@@ -96,6 +100,7 @@
     "scanQueued": "スキャンをキューに追加しました",
     "agentRolledBack": "ワークスペースは元の状態に復元されました。",
     "agentApplied": "エージェントの変更がプロジェクトに適用されました。",
-    "providerSaved": "プロバイダーを保存しました。"
+    "providerSaved": "プロバイダーを保存しました。",
+    "updateAvailable": "新バージョン v{{version}} が見つかりました。更新カードからすぐに更新できます。"
   }
 }

@@ -86,6 +86,10 @@
     },
     "agentApplyFailed": {
       "label": "Falha ao aplicar as alterações do agente"
+    },
+    "updateAvailable": {
+      "label": "Nova versão disponível",
+      "detail": "O aplicativo pode ser atualizado para a v{{version}}."
     }
   },
   "toast": {
@@ -96,6 +100,7 @@
     "scanQueued": "Verificação enfileirada",
     "agentRolledBack": "O espaço de trabalho voltou ao estado original.",
     "agentApplied": "As alterações do agente foram aplicadas ao seu projeto.",
-    "providerSaved": "Provedor salvo."
+    "providerSaved": "Provedor salvo.",
+    "updateAvailable": "Uma nova versão v{{version}} está disponível — atualize pelo cartão de atualização."
   }
 }

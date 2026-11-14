@@ -19,7 +19,7 @@ import { useSettings } from '../i18n/settings'
 import { LANGUAGES } from '../i18n/languages'
 import { formatCurrency, formatRelative, formatStamp, formatTime, formatTokens } from '../i18n/format'
 import './workstation.css'
-import type { EnvironmentInstallProgress, EnvironmentReport, LocalProject, WorkstationInfo } from './types'
+import type { AppUpdateState, EnvironmentInstallProgress, EnvironmentReport, LocalProject, WorkstationInfo } from './types'
 
 type Page = 'workstation' | 'projects' | 'environment' | 'agent' | 'overview' | 'evolution' | 'remote' | 'settings'
 
@@ -163,6 +163,23 @@ export default function Workstation() {
   // One-click install progress is streamed from the main process while
   // winget works through the plan.
   useEffect(() => bridge.onEnvironmentInstall((progress) => setEnvInstallProgress(progress)), [bridge])
+
+  // The in-app update card alone is easy to miss; when the updater discovers
+  // a new version, also raise a toast and a notification-center entry once
+  // per version per session.
+  const notifiedUpdateVersions = useRef<Set<string>>(new Set())
+  useEffect(() => bridge.onAppUpdate((state: AppUpdateState) => {
+    if (state.phase !== 'available' || !state.version || notifiedUpdateVersions.current.has(state.version)) return
+    notifiedUpdateVersions.current.add(state.version)
+    pushToast('notifications:toast.updateAvailable', { version: state.version })
+    addActivity({
+      kind: 'note',
+      labelKey: 'notifications:activity.updateAvailable.label',
+      detailKey: 'notifications:activity.updateAvailable.detail',
+      detailParams: { version: state.version },
+      page: 'workstation'
+    })
+  }), [addActivity, pushToast])
 
   const installEnvironment = useCallback(async () => {
     setBusy('environment-install')
