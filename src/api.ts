@@ -331,6 +331,7 @@ export type LocalAgentTask = {
   toolCallCount: number
   iterations: number | null
   provider: { id: string; kind: string; host: string | null; model: string } | null
+  bridge: { channel: string; version: string | null; launcherCommand: string | null; threadId: string | null; modelProvider: string | null; authMode: string | null } | null
   usage: { inputTokens: number; outputTokens: number; totalTokens: number } | null
   costUsd: number | null
   attempts: number | null
@@ -448,6 +449,7 @@ export const api = {
   integrationAdapters: () => request<{ adapters: IntegrationAdapter[]; ai: { configured: boolean; baseUrl: string | null; model: string | null }; remoteWritesEnabled: boolean; supportedWorkflows: Record<string, boolean> }>('/api/integrations/adapters'),
   aiProviders: () => request<{ providers: AIProviderSummary[]; configured: boolean; defaultProviderId: string | null; defaultModel: string | null }>('/api/ai/providers'),
   localAgentConfig: () => request<{ configured: boolean; defaultProviderId: string | null; providers: AgentProvider[]; legacyProviders: AIProviderSummary[]; approvalPolicies: string[]; taskTypes: string[]; limits: { maxPromptBytes: number; maxContextFiles: number; maxContextBytes: number; maxIterations: number; maxRepairAttempts: number }; capabilities: Record<string, unknown> }>('/api/local-agent/config'),
+  agentBridgeStatus: (live?: boolean) => request<{ bridge: { channel: string; detection: { installed: boolean; channel: string; version: string | null; launcher: { command: string; args: string[] } | null; configDir: string | null; error?: string }; live: { ok: boolean; latencyMs: number; authMode: string | null; requiresOpenaiAuth: boolean; signedIn: boolean; models: string[]; error?: string } | null }; capabilities: Record<string, unknown> }>(`/api/agent-bridge/status${live ? '?live=1' : ''}`),
   localAgentTasks: () => request<{ tasks: LocalAgentTask[] }>('/api/local-agent/tasks'),
   localAgentTask: (id: string) => request<{ task: LocalAgentTask; changes: LocalAgentChange[]; changesError: string | null }>(`/api/local-agent/tasks/${encodeURIComponent(id)}`),
   createLocalAgentTask: (payload: { projectId: string; prompt: string; providerId?: string | null; confirmSourceDisclosure: boolean; taskType?: string; approvalPolicy?: string; workspaceMode?: string }) => request<{ task: LocalAgentTask }>('/api/local-agent/tasks', { method: 'POST', body: JSON.stringify(payload) }),

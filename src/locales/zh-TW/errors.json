@@ -20,5 +20,6 @@
   "agentApply": "修改未能套用到專案。",
   "providerKeySave": "API 金鑰未能安全儲存。",
   "providerSave": "Provider 儲存失敗。",
-  "agentInsights": "專案分析失敗。"
+  "agentInsights": "專案分析失敗。",
+  "agentBridgeTest": "Codex 連線測試失敗。"
 }

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
@@ -7,15 +7,14 @@ import { buildTaskContextBundle, readContextFileContent, selectTaskContext } fro
 
 let root
 
-beforeEach()
-
-async function beforeEach() {
+// Register a real hook: a bare beforeEach() call at module scope only set the
+// first root once at import time, which went missing under worker reuse.
+beforeEach(async () => {
   root = await fs.mkdtemp(path.join(os.tmpdir(), 'nexus-index-'))
-}
+})
 
 afterEach(async () => {
   await fs.rm(root, { recursive: true, force: true }).catch(() => {})
-  root = await fs.mkdtemp(path.join(os.tmpdir(), 'nexus-index-'))
 })
 
 async function writeTree(tree) {

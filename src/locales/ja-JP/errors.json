@@ -20,5 +20,6 @@
   "agentApply": "変更をプロジェクトに適用できませんでした。",
   "providerKeySave": "API キーを安全に保存できませんでした。",
   "providerSave": "プロバイダーを保存できませんでした。",
-  "agentInsights": "プロジェクトを分析できませんでした。"
+  "agentInsights": "プロジェクトを分析できませんでした。",
+  "agentBridgeTest": "Codex の接続テストに失敗しました。"
 }

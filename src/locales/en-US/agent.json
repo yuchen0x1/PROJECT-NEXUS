@@ -27,7 +27,8 @@
     "taskTypeLegacy": "Single-pass proposal (legacy)",
     "approvalPolicyLabel": "Approval policy",
     "workspaceModeLabel": "Workspace isolation",
-    "runtimeNote": "The agent plans, calls real tools in an isolated workspace, runs build/tests, repairs failures and reviews its own diff. High-risk actions pause for your approval."
+    "runtimeNote": "The agent plans, calls real tools in an isolated workspace, runs build/tests, repairs failures and reviews its own diff. High-risk actions pause for your approval.",
+    "taskTypeBridge": "Codex bridge (official App Server)"
   },
   "history": {
     "title": "Task history",
@@ -37,7 +38,8 @@
     "emptyTitle": "No local Agent tasks",
     "emptyDetail": "New proposals and their saved state will appear here.",
     "runtimeTag": "Autonomous run",
-    "toolCalls": "{{count}} tool calls"
+    "toolCalls": "{{count}} tool calls",
+    "bridgeTag": "Codex bridge"
   },
   "review": {
     "title": "Isolated change review",
@@ -209,5 +211,21 @@
   "decision": {
     "approved": "approved",
     "denied": "denied"
+  },
+  "bridge": {
+    "title": "Local Agent Bridge · Codex",
+    "installed": "Installed · {{version}}",
+    "notInstalled": "Codex not detected",
+    "versionUnknown": "version unknown",
+    "authMode": "Sign-in: {{mode}}",
+    "authNone": "not signed in",
+    "authUnknown": "Sign-in state unknown — run the connection test",
+    "test": "Test connection",
+    "testing": "Testing…",
+    "testOk": "Connection OK · {{latency}} ms",
+    "testFailed": "Connection failed",
+    "note": "Tasks run as independent Codex sessions inside an isolated NEXUS workspace. Your open Codex Desktop windows and existing history are not touched; changes are delivered only after review and verification.",
+    "installHint": "Codex was not detected. Install it via Settings → Development environment (winget install OpenAI.Codex) or set NEXUS_CODEX_PATH to the codex binary, then re-check.",
+    "usesOwnAccount": "The Codex channel uses its own sign-in — no NEXUS provider key is needed."
   }
 }

@@ -20,5 +20,6 @@
   "agentApply": "Die Änderungen konnten nicht auf das Projekt angewendet werden.",
   "providerKeySave": "Der API-Schlüssel konnte nicht sicher gespeichert werden.",
   "providerSave": "Der Anbieter konnte nicht gespeichert werden.",
-  "agentInsights": "Das Projekt konnte nicht analysiert werden."
+  "agentInsights": "Das Projekt konnte nicht analysiert werden.",
+  "agentBridgeTest": "Der Codex-Verbindungstest ist fehlgeschlagen."
 }

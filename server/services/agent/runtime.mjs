@@ -642,7 +642,7 @@ function finalize(status, state, task, adapter, note) {
   }
 }
 
-async function autoVerify({ adapter, index, signal }) {
+export async function autoVerify({ adapter, index, signal }) {
   const scripts = index?.manifests?.find((manifest) => manifest.scripts)?.scripts || {}
   const results = []
   const runScript = async (scriptKey, label) => {

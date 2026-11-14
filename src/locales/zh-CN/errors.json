@@ -20,5 +20,6 @@
   "agentApply": "修改未能应用到项目。",
   "providerKeySave": "API 密钥未能安全保存。",
   "providerSave": "Provider 保存失败。",
-  "agentInsights": "项目分析失败。"
+  "agentInsights": "项目分析失败。",
+  "agentBridgeTest": "Codex 连接测试失败。"
 }

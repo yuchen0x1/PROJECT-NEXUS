@@ -18,6 +18,8 @@ import { listLocalProjects } from './services/local-projects.mjs'
 import { createLocalAgentTask as persistLocalAgentTask, getLocalAgentTask, listLocalAgentTasks, recoverLocalAgentTaskStore, updateLocalAgentTask } from './services/local-agent-tasks.mjs'
 import { applyLocalAgentOperations, createLocalAgentWorkspace, listLocalAgentChanges, readLocalAgentFiles } from './services/local-agent-workspace.mjs'
 import { executeAgentRuntimeTask, rollbackAgentTask, applyAgentTaskToProject, agentWorkspaceHandleFor } from './services/agent/task-executor.mjs'
+import { executeAgentBridgeTask } from './services/agent/bridge-executor.mjs'
+import { detectCodexInstall, probeCodexBridge } from './services/agent/codex-app-server.mjs'
 import { listPublicProviders, createProviderRecord, updateProviderRecord, deleteProviderRecord, testProviderRecord, setRuntimeProviderKeys } from './services/provider-store.mjs'
 import { resolveApprovalInTask, expireStaleApprovals, APPROVAL_POLICIES } from './services/agent/approval.mjs'
 import { buildProjectIndex } from './services/agent/indexer.mjs'
@@ -590,6 +592,7 @@ function localAgentPublicTask(task) {
     toolCallCount: task.toolCallCount ?? 0,
     iterations: task.runtimeResult?.iterations ?? task.iterations ?? null,
     provider: task.provider || null,
+    bridge: task.bridge || null,
     usage: task.usage || null,
     costUsd: task.costUsd ?? null,
     attempts: task.attempts ?? null,
@@ -660,6 +663,27 @@ async function executeLocalAgentTask(taskId, providerId, controller) {
       }
       return outcome
     }
+    if (task.type === 'agent-bridge') {
+      // Local Agent Bridge: the official Codex App Server channel does the
+      // code work inside the same isolated-workspace pipeline.
+      task = await updateLocalAgentTask({ dataDir, taskId, patch: { startedAt: now() } })
+      return await executeAgentBridgeTask({
+        task: { ...task, providerId },
+        taskStore: {
+          create: (args) => persistLocalAgentTask({ dataDir, task: args.task }),
+          get: ({ taskId: id }) => getLocalAgentTask({ dataDir, taskId: id }),
+          update: ({ taskId: id, patch, event }) => updateLocalAgentTask({ dataDir, taskId: id, patch, event }),
+          list: () => listLocalAgentTasks({ dataDir })
+        },
+        dataDir,
+        signal: controller.signal,
+        options: {
+          workspaceMode: task.workspaceMode || 'auto',
+          networkAccess: task.networkAccess !== false
+        },
+        audit: (action, target, result, risk, detail) => audit({ get: () => undefined }, action, target, result, risk, detail)
+      })
+    }
     const startedAt = now()
     task = await updateLocalAgentTask({
       dataDir,
@@ -720,7 +744,7 @@ async function executeLocalAgentTask(taskId, providerId, controller) {
     const code = error.code || ''
     const status = controller.signal.aborted || code === 'LOCAL_AGENT_CANCELLED'
       ? 'Cancelled'
-      : code === 'AI_NOT_CONFIGURED' || code === 'LOCAL_PROJECT_NOT_AVAILABLE' || code.startsWith('LOCAL_AGENT_MAX_')
+      : code === 'AI_NOT_CONFIGURED' || code === 'LOCAL_PROJECT_NOT_AVAILABLE' || code.startsWith('LOCAL_AGENT_MAX_') || code === 'CODEX_NOT_DETECTED' || code === 'CODEX_AUTH_REQUIRED'
         ? 'Blocked'
         : code === 'AI_TIMEOUT'
           ? 'TimedOut'
@@ -1056,20 +1080,24 @@ async function sweepExpiredWorkspaces() {
 }
 
 async function createAndQueueLocalAgentTask({ projectId, prompt, providerId, req, taskType = 'local-agent', approvalPolicy = 'standard', workspaceMode = 'auto' }) {
-  const projects = await listLocalProjects({ dataDir })
-  const project = projects.find((item) => item.id === projectId && item.available)
-  if (!project) throw Object.assign(new Error('Choose a registered local project that is still available.'), { code: 'LOCAL_PROJECT_NOT_AVAILABLE' })
+    const projects = await listLocalProjects({ dataDir })
+    const project = projects.find((item) => item.id === projectId && item.available)
+    if (!project) throw Object.assign(new Error('Choose a registered local project that is still available.'), { code: 'LOCAL_PROJECT_NOT_AVAILABLE' })
 
   // Provider resolution: the persistent provider registry (desktop) wins; the
   // legacy env-configured providers remain the fallback for server deployments.
-  const runtimeProviders = await listPublicProviders({ dataDir })
-  const runtimeConfigured = runtimeProviders.filter((item) => item.configured)
-  const envProviders = listAIProviders()
-  const envConfigured = envProviders.filter((item) => item.configured)
-  const selected = providerId
-    ? runtimeConfigured.find((item) => item.id === providerId) || envConfigured.find((item) => item.id === providerId)
-    : runtimeConfigured[0] || envConfigured[0]
-  if (!selected) throw Object.assign(new Error('Configure an AI provider with an API key and model before starting an Agent task.'), { code: 'AI_NOT_CONFIGURED' })
+  // Agent Bridge tasks skip it entirely: the local Codex brings its own auth.
+  let selected = null
+  if (taskType !== 'agent-bridge') {
+    const runtimeProviders = await listPublicProviders({ dataDir })
+    const runtimeConfigured = runtimeProviders.filter((item) => item.configured)
+    const envProviders = listAIProviders()
+    const envConfigured = envProviders.filter((item) => item.configured)
+    selected = providerId
+      ? runtimeConfigured.find((item) => item.id === providerId) || envConfigured.find((item) => item.id === providerId)
+      : runtimeConfigured[0] || envConfigured[0]
+    if (!selected) throw Object.assign(new Error('Configure an AI provider with an API key and model before starting an Agent task.'), { code: 'AI_NOT_CONFIGURED' })
+  }
 
   if (localAgentQueue.length + localAgentControllers.size >= LOCAL_AGENT_MAX_QUEUED_TASKS) {
     throw Object.assign(new Error(`The local Agent queue is limited to ${LOCAL_AGENT_MAX_QUEUED_TASKS} pending tasks.`), { code: 'LOCAL_AGENT_QUEUE_FULL' })
@@ -1087,7 +1115,7 @@ async function createAndQueueLocalAgentTask({ projectId, prompt, providerId, req
       projectId: project.id,
       projectName: project.name,
       prompt: safePrompt,
-      providerId: selected.id,
+      providerId: selected?.id || null,
       status: 'Queued',
       approvalPolicy: policy,
       workspaceMode: mode,
@@ -1096,9 +1124,9 @@ async function createAndQueueLocalAgentTask({ projectId, prompt, providerId, req
       changedFiles: []
     }
   })
-  audit(req, 'local_agent_task_created', `${project.name} (${project.id})`, 'queued', 'medium', { taskId, providerId: selected.id, taskType, approvalPolicy: policy, workspaceMode: mode, sourceDisclosureConfirmed: true })
+  audit(req, 'local_agent_task_created', `${project.name} (${project.id})`, 'queued', 'medium', { taskId, providerId: selected?.id || null, taskType, approvalPolicy: policy, workspaceMode: mode, sourceDisclosureConfirmed: true })
   await saveState()
-  enqueueLocalAgentTask(taskId, selected.id, project.id)
+  enqueueLocalAgentTask(taskId, selected?.id || null, project.id)
   return { task, provider: selected }
 }
 
@@ -1416,7 +1444,7 @@ app.get('/api/local-agent/config', async (_req, res) => {
     providers,
     legacyProviders,
     approvalPolicies: APPROVAL_POLICIES,
-    taskTypes: ['local-agent-runtime', 'local-agent'],
+    taskTypes: ['agent-bridge', 'local-agent-runtime', 'local-agent'],
     limits: { maxPromptBytes: LOCAL_AGENT_MAX_PROMPT_BYTES, maxContextFiles: 24, maxContextBytes: 120 * 1024, maxIterations: 40, maxRepairAttempts: 4 },
     capabilities: {
       isolatedWorkspace: true,
@@ -1436,6 +1464,40 @@ app.get('/api/local-agent/config', async (_req, res) => {
   })
 })
 
+// Local Agent Bridge status (master directive PART 6): reports the locally
+// installed Codex channel. `?live=1` additionally starts a real app-server
+// probe (initialize + account/read + model/list) and shuts it down again;
+// successful probes are cached briefly because they spawn a process.
+let agentBridgeLiveCache = { at: 0, value: null }
+
+app.get('/api/agent-bridge/status', async (req, res) => {
+  if (!requireDesktopLocalAgent(res)) return
+  try {
+    const detection = await detectCodexInstall()
+    let live = null
+    if ((req.query.live === '1' || req.query.live === 'true') && detection.installed) {
+      if (agentBridgeLiveCache.value && Date.now() - agentBridgeLiveCache.at < 60_000) {
+        live = agentBridgeLiveCache.value
+      } else {
+        live = await probeCodexBridge({ launcher: detection.launcher })
+          .then((value) => { agentBridgeLiveCache = { at: Date.now(), value }; return value })
+          .catch((error) => ({ ok: false, error: safeError(error) }))
+      }
+    }
+    res.json({
+      bridge: { channel: 'codex-app-server', detection, live },
+      capabilities: {
+        isolatedWorkspace: true,
+        independentSessions: true,
+        sharesDesktopWindows: false,
+        approvalRequestsDeclined: true,
+        sandbox: 'workspaceWrite',
+        applyGated: true
+      }
+    })
+  } catch (error) { res.status(500).json({ code: error.code || 'AGENT_BRIDGE_STATUS_FAILED', message: safeError(error) }) }
+})
+
 app.get('/api/local-agent/tasks', async (_req, res) => {
   if (!requireDesktopLocalAgent(res)) return
   try {
@@ -1450,7 +1512,7 @@ app.post('/api/local-agent/tasks', async (req, res) => {
   const projectId = typeof req.body?.projectId === 'string' ? req.body.projectId : ''
   const prompt = typeof req.body?.prompt === 'string' ? req.body.prompt : ''
   const providerId = req.body?.providerId === undefined || req.body.providerId === null || req.body.providerId === '' ? null : typeof req.body.providerId === 'string' ? req.body.providerId : ''
-  const taskType = req.body?.taskType === 'local-agent-runtime' ? 'local-agent-runtime' : 'local-agent'
+  const taskType = ['local-agent-runtime', 'local-agent', 'agent-bridge'].includes(req.body?.taskType) ? req.body.taskType : 'local-agent'
   const approvalPolicy = typeof req.body?.approvalPolicy === 'string' ? req.body.approvalPolicy : 'standard'
   const workspaceMode = typeof req.body?.workspaceMode === 'string' ? req.body.workspaceMode : 'auto'
   if (!projectId || !/^[0-9a-f-]{36}$/i.test(projectId)) return res.status(400).json({ code: 'LOCAL_PROJECT_ID_INVALID', message: 'Choose a registered local project.' })
@@ -1459,7 +1521,7 @@ app.post('/api/local-agent/tasks', async (req, res) => {
   if (providerId === '') return res.status(400).json({ code: 'AI_PROVIDER_INVALID', message: 'Choose a configured provider.' })
   try {
     const { task, provider } = await createAndQueueLocalAgentTask({ projectId, prompt, providerId, req, taskType, approvalPolicy, workspaceMode })
-    res.status(202).json({ task: localAgentPublicTask(task), provider: { id: provider.id, kind: provider.kind, host: provider.host || null, model: provider.model } })
+    res.status(202).json({ task: localAgentPublicTask(task), provider: provider ? { id: provider.id, kind: provider.kind, host: provider.host || null, model: provider.model } : null })
   } catch (error) { res.status(localAgentErrorStatus(error)).json({ code: error.code || 'LOCAL_AGENT_TASK_CREATE_FAILED', message: safeError(error) }) }
 })
 
@@ -1471,7 +1533,7 @@ app.get('/api/local-agent/tasks/:taskId', async (req, res) => {
     let changes = []
     let changesError = null
     if (task.workspace?.id && !['Queued', 'Running'].includes(task.status)) {
-      if (task.type === 'local-agent-runtime' && task.workspace.mode) {
+      if ((task.type === 'local-agent-runtime' || task.type === 'agent-bridge') && task.workspace.mode) {
         // Runtime workspaces live under agent-workspaces/agent (worktree or copy).
         try {
           const { listRuntimeTaskChanges } = await import('./services/agent/task-executor.mjs')

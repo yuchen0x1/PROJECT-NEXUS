@@ -27,7 +27,8 @@
     "taskTypeLegacy": "Proposition en une passe (historique)",
     "approvalPolicyLabel": "Politique d’approbation",
     "workspaceModeLabel": "Isolation de l’espace de travail",
-    "runtimeNote": "L’agent planifie, appelle de vrais outils dans un espace de travail isolé, exécute build/tests, répare les échecs et relit son propre diff. Les actions à haut risque s’arrêtent pour votre approbation."
+    "runtimeNote": "L’agent planifie, appelle de vrais outils dans un espace de travail isolé, exécute build/tests, répare les échecs et relit son propre diff. Les actions à haut risque s’arrêtent pour votre approbation.",
+    "taskTypeBridge": "Pont Codex (App Server officiel)"
   },
   "history": {
     "title": "Historique des tâches",
@@ -37,7 +38,8 @@
     "emptyTitle": "Aucune tâche locale de l'agent",
     "emptyDetail": "Les nouvelles propositions et leur état enregistré s'afficheront ici.",
     "runtimeTag": "Exécution autonome",
-    "toolCalls": "{{count}} appels d’outils"
+    "toolCalls": "{{count}} appels d’outils",
+    "bridgeTag": "Pont Codex"
   },
   "review": {
     "title": "Revue des modifications isolées",
@@ -209,5 +211,21 @@
   "decision": {
     "approved": "approuvée",
     "denied": "refusée"
+  },
+  "bridge": {
+    "title": "Pont d’agent local · Codex",
+    "installed": "Installé · {{version}}",
+    "notInstalled": "Codex non détecté",
+    "versionUnknown": "version inconnue",
+    "authMode": "Connexion : {{mode}}",
+    "authNone": "non connecté",
+    "authUnknown": "État de connexion inconnu — lancez le test de connexion",
+    "test": "Tester la connexion",
+    "testing": "Test en cours…",
+    "testOk": "Connexion OK · {{latency}} ms",
+    "testFailed": "Échec de la connexion",
+    "note": "Les tâches s’exécutent comme des sessions Codex indépendantes dans un espace de travail NEXUS isolé. Les fenêtres Codex Desktop ouvertes et l’historique existant ne sont pas touchés ; les modifications ne sont livrées qu’après revue et vérification.",
+    "installHint": "Codex n’a pas été détecté. Installez-le via Paramètres → Environnement de développement (winget install OpenAI.Codex) ou définissez NEXUS_CODEX_PATH vers le binaire codex, puis revérifiez.",
+    "usesOwnAccount": "Le canal Codex utilise sa propre connexion — aucune clé de fournisseur NEXUS requise."
   }
 }

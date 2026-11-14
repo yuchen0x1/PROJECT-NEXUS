@@ -99,7 +99,8 @@ export default function Workstation() {
   const [agentProjectId, setAgentProjectId] = useState('')
   const [agentProviderId, setAgentProviderId] = useState('')
   const [agentDisclosureConfirmed, setAgentDisclosureConfirmed] = useState(false)
-  const [agentTaskType, setAgentTaskType] = useState<'local-agent-runtime' | 'local-agent'>('local-agent-runtime')
+  const [agentTaskType, setAgentTaskType] = useState<'agent-bridge' | 'local-agent-runtime' | 'local-agent'>('local-agent-runtime')
+  const [agentBridge, setAgentBridge] = useState<Awaited<ReturnType<typeof api.agentBridgeStatus>> | null>(null)
   const [agentApprovalPolicy, setAgentApprovalPolicy] = useState('standard')
   const [agentWorkspaceMode, setAgentWorkspaceMode] = useState('auto')
   const [agentProviders, setAgentProviders] = useState<AgentProvider[]>([])
@@ -286,6 +287,8 @@ export default function Workstation() {
     })
     // PHASE 6: persistent provider registry and OS key-vault status.
     api.agentProviders().then((result) => { if (active) setAgentProviders(result.providers) }).catch(() => {})
+    // Local Agent Bridge: local Codex detection (no process spawned).
+    api.agentBridgeStatus().then((status) => { if (active) setAgentBridge(status) }).catch(() => {})
     bridge?.getProviderKeyStatus?.().then((status) => { if (active) setAgentKeyStatus(status) }).catch(() => {})
     return () => { active = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -509,6 +512,17 @@ export default function Workstation() {
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : t('errors:agentTaskRetry'))
     }
+  }
+
+  // Local Agent Bridge capability test: starts a real app-server probe
+  // (initialize + account/read + model list) and shuts it down again.
+  const handleTestAgentBridge = async () => {
+    setBusy('bridge-test')
+    try {
+      setAgentBridge(await api.agentBridgeStatus(true))
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t('errors:agentBridgeTest'))
+    } finally { setBusy(null) }
   }
 
   // ---- PHASE 6 Agent workbench handlers ----
@@ -858,6 +872,9 @@ export default function Workstation() {
             projectId={agentProjectId}
             providerId={agentProviderId}
             disclosureConfirmed={agentDisclosureConfirmed}
+            bridge={agentBridge}
+            bridgeTestBusy={busy === 'bridge-test'}
+            onBridgeTest={() => void handleTestAgentBridge()}
             taskType={agentTaskType}
             approvalPolicy={agentApprovalPolicy}
             workspaceMode={agentWorkspaceMode}
@@ -1480,7 +1497,7 @@ function WorkstationSettings({ info, systemLocale, onAutoStartChange }: {
     </section>
   </div>
 }
-function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, prompt, projectId, providerId, disclosureConfirmed, taskType, approvalPolicy, workspaceMode, providers, keyStatus, insights, busy, insightsBusy, actionBusy, onPromptChange, onProjectChange, onProviderChange, onDisclosureChange, onTaskTypeChange, onApprovalPolicyChange, onWorkspaceModeChange, onStart, onSelectTask, onCancel, onRetry, onRefresh, onResolveApproval, onRollback, onApply, onProvidersChanged, onProviderKeySet, onProviderKeyDelete, onProviderDelete, onProviderTest, onLoadInsights }: {
+function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, prompt, projectId, providerId, disclosureConfirmed, bridge, bridgeTestBusy, onBridgeTest, taskType, approvalPolicy, workspaceMode, providers, keyStatus, insights, busy, insightsBusy, actionBusy, onPromptChange, onProjectChange, onProviderChange, onDisclosureChange, onTaskTypeChange, onApprovalPolicyChange, onWorkspaceModeChange, onStart, onSelectTask, onCancel, onRetry, onRefresh, onResolveApproval, onRollback, onApply, onProvidersChanged, onProviderKeySet, onProviderKeyDelete, onProviderDelete, onProviderTest, onLoadInsights }: {
   projects: LocalProject[]
   config: Awaited<ReturnType<typeof api.localAgentConfig>> | null
   tasks: LocalAgentTask[]
@@ -1490,7 +1507,10 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
   projectId: string
   providerId: string
   disclosureConfirmed: boolean
-  taskType: 'local-agent-runtime' | 'local-agent'
+  bridge: Awaited<ReturnType<typeof api.agentBridgeStatus>> | null
+  bridgeTestBusy: boolean
+  onBridgeTest: () => void
+  taskType: 'agent-bridge' | 'local-agent-runtime' | 'local-agent'
   approvalPolicy: string
   workspaceMode: string
   providers: AgentProvider[]
@@ -1503,7 +1523,7 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
   onProjectChange: (value: string) => void
   onProviderChange: (value: string) => void
   onDisclosureChange: (value: boolean) => void
-  onTaskTypeChange: (value: 'local-agent-runtime' | 'local-agent') => void
+  onTaskTypeChange: (value: 'agent-bridge' | 'local-agent-runtime' | 'local-agent') => void
   onApprovalPolicyChange: (value: string) => void
   onWorkspaceModeChange: (value: string) => void
   onStart: () => void
@@ -1528,7 +1548,12 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
   const activeTask = selectedTask && AGENT_ACTIVE_STATUSES.includes(selectedTask.status)
   const maxPromptBytes = config?.limits.maxPromptBytes || 8192
   const promptBytes = new TextEncoder().encode(prompt).length
-  const runtimeTask = selectedTask?.type === 'local-agent-runtime'
+  // Display conditions shared by the internal runtime and the Codex bridge
+  // channel: both stream plans, tool calls and verification results.
+  const runtimeTask = selectedTask?.type === 'local-agent-runtime' || selectedTask?.type === 'agent-bridge'
+  const bridgeDetection = bridge?.bridge?.detection || null
+  const bridgeInstalled = Boolean(bridgeDetection?.installed)
+  const bridgeLive = bridge?.bridge?.live || null
   const pendingApprovals = selectedTask?.approvals.filter((approval) => approval.status === 'pending') || []
   const finishedTask = selectedTask && ['Succeeded', 'Failed', 'Blocked', 'Cancelled', 'Interrupted', 'TimedOut'].includes(selectedTask.status)
 
@@ -1549,22 +1574,31 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
           </label>
           <label className="nx-agent-field">
             <span>{t('agent:compose.providerLabel')}</span>
-            <select value={providerId} onChange={(event) => onProviderChange(event.target.value)} disabled={!configuredProviders.length}>
+            <select value={providerId} onChange={(event) => onProviderChange(event.target.value)} disabled={!configuredProviders.length || taskType === 'agent-bridge'}>
               <option value="">{t('agent:compose.providerPlaceholder')}</option>
               {configuredProviders.map((provider) => <option key={provider.id} value={provider.id}>{provider.name} · {provider.model}</option>)}
             </select>
           </label>
         </div>
         {!availableProjects.length && <div className="nx-agent-inline-note">{t('agent:compose.noProjects')}</div>}
-        {!configuredProviders.length && <div className="nx-agent-inline-note warning">{t('agent:compose.noProviders')}</div>}
+        {taskType === 'agent-bridge'
+          ? <div className="nx-agent-inline-note">{t('agent:bridge.usesOwnAccount')}</div>
+          : !configuredProviders.length && <div className="nx-agent-inline-note warning">{t('agent:compose.noProviders')}</div>}
         <div className="nx-agent-field-row nx-agent-runtime-row">
           <label className="nx-agent-field">
             <span>{t('agent:compose.taskTypeLabel')}</span>
-            <select value={taskType} onChange={(event) => onTaskTypeChange(event.target.value as 'local-agent-runtime' | 'local-agent')}>
+            <select value={taskType} onChange={(event) => onTaskTypeChange(event.target.value as 'agent-bridge' | 'local-agent-runtime' | 'local-agent')}>
+              <option value="agent-bridge" disabled={!bridgeInstalled}>{t('agent:compose.taskTypeBridge')}{bridgeInstalled ? '' : ` — ${t('agent:bridge.notInstalled')}`}</option>
               <option value="local-agent-runtime">{t('agent:compose.taskTypeRuntime')}</option>
               <option value="local-agent">{t('agent:compose.taskTypeLegacy')}</option>
             </select>
           </label>
+          {taskType === 'agent-bridge' && <label className="nx-agent-field">
+            <span>{t('agent:compose.workspaceModeLabel')}</span>
+            <select value={workspaceMode} onChange={(event) => onWorkspaceModeChange(event.target.value)}>
+              {['auto', 'worktree', 'copy'].map((mode) => <option key={mode} value={mode}>{t(`agent:workspaceMode.${mode}`, { defaultValue: mode })}</option>)}
+            </select>
+          </label>}
           {taskType === 'local-agent-runtime' && <>
             <label className="nx-agent-field">
               <span>{t('agent:compose.approvalPolicyLabel')}</span>
@@ -1580,6 +1614,21 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
             </label>
           </>}
         </div>
+        {taskType === 'agent-bridge' && <div className="nx-agent-bridge-status" data-testid="agent-bridge-status">
+          <div className="nx-agent-bridge-line">
+            <strong>{t('agent:bridge.title')}</strong>
+            <span className={bridgeInstalled ? 'ready' : 'blocked'}>{bridgeInstalled ? t('agent:bridge.installed', { version: bridgeDetection?.version || t('agent:bridge.versionUnknown') }) : t('agent:bridge.notInstalled')}</span>
+          </div>
+          {bridgeInstalled && <div className="nx-agent-bridge-line">
+            <span>{bridgeLive?.ok ? t('agent:bridge.authMode', { mode: bridgeLive.authMode || t('agent:bridge.authNone') }) : t('agent:bridge.authUnknown')}</span>
+            <button className="ghost-button compact" onClick={onBridgeTest} disabled={bridgeTestBusy}>{bridgeTestBusy ? t('agent:bridge.testing') : t('agent:bridge.test')}</button>
+          </div>}
+          {bridgeLive?.ok && <div className="nx-agent-bridge-line"><span>{t('agent:bridge.testOk', { latency: bridgeLive.latencyMs })}{bridgeLive.models?.length ? ` · ${bridgeLive.models.slice(0, 3).join(', ')}` : ''}</span></div>}
+          {bridgeLive && !bridgeLive.ok && <div className="nx-agent-bridge-line warning"><span>{t('agent:bridge.testFailed')}{bridgeLive.error ? `: ${bridgeLive.error}` : ''}</span></div>}
+          {bridgeInstalled
+            ? <div className="nx-agent-inline-note">{t('agent:bridge.note')}</div>
+            : <div className="nx-agent-inline-note warning">{t('agent:bridge.installHint')}</div>}
+        </div>}
         {taskType === 'local-agent-runtime' && <div className="nx-agent-inline-note">{t('agent:compose.runtimeNote')}</div>}
         <div className="nx-agent-field-row nx-agent-insights-row">
           <button className="nx-secondary" onClick={() => onLoadInsights(projectId)} disabled={!projectId || insightsBusy}>
@@ -1624,7 +1673,7 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
         </div>
         <div className="nx-agent-compose-footer">
           <span>{t('agent:compose.footerNote')}</span>
-          <button className="nx-primary" onClick={onStart} disabled={busy || !config?.configured || !projectId || !providerId || !prompt.trim() || !disclosureConfirmed}>
+          <button className="nx-primary" onClick={onStart} disabled={busy || !projectId || !prompt.trim() || !disclosureConfirmed || (taskType === 'agent-bridge' ? !bridgeInstalled : (!config?.configured || !providerId))}>
             <Bot size={14} />{busy ? t('agent:compose.submitting') : t('agent:compose.submit')}
           </button>
         </div>
@@ -1645,7 +1694,7 @@ function LocalAgentPage({ projects, config, tasks, selectedTaskId, detail, promp
             <span className="nx-agent-task-copy">
               <strong>{task.label}</strong>
               <small>{task.projectName} · {formatRelative(task.updatedAt || task.createdAt)}</small>
-              <small>{task.type === 'local-agent-runtime' ? `${t('agent:history.runtimeTag')}${task.toolCallCount ? ` · ${t('agent:history.toolCalls', { count: task.toolCallCount })}` : ''}` : t('common:units.change', { count: task.changedFiles.length })}</small>
+              <small>{task.type === 'local-agent-runtime' ? `${t('agent:history.runtimeTag')}${task.toolCallCount ? ` · ${t('agent:history.toolCalls', { count: task.toolCallCount })}` : ''}` : task.type === 'agent-bridge' ? `${t('agent:history.bridgeTag')}${task.toolCallCount ? ` · ${t('agent:history.toolCalls', { count: task.toolCallCount })}` : ''}` : t('common:units.change', { count: task.changedFiles.length })}</small>
             </span>
             <span className={`nx-agent-status ${statusClass(task.status)}`}>{t(`agent:status.${task.status}`, { defaultValue: task.status })}</span>
           </button>

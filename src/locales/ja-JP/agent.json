@@ -27,7 +27,8 @@
     "taskTypeLegacy": "単一パス提案（従来）",
     "approvalPolicyLabel": "承認ポリシー",
     "workspaceModeLabel": "ワークスペース分離",
-    "runtimeNote": "エージェントは計画を立て、分離されたワークスペースで実際のツールを呼び出し、ビルドとテストを実行し、失敗を自動修復し、自らの差分をレビューします。高リスク操作は承認のために一時停止します。"
+    "runtimeNote": "エージェントは計画を立て、分離されたワークスペースで実際のツールを呼び出し、ビルドとテストを実行し、失敗を自動修復し、自らの差分をレビューします。高リスク操作は承認のために一時停止します。",
+    "taskTypeBridge": "Codex ブリッジ（公式 App Server）"
   },
   "history": {
     "title": "タスク履歴",
@@ -37,7 +38,8 @@
     "emptyTitle": "ローカルのエージェントタスクはありません",
     "emptyDetail": "新しい提案とその保存された状態がここに表示されます。",
     "runtimeTag": "自律実行",
-    "toolCalls": "{{count}} 回のツール呼び出し"
+    "toolCalls": "{{count}} 回のツール呼び出し",
+    "bridgeTag": "Codex ブリッジ"
   },
   "review": {
     "title": "分離された変更のレビュー",
@@ -209,5 +211,21 @@
   "decision": {
     "approved": "承認",
     "denied": "拒否"
+  },
+  "bridge": {
+    "title": "ローカル Agent ブリッジ · Codex",
+    "installed": "インストール済み · {{version}}",
+    "notInstalled": "Codex が見つかりません",
+    "versionUnknown": "バージョン不明",
+    "authMode": "サインイン状態：{{mode}}",
+    "authNone": "未サインイン",
+    "authUnknown": "サインイン状態不明 — 接続テストを実行してください",
+    "test": "接続テスト",
+    "testing": "テスト中…",
+    "testOk": "接続正常 · {{latency}} ms",
+    "testFailed": "接続に失敗しました",
+    "note": "タスクは NEXUS の隔離ワークスペース内で独立した Codex セッションとして実行されます。開いている Codex Desktop のウィンドウや既存の履歴には影響しません。変更はレビューと検証を通過した後にのみ反映されます。",
+    "installHint": "Codex が検出されませんでした。設定 → 開発環境からワンクリックインストール（winget install OpenAI.Codex）するか、NEXUS_CODEX_PATH に codex バイナリを指定して再検出してください。",
+    "usesOwnAccount": "Codex チャネルは独自のサインインを使用します。NEXUS プロバイダーキーは不要です。"
   }
 }

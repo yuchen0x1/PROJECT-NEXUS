@@ -27,7 +27,8 @@
     "taskTypeLegacy": "Proposta de passada única (legado)",
     "approvalPolicyLabel": "Política de aprovação",
     "workspaceModeLabel": "Isolamento do espaço de trabalho",
-    "runtimeNote": "O agente planeia, chama ferramentas reais em um espaço de trabalho isolado, executa build/testes, repara falhas e revisa o próprio diff. Ações de alto risco pausam para sua aprovação."
+    "runtimeNote": "O agente planeia, chama ferramentas reais em um espaço de trabalho isolado, executa build/testes, repara falhas e revisa o próprio diff. Ações de alto risco pausam para sua aprovação.",
+    "taskTypeBridge": "Ponte Codex (App Server oficial)"
   },
   "history": {
     "title": "Histórico de tarefas",
@@ -37,7 +38,8 @@
     "emptyTitle": "Nenhuma tarefa local do agente",
     "emptyDetail": "As novas propostas e seus estados salvos aparecerão aqui.",
     "runtimeTag": "Execução autônoma",
-    "toolCalls": "{{count}} chamadas de ferramentas"
+    "toolCalls": "{{count}} chamadas de ferramentas",
+    "bridgeTag": "Ponte Codex"
   },
   "review": {
     "title": "Revisão de alterações isoladas",
@@ -209,5 +211,21 @@
   "decision": {
     "approved": "aprovada",
     "denied": "negada"
+  },
+  "bridge": {
+    "title": "Ponte de agente local · Codex",
+    "installed": "Instalado · {{version}}",
+    "notInstalled": "Codex não detectado",
+    "versionUnknown": "versão desconhecida",
+    "authMode": "Sessão: {{mode}}",
+    "authNone": "não autenticado",
+    "authUnknown": "Estado de autenticação desconhecido — execute o teste de conexão",
+    "test": "Testar conexão",
+    "testing": "Testando…",
+    "testOk": "Conexão OK · {{latency}} ms",
+    "testFailed": "Falha na conexão",
+    "note": "As tarefas rodam como sessões Codex independentes dentro de um espaço de trabalho isolado do NEXUS. Janelas abertas do Codex Desktop e o histórico existente não são tocados; alterações só são entregues após revisão e verificação.",
+    "installHint": "Codex não foi detectado. Instale-o em Configurações → Ambiente de desenvolvimento (winget install OpenAI.Codex) ou defina NEXUS_CODEX_PATH apontando para o binário do codex e verifique novamente.",
+    "usesOwnAccount": "O canal Codex usa a própria autenticação — nenhuma chave de provedor do NEXUS é necessária."
   }
 }

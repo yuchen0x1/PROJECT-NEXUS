@@ -20,5 +20,6 @@
   "agentApply": "No se pudieron aplicar los cambios al proyecto.",
   "providerKeySave": "No se pudo guardar la clave API de forma segura.",
   "providerSave": "No se pudo guardar el proveedor.",
-  "agentInsights": "No se pudo analizar el proyecto."
+  "agentInsights": "No se pudo analizar el proyecto.",
+  "agentBridgeTest": "La prueba de conexión de Codex falló."
 }

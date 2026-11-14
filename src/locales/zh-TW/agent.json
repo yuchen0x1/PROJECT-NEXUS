@@ -27,7 +27,8 @@
     "taskTypeLegacy": "單輪提案（舊版）",
     "approvalPolicyLabel": "核准策略",
     "workspaceModeLabel": "工作區隔離",
-    "runtimeNote": "Agent 會規劃任務、在隔離工作區中呼叫真實工具、執行建置與測試、自動修復失敗並審查自己的差異。高風險操作會暫停等待您的核准。"
+    "runtimeNote": "Agent 會規劃任務、在隔離工作區中呼叫真實工具、執行建置與測試、自動修復失敗並審查自己的差異。高風險操作會暫停等待您的核准。",
+    "taskTypeBridge": "Codex 橋接（官方 App Server）"
   },
   "history": {
     "title": "任務歷史記錄",
@@ -37,7 +38,8 @@
     "emptyTitle": "沒有本機代理任務",
     "emptyDetail": "新的提案及其儲存的狀態會顯示在這裡。",
     "runtimeTag": "自主執行",
-    "toolCalls": "{{count}} 次工具呼叫"
+    "toolCalls": "{{count}} 次工具呼叫",
+    "bridgeTag": "Codex 橋接"
   },
   "review": {
     "title": "隔離變更審查",
@@ -209,5 +211,21 @@
   "decision": {
     "approved": "核准",
     "denied": "拒絕"
+  },
+  "bridge": {
+    "title": "本機 Agent 橋接 · Codex",
+    "installed": "已安裝 · {{version}}",
+    "notInstalled": "未偵測到 Codex",
+    "versionUnknown": "版本未知",
+    "authMode": "登入狀態：{{mode}}",
+    "authNone": "未登入",
+    "authUnknown": "登入狀態未知——請先執行連線測試",
+    "test": "測試連線",
+    "testing": "正在測試…",
+    "testOk": "連線正常 · {{latency}} ms",
+    "testFailed": "連線失敗",
+    "note": "任務以獨立 Codex 工作階段在 NEXUS 隔離工作區內執行。已開啟的 Codex Desktop 視窗與既有歷史工作階段不受影響；變更僅在審查並通過驗證後才會交付。",
+    "installHint": "未偵測到本機 Codex。可在設定頁「開發環境」一鍵安裝（winget install OpenAI.Codex），或設定 NEXUS_CODEX_PATH 指向 codex 執行檔後重新偵測。",
+    "usesOwnAccount": "Codex 通道使用其自身登入，無需設定 NEXUS 提供商金鑰。"
   }
 }

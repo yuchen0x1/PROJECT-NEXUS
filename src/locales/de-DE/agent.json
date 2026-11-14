@@ -27,7 +27,8 @@
     "taskTypeLegacy": "Einmalvorschlag (veraltet)",
     "approvalPolicyLabel": "Genehmigungsrichtlinie",
     "workspaceModeLabel": "Workspace-Isolation",
-    "runtimeNote": "Der Agent plant, ruft echte Tools in einem isolierten Workspace auf, führt Build/Tests aus, repariert Fehler und prüft sein eigenes Diff. Hochriskante Aktionen pausieren für Ihre Genehmigung."
+    "runtimeNote": "Der Agent plant, ruft echte Tools in einem isolierten Workspace auf, führt Build/Tests aus, repariert Fehler und prüft sein eigenes Diff. Hochriskante Aktionen pausieren für Ihre Genehmigung.",
+    "taskTypeBridge": "Codex-Brücke (offizieller App Server)"
   },
   "history": {
     "title": "Aufgabenverlauf",
@@ -37,7 +38,8 @@
     "emptyTitle": "Keine lokalen Agent-Aufgaben",
     "emptyDetail": "Neue Vorschläge und ihr gespeicherter Zustand erscheinen hier.",
     "runtimeTag": "Autonomer Lauf",
-    "toolCalls": "{{count}} Tool-Aufrufe"
+    "toolCalls": "{{count}} Tool-Aufrufe",
+    "bridgeTag": "Codex-Brücke"
   },
   "review": {
     "title": "Prüfung isolierter Änderungen",
@@ -209,5 +211,21 @@
   "decision": {
     "approved": "genehmigt",
     "denied": "abgelehnt"
+  },
+  "bridge": {
+    "title": "Lokale-Agent-Brücke · Codex",
+    "installed": "Installiert · {{version}}",
+    "notInstalled": "Codex nicht erkannt",
+    "versionUnknown": "Version unbekannt",
+    "authMode": "Anmeldung: {{mode}}",
+    "authNone": "nicht angemeldet",
+    "authUnknown": "Anmeldestatus unbekannt — Verbindungstest ausführen",
+    "test": "Verbindung testen",
+    "testing": "Teste…",
+    "testOk": "Verbindung ok · {{latency}} ms",
+    "testFailed": "Verbindung fehlgeschlagen",
+    "note": "Aufgaben laufen als eigenständige Codex-Sitzungen innerhalb eines isolierten NEXUS-Arbeitsbereichs. Geöffnete Codex-Desktop-Fenster und bestehende Verläufe bleiben unberührt; Änderungen werden erst nach Prüfung und Verifikation übernommen.",
+    "installHint": "Codex wurde nicht erkannt. Installieren Sie es über Einstellungen → Entwicklungsumgebung (winget install OpenAI.Codex) oder setzen Sie NEXUS_CODEX_PATH auf die Codex-Binärdatei und prüfen Sie erneut.",
+    "usesOwnAccount": "Der Codex-Kanal nutzt seine eigene Anmeldung — kein NEXUS-Provider-Schlüssel nötig."
   }
 }

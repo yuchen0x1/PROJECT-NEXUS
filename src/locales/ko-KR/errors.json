@@ -20,5 +20,6 @@
   "agentApply": "변경 사항을 프로젝트에 적용할 수 없습니다.",
   "providerKeySave": "API 키를 안전하게 저장할 수 없습니다.",
   "providerSave": "공급자를 저장할 수 없습니다.",
-  "agentInsights": "프로젝트를 분석할 수 없습니다."
+  "agentInsights": "프로젝트를 분석할 수 없습니다.",
+  "agentBridgeTest": "Codex 연결 테스트에 실패했습니다."
 }

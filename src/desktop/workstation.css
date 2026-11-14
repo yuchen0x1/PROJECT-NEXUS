@@ -932,3 +932,16 @@
 .hosting-gates.hosting-script-consent { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 16px 24px; }
 .hosting-script-consent label { display: flex; align-items: flex-start; gap: 8px; line-height: 1.6; }
 .hosting-script-consent input { margin-top: 4px; flex-shrink: 0; }
+
+/* Local Agent Bridge (Codex channel) status block */
+.nx-agent-bridge-status {
+  display: grid; gap: 7px;
+  padding: 10px 12px;
+  border: 1px solid var(--nx-line-strong); border-radius: var(--nx-r-md);
+  background: var(--nx-bg-raised);
+}
+.nx-agent-bridge-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: var(--nx-fs-xs); color: var(--nx-text-2); }
+.nx-agent-bridge-line strong { font-size: var(--nx-fs-xs); color: var(--nx-text); }
+.nx-agent-bridge-line .ready { color: var(--nx-ok, #34d399); }
+.nx-agent-bridge-line .blocked { color: var(--nx-danger, #f87171); }
+.nx-agent-bridge-line.warning span { color: var(--nx-warning); }

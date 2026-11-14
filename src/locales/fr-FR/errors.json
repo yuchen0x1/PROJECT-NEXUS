@@ -20,5 +20,6 @@
   "agentApply": "Les modifications n’ont pas pu être appliquées au projet.",
   "providerKeySave": "La clé API n’a pas pu être stockée de manière sécurisée.",
   "providerSave": "Le fournisseur n’a pas pu être enregistré.",
-  "agentInsights": "Le projet n’a pas pu être analysé."
+  "agentInsights": "Le projet n’a pas pu être analysé.",
+  "agentBridgeTest": "Le test de connexion Codex a échoué."
 }
