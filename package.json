@@ -2,6 +2,7 @@
   "name": "project-nexus",
   "version": "0.8.6",
   "description": "Windows AI development and project operations workstation",
+  "license": "MIT",
   "author": {
     "name": "PROJECT NEXUS"
   },
