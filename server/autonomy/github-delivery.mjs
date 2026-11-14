@@ -141,5 +141,3 @@ export class GithubDelivery {
     return this.record(repo, 'notification', result).result
   }
 }
-
-\n
