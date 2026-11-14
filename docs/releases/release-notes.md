@@ -6,6 +6,7 @@
 
 | 版本 | 日期 | 更新主题 | 详细说明 |
 | --- | --- | --- | --- |
+| [v0.8.7](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.7) | 2026-11-14 | 一键下载开发环境 | [更新、下载与校验](v0.8.7.md) |
 | [v0.8.6](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.6) | 2026-11-14 | 首次启动自动教学 | [更新、下载与校验](v0.8.6.md) |
 | [v0.8.2](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.2) | 2026-11-13 | 应用自动更新 | [更新、下载与校验](v0.8.2.md) |
 | [v0.8.0](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.0) | 2026-11-13 | 新图标与协作维护 | [更新、下载与校验](v0.8.0.md) |
@@ -15,6 +16,17 @@
 | [v0.1.0](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.1.0) | 2026-11-13 | Windows 桌面与本地 Agent | [更新、下载与校验](v0.1.0.md) |
 
 未单独发布安装包的 v0.2.0、v0.4.0、v0.5.0、v0.5.1、v0.6.0 作为开发阶段记录保留。v0.8.1 只有源码标签；不为这些版本补造 Release 或下载地址。以下验证结果均为对应版本的历史记录，不表示本次重新运行验收。
+
+## v0.8.7 · 一键下载开发环境
+
+2026-11-14 · 已发布开发预览 · GitHub Latest
+
+- 开发环境页在「重新检测」旁新增「一键下载」：缺失的开发工具经 winget 静默安装，确认对话框列出清单，安装中实时显示进度。
+- npm、pip、Python launcher、cargo 由 Node.js、Python、Rustup 包附带安装，不重复安装；完成后自动刷新 PATH 并重新检测，无需重启 NEXUS。
+- 覆盖 Git、GitHub CLI、Node.js、Python、uv、Temurin JDK、Maven、Gradle、PowerShell 7、Windows Terminal、Rustup、.NET SDK、Docker Desktop、pnpm、yarn 共 15 个 winget 包。
+- 机器级安装包会弹出 UAC 授权窗口；winget 缺失时直接提示。安装来源为 winget 官方源，不使用任意下载地址。
+
+真实端到端安装尚未在真机验收；安装、校验范围与限制见 [本版说明](v0.8.7.md)。
 
 ## v0.8.6 · 首次启动自动教学
 

@@ -16,7 +16,7 @@
 
 **在线宣传页：[project-nexus.edgeone.dev](https://project-nexus.edgeone.dev/)**（源码位于 `website/`，纯静态、零依赖，通过 [EdgeOne Pages](https://pages.edgeone.ai/) 免费托管）
 
-> **发布状态（如实说明）**：v0.8.6 为 Windows x64 开发预览，已进入应用内自动更新通道；安装包未签名，不是 v1.0 稳定版。下载前请通过发布页的 SHA256 校验文件核对完整性。
+> **发布状态（如实说明）**：v0.8.7 为 Windows x64 开发预览，已进入应用内自动更新通道；安装包未签名，不是 v1.0 稳定版。下载前请通过发布页的 SHA256 校验文件核对完整性。
 
 <p align="center">
   <img src="docs/screenshots/overview.png" width="720" alt="PROJECT NEXUS 工作台界面">

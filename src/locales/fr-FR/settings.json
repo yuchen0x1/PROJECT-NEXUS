@@ -109,6 +109,10 @@
         "v0_8_6": {
           "title": "Tutoriel automatique au premier démarrage",
           "summary": "Le premier démarrage ouvre automatiquement la configuration guidée. Vous pouvez reprendre plus tard et découvrir où consulter les tâches et les résultats. Une fois terminé, le guide reste accessible depuis son bouton."
+        },
+        "v0_8_7": {
+          "title": "Installation des outils en un clic",
+          "summary": "La page d'environnement gagne un téléchargement en un clic : les outils de développement manquants sont installés silencieusement via winget, puis PATH est actualisé et l'environnement réanalysé sans redémarrage de l'application."
         }
       }
     }

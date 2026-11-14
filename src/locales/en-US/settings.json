@@ -109,6 +109,10 @@
         "v0_8_6": {
           "title": "Automatic first-use tutorial",
           "summary": "The first launch opens guided setup automatically. Continue later if needed, then learn where tasks and results appear. Once completed, the tutorial stays available from the guide button without opening automatically."
+        },
+        "v0_8_7": {
+          "title": "One-click dev tool install",
+          "summary": "The environment page gains one-click download: missing development tools are installed silently through winget, then PATH is refreshed and the environment re-scanned without an app restart."
         }
       }
     }

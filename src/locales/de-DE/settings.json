@@ -109,6 +109,10 @@
         "v0_8_6": {
           "title": "Automatische Anleitung beim ersten Start",
           "summary": "Beim ersten Start öffnet sich die geführte Einrichtung automatisch. Du kannst später fortfahren und anschließend die Aufgaben und Ergebnisse kennenlernen. Nach Abschluss bleibt die Anleitung über die Schaltfläche erreichbar."
+        },
+        "v0_8_7": {
+          "title": "Entwicklungswerkzeuge mit einem Klick",
+          "summary": "Die Umgebungsseite erhält einen Download mit einem Klick: Fehlende Entwicklungswerkzeuge werden über winget still installiert, danach wird PATH aktualisiert und die Umgebung ohne Anwendungsneustart neu geprüft."
         }
       }
     }

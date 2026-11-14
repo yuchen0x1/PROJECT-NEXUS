@@ -109,6 +109,10 @@
         "v0_8_6": {
           "title": "Tutorial automático no primeiro uso",
           "summary": "A primeira inicialização abre a configuração guiada automaticamente. Você pode continuar depois e conhecer onde aparecem as tarefas e os resultados. Após concluir, o guia continua disponível pelo botão sem abrir automaticamente."
+        },
+        "v0_8_7": {
+          "title": "Instalação de ferramentas com um clique",
+          "summary": "A página de ambiente ganha download com um clique: as ferramentas de desenvolvimento ausentes são instaladas silenciosamente via winget e, depois, o PATH é atualizado e o ambiente é reescaneado sem reiniciar o aplicativo."
         }
       }
     }
