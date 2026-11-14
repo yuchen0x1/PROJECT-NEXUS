@@ -12,7 +12,7 @@
 - 持久化与恢复：SQLite schema v2；服务重启后仓库、9 个游标、9 个 ETag 全部保留；JSON 降级后端可用。
 - 独立验收链路、任务包脱敏、发布门禁、调度优先级/互斥/恢复/超时：55 项新增单元测试全部通过。
 - 全套 `npm run check` 最终 `CHECK_EXIT=0`（typecheck / lint / **414 项测试全通过** / build）；十语言 i18n 审计 0 问题、覆盖率 100%。
-- Windows NSIS 安装包本地构建成功（118 MB，SHA256 见 README），未签名、未公开发布。
+- Windows NSIS 安装包构建成功并作为 [v0.9.0 正式 Release](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.0) 资产上传（118 MB，4 个资产含 `latest.yml` 与 `SHA256SUMS.txt`）；安装包未签名。
 
 ## 2. 已实现，但**未端到端真实验证**
 
@@ -27,7 +27,8 @@
 
 ## 3. 明确未完成
 
-1. **真实远程写入**：未创建 PR、未合并、未创建 GitHub Release、未推送通知。新引擎生成变更摘要、测试报告、安全检查报告、版本号、CHANGELOG 与发布门禁结论；实际写入沿用既有受 `NEXUS_ENABLE_REMOTE_WRITES` + 角色门禁保护的 `delivery-stage.mjs` 通道，需用户显式授权。默认全部关闭。
+1. **应用自动远程写入**：应用本身未自动创建 PR、未自动合并、未自动创建 GitHub Release、未推送通知。新引擎生成变更摘要、测试报告、安全检查报告、版本号、CHANGELOG 与发布门禁结论；实际写入沿用既有受 `NEXUS_ENABLE_REMOTE_WRITES` + 角色门禁保护的 `delivery-stage.mjs` 通道，需用户显式授权，默认全部关闭。
+   > 澄清：v0.9.0 的 GitHub Release 是**开发者按用户明确指令、在应用外部**通过 git push + GitHub REST API 手动发布的，不属于应用自动发布能力的验证结果。该发布未改动用户工作区以外的任何远程仓库内容，也未执行 force push。
 2. **外部安全工具链**：未集成 CodeQL、Semgrep、Gitleaks、Trivy、`npm audit`。当前安全扫描为规则级（密钥/CVE 关键词/危险命令/敏感路径/依赖告警事件），第 4.2 节要求的工具集成仍是待办，不宣称完成。
 3. **Bug 静态扫描深度**：第 4.1 节列出的逻辑错误、空指针、异步竞争、内存泄漏等，当前通过「测试 + 构建 + lint/typecheck + diff 审查 + 既有 repository-scanner」间接覆盖，没有专门的静态分析引擎。
 4. **24 小时连续运行验收**：后台 ticker、持久化恢复、退避、超时都已实现并有测试，但单次会话内未做 24 小时浸泡运行，不伪造长时运行记录。

@@ -118,3 +118,7 @@ tests/unit/ (65 个文件 / 359 个测试)
 | 真实远程写入（push / PR / Release） | 需要用户明确授权，指令禁止擅自操作远程仓库 | 只实现门禁与流程；默认关闭，未获授权不执行 |
 | 真实 AI 客户端执行代码修改 | 依赖已登录客户端与 UIA | 用独立 Git worktree + diff + 测试的验收链保证「不看 AI 自我报告」；人工接管时由用户粘贴任务包，结果仍由 NEXUS 独立验收 |
 | 24 小时连续运行 | 单次会话时间有限 | 提供可复现的后台 tick、持久化恢复与单元测试；不伪造长时运行记录 |
+
+> **审计后更新（如实补记）**：以上是阶段一审计当时的判断，后续实测修正了两条：
+> 1. UIA 并非不可用——`uia-driver.ps1` 加上进程级 `-ExecutionPolicy Bypass` 后，`UIAutomationClient` 真实加载成功，并枚举 12 个顶层窗口、识别 ChatGPT 与 WorkBuddy 窗口（证据 `docs/evidence/autonomy-v2-uia-real-windows.json`）。控件级发送仍未对真实已登录客户端端到端验证。
+> 2. 用户随后明确指令「推送发布新版本」，v0.9.0 已由开发者在**应用外部**通过 `git push` + GitHub REST API 正式发布（[Release v0.9.0](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.0)）。这不属于应用自动发布能力的验证，应用内远程写入仍默认关闭。

@@ -6,7 +6,7 @@
 
 | 版本 | 日期 | 更新主题 | 详细说明 |
 | --- | --- | --- | --- |
-| v0.9.0（未公开发布） | 2026-11-15 | 24/7 自主运维运行时与桌面 AI 客户端接入 | [完整版本更新说明](v0.9.0.md) |
+| [v0.9.0](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.0) | 2026-11-15 | 24/7 自主运维运行时与桌面 AI 客户端接入 | [更新、下载与校验](v0.9.0.md) |
 | [v0.8.9](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.9) | 2026-11-15 | ZIP 基线三方比较与 Agent 适配器 | [更新、下载与校验](v0.8.9.md) |
 | [v0.8.8](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.8) | 2026-11-15 | 本机 Codex 桥接与仓库来源档案 | [更新、下载与校验](v0.8.8.md) |
 | [v0.8.7](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.7) | 2026-11-14 | 一键下载开发环境 | [更新、下载与校验](v0.8.7.md) |
@@ -20,9 +20,9 @@
 
 未单独发布安装包的 v0.2.0、v0.4.0、v0.5.0、v0.5.1、v0.6.0 作为开发阶段记录保留。v0.8.1 只有源码标签；不为这些版本补造 Release 或下载地址。以下验证结果均为对应版本的历史记录，不表示本次重新运行验收。
 
-## v0.9.0 · 24/7 自主运维运行时（本地开发预览，未公开发布）
+## v0.9.0 · 24/7 自主运维运行时（已发布开发预览）
 
-2026-11-15 · 源码与本地构建产物，无公开 GitHub Release 与安装包资产
+2026-11-15 · [GitHub Release v0.9.0](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.0) · 正式发布（非预发布）· 4 个资产：安装包、blockmap、SHA256SUMS.txt、latest.yml（应用内自动更新可用）· 安装包未签名
 
 - 新增独立命名空间 `server/autonomy/`：SQLite 持久化（schema v2，含 JSON 降级）、统一任务与 16 态执行状态机、append-only 审计。
 - 新增由服务进程驱动的 60 秒后台 ticker，窗口关闭/最小化到托盘仍运行；重启恢复保留现场且不重发任务。

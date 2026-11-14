@@ -16,7 +16,7 @@
 
 **在线宣传页：[project-nexus.edgeone.dev](https://project-nexus.edgeone.dev/)**（源码在 `website/`）
 
-> **发布状态（如实说明）**：v0.9.0 为 Windows x64 开发预览，安装包未签名，不是 v1.0 稳定版。完整能力边界见 [已知限制](docs/AUTONOMY_V2_LIMITATIONS.md)。
+> **发布状态（如实说明）**：v0.9.0 已发布为 Windows x64 开发预览，安装包未签名，不是 v1.0 稳定版；下载前请核对 SHA-256。完整能力边界见 [已知限制](docs/AUTONOMY_V2_LIMITATIONS.md)。
 
 ## 项目定位
 
@@ -169,22 +169,27 @@ curl http://127.0.0.1:4317/api/autonomy/overview
 
 工作台总览：[docs/screenshots/overview.png](docs/screenshots/overview.png)。
 
-### 本地构建产物（v0.9.0）
+### v0.9.0 发布资产
 
-构建命令（本次因 `release/win-unpacked` 被运行中的旧实例占用，改用独立输出目录）：
+[下载 v0.9.0 Windows x64 安装包与校验文件](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.0)（正式 Release，4 个资产：安装包、`.blockmap`、`SHA256SUMS.txt`、`latest.yml`）。
+
+| 文件 | 大小 | 说明 |
+| --- | --- | --- |
+| `PROJECT-NEXUS-0.9.0-win-x64-setup.exe` | 118 MB | NSIS x64 安装包，**未签名** |
+| `PROJECT-NEXUS-0.9.0-win-x64-setup.exe.blockmap` | 127 KB | 增量更新块映射 |
+| `SHA256SUMS.txt` | 104 B | SHA-256 校验 |
+| `latest.yml` | 371 B | 应用内自动更新清单（0.8.2+ 可直接检查更新升级） |
+
+安装包 SHA-256：`dc96e52721d51ffe902b296c1e5fdd5f0619ed145a8fea7f419c140110acc999`
+
+本地重新构建（本次因 `release/win-unpacked` 被运行中的旧实例占用，改用独立输出目录）：
 
 ```bash
 npm run build
 npx electron-builder --win nsis --x64 --publish never -c.directories.output=release-v090
 ```
 
-产出：
-
-| 文件 | 大小 | SHA256 |
-| --- | --- | --- |
-| `release-v090/PROJECT-NEXUS-0.9.0-win-x64-setup.exe` | 118 MB | `dc96e52721d51ffe902b296c1e5fdd5f0619ed145a8fea7f419c140110acc999` |
-
-未签名，仅本地开发预览；未上传 GitHub Release，不对外提供下载地址。`release-v090/` 已由 `.gitignore` 忽略。
+`release-v090/` 与历史 `release/` 均由 `.gitignore` 忽略，不进版本库。
 
 ## 测试方法
 
