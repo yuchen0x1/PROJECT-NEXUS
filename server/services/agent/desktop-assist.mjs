@@ -120,9 +120,11 @@ export async function detectCodexDesktop({ env = process.env, execImpl = execPro
 
   const primary = entries.find((entry) => entry.installLocation) || entries[0]
   const exe = await resolveLauncherExe(primary)
+  // The injected execImpl must reach the process probe too — otherwise tests
+  // silently depend on the host machine's own process list.
   const running = exe
-    ? await probeRunningProcess([path.basename(exe), 'codex'])
-    : await probeRunningProcess(['codex'])
+    ? await probeRunningProcess([path.basename(exe), 'codex'], { execImpl })
+    : await probeRunningProcess(['codex'], { execImpl })
   return {
     supported: true,
     installed: true,
