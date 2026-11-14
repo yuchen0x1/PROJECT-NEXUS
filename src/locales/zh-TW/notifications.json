@@ -12,6 +12,18 @@
     "environmentCheckFailed": {
       "label": "環境偵測失敗"
     },
+    "environmentInstallFinished": {
+      "label": "一鍵下載安裝完成",
+      "detail": "已安裝 {{installed}} 個開發工具。"
+    },
+    "environmentInstallPartial": {
+      "label": "一鍵下載安裝部分完成",
+      "detail": "已安裝 {{installed}} 個工具，{{failed}} 個失敗。"
+    },
+    "environmentInstallFailed": {
+      "label": "一鍵下載安裝失敗",
+      "detail": "{{failed}} 個工具未能安裝。"
+    },
     "projectAdded": {
       "label": "已新增本機專案"
     },

@@ -2,6 +2,7 @@
   "generic": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
   "loadFailed": "Die angeforderten Daten konnten nicht geladen werden.",
   "environmentCheck": "Die Umgebungsprüfung ist fehlgeschlagen.",
+  "environmentInstall": "Download und Installation mit einem Klick sind fehlgeschlagen.",
   "addProject": "Dieser Ordner konnte nicht hinzugefügt werden.",
   "scanProject": "Der Projekt-Scan ist fehlgeschlagen.",
   "removeProject": "Der Projektverweis konnte nicht entfernt werden.",

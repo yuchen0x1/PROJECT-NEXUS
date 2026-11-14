@@ -2,6 +2,7 @@
   "generic": "發生問題，請再試一次。",
   "loadFailed": "無法載入所要求的資料。",
   "environmentCheck": "環境偵測失敗。",
+  "environmentInstall": "一鍵下載安裝失敗。",
   "addProject": "無法新增該資料夾。",
   "scanProject": "專案掃描失敗。",
   "removeProject": "無法移除專案參照。",

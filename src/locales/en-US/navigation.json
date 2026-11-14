@@ -35,6 +35,7 @@
     "actions": {
       "addProject": "Add a local project folder",
       "recheckEnvironment": "Recheck development environment",
+      "installEnvironment": "Download missing development tools",
       "refreshProjects": "Refresh project list",
       "openRemote": "Open the remote console",
       "openSettings": "Open settings",

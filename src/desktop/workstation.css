@@ -210,6 +210,15 @@
   background: var(--nx-bg-panel);
 }
 .nx-readiness-bar.compact { margin-bottom: 16px; }
+.nx-readiness-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.nx-env-install-progress {
+  display: flex; align-items: center; gap: 8px;
+  margin: -8px 0 16px; padding: 9px 15px;
+  color: var(--nx-text-2); font-size: var(--nx-fs-xs);
+  border: 1px solid var(--nx-line); border-radius: var(--nx-r-lg);
+  background: var(--nx-bg-panel);
+}
+.nx-env-install-progress span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nx-ready-symbol {
   width: 34px; height: 34px; flex: 0 0 auto;
   display: grid; place-items: center;

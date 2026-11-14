@@ -35,6 +35,7 @@
     "actions": {
       "addProject": "Adicionar uma pasta de projeto local",
       "recheckEnvironment": "Reverificar o ambiente de desenvolvimento",
+      "installEnvironment": "Baixar ferramentas de desenvolvimento ausentes",
       "refreshProjects": "Atualizar a lista de projetos",
       "openRemote": "Abrir o console remoto",
       "openSettings": "Abrir configurações",

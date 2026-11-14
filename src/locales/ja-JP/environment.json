@@ -8,6 +8,26 @@
     "running": "環境検出が実行中です",
     "detail": "実行可能ファイルは、安全が確認できる範囲でバージョン確認を行います。コマンドシムと Windows Terminal は実行せずパスによって検出され、複数の PATH エントリーは競合として警告されます。"
   },
+  "install": {
+    "button": "ワンクリックダウンロード",
+    "buttonHint": "winget で不足している開発ツールを自動的にダウンロードしてインストールします。処理中に UAC（ユーザーアカウント制御）ダイアログが表示されることがあります。",
+    "confirmTitle": "不足している開発ツールのダウンロード",
+    "confirmMessage": "winget で {{total}} 個の不足ツール（{{tools}}）をダウンロードしてインストールします。",
+    "confirmDetail": "インストーラーは winget でサイレント実行されます。UAC ダイアログが複数回表示される場合があります。完了後、PATH を更新して環境を再スキャンします。",
+    "confirmAction": "ダウンロードしてインストール",
+    "installing": "インストール中 {{current}}/{{total}}：{{label}}",
+    "phase": {
+      "preparing": "インストールを準備中…",
+      "refreshing": "PATH を更新中…",
+      "finalizing": "環境を再スキャン中…"
+    },
+    "allPresent": "開発環境は完全です。ダウンロードは不要です。",
+    "inProgressToast": "ダウンロードとインストールのタスクが既に実行中です。",
+    "wingetMissing": "winget（Windows パッケージマネージャー）が見つからないため、ワンクリックインストールを実行できません。",
+    "finishedOk": "{{installed}} 個のツールをインストールし、環境チェックに合格しました。",
+    "finishedPartial": "{{installed}} 個のツールをインストールし、{{failed}} 個が失敗しました。詳細はログを確認してください。",
+    "finishedFailed": "{{failed}} 個のツールのインストールに失敗しました。詳細はログを確認してください。"
+  },
   "table": {
     "title": "インストール済みの開発ツール",
     "scannedAt": "{{time}} に確認",

@@ -12,6 +12,18 @@
     "environmentCheckFailed": {
       "label": "Environment check failed"
     },
+    "environmentInstallFinished": {
+      "label": "One-click install finished",
+      "detail": "{{installed}} development tools installed."
+    },
+    "environmentInstallPartial": {
+      "label": "One-click install partially finished",
+      "detail": "{{installed}} tools installed, {{failed}} failed."
+    },
+    "environmentInstallFailed": {
+      "label": "One-click install failed",
+      "detail": "{{failed}} tools could not be installed."
+    },
     "projectAdded": {
       "label": "Local project added"
     },

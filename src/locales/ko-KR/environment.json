@@ -8,6 +8,26 @@
     "running": "환경 감지가 실행 중입니다",
     "detail": "실행 파일은 안전한 범위에서만 버전 확인을 수행합니다. 명령 shim과 Windows Terminal은 실행하지 않고 경로로 감지하며, 여러 PATH 항목은 충돌로 표시됩니다."
   },
+  "install": {
+    "button": "원클릭 다운로드",
+    "buttonHint": "winget을 통해 누락된 개발 도구를 자동으로 다운로드하고 설치합니다. 진행 중에 UAC(사용자 계정 컨트롤) 창이 여러 번 표시될 수 있습니다.",
+    "confirmTitle": "누락된 개발 도구 다운로드",
+    "confirmMessage": "winget으로 {{total}}개의 누락된 도구({{tools}})를 다운로드하여 설치합니다.",
+    "confirmDetail": "설치 프로그램은 winget에서 자동 모드로 실행됩니다. UAC 창이 여러 번 표시될 수 있으며, 완료 후 PATH을 새로 고치고 환경을 다시 검사합니다.",
+    "confirmAction": "다운로드 후 설치",
+    "installing": "설치 중 {{current}}/{{total}}: {{label}}",
+    "phase": {
+      "preparing": "설치를 준비하는 중…",
+      "refreshing": "PATH을 새로 고치는 중…",
+      "finalizing": "환경을 다시 검사하는 중…"
+    },
+    "allPresent": "개발 환경이 이미 완전합니다. 다운로드할 필요가 없습니다.",
+    "inProgressToast": "다운로드 설치 작업이 이미 진행 중입니다.",
+    "wingetMissing": "winget(Windows 패키지 관리자)을 찾을 수 없어 원클릭 설치를 실행할 수 없습니다.",
+    "finishedOk": "{{installed}}개의 도구를 설치했으며 환경 검사를 통과했습니다.",
+    "finishedPartial": "{{installed}}개의 도구를 설치했고 {{failed}}개가 실패했습니다. 자세한 내용은 로그를 확인하세요.",
+    "finishedFailed": "{{failed}}개의 도구 설치에 실패했습니다. 자세한 내용은 로그를 확인하세요."
+  },
   "table": {
     "title": "설치된 개발 도구",
     "scannedAt": "{{time}}에 확인",

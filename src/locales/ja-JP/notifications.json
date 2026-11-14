@@ -12,6 +12,18 @@
     "environmentCheckFailed": {
       "label": "環境チェックに失敗しました"
     },
+    "environmentInstallFinished": {
+      "label": "ワンクリックインストールが完了",
+      "detail": "{{installed}} 個の開発ツールをインストールしました。"
+    },
+    "environmentInstallPartial": {
+      "label": "ワンクリックインストールが一部完了",
+      "detail": "{{installed}} 個のツールをインストールし、{{failed}} 個が失敗しました。"
+    },
+    "environmentInstallFailed": {
+      "label": "ワンクリックインストールに失敗",
+      "detail": "{{failed}} 個のツールをインストールできませんでした。"
+    },
     "projectAdded": {
       "label": "ローカルプロジェクトを追加しました"
     },

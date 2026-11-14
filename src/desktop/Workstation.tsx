@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useTranslation } from 'react-i18next'
 import {
   Activity, AlertTriangle, Bell, BookOpen, Bot, Boxes, Check, ChevronDown, ChevronRight, CircleDot, Code2,
-  Command, Computer, FolderPlus, GitBranch, HardDrive, KeyRound, Languages, LayoutDashboard, ListChecks, Network,
+  Command, Computer, Download, FolderPlus, GitBranch, HardDrive, KeyRound, Languages, LayoutDashboard, ListChecks, Network,
   Moon, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, RefreshCw, ScanSearch, Search,
   Settings2, ShieldCheck, Sun, TerminalSquare, Trash2, Undo2, Upload, Wrench, X, Zap
 } from 'lucide-react'
@@ -19,7 +19,7 @@ import { useSettings } from '../i18n/settings'
 import { LANGUAGES } from '../i18n/languages'
 import { formatCurrency, formatRelative, formatStamp, formatTime, formatTokens } from '../i18n/format'
 import './workstation.css'
-import type { EnvironmentReport, LocalProject, WorkstationInfo } from './types'
+import type { EnvironmentInstallProgress, EnvironmentReport, LocalProject, WorkstationInfo } from './types'
 
 type Page = 'workstation' | 'projects' | 'environment' | 'agent' | 'overview' | 'evolution' | 'remote' | 'settings'
 
@@ -82,6 +82,7 @@ export default function Workstation() {
   const [activity, setActivity] = useState<ActivityEntry[]>([])
   const [unreadIds, setUnreadIds] = useState<Set<string>>(new Set())
   const [busy, setBusy] = useState<'environment' | 'add' | string | null>(null)
+  const [envInstallProgress, setEnvInstallProgress] = useState<EnvironmentInstallProgress | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [showActivity, setShowActivity] = useState(true)
   const [railCollapsed, setRailCollapsed] = useState(false)
@@ -158,6 +159,78 @@ export default function Workstation() {
       addActivity({ kind: 'warning', labelKey: 'notifications:activity.environmentCheckFailed.label', detailText: message, page: 'environment' })
     } finally { setBusy(null) }
   }, [addActivity, bridge, t])
+
+  // One-click install progress is streamed from the main process while
+  // winget works through the plan.
+  useEffect(() => bridge.onEnvironmentInstall((progress) => setEnvInstallProgress(progress)), [bridge])
+
+  const installEnvironment = useCallback(async () => {
+    setBusy('environment-install')
+    setError(null)
+    try {
+      // The renderer does not know the final install plan (which missing
+      // tools a parent package already covers), so the dialog template keeps
+      // literal {{total}}/{{tools}} tokens for main to substitute.
+      const result = await bridge.installEnvironment({
+        title: t('environment:install.confirmTitle'),
+        message: t('environment:install.confirmMessage', { total: '{{total}}', tools: '{{tools}}' }),
+        detail: t('environment:install.confirmDetail'),
+        confirm: t('environment:install.confirmAction'),
+        cancel: t('common:actions.cancel')
+      })
+      if (!result.started) {
+        if (result.reason === 'IN_PROGRESS') pushToast('environment:install.inProgressToast')
+        return
+      }
+      if (result.reason === 'ALL_PRESENT') {
+        pushToast('environment:install.allPresent')
+        return
+      }
+      if (result.reason === 'WINGET_MISSING') {
+        pushToast('environment:install.wingetMissing')
+        addActivity({ kind: 'warning', labelKey: 'notifications:activity.environmentInstallFailed.label', page: 'environment' })
+        return
+      }
+      if (result.report) setEnvironment(result.report)
+      const installed = result.installed.length
+      const failed = result.failed.length
+      if (installed && !failed) {
+        addActivity({
+          kind: 'ok',
+          labelKey: 'notifications:activity.environmentInstallFinished.label',
+          detailKey: 'notifications:activity.environmentInstallFinished.detail',
+          detailParams: { installed, failed },
+          page: 'environment'
+        })
+        pushToast('environment:install.finishedOk', { installed })
+      } else if (installed && failed) {
+        addActivity({
+          kind: 'warning',
+          labelKey: 'notifications:activity.environmentInstallPartial.label',
+          detailKey: 'notifications:activity.environmentInstallPartial.detail',
+          detailParams: { installed, failed },
+          page: 'environment'
+        })
+        pushToast('environment:install.finishedPartial', { installed, failed })
+      } else {
+        addActivity({
+          kind: 'warning',
+          labelKey: 'notifications:activity.environmentInstallFailed.label',
+          detailKey: 'notifications:activity.environmentInstallFailed.detail',
+          detailParams: { failed },
+          page: 'environment'
+        })
+        pushToast('environment:install.finishedFailed', { failed })
+      }
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : t('errors:environmentInstall')
+      setError(message)
+      addActivity({ kind: 'warning', labelKey: 'notifications:activity.environmentInstallFailed.label', detailText: message, page: 'environment' })
+    } finally {
+      setBusy(null)
+      setEnvInstallProgress(null)
+    }
+  }, [addActivity, bridge, pushToast, t])
 
   useEffect(() => {
     let active = true
@@ -613,6 +686,7 @@ export default function Workstation() {
     pushPage('settings', t('navigation:rail.settings'), <Settings2 size={15} />)
     items.push({ id: 'action:addProject', group: 'actions', label: t('navigation:commandPalette.actions.addProject'), icon: <FolderPlus size={15} />, run: () => { setPaletteOpen(false); void handleAddProject() } })
     items.push({ id: 'action:recheckEnvironment', group: 'actions', label: t('navigation:commandPalette.actions.recheckEnvironment'), icon: <Wrench size={15} />, run: () => { setPaletteOpen(false); void refreshEnvironment() } })
+    items.push({ id: 'action:installEnvironment', group: 'actions', label: t('navigation:commandPalette.actions.installEnvironment'), icon: <Download size={15} />, run: () => { setPaletteOpen(false); void installEnvironment() } })
     items.push({ id: 'action:refreshProjects', group: 'actions', label: t('navigation:commandPalette.actions.refreshProjects'), icon: <RefreshCw size={15} />, run: () => { setPaletteOpen(false); void refreshProjects() } })
     items.push({ id: 'action:toggleTheme', group: 'appearance', label: t('navigation:commandPalette.actions.toggleTheme'), icon: resolvedTheme === 'dark' ? <Sun size={15} /> : <Moon size={15} />, run: () => { setPaletteOpen(false); toggleTheme() } })
     for (const language of LANGUAGES) {
@@ -751,7 +825,10 @@ export default function Workstation() {
             environment={environment}
             availableTools={availableTools}
             busy={busy === 'environment'}
+            installBusy={busy === 'environment-install'}
+            installProgress={envInstallProgress}
             onRecheck={() => void refreshEnvironment()}
+            onInstall={() => void installEnvironment()}
           />}
 
           {page === 'agent' && <LocalAgentPage
@@ -1182,11 +1259,14 @@ function WorkbenchPage({ projects, environment, availableTools, scannedCount, in
   </>
 }
 
-function EnvironmentPage({ environment, availableTools, busy, onRecheck }: {
+function EnvironmentPage({ environment, availableTools, busy, installBusy, installProgress, onRecheck, onInstall }: {
   environment: EnvironmentReport | null
   availableTools: number
   busy: boolean
+  installBusy: boolean
+  installProgress: EnvironmentInstallProgress | null
   onRecheck: () => void
+  onInstall: () => void
 }) {
   const { t } = useTranslation()
   return <>
@@ -1196,10 +1276,22 @@ function EnvironmentPage({ environment, availableTools, busy, onRecheck }: {
         <strong>{environment ? t('environment:summary.detected', { available: availableTools, total: environment.total }) : t('environment:summary.running')}</strong>
         <span>{t('environment:summary.detail')}</span>
       </div>
-      <button className="nx-secondary" onClick={onRecheck} disabled={busy}>
-        <RefreshCw size={13} className={busy ? 'nx-spinning' : ''} /> {t('common:actions.recheck')}
-      </button>
+      <div className="nx-readiness-actions">
+        <button className="nx-secondary" onClick={onInstall} disabled={busy || installBusy} title={t('environment:install.buttonHint')}>
+          <Download size={13} /> {t('environment:install.button')}
+        </button>
+        <button className="nx-secondary" onClick={onRecheck} disabled={busy || installBusy}>
+          <RefreshCw size={13} className={busy ? 'nx-spinning' : ''} /> {t('common:actions.recheck')}
+        </button>
+      </div>
     </section>
+    {installProgress && <div className="nx-env-install-progress" role="status">
+      <RefreshCw size={13} className="nx-spinning" />
+      <span>{installProgress.phase === 'installing'
+        ? t('environment:install.installing', { current: installProgress.current, total: installProgress.total, label: installProgress.label || '' })
+        : t(`environment:install.phase.${installProgress.phase}`, { defaultValue: t('environment:install.phase.preparing') })}
+      </span>
+    </div>}
     <section className="nx-panel nx-environment-table">
       <div className="nx-panel-heading">
         <div><span className="nx-panel-icon"><Code2 size={15} /></span><h2>{t('environment:table.title')}</h2></div>

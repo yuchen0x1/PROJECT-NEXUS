@@ -8,6 +8,26 @@
     "running": "Détection de l'environnement en cours",
     "detail": "Les exécutables font l'objet de vérifications de version limitées lorsque cela est sûr. Les shims de commandes et Windows Terminal sont détectés par leur chemin sans être invoqués ; plusieurs entrées PATH sont signalées comme conflits."
   },
+  "install": {
+    "button": "Téléchargement en un clic",
+    "buttonHint": "Télécharge et installe automatiquement les outils de développement manquants via winget. Windows peut afficher plusieurs invites UAC.",
+    "confirmTitle": "Télécharger les outils de développement manquants",
+    "confirmMessage": "Télécharger et installer {{total}} outils manquants via winget ({{tools}}) ?",
+    "confirmDetail": "Les programmes d'installation s'exécutent via winget en mode silencieux. Windows peut afficher plusieurs invites UAC ; PATH est actualisé puis l'environnement est réanalysé.",
+    "confirmAction": "Télécharger et installer",
+    "installing": "Installation de {{current}}/{{total}} : {{label}}",
+    "phase": {
+      "preparing": "Préparation de l'installation…",
+      "refreshing": "Actualisation de PATH…",
+      "finalizing": "Nouvelle analyse de l'environnement…"
+    },
+    "allPresent": "L'environnement de développement est complet, aucun téléchargement nécessaire.",
+    "inProgressToast": "Une tâche d'installation est déjà en cours.",
+    "wingetMissing": "winget (gestionnaire de paquets Windows) est introuvable : l'installation en un clic ne peut pas s'exécuter.",
+    "finishedOk": "{{installed}} outils installés ; la vérification de l'environnement est passée.",
+    "finishedPartial": "{{installed}} outils installés, {{failed}} en échec. Consultez les journaux pour plus de détails.",
+    "finishedFailed": "L'installation a échoué pour {{failed}} outils. Consultez les journaux pour plus de détails."
+  },
   "table": {
     "title": "Outils de développement installés",
     "scannedAt": "Vérifié {{time}}",

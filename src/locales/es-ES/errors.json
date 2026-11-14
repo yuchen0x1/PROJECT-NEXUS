@@ -2,6 +2,7 @@
   "generic": "Algo salió mal. Inténtalo de nuevo.",
   "loadFailed": "No se pudieron cargar los datos solicitados.",
   "environmentCheck": "La comprobación del entorno falló.",
+  "environmentInstall": "La descarga e instalación con un clic fallaron.",
   "addProject": "No se pudo añadir esa carpeta.",
   "scanProject": "El escaneo del proyecto falló.",
   "removeProject": "No se pudo quitar la referencia del proyecto.",

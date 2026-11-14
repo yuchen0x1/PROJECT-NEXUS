@@ -8,6 +8,26 @@
     "running": "环境检测正在进行",
     "detail": "在安全的前提下对可执行文件进行有边界的版本检查。命令垫片（shim）和 Windows Terminal 仅通过路径识别而不会被调用；重复的 PATH 条目会被标记为冲突。"
   },
+  "install": {
+    "button": "一键下载",
+    "buttonHint": "使用 winget 自动下载并安装缺失的开发工具，过程中可能弹出系统授权（UAC）窗口。",
+    "confirmTitle": "下载缺失的开发工具",
+    "confirmMessage": "将通过 winget 下载并安装 {{total}} 个缺失工具（{{tools}}）。",
+    "confirmDetail": "安装器以静默模式通过 winget 运行，过程中可能弹出多个系统授权（UAC）窗口；完成后会自动刷新 PATH 并重新检测环境。",
+    "confirmAction": "开始下载安装",
+    "installing": "正在安装 {{current}}/{{total}}：{{label}}",
+    "phase": {
+      "preparing": "正在准备安装…",
+      "refreshing": "正在刷新 PATH…",
+      "finalizing": "正在重新检测环境…"
+    },
+    "allPresent": "开发环境已完整，无需下载。",
+    "inProgressToast": "已有下载安装任务正在进行。",
+    "wingetMissing": "未找到 winget（Windows 包管理器），无法一键下载安装。",
+    "finishedOk": "已安装 {{installed}} 个工具，环境检测通过。",
+    "finishedPartial": "已安装 {{installed}} 个工具，{{failed}} 个失败，详情可查看日志。",
+    "finishedFailed": "{{failed}} 个工具安装失败，详情可查看日志。"
+  },
   "table": {
     "title": "已安装的开发工具",
     "scannedAt": "检测于 {{time}}",

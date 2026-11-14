@@ -9,6 +9,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, safeStorage, screen, shell, Tray } from 'electron'
 import { detectDevelopmentEnvironment } from '../server/services/local-environment.mjs'
+import { installDevelopmentTools, planMissingInstalls, refreshProcessPathFromRegistry, resolveWingetExecutable } from '../server/services/local-environment-install.mjs'
 import { listLocalProjects, registerLocalProject, scanLocalProject, unregisterLocalProject } from '../server/services/local-projects.mjs'
 import { listProviderRecords, resolveProviderForInvocation } from '../server/services/provider-store.mjs'
 import { listDraftProviderModels } from '../server/services/provider-models.mjs'
@@ -68,6 +69,9 @@ let windowSaveTimer = null
 let isQuitting = false
 let quitReady = false
 let quitPreparation = null
+// One-click dev-environment install runs sequentially for potentially minutes;
+// a second concurrent run would race winget and double-prompt UAC.
+let environmentInstallInFlight = false
 let appUpdater = null
 let hostingPaused = false
 const serviceRestartBudget = createRestartBudget()
@@ -246,6 +250,24 @@ function registerIpc(channel, handler) {
     if (!isTrustedFrame(event)) throw new Error('This local capability is available only to the PROJECT NEXUS window.')
     return await handler(...args)
   })
+}
+
+// The renderer sends localized strings up front but does not know the install
+// plan yet, so main substitutes {{total}} and {{tools}} placeholders with the
+// actual list before showing the confirmation dialog.
+function sanitizeInstallDialogText(dialogText, planned) {
+  const toolList = planned.map((item) => item.label).join(', ')
+  const fill = (value, fallback, limit) => {
+    const base = typeof value === 'string' && value.trim() ? value.slice(0, limit) : fallback
+    return base.replace(/\{\{total\}\}/g, String(planned.length)).replace(/\{\{tools\}\}/g, toolList)
+  }
+  return {
+    title: fill(dialogText?.title, `Install ${planned.length} missing development tools`, 160),
+    message: fill(dialogText?.message, `Download and install ${planned.length} missing development tools with winget (${toolList})?`, 400),
+    detail: fill(dialogText?.detail, 'Installers run through winget in silent mode. Windows may show several UAC prompts; PATH is refreshed and the environment re-scanned afterwards.', 600),
+    confirm: fill(dialogText?.confirm, 'Download and install', 80),
+    cancel: fill(dialogText?.cancel, 'Cancel', 80)
+  }
 }
 
 // ---- Provider API key vault (PHASE 6) ----
@@ -441,9 +463,64 @@ function registerLocalCapabilities() {
     servicePid: apiProcess?.pid || null
   }))
   registerIpc('desktop:environment:detect', async () => {
+    // Pick up PATH changes written by installers since the last scan so a
+    // recheck can confirm a freshly completed install without an app restart.
+    if (process.platform === 'win32') await refreshProcessPathFromRegistry()
     const result = await detectDevelopmentEnvironment()
     await writeLog('info', 'environment-scan-complete', { available: result.available || 0, total: result.total || 0 })
     return result
+  })
+  registerIpc('desktop:environment:install', async (dialogText) => {
+    const emptyResult = { planned: [], installed: [], failed: [], skipped: [], report: null }
+    if (process.platform !== 'win32') return { started: false, reason: 'UNSUPPORTED_PLATFORM', ...emptyResult }
+    if (environmentInstallInFlight) return { started: false, reason: 'IN_PROGRESS', ...emptyResult }
+    // A fresh scan decides whether anything is missing and what the dialog
+    // should list; the install reuses this plan instead of re-scanning.
+    const report = await detectDevelopmentEnvironment()
+    const planned = planMissingInstalls(report)
+    if (!planned.length) {
+      await writeLog('info', 'environment-install-nothing-missing', { available: report.available || 0, total: report.total || 0 })
+      return { started: true, ok: true, reason: 'ALL_PRESENT', ...emptyResult, report }
+    }
+    // Resolve winget before the dialog so a machine without it never gets
+    // asked to confirm an install that cannot run.
+    const winget = await resolveWingetExecutable()
+    if (!winget) {
+      await writeLog('warning', 'environment-install-winget-missing')
+      return { started: true, ok: false, reason: 'WINGET_MISSING', ...emptyResult, report }
+    }
+    const text = sanitizeInstallDialogText(dialogText, planned)
+    const confirmation = await dialog.showMessageBox(mainWindow, {
+      type: 'question',
+      title: text.title,
+      message: text.message,
+      detail: text.detail,
+      buttons: [text.cancel, text.confirm],
+      defaultId: 1,
+      cancelId: 0,
+      noLink: true
+    })
+    if (confirmation.response !== 1) {
+      await writeLog('info', 'environment-install-declined', { count: planned.length })
+      return { started: false, reason: 'DECLINED', ...emptyResult, planned }
+    }
+    environmentInstallInFlight = true
+    try {
+      const result = await installDevelopmentTools({
+        planned,
+        winget,
+        onProgress: (progress) => {
+          if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('desktop:environment:install-progress', progress)
+        }
+      })
+      await writeLog(result.ok ? 'info' : 'warning', 'environment-install-completed', {
+        installed: result.installed.map((item) => item.toolId),
+        failed: result.failed.map((item) => item.toolId)
+      })
+      return { started: true, ...result, planned }
+    } finally {
+      environmentInstallInFlight = false
+    }
   })
   registerIpc('desktop:projects:list', async () => await listLocalProjects({ dataDir: userDataPath }))
   registerIpc('desktop:projects:add', async (dialogTitle) => {

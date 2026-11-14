@@ -12,6 +12,18 @@
     "environmentCheckFailed": {
       "label": "Falha na verificação do ambiente"
     },
+    "environmentInstallFinished": {
+      "label": "Instalação com um clique concluída",
+      "detail": "{{installed}} ferramentas de desenvolvimento instaladas."
+    },
+    "environmentInstallPartial": {
+      "label": "Instalação com um clique parcialmente concluída",
+      "detail": "{{installed}} ferramentas instaladas, {{failed}} falharam."
+    },
+    "environmentInstallFailed": {
+      "label": "Falha na instalação com um clique",
+      "detail": "{{failed}} ferramentas não puderam ser instaladas."
+    },
     "projectAdded": {
       "label": "Projeto local adicionado"
     },

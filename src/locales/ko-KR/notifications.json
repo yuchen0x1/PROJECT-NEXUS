@@ -12,6 +12,18 @@
     "environmentCheckFailed": {
       "label": "환경 확인 실패"
     },
+    "environmentInstallFinished": {
+      "label": "원클릭 설치 완료",
+      "detail": "개발 도구 {{installed}}개를 설치했습니다."
+    },
+    "environmentInstallPartial": {
+      "label": "원클릭 설치 부분 완료",
+      "detail": "{{installed}}개의 도구를 설치했고 {{failed}}개가 실패했습니다."
+    },
+    "environmentInstallFailed": {
+      "label": "원클릭 설치 실패",
+      "detail": "{{failed}}개의 도구를 설치하지 못했습니다."
+    },
     "projectAdded": {
       "label": "로컬 프로젝트 추가됨"
     },

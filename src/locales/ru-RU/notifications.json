@@ -14,6 +14,18 @@
     "environmentCheckFailed": {
       "label": "Сбой проверки среды"
     },
+    "environmentInstallFinished": {
+      "label": "Установка одним щелчком завершена",
+      "detail": "Установлено инструментов разработки: {{installed}}."
+    },
+    "environmentInstallPartial": {
+      "label": "Установка одним щелчком частично завершена",
+      "detail": "Установлено: {{installed}}, не удалось: {{failed}}."
+    },
+    "environmentInstallFailed": {
+      "label": "Не удалось установить одним щелчком",
+      "detail": "Не удалось установить инструменты: {{failed}}."
+    },
     "projectAdded": {
       "label": "Локальный проект добавлен"
     },

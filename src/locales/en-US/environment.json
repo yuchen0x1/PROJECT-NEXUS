@@ -8,6 +8,26 @@
     "running": "Environment detection is running",
     "detail": "Executables receive bounded version checks where safe. Command shims and Windows Terminal are detected by path without being invoked; multiple PATH entries are flagged as conflicts."
   },
+  "install": {
+    "button": "One-click download",
+    "buttonHint": "Download and install missing development tools via winget. Windows may show several UAC prompts.",
+    "confirmTitle": "Download missing development tools",
+    "confirmMessage": "Download and install {{total}} missing development tools with winget ({{tools}})?",
+    "confirmDetail": "Installers run through winget in silent mode. Windows may show several UAC prompts; PATH is refreshed and the environment re-scanned afterwards.",
+    "confirmAction": "Download and install",
+    "installing": "Installing {{current}}/{{total}}: {{label}}",
+    "phase": {
+      "preparing": "Preparing the installation…",
+      "refreshing": "Refreshing PATH…",
+      "finalizing": "Re-scanning the environment…"
+    },
+    "allPresent": "The development environment is complete — nothing to download.",
+    "inProgressToast": "A download-and-install task is already running.",
+    "wingetMissing": "winget (the Windows package manager) was not found, so the one-click install cannot run.",
+    "finishedOk": "Installed {{installed}} tools; the environment check passed.",
+    "finishedPartial": "Installed {{installed}} tools, {{failed}} failed. Check the logs for details.",
+    "finishedFailed": "The install failed for {{failed}} tools. Check the logs for details."
+  },
   "table": {
     "title": "Installed development tools",
     "scannedAt": "Checked {{time}}",

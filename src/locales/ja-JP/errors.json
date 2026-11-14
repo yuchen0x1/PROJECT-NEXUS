@@ -2,6 +2,7 @@
   "generic": "問題が発生しました。もう一度お試しください。",
   "loadFailed": "要求されたデータを読み込めませんでした。",
   "environmentCheck": "環境チェックに失敗しました。",
+  "environmentInstall": "ワンクリックのダウンロードとインストールに失敗しました。",
   "addProject": "そのフォルダーを追加できませんでした。",
   "scanProject": "プロジェクトスキャンに失敗しました。",
   "removeProject": "プロジェクトの参照を削除できませんでした。",

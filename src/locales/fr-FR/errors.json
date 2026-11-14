@@ -2,6 +2,7 @@
   "generic": "Une erreur est survenue. Veuillez réessayer.",
   "loadFailed": "Impossible de charger les données demandées.",
   "environmentCheck": "La vérification de l'environnement a échoué.",
+  "environmentInstall": "Le téléchargement et l'installation en un clic ont échoué.",
   "addProject": "Impossible d'ajouter ce dossier.",
   "scanProject": "L'analyse du projet a échoué.",
   "removeProject": "Impossible de retirer la référence du projet.",

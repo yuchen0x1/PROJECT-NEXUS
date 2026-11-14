@@ -12,6 +12,18 @@
     "environmentCheckFailed": {
       "label": "Umgebungsprüfung fehlgeschlagen"
     },
+    "environmentInstallFinished": {
+      "label": "Ein-Klick-Installation abgeschlossen",
+      "detail": "{{installed}} Entwicklungswerkzeuge installiert."
+    },
+    "environmentInstallPartial": {
+      "label": "Ein-Klick-Installation teilweise abgeschlossen",
+      "detail": "{{installed}} Werkzeuge installiert, {{failed}} fehlgeschlagen."
+    },
+    "environmentInstallFailed": {
+      "label": "Ein-Klick-Installation fehlgeschlagen",
+      "detail": "{{failed}} Werkzeuge konnten nicht installiert werden."
+    },
     "projectAdded": {
       "label": "Lokales Projekt hinzugefügt"
     },

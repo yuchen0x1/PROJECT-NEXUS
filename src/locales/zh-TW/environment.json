@@ -8,6 +8,26 @@
     "running": "環境偵測進行中",
     "detail": "在安全的前提下，對可執行檔進行有限度的版本檢查。命令墊片（shim）與 Windows Terminal 僅透過路徑識別，不會被呼叫；多個 PATH 項目會被標記為衝突。"
   },
+  "install": {
+    "button": "一鍵下載",
+    "buttonHint": "使用 winget 自動下載並安裝缺少的開發工具，過程中可能彈出系統授權（UAC）視窗。",
+    "confirmTitle": "下載缺少的開發工具",
+    "confirmMessage": "將透過 winget 下載並安裝 {{total}} 個缺少的工具（{{tools}}）。",
+    "confirmDetail": "安裝器以靜默模式透過 winget 執行，過程中可能彈出多個系統授權（UAC）視窗；完成後會自動重新整理 PATH 並重新偵測環境。",
+    "confirmAction": "開始下載安裝",
+    "installing": "正在安裝 {{current}}/{{total}}：{{label}}",
+    "phase": {
+      "preparing": "正在準備安裝…",
+      "refreshing": "正在重新整理 PATH…",
+      "finalizing": "正在重新偵測環境…"
+    },
+    "allPresent": "開發環境已完整，無需下載。",
+    "inProgressToast": "已有下載安裝任務正在進行。",
+    "wingetMissing": "找不到 winget（Windows 套件管理器），無法一鍵下載安裝。",
+    "finishedOk": "已安裝 {{installed}} 個工具，環境偵測通過。",
+    "finishedPartial": "已安裝 {{installed}} 個工具，{{failed}} 個失敗，詳情可查看日誌。",
+    "finishedFailed": "{{failed}} 個工具安裝失敗，詳情可查看日誌。"
+  },
   "table": {
     "title": "已安裝的開發工具",
     "scannedAt": "檢查於 {{time}}",

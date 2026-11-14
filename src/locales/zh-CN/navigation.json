@@ -35,6 +35,7 @@
     "actions": {
       "addProject": "添加本地项目文件夹",
       "recheckEnvironment": "重新检测开发环境",
+      "installEnvironment": "一键下载缺失的开发工具",
       "refreshProjects": "刷新项目列表",
       "openRemote": "打开远程控制台",
       "openSettings": "打开设置",

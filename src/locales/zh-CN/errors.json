@@ -2,6 +2,7 @@
   "generic": "出现问题，请重试。",
   "loadFailed": "无法加载所请求的数据。",
   "environmentCheck": "环境检测失败。",
+  "environmentInstall": "一键下载安装失败。",
   "addProject": "无法添加该文件夹。",
   "scanProject": "项目扫描失败。",
   "removeProject": "无法移除项目引用。",

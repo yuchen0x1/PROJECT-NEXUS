@@ -2,6 +2,7 @@
   "generic": "Something went wrong. Please try again.",
   "loadFailed": "Could not load the requested data.",
   "environmentCheck": "The environment check failed.",
+  "environmentInstall": "The one-click download and install failed.",
   "addProject": "Could not add that folder.",
   "scanProject": "The project scan failed.",
   "removeProject": "Could not remove the project reference.",

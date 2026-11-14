@@ -15,6 +15,12 @@ contextBridge.exposeInMainWorld('nexusDesktop', Object.freeze({
   getInfo: () => invoke('desktop:info'),
   getMetrics: () => invoke('desktop:metrics'),
   detectEnvironment: () => invoke('desktop:environment:detect'),
+  installEnvironment: (dialogText) => invoke('desktop:environment:install', dialogText),
+  onEnvironmentInstall: (callback) => {
+    const listener = (_event, progress) => callback(progress)
+    ipcRenderer.on('desktop:environment:install-progress', listener)
+    return () => ipcRenderer.removeListener('desktop:environment:install-progress', listener)
+  },
   listProjects: () => invoke('desktop:projects:list'),
   addProject: (dialogTitle) => invoke('desktop:projects:add', dialogTitle),
   removeProject: (projectId, projectName, dialogText) => invoke('desktop:projects:remove', projectId, projectName, dialogText),

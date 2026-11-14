@@ -12,6 +12,18 @@
     "environmentCheckFailed": {
       "label": "环境检测失败"
     },
+    "environmentInstallFinished": {
+      "label": "一键下载安装完成",
+      "detail": "已安装 {{installed}} 个开发工具。"
+    },
+    "environmentInstallPartial": {
+      "label": "一键下载安装部分完成",
+      "detail": "已安装 {{installed}} 个工具，{{failed}} 个失败。"
+    },
+    "environmentInstallFailed": {
+      "label": "一键下载安装失败",
+      "detail": "{{failed}} 个工具未能安装。"
+    },
     "projectAdded": {
       "label": "已添加本地项目"
     },

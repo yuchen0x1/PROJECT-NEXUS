@@ -8,6 +8,26 @@
     "running": "La detección del entorno está en ejecución",
     "detail": "Los ejecutables reciben comprobaciones de versión acotadas cuando es seguro. Las shims de comandos y Windows Terminal se detectan por ruta sin invocarse; las múltiples entradas de PATH se marcan como conflictos."
   },
+  "install": {
+    "button": "Descarga con un clic",
+    "buttonHint": "Descarga e instala automáticamente las herramientas de desarrollo que faltan mediante winget. Windows puede mostrar varios avisos de UAC.",
+    "confirmTitle": "Descargar herramientas de desarrollo que faltan",
+    "confirmMessage": "¿Descargar e instalar {{total}} herramientas que faltan mediante winget ({{tools}})?",
+    "confirmDetail": "Los instaladores se ejecutan mediante winget en modo silencioso. Windows puede mostrar varios avisos de UAC; después se actualiza PATH y se vuelve a examinar el entorno.",
+    "confirmAction": "Descargar e instalar",
+    "installing": "Instalando {{current}}/{{total}}: {{label}}",
+    "phase": {
+      "preparing": "Preparando la instalación…",
+      "refreshing": "Actualizando PATH…",
+      "finalizing": "Volviendo a examinar el entorno…"
+    },
+    "allPresent": "El entorno de desarrollo está completo; no hay nada que descargar.",
+    "inProgressToast": "Ya hay una tarea de instalación en curso.",
+    "wingetMissing": "No se encontró winget (el gestor de paquetes de Windows), por lo que no se puede ejecutar la instalación con un clic.",
+    "finishedOk": "Se instalaron {{installed}} herramientas; la comprobación del entorno pasó.",
+    "finishedPartial": "Se instalaron {{installed}} herramientas y {{failed}} fallaron. Consulte los registros para más detalles.",
+    "finishedFailed": "La instalación falló para {{failed}} herramientas. Consulte los registros para más detalles."
+  },
   "table": {
     "title": "Herramientas de desarrollo instaladas",
     "scannedAt": "Comprobado {{time}}",

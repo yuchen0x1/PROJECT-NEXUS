@@ -39,6 +39,45 @@ export type EnvironmentReport = {
   message?: string
 }
 
+/**
+ * Dialog strings for the one-click install confirmation. {{count}} and
+ * {{tools}} in message/detail are substituted by the main process with the
+ * actual install plan before the native dialog is shown.
+ */
+export type EnvironmentInstallDialogText = {
+  title: string
+  message: string
+  detail: string
+  confirm: string
+  cancel: string
+}
+
+export type EnvironmentInstallProgress = {
+  phase: 'installing' | 'refreshing' | 'finalizing'
+  current: number
+  total: number
+  toolId: string | null
+  label: string | null
+}
+
+export type EnvironmentInstallItem = {
+  toolId: string
+  label: string
+  packageId: string
+  detail?: string
+}
+
+export type EnvironmentInstallResult = {
+  started: boolean
+  ok?: boolean
+  reason: 'COMPLETE' | 'ALL_PRESENT' | 'DECLINED' | 'IN_PROGRESS' | 'UNSUPPORTED_PLATFORM' | 'WINGET_MISSING'
+  planned: EnvironmentInstallItem[]
+  installed: EnvironmentInstallItem[]
+  failed: EnvironmentInstallItem[]
+  skipped: EnvironmentInstallItem[]
+  report: EnvironmentReport | null
+}
+
 export type WorkstationInfo = {
   version: string
   platform: string
@@ -93,6 +132,8 @@ export type DesktopBridge = {
   requestApi: (request: { url: string; method?: string; body?: string }) => Promise<{ status: number; body: Record<string, unknown> }>
   getInfo: () => Promise<WorkstationInfo>
   detectEnvironment: () => Promise<EnvironmentReport>
+  installEnvironment: (dialogText?: EnvironmentInstallDialogText) => Promise<EnvironmentInstallResult>
+  onEnvironmentInstall: (callback: (progress: EnvironmentInstallProgress) => void) => () => void
   listProjects: () => Promise<LocalProject[]>
   addProject: (dialogTitle?: string) => Promise<ProjectRegistration | null>
   removeProject: (projectId: string, projectName: string, dialog?: LocalizedDialogText) => Promise<{ removed: boolean }>

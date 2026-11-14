@@ -35,6 +35,7 @@
     "actions": {
       "addProject": "新增本機專案資料夾",
       "recheckEnvironment": "重新檢查開發環境",
+      "installEnvironment": "一鍵下載缺少的開發工具",
       "refreshProjects": "重新整理專案清單",
       "openRemote": "開啟遠端主控台",
       "openSettings": "開啟設定",
