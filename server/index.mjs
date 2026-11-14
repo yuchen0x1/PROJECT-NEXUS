@@ -20,6 +20,7 @@ import { applyLocalAgentOperations, createLocalAgentWorkspace, listLocalAgentCha
 import { executeAgentRuntimeTask, rollbackAgentTask, applyAgentTaskToProject, agentWorkspaceHandleFor } from './services/agent/task-executor.mjs'
 import { executeAgentBridgeTask } from './services/agent/bridge-executor.mjs'
 import { detectCodexInstall, probeCodexBridge } from './services/agent/codex-app-server.mjs'
+import { deriveUpstreamProfile, applyDeclaration, emptyUpstreamProfile, normalizeUpstreamFullName } from './services/upstream-profile.mjs'
 import { listPublicProviders, createProviderRecord, updateProviderRecord, deleteProviderRecord, testProviderRecord, setRuntimeProviderKeys } from './services/provider-store.mjs'
 import { resolveApprovalInTask, expireStaleApprovals, APPROVAL_POLICIES } from './services/agent/approval.mjs'
 import { buildProjectIndex } from './services/agent/indexer.mjs'
@@ -2604,6 +2605,63 @@ app.get('/api/projects', (req, res) => {
     return repositoryAvailable(project) && matchesQuery && matchesGroup
   })
   res.json({ projects, total: projects.length })
+})
+
+// Repository Upstream Profile (master directive PART 3): verify where a managed
+// repository came from. A candidate upstream is only ever bound through GitHub
+// evidence (fork parent, common merge base) or an explicit user declaration.
+app.post('/api/projects/:id/upstream/detect', async (req, res) => {
+  if (!requireRole(req, res, 'Operator')) return
+  const project = state.projects.find((item) => item.id === req.params.id && repositoryAvailable(item))
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'The project was not found.' })
+  const candidate = typeof req.body?.upstreamFullName === 'string' && req.body.upstreamFullName.trim() ? req.body.upstreamFullName : null
+  if (candidate) {
+    try { normalizeUpstreamFullName(candidate) } catch (error) { return res.status(400).json({ code: error.code, message: safeError(error) }) }
+  }
+  try {
+    const profile = await deriveUpstreamProfile({
+      project,
+      profile: project.upstreamProfile || null,
+      candidateUpstream: candidate,
+      fetchRepo: async (fullName) => githubFetchForProject(project, `/repos/${fullName}`),
+      fetchCompare: (basehead) => githubFetchForProject(project, `/compare/${encodeURIComponent(basehead)}`)
+    })
+    project.upstreamProfile = profile
+    audit(req, 'upstream_profile_detect', project.fullName, 'success', 'low', { projectId: project.id, type: profile.type, upstream: profile.upstreamFullName, confidence: profile.confidence })
+    await saveState()
+    res.json({ profile })
+  } catch (error) {
+    res.status(error.status && error.status >= 400 && error.status < 500 ? error.status : 502).json({ code: error.code || 'UPSTREAM_DETECT_FAILED', message: safeError(error) })
+  }
+})
+
+app.post('/api/projects/:id/upstream/declare', async (req, res) => {
+  if (!requireRole(req, res, 'Operator')) return
+  const project = state.projects.find((item) => item.id === req.params.id && repositoryAvailable(item))
+  if (!project) return res.status(404).json({ code: 'PROJECT_NOT_FOUND', message: 'The project was not found.' })
+  const upstreamFullName = typeof req.body?.upstreamFullName === 'string' ? req.body.upstreamFullName : ''
+  const kind = req.body?.kind === 'third-party' ? 'third-party' : 'zip-reupload'
+  const version = typeof req.body?.version === 'string' && req.body.version.trim() ? req.body.version.trim() : null
+  const note = typeof req.body?.note === 'string' ? req.body.note : ''
+  try {
+    const declared = applyDeclaration(project.upstreamProfile || emptyUpstreamProfile(), { upstreamFullName, kind, version, note })
+    project.upstreamProfile = declared
+    // Verify immediately: a fork relation or shared history outranks the
+    // declaration; unrelated histories keep the declaration without git proof.
+    const profile = await deriveUpstreamProfile({
+      project,
+      profile: declared,
+      fetchRepo: async (fullName) => githubFetchForProject(project, `/repos/${fullName}`),
+      fetchCompare: (basehead) => githubFetchForProject(project, `/compare/${encodeURIComponent(basehead)}`)
+    })
+    project.upstreamProfile = profile
+    audit(req, 'upstream_profile_declare', project.fullName, 'success', 'low', { projectId: project.id, kind, upstream: upstreamFullName, verifiedType: profile.type })
+    await saveState()
+    res.json({ profile })
+  } catch (error) {
+    if (error.code?.startsWith('UPSTREAM_')) return res.status(400).json({ code: error.code, message: safeError(error) })
+    res.status(502).json({ code: error.code || 'UPSTREAM_DECLARE_FAILED', message: safeError(error) })
+  }
 })
 
 function repositorySyncStatus() {

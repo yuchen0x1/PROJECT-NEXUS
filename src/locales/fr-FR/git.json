@@ -493,5 +493,38 @@
     "retry": "Synchronisation incomplète. Nouvelle tentative après {{time}}.",
     "completed": "Synchronisation terminée. Liste et nombre de dépôts actualisés.",
     "partial": "Pagination incomplète : les autres enregistrements sont conservés."
+  },
+  "upstream": {
+    "badge": {
+      "fork": "Fork vérifié",
+      "commonHistory": "Historique partagé",
+      "declared": "Origine déclarée",
+      "unknown": "Origine inconnue"
+    },
+    "kicker": "Profil amont",
+    "title": "Origine du dépôt",
+    "detect": "Détecter l’origine",
+    "detecting": "Détection…",
+    "typeLabel": "Évaluation",
+    "upstreamLabel": "Dépôt amont",
+    "mergeBaseLabel": "Ancêtre commun",
+    "declaredLabel": "Déclaration",
+    "checkedLabel": "Dernière vérification",
+    "neverChecked": "Jamais vérifié",
+    "declareSummary": "Déclarer un re-téléversement ZIP ou une origine tierce",
+    "declareDetail": "Les candidats ne sont jamais liés automatiquement d’après le nom. La déclaration est conservée avec horodatage et preuves ; GitHub vérifie ensuite s’il existe un lien de fork ou un historique commun.",
+    "upstreamRepoLabel": "Dépôt amont (owner/repo)",
+    "kindLabel": "Type",
+    "kindZip": "Re-téléversement ZIP",
+    "kindThird": "Suite tierce",
+    "versionLabel": "Version d’origine (optionnel)",
+    "declare": "Enregistrer la déclaration",
+    "declaring": "Enregistrement…",
+    "evidenceSummary": "Preuves ({{count}})",
+    "detectedToast": "Origine : {{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
+    "declaredToast": "Déclaration enregistrée : {{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
+    "detectFailed": "Échec de la détection d’origine.",
+    "declareFailed": "Impossible d’enregistrer la déclaration.",
+    "repoRequired": "Saisissez le dépôt amont sous la forme owner/repo."
   }
 }

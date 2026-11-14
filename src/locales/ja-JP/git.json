@@ -493,5 +493,38 @@
     "retry": "同期は未完了です。{{time}} 以降に再試行します。",
     "completed": "同期完了。リポジトリ一覧と件数を更新しました。",
     "partial": "ページの取得が未完了のため、未取得の記録は保持しました。"
+  },
+  "upstream": {
+    "badge": {
+      "fork": "Fork 検証済み",
+      "commonHistory": "共通履歴",
+      "declared": "申告済みの由来",
+      "unknown": "由来不明"
+    },
+    "kicker": "上流プロファイル",
+    "title": "リポジトリの由来",
+    "detect": "由来を検出",
+    "detecting": "検出中…",
+    "typeLabel": "判定",
+    "upstreamLabel": "上流リポジトリ",
+    "mergeBaseLabel": "共通祖先",
+    "declaredLabel": "申告内容",
+    "checkedLabel": "最終確認",
+    "neverChecked": "未確認",
+    "declareSummary": "ZIP 再アップロードまたはサードパーティ由来を申告",
+    "declareDetail": "名前だけで上流を自動バインドすることはありません。申告は時刻と証拠とともに保存され、その後 GitHub が Fork 関係や共通履歴の有無を検証します。",
+    "upstreamRepoLabel": "上流リポジトリ（owner/repo）",
+    "kindLabel": "種別",
+    "kindZip": "ZIP 再アップロード",
+    "kindThird": "サードパーティ改変版",
+    "versionLabel": "元のバージョン（任意）",
+    "declare": "申告を保存",
+    "declaring": "保存中…",
+    "evidenceSummary": "証拠（{{count}}）",
+    "detectedToast": "由来判定：{{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
+    "declaredToast": "申告を保存しました：{{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
+    "detectFailed": "由来の検出に失敗しました。",
+    "declareFailed": "申告を保存できませんでした。",
+    "repoRequired": "上流リポジトリを owner/repo 形式で入力してください。"
   }
 }

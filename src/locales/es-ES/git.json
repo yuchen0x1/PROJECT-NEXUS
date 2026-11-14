@@ -493,5 +493,38 @@
     "retry": "Sincronización incompleta. Se reintentará después de {{time}}.",
     "completed": "Sincronización completada. Lista y recuento actualizados.",
     "partial": "Paginación incompleta: se conservan los demás registros."
+  },
+  "upstream": {
+    "badge": {
+      "fork": "Fork verificado",
+      "commonHistory": "Historial compartido",
+      "declared": "Origen declarado",
+      "unknown": "Origen desconocido"
+    },
+    "kicker": "Perfil de origen",
+    "title": "Procedencia del repositorio",
+    "detect": "Detectar origen",
+    "detecting": "Detectando…",
+    "typeLabel": "Evaluación",
+    "upstreamLabel": "Repositorio origen",
+    "mergeBaseLabel": "Ancestro común",
+    "declaredLabel": "Declaración",
+    "checkedLabel": "Última comprobación",
+    "neverChecked": "Sin comprobar",
+    "declareSummary": "Declarar una re-subida ZIP o un origen de terceros",
+    "declareDetail": "Los candidatos nunca se enlazan automáticamente por nombre. La declaración se guarda con fecha y evidencia; después GitHub verifica si existe relación de fork o historial compartido.",
+    "upstreamRepoLabel": "Repositorio origen (owner/repo)",
+    "kindLabel": "Tipo",
+    "kindZip": "Re-subida ZIP",
+    "kindThird": "Continuación de terceros",
+    "versionLabel": "Versión original (opcional)",
+    "declare": "Guardar declaración",
+    "declaring": "Guardando…",
+    "evidenceSummary": "Evidencias ({{count}})",
+    "detectedToast": "Origen: {{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
+    "declaredToast": "Declaración guardada: {{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
+    "detectFailed": "La detección de origen falló.",
+    "declareFailed": "No se pudo guardar la declaración.",
+    "repoRequired": "Introduce el repositorio origen como owner/repo."
   }
 }

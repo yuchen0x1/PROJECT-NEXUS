@@ -493,5 +493,38 @@
     "retry": "同步暂未完成，预计 {{time}} 后重试。",
     "completed": "同步完成，仓库列表和数量已更新。",
     "partial": "分页未取全：已更新已获取的仓库，保留其余记录。"
+  },
+  "upstream": {
+    "badge": {
+      "fork": "Fork 已验证",
+      "commonHistory": "共同历史",
+      "declared": "已申报来源",
+      "unknown": "来源未知"
+    },
+    "kicker": "上游档案",
+    "title": "仓库来源",
+    "detect": "检测来源",
+    "detecting": "正在检测…",
+    "typeLabel": "判定",
+    "upstreamLabel": "上游仓库",
+    "mergeBaseLabel": "共同祖先",
+    "declaredLabel": "申报记录",
+    "checkedLabel": "最近检查",
+    "neverChecked": "尚未检查",
+    "declareSummary": "申报 ZIP 重传或第三方来源",
+    "declareDetail": "系统不会根据仓库名猜测并自动绑定上游。申报会连同时间与证据一起保存；随后 GitHub 会核实是否存在 Fork 关系或共同历史。",
+    "upstreamRepoLabel": "上游仓库（owner/repo）",
+    "kindLabel": "类型",
+    "kindZip": "ZIP 下载重传",
+    "kindThird": "第三方二次开发",
+    "versionLabel": "原始版本（可选）",
+    "declare": "保存申报",
+    "declaring": "正在保存…",
+    "evidenceSummary": "证据（{{count}}）",
+    "detectedToast": "来源判定：{{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
+    "declaredToast": "申报已保存：{{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
+    "detectFailed": "来源检测失败。",
+    "declareFailed": "申报保存失败。",
+    "repoRequired": "请以 owner/repo 形式填写上游仓库。"
   }
 }

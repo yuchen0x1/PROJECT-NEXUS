@@ -493,5 +493,38 @@
     "retry": "Synchronisierung unvollständig. Neuer Versuch nach {{time}}.",
     "completed": "Synchronisierung abgeschlossen. Liste und Anzahl wurden aktualisiert.",
     "partial": "Unvollständige Seitennavigation: Übrige Einträge wurden beibehalten."
+  },
+  "upstream": {
+    "badge": {
+      "fork": "Fork verifiziert",
+      "commonHistory": "Gemeinsame Historie",
+      "declared": "Deklarierte Herkunft",
+      "unknown": "Herkunft unbekannt"
+    },
+    "kicker": "Upstream-Profil",
+    "title": "Repository-Herkunft",
+    "detect": "Herkunft erkennen",
+    "detecting": "Erkenne…",
+    "typeLabel": "Bewertung",
+    "upstreamLabel": "Upstream-Repository",
+    "mergeBaseLabel": "Gemeinsamer Vorfahre",
+    "declaredLabel": "Deklaration",
+    "checkedLabel": "Zuletzt geprüft",
+    "neverChecked": "Nie geprüft",
+    "declareSummary": "ZIP-Neuupload oder Dritt-Herkunft deklarieren",
+    "declareDetail": "Kandidaten werden niemals allein aus Namen automatisch gebunden. Eine Deklaration wird mit Zeitpunkt und Nachweis gespeichert; GitHub prüft anschließend, ob eine Fork-Beziehung oder gemeinsame Historie existiert.",
+    "upstreamRepoLabel": "Upstream-Repository (owner/repo)",
+    "kindLabel": "Art",
+    "kindZip": "ZIP-Neuupload",
+    "kindThird": "Drittanbieter-Fortführung",
+    "versionLabel": "Originalversion (optional)",
+    "declare": "Deklaration speichern",
+    "declaring": "Speichere…",
+    "evidenceSummary": "Nachweise ({{count}})",
+    "detectedToast": "Herkunft: {{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
+    "declaredToast": "Deklaration gespeichert: {{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
+    "detectFailed": "Herkunftserkennung fehlgeschlagen.",
+    "declareFailed": "Deklaration konnte nicht gespeichert werden.",
+    "repoRequired": "Bitte das Upstream-Repository als owner/repo angeben."
   }
 }

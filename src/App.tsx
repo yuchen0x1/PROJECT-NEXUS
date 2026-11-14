@@ -7,7 +7,7 @@ import {
   GitFork, GitPullRequest, Hammer, LayoutDashboard, ListChecks, Loader2, Menu, PackageCheck, Plus, Radio, RefreshCw,
   Rocket, Search, Settings2, ShieldCheck, Sparkles, TerminalSquare, Webhook, XCircle
 } from 'lucide-react'
-import { api, HostingProject, HostingRun, IntegrationJob, IntegrationReport, IssueActivity, Project, ResearchReport, UpgradeProposal, SecurityFinding, Task } from './api'
+import { api, HostingProject, HostingRun, IntegrationJob, IntegrationReport, IssueActivity, Project, ResearchReport, UpgradeProposal, SecurityFinding, Task, UpstreamProfile } from './api'
 import { formatStamp } from './i18n/format'
 
 export type RemotePage = 'Overview' | 'Projects' | 'Build Center' | 'Release Center' | 'Auto Update' | 'Repository Scanner' | 'AI Pipeline' | 'Adapter Center' | 'Update Security' | 'Integration History' | 'GitHub Connections' | 'Monitoring' | 'AI Operations' | 'Task Center' | 'Security Center' | 'Hosting' | 'Issues' | 'Security Findings' | 'Research' | 'Settings'
@@ -61,13 +61,25 @@ function EmptyState({ title, detail, action }: { title: string; detail: string; 
   return <div className="empty-state"><div className="empty-orbit"><CircleDot size={18} /></div><h3>{title}</h3><p>{detail}</p>{action}</div>
 }
 
+function upstreamBadgeKey(type: string | undefined | null): string {
+  switch (type) {
+    case 'fork-verified': return 'fork'
+    case 'clone-common-history': return 'commonHistory'
+    case 'zip-reupload-declared':
+    case 'third-party-declared': return 'declared'
+    default: return 'unknown'
+  }
+}
+
 function ProjectCard({ project, onOpen }: { project: Project; onOpen: () => void }) {
   const { t } = useTranslation()
+  const profileType = project.upstreamProfile?.type
   return <button className="project-card" onClick={onOpen}>
     <div className="project-card-top"><div className="repo-mark"><GitFork size={17} /></div><span className="project-visibility">{project.visibility}</span></div>
     <div className="project-card-title">{project.name}</div>
     <div className="project-card-repo">{project.fullName}</div>
     <p>{project.description || t('git:projects.noDescription')}</p>
+    {profileType && profileType !== 'unknown' && <div className="upstream-badge" data-upstream-type={profileType}>{t(`git:upstream.badge.${upstreamBadgeKey(profileType)}`)}{project.upstreamProfile?.upstreamFullName ? ` · ${project.upstreamProfile.upstreamFullName}` : ''}</div>}
     <div className="project-card-footer"><span>{project.language}</span><span>{project.group}</span><span>{formatStamp(project.updatedAt)}</span></div>
   </button>
 }
@@ -189,6 +201,61 @@ function Projects({ projects, query, onSync, onOpen, onScan }: { projects: Proje
   return <><PageIntro eyebrow={t('git:projects.eyebrow')} title={t('git:projects.title')} detail={t('git:projects.subtitle')} action={<button className="primary-button" onClick={onSync}><RefreshCw size={16} /> {t('git:projects.sync')}</button>} /><div className="filter-bar"><div className="filter-summary"><span className="data-count">{projects.length}</span><span>{t('git:projects.visible', { count: projects.length })}</span>{query && <span className="filter-query">{t('git:projects.matching', { query })}</span>}</div><div className="group-chips"><button className="chip active">{t('git:projects.all')}</button>{groups.map((group) => <button className="chip" key={group}>{group}</button>)}</div></div>{projects.length ? <div className="project-list-grid">{projects.map((project) => <div className="project-list-item" key={project.id}><ProjectCard project={project} onOpen={() => onOpen(project)} /><button className="scan-button" onClick={() => onScan(project)} title={t('git:projects.scanStack')}><Code2 size={15} /> {t('git:projects.scanStack')}</button></div>)}</div> : <div className="panel"><EmptyState title={t('git:projects.emptyTitle')} detail={t('git:projects.emptyDetail')} action={<button className="secondary-button" onClick={onSync}>{t('git:projects.startSync')}</button>} /></div>}</>
 }
 
+// Repository Upstream Profile panel (master directive PART 3): verifies the
+// origin of the selected repository through GitHub evidence, and records
+// explicit ZIP / third-party declarations. Candidates are never guessed.
+function UpstreamPanel({ project, onToast }: { project: Project; onToast: (message: string) => void }) {
+  const { t } = useTranslation()
+  const [profile, setProfile] = useState<UpstreamProfile | null>(project.upstreamProfile || null)
+  const [upstream, setUpstream] = useState('')
+  const [kind, setKind] = useState('zip-reupload')
+  const [version, setVersion] = useState('')
+  const [busy, setBusy] = useState<'detect' | 'declare' | null>(null)
+  useEffect(() => { setProfile(project.upstreamProfile || null); setUpstream(''); setVersion('') }, [project.id, project.upstreamProfile]) // eslint-disable-line react-hooks/exhaustive-deps
+  const badge = t(`git:upstream.badge.${upstreamBadgeKey(profile?.type)}`)
+  const detect = async (candidate?: string) => {
+    setBusy('detect')
+    try {
+      const result = await api.detectUpstream(project.id, candidate || null)
+      setProfile(result.profile)
+      onToast(t('git:upstream.detectedToast', { badge: t(`git:upstream.badge.${upstreamBadgeKey(result.profile.type)}`), upstream: result.profile.upstreamFullName || '—' }))
+    } catch (error) { onToast(error instanceof Error ? error.message : t('git:upstream.detectFailed')) }
+    finally { setBusy(null) }
+  }
+  const declare = async () => {
+    if (!upstream.trim()) return onToast(t('git:upstream.repoRequired'))
+    setBusy('declare')
+    try {
+      const result = await api.declareUpstream(project.id, { upstreamFullName: upstream.trim(), kind, version: version.trim() || undefined })
+      setProfile(result.profile)
+      setUpstream(''); setVersion('')
+      onToast(t('git:upstream.declaredToast', { badge: t(`git:upstream.badge.${upstreamBadgeKey(result.profile.type)}`), upstream: result.profile.upstreamFullName || '—' }))
+    } catch (error) { onToast(error instanceof Error ? error.message : t('git:upstream.declareFailed')) }
+    finally { setBusy(null) }
+  }
+  return <div className="panel upstream-panel">
+    <div className="panel-head"><div><div className="panel-kicker">{t('git:upstream.kicker')}</div><h2>{t('git:upstream.title')}</h2></div><button className="secondary-button compact" onClick={() => void detect()} disabled={busy !== null}><Search size={13} /> {busy === 'detect' ? t('git:upstream.detecting') : t('git:upstream.detect')}</button></div>
+    <div className="upstream-state">
+      <div className="upstream-state-line"><span>{t('git:upstream.typeLabel')}</span><StatusPill status={badge} /></div>
+      <div className="upstream-state-line"><span>{t('git:upstream.upstreamLabel')}</span><strong>{profile?.upstreamFullName || '—'}</strong></div>
+      {profile?.mergeBase?.mergeBaseSha && <div className="upstream-state-line"><span>{t('git:upstream.mergeBaseLabel')}</span><strong>{profile.mergeBase.mergeBaseSha.slice(0, 12)} · +{profile.mergeBase.aheadBy} / -{profile.mergeBase.behindBy}</strong></div>}
+      {profile?.declared && <div className="upstream-state-line"><span>{t('git:upstream.declaredLabel')}</span><strong>{profile.declared.kind === 'zip-reupload' ? t('git:upstream.kindZip') : t('git:upstream.kindThird')}{profile.declared.version ? ` · ${profile.declared.version}` : ''}</strong></div>}
+      <div className="upstream-state-line"><span>{t('git:upstream.checkedLabel')}</span><strong>{profile?.checkedAt ? formatStamp(profile.checkedAt) : t('git:upstream.neverChecked')}</strong></div>
+    </div>
+    <details className="upstream-declare">
+      <summary>{t('git:upstream.declareSummary')}</summary>
+      <p className="helper-copy">{t('git:upstream.declareDetail')}</p>
+      <div className="upstream-declare-row">
+        <label>{t('git:upstream.upstreamRepoLabel')}<input value={upstream} onChange={(event) => setUpstream(event.target.value)} placeholder="owner/repo" /></label>
+        <label>{t('git:upstream.kindLabel')}<select value={kind} onChange={(event) => setKind(event.target.value)}><option value="zip-reupload">{t('git:upstream.kindZip')}</option><option value="third-party">{t('git:upstream.kindThird')}</option></select></label>
+        <label>{t('git:upstream.versionLabel')}<input value={version} onChange={(event) => setVersion(event.target.value)} placeholder="v1.2.3" /></label>
+      </div>
+      <button className="secondary-button compact" onClick={() => void declare()} disabled={busy !== null}>{busy === 'declare' ? t('git:upstream.declaring') : t('git:upstream.declare')}</button>
+    </details>
+    {profile?.evidence?.length ? <details className="upstream-evidence"><summary>{t('git:upstream.evidenceSummary', { count: profile.evidence.length })}</summary><ul>{profile.evidence.slice().reverse().map((entry, index) => <li key={index}><code>{entry.kind}</code> {entry.detail} <small>{formatStamp(entry.at)}</small></li>)}</ul></details> : null}
+  </div>
+}
+
 function BuildCenter({ projects, selectedProject, onSelect, onToast }: { projects: Project[]; selectedProject: Project | null; onSelect: (p: Project | null) => void; onToast: (message: string) => void }) {
   const { t } = useTranslation()
   const [workflows, setWorkflows] = useState<{ id: number; name: string; path: string; state: string }[]>([])
@@ -197,7 +264,7 @@ function BuildCenter({ projects, selectedProject, onSelect, onToast }: { project
   const load = async (project: Project) => { setLoading(true); try { const [wf, run] = await Promise.all([api.workflows(project.id), api.runs(project.id)]); setWorkflows(wf.workflows); setRuns(run.runs) } catch (error) { onToast(error instanceof Error ? error.message : t('build:workflows.loadFailed')) } finally { setLoading(false) } }
   useEffect(() => { if (selectedProject) void load(selectedProject); else { setWorkflows([]); setRuns([]) } }, [selectedProject]) // eslint-disable-line react-hooks/exhaustive-deps
   const trigger = async (workflowId: number) => { if (!selectedProject) return; try { await api.build(selectedProject.id, workflowId, selectedProject.defaultBranch); onToast(t('build:workflows.dispatched')); void load(selectedProject) } catch (error) { onToast(error instanceof Error ? error.message : t('build:workflows.dispatchFailed')) } }
-  return <><PageIntro eyebrow={t('build:eyebrow')} title={t('build:title')} detail={t('build:subtitle')} /><div className="build-layout"><div className="panel project-picker"><div className="panel-kicker">{t('build:picker.kicker')}</div><h2>{t('build:picker.title')}</h2><div className="select-list">{projects.length ? projects.map((project) => <button key={project.id} className={selectedProject?.id === project.id ? 'select-row selected' : 'select-row'} onClick={() => onSelect(project)}><div className="repo-mark"><GitFork size={15} /></div><div><strong>{project.fullName}</strong><span>{project.defaultBranch} · {project.language}</span></div><ArrowUpRight size={14} /></button>) : <EmptyState title={t('build:picker.emptyTitle')} detail={t('build:picker.emptyDetail')} />}</div></div><div className="build-main"><div className="panel"><div className="panel-head"><div><div className="panel-kicker">{t('build:workflows.kicker')}</div><h2>{selectedProject ? selectedProject.fullName : t('build:workflows.selectRepository')}</h2></div>{loading && <Loader2 className="spin" size={18} />}</div>{selectedProject ? workflows.length ? <div className="workflow-list">{workflows.map((workflow) => <div className="workflow-row" key={workflow.id}><div className="workflow-icon"><GitBranch size={16} /></div><div className="workflow-copy"><strong>{workflow.name}</strong><span>{workflow.path} · {workflow.state}</span></div><button className="secondary-button compact" onClick={() => void trigger(workflow.id)}><Rocket size={14} /> {t('build:workflows.runAction')}</button></div>)}</div> : <EmptyState title={t('build:workflows.emptyTitle')} detail={t('build:workflows.emptyDetail')} /> : <EmptyState title={t('build:workflows.waitingTitle')} detail={t('build:workflows.waitingDetail')} />}</div><div className="panel"><div className="panel-head"><div><div className="panel-kicker">{t('build:runs.kicker')}</div><h2>{t('build:runs.title')}</h2></div><GitPullRequest size={17} className="muted-icon" /></div>{runs.length ? <div className="run-list">{runs.map((run) => <a className="run-row" href={run.html_url} target="_blank" rel="noreferrer" key={run.id}><div><strong>{run.name}</strong><span>{formatStamp(run.created_at)}</span></div><StatusPill status={run.conclusion || run.status} /><ArrowUpRight size={14} /></a>)}</div> : <EmptyState title={t('build:runs.emptyTitle')} detail={t('build:runs.emptyDetail')} />}</div></div></div></>
+  return <><PageIntro eyebrow={t('build:eyebrow')} title={t('build:title')} detail={t('build:subtitle')} /><div className="build-layout"><div className="panel project-picker"><div className="panel-kicker">{t('build:picker.kicker')}</div><h2>{t('build:picker.title')}</h2><div className="select-list">{projects.length ? projects.map((project) => <button key={project.id} className={selectedProject?.id === project.id ? 'select-row selected' : 'select-row'} onClick={() => onSelect(project)}><div className="repo-mark"><GitFork size={15} /></div><div><strong>{project.fullName}</strong><span>{project.defaultBranch} · {project.language}</span></div><ArrowUpRight size={14} /></button>) : <EmptyState title={t('build:picker.emptyTitle')} detail={t('build:picker.emptyDetail')} />}</div></div><div className="build-main"><div className="panel"><div className="panel-head"><div><div className="panel-kicker">{t('build:workflows.kicker')}</div><h2>{selectedProject ? selectedProject.fullName : t('build:workflows.selectRepository')}</h2></div>{loading && <Loader2 className="spin" size={18} />}</div>{selectedProject ? workflows.length ? <div className="workflow-list">{workflows.map((workflow) => <div className="workflow-row" key={workflow.id}><div className="workflow-icon"><GitBranch size={16} /></div><div className="workflow-copy"><strong>{workflow.name}</strong><span>{workflow.path} · {workflow.state}</span></div><button className="secondary-button compact" onClick={() => void trigger(workflow.id)}><Rocket size={14} /> {t('build:workflows.runAction')}</button></div>)}</div> : <EmptyState title={t('build:workflows.emptyTitle')} detail={t('build:workflows.emptyDetail')} /> : <EmptyState title={t('build:workflows.waitingTitle')} detail={t('build:workflows.waitingDetail')} />}</div><div className="panel"><div className="panel-head"><div><div className="panel-kicker">{t('build:runs.kicker')}</div><h2>{t('build:runs.title')}</h2></div><GitPullRequest size={17} className="muted-icon" /></div>{runs.length ? <div className="run-list">{runs.map((run) => <a className="run-row" href={run.html_url} target="_blank" rel="noreferrer" key={run.id}><div><strong>{run.name}</strong><span>{formatStamp(run.created_at)}</span></div><StatusPill status={run.conclusion || run.status} /><ArrowUpRight size={14} /></a>)}</div> : <EmptyState title={t('build:runs.emptyTitle')} detail={t('build:runs.emptyDetail')} />}</div>{selectedProject && <UpstreamPanel project={selectedProject} onToast={onToast} />}</div></div></>
 }
 
 function ReleaseCenter({ projects, onToast }: { projects: Project[]; onToast: (message: string) => void }) {

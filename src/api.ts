@@ -19,6 +19,18 @@ export type Project = {
   group: string
   stack: string[]
   latestRelease?: { tag_name?: string; published_at?: string } | null
+  upstreamProfile?: UpstreamProfile | null
+}
+
+export type UpstreamProfile = {
+  type: string
+  upstreamFullName: string | null
+  upstreamDefaultBranch: string | null
+  confidence: number
+  evidence: { at: string; kind: string; detail: string; repository?: string }[]
+  declared: { upstreamFullName: string; kind: string; ref: string | null; version: string | null; note: string; declaredAt: string } | null
+  mergeBase: { status: string; mergeBaseSha: string | null; aheadBy: number; behindBy: number; totalCommits: number } | null
+  checkedAt: string | null
 }
 
 export type OverviewStatus = 'idle' | 'queued' | 'running' | 'blocked' | 'failed' | 'success' | 'cancelled'
@@ -442,6 +454,8 @@ export const api = {
   overview: () => request<{ metrics: Record<string, number>; projects: Project[]; tasks: Task[]; activity: { id: string; message: string; at: string }[]; githubConfigured: boolean }>('/api/overview'),
   githubStatus: () => request<{ configured: boolean; owner: string | null; apiUrl: string; permissions: string[] }>('/api/github/status'),
   projects: (query = '') => request<{ projects: Project[]; total: number }>(`/api/projects?query=${encodeURIComponent(query)}`),
+  detectUpstream: (id: string, upstreamFullName?: string | null) => request<{ profile: UpstreamProfile }>(`/api/projects/${encodeURIComponent(id)}/upstream/detect`, { method: 'POST', body: JSON.stringify({ upstreamFullName: upstreamFullName || null }) }),
+  declareUpstream: (id: string, payload: { upstreamFullName: string; kind: string; version?: string; note?: string }) => request<{ profile: UpstreamProfile }>(`/api/projects/${encodeURIComponent(id)}/upstream/declare`, { method: 'POST', body: JSON.stringify(payload) }),
   syncRepositories: (automatic = false) => request<{ task?: Task; skipped?: boolean; reason?: string }>('/api/tasks/sync-repositories', { method: 'POST', body: JSON.stringify({ automatic }) }),
   scanProject: (id: string) => request<{ project: Project }>(`/api/projects/${id}/scan`, { method: 'POST', body: '{}' }),
   integrationScan: (id: string) => request<{ project: Project; job: IntegrationJob; task: Task; reused: boolean }>(`/api/projects/${id}/integration-scan`, { method: 'POST', body: '{}' }),

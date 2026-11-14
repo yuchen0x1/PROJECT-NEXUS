@@ -493,5 +493,38 @@
     "retry": "Sync is incomplete. Retry after {{time}}.",
     "completed": "Sync completed. Repository lists and counts are updated.",
     "partial": "Pagination was incomplete. Received repositories were updated; other records were retained."
+  },
+  "upstream": {
+    "badge": {
+      "fork": "Fork verified",
+      "commonHistory": "Shared history",
+      "declared": "Declared origin",
+      "unknown": "Origin unknown"
+    },
+    "kicker": "Upstream profile",
+    "title": "Repository origin",
+    "detect": "Detect origin",
+    "detecting": "Detecting…",
+    "typeLabel": "Assessment",
+    "upstreamLabel": "Upstream repository",
+    "mergeBaseLabel": "Common ancestor",
+    "declaredLabel": "Declaration",
+    "checkedLabel": "Last check",
+    "neverChecked": "Never checked",
+    "declareSummary": "Declare a ZIP re-upload or third-party origin",
+    "declareDetail": "Candidates are never auto-bound from names. A declaration is stored with time and evidence; GitHub then verifies whether a fork relation or shared history exists.",
+    "upstreamRepoLabel": "Upstream repository (owner/repo)",
+    "kindLabel": "Kind",
+    "kindZip": "ZIP re-upload",
+    "kindThird": "Third-party continuation",
+    "versionLabel": "Original version (optional)",
+    "declare": "Save declaration",
+    "declaring": "Saving…",
+    "evidenceSummary": "Evidence ({{count}})",
+    "detectedToast": "Origin: {{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
+    "declaredToast": "Declaration saved: {{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
+    "detectFailed": "Origin detection failed.",
+    "declareFailed": "The declaration could not be saved.",
+    "repoRequired": "Enter the upstream repository as owner/repo."
   }
 }

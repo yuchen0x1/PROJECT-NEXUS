@@ -493,5 +493,38 @@
     "retry": "동기화가 완료되지 않았습니다. {{time}} 이후 재시도합니다.",
     "completed": "동기화 완료. 저장소 목록과 개수를 갱신했습니다.",
     "partial": "일부 페이지만 가져왔습니다. 나머지 기록은 유지됩니다."
+  },
+  "upstream": {
+    "badge": {
+      "fork": "Fork 검증됨",
+      "commonHistory": "공통 이력",
+      "declared": "신고된 출처",
+      "unknown": "출처 미상"
+    },
+    "kicker": "업스트림 프로필",
+    "title": "저장소 출처",
+    "detect": "출처 탐지",
+    "detecting": "탐지 중…",
+    "typeLabel": "판정",
+    "upstreamLabel": "업스트림 저장소",
+    "mergeBaseLabel": "공통 조상",
+    "declaredLabel": "신고 기록",
+    "checkedLabel": "마지막 확인",
+    "neverChecked": "확인된 적 없음",
+    "declareSummary": "ZIP 재업로드 또는 서드파티 출처 신고",
+    "declareDetail": "이름만으로 업스트림을 자동 바인딩하지 않습니다. 신고는 시각·증거와 함께 저장되며, 이후 GitHub가 포크 관계나 공통 이력의 존재를 검증합니다.",
+    "upstreamRepoLabel": "업스트림 저장소(owner/repo)",
+    "kindLabel": "종류",
+    "kindZip": "ZIP 재업로드",
+    "kindThird": "서드파티 수정판",
+    "versionLabel": "원본 버전(선택)",
+    "declare": "신고 저장",
+    "declaring": "저장 중…",
+    "evidenceSummary": "증거({{count}})",
+    "detectedToast": "출처 판정: {{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
+    "declaredToast": "신고 저장됨: {{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
+    "detectFailed": "출처 탐지에 실패했습니다.",
+    "declareFailed": "신고를 저장하지 못했습니다.",
+    "repoRequired": "업스트림 저장소를 owner/repo 형식으로 입력하세요."
   }
 }

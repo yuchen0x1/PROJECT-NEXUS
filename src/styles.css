@@ -224,3 +224,18 @@ h3 { font-size: 15px; font-weight: 600; }
 @media (max-width: 1120px) { .metric-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }.project-list-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.capability-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 860px) { .sidebar { position: fixed; left: 0; transform: translateX(-100%); transition: transform .2s ease; }.sidebar.open { transform: translateX(0); }.scrim { display: block; position: fixed; inset: 0; z-index: 15; border: 0; background: var(--nx-scrim); }.mobile-menu { display: grid; }.topbar { padding: 0 20px; }.content { padding: 28px 20px 48px; }.overview-grid, .monitor-grid, .build-layout, .settings-grid, .release-create-grid, .connection-summary { grid-template-columns: 1fr; }.project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.security-grid { grid-template-columns: 1fr; } }
 @media (max-width: 600px) { .topbar { height: 62px; }.breadcrumb span:first-child, .search-box { display: none; }.page-intro { display: block; }.page-intro .primary-button, .page-intro .secondary-button { margin-top: 17px; }.metric-grid, .update-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }.metric-card { min-height: 119px; }.project-grid, .project-list-grid, .capability-grid { grid-template-columns: 1fr; }.filter-bar { display: block; }.group-chips { margin-top: 12px; }.task-row { grid-template-columns: minmax(0, 1fr) auto; }.task-time, .task-dates { display: none; }.notice-banner { align-items: flex-start; flex-wrap: wrap; }.notice-banner .text-button { margin-left: 43px; }.ai-hero { align-items: flex-start; flex-wrap: wrap; }.ai-hero > .status-pill { margin-left: 70px; }.release-row { gap: 8px; }.release-tag { width: 74px; font-size: 9px; }.release-state { display: none; }.form-two { grid-template-columns: 1fr; }.update-row { align-items: flex-start; flex-wrap: wrap; }.update-health { margin-left: 39px; }.update-row .icon-button { margin-left: auto; } }
+
+/* Repository Upstream Profile (PART 3) */
+.upstream-badge { display: inline-block; margin: 6px 0 2px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line, rgba(148,163,184,.3)); font-size: 11px; color: var(--text-2, #94a3b8); }
+.upstream-state { display: grid; gap: 6px; margin: 10px 0; }
+.upstream-state-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; }
+.upstream-state-line > span { color: var(--text-2, #94a3b8); }
+.upstream-state-line strong { font-size: 12.5px; text-align: right; word-break: break-all; }
+.upstream-declare { margin: 10px 0; border-top: 1px solid var(--line, rgba(148,163,184,.2)); padding-top: 10px; }
+.upstream-declare summary { cursor: pointer; font-size: 13px; }
+.upstream-declare-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
+.upstream-declare-row label { display: grid; gap: 4px; font-size: 12px; color: var(--text-2, #94a3b8); }
+.upstream-declare-row input, .upstream-declare-row select { min-width: 160px; }
+.upstream-evidence { margin-top: 8px; }
+.upstream-evidence summary { cursor: pointer; font-size: 12.5px; }
+.upstream-evidence ul { margin: 8px 0 0; padding-inline-start: 18px; font-size: 12px; display: grid; gap: 4px; }

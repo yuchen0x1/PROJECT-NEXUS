@@ -493,5 +493,38 @@
     "retry": "同步尚未完成，預計 {{time}} 後重試。",
     "completed": "同步完成，已更新儲存庫清單與數量。",
     "partial": "分頁未全部取得：已更新取得的儲存庫，其餘記錄保留。"
+  },
+  "upstream": {
+    "badge": {
+      "fork": "Fork 已驗證",
+      "commonHistory": "共同歷史",
+      "declared": "已申報來源",
+      "unknown": "來源未知"
+    },
+    "kicker": "上游檔案",
+    "title": "儲存庫來源",
+    "detect": "偵測來源",
+    "detecting": "正在偵測…",
+    "typeLabel": "判定",
+    "upstreamLabel": "上游儲存庫",
+    "mergeBaseLabel": "共同祖先",
+    "declaredLabel": "申報紀錄",
+    "checkedLabel": "最近檢查",
+    "neverChecked": "尚未檢查",
+    "declareSummary": "申報 ZIP 重傳或協力廠商來源",
+    "declareDetail": "系統不會根據儲存庫名稱猜測並自動綁定上游。申報會連同時間與證據一起保存；隨後 GitHub 會核實是否存在 Fork 關係或共同歷史。",
+    "upstreamRepoLabel": "上游儲存庫（owner/repo）",
+    "kindLabel": "類型",
+    "kindZip": "ZIP 下載重傳",
+    "kindThird": "協力廠商二次開發",
+    "versionLabel": "原始版本（可選）",
+    "declare": "儲存申報",
+    "declaring": "正在儲存…",
+    "evidenceSummary": "證據（{{count}}）",
+    "detectedToast": "來源判定：{{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
+    "declaredToast": "申報已儲存：{{badge}}{{upstream ? ` · ${upstream}` : \"\"}}",
+    "detectFailed": "來源偵測失敗。",
+    "declareFailed": "申報儲存失敗。",
+    "repoRequired": "請以 owner/repo 形式填寫上游儲存庫。"
   }
 }
