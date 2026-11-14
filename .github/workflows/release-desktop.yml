@@ -98,7 +98,11 @@ jobs:
           if ($heading -notmatch '^# (v\d+\.\d+\.\d+ · .+)$') { throw 'Release notes must start with: # vX.Y.Z · 中文主题' }
           $title = $Matches[1]
           if (-not $title.StartsWith("$($env:RELEASE_TAG) · ", [StringComparison]::Ordinal)) { throw 'Release note title must match the release tag.' }
-          gh release create $env:RELEASE_TAG @assets --repo $env:GITHUB_REPOSITORY --verify-tag --title $title --notes-file $notes --draft
+          # The H1 heading becomes the release title; publishing the whole file would render it twice.
+          $body = (Get-Content -LiteralPath $notes | Select-Object -Skip 1) -join "`n"
+          $releaseNotes = Join-Path $env:RUNNER_TEMP 'release-notes-body.md'
+          Set-Content -LiteralPath $releaseNotes -Value $body -Encoding utf8NoBOM
+          gh release create $env:RELEASE_TAG @assets --repo $env:GITHUB_REPOSITORY --verify-tag --title $title --notes-file $releaseNotes --draft
           if ($LASTEXITCODE -ne 0) { throw 'Upload failed; the release remains unpublished.' }
           gh release edit $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --draft=false --latest
           if ($LASTEXITCODE -ne 0) { throw 'Could not publish the completed release.' }
