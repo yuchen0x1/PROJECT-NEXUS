@@ -61,6 +61,7 @@ type Peer = { id: string; fullName: string; stack: string | null; stars: number;
 type Proposal = { id: string; featureName: string; sourceProject: string; sourceLicence: string | null; licenceCompatible: boolean; recommended: boolean; priority: string; risk: string; status: string }
 type AuditEntry = { id: string; at: string; actor: string; action: string; target: string }
 type Readiness = { overall: string; mode: string; blockingCodes: string[]; conditions: string[]; checks: { id: string; state: string; detail: string }[] }
+type WindowProbe = { count: number; windows: { name: string; processId: number }[]; error?: string; ok?: boolean }
 
 type Tab = 'overview' | 'repositories' | 'clients' | 'tasks' | 'research' | 'audit'
 
@@ -155,7 +156,7 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
   const [proposals, setProposals] = useState<Proposal[]>([])
   const [audit, setAudit] = useState<AuditEntry[]>([])
   const [readiness, setReadiness] = useState<Readiness | null>(null)
-  const [windows, setWindows] = useState<Record<string, { count: number; windows: { name: string; processId: number }[] }>>({})
+  const [windows, setWindows] = useState<Record<string, WindowProbe>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState('')
@@ -255,8 +256,13 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
   const probeWindows = useCallback(async (adapterId: string) => {
     setBusy(`windows:${adapterId}`)
     try {
-      const result = await request<{ count: number; windows: { name: string; processId: number }[] }>('/api/autonomy/adapters/windows', { method: 'POST', body: JSON.stringify({ adapterId }) })
-      setWindows((current) => ({ ...current, [adapterId]: result }))
+      const result = await request<{ ok?: boolean; code?: string; count?: number; windows?: { name: string; processId: number }[] }>('/api/autonomy/adapters/windows', { method: 'POST', body: JSON.stringify({ adapterId }) })
+      setWindows((current) => ({ ...current, [adapterId]: {
+        ok: result.ok !== false,
+        count: Number(result.count) || 0,
+        windows: Array.isArray(result.windows) ? result.windows : [],
+        error: result.ok === false ? String(result.code || 'WINDOW_DISCOVERY_FAILED') : undefined
+      } }))
       await request('/api/autonomy/adapters/probe', { method: 'POST', body: '{}' })
       await load()
     } catch (cause) { notify(String((cause as Error).message || cause)) } finally { setBusy('') }
@@ -436,7 +442,9 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
               <button onClick={() => void probeWindows(adapter.id)} disabled={Boolean(busy)}><ExternalLink size={13} />{text.windows}</button>
               <button onClick={() => void request(`/api/autonomy/adapters/${adapter.id}/launch`, { method: 'POST', body: '{}' }).then(() => load()).catch((cause) => notify(String(cause.message)))}><Play size={13} />{text.launch}</button>
             </div>
-            {windows[adapter.id] && <div className="ax-note">{windows[adapter.id].count} window(s): {windows[adapter.id].windows.map((item) => `${item.name} (pid ${item.processId})`).join(', ') || '—'}</div>}
+            {windows[adapter.id] && <div className={`ax-note${windows[adapter.id].error ? ' ax-note-red' : ''}`}>
+              {windows[adapter.id].error ? `识别失败：${windows[adapter.id].error}` : `${windows[adapter.id].count} window(s): ${windows[adapter.id].windows.map((item) => `${item.name} (pid ${item.processId})`).join(', ') || '—'}`}
+            </div>}
           </div>) : <div className="ax-empty">{text.empty}</div>}
         </section>
       </div>}

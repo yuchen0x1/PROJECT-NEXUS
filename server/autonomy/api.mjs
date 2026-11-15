@@ -277,8 +277,9 @@ export function registerAutonomyApi(app, { engine, store, delivery, dataDir }) {
     const adapter = engine.adapters.get(req.body?.adapterId || 'chatgpt-desktop')
     if (!adapter) return res.status(404).json({ error: 'Adapter not found.', code: 'NOT_FOUND' })
     const capability = await adapter.uia.probe()
-    if (!capability.available) return res.json({ ok: false, code: 'UIA_UNAVAILABLE', capability })
-    return res.json({ ok: true, adapterId: adapter.id, ...await adapter.uia.windows(adapter.window) })
+    if (!capability.available) return res.json({ ok: false, adapterId: adapter.id, code: 'UIA_UNAVAILABLE', capability, count: 0, windows: [] })
+    const result = await adapter.uia.windows(adapter.window)
+    return res.json({ ok: result.ok !== false, adapterId: adapter.id, ...result, count: Number(result.count) || 0, windows: Array.isArray(result.windows) ? result.windows : [] })
   })
 
   add('post', '/adapters/:id/launch', async (req, res) => {
