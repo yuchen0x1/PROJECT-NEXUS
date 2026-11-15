@@ -24,7 +24,7 @@ type Overview = {
   recentActivity: { id: string; repository: string; mode: string; events: number; verdict: string; at: string }[]
   desktopClients: { id: string; name: string; installed: boolean; running: boolean; uia: boolean; checkedAt: string }[]
   control: {
-    enabled: boolean; paused: boolean; automationMode: string; maxConcurrent: number
+    enabled: boolean; paused: boolean; automationMode: string; maxConcurrent: number; remoteWritesEnabled?: boolean
     monitorConfigured: boolean; lastTickAt: string | null; storeBackend: string
     tasks: { queued: number; running: number; awaitingHuman: number; accepted: number }
     sessions: { active: number; handoff: number }
@@ -35,7 +35,7 @@ type Overview = {
 type Repo = {
   id: string; fullName: string; localPath: string; defaultBranch: string
   pollIntervalMs: number; monitorItems: string[]; agentAdapterId: string | null
-  agentProjectRef: string; autoFix: boolean; autoRelease: boolean
+  agentProjectRef: string; autoFix: boolean; autoMerge: boolean; autoRelease: boolean
   automationMode: string; webhookEnabled: boolean; enabled: boolean; createdAt: string
 }
 
@@ -78,6 +78,9 @@ const LABELS = {
     empty: '暂无记录。执行扫描或添加仓库后，这里会显示真实数据。',
     error: '读取失败', addRepo: '添加仓库', repoPlaceholder: 'owner/repo', localPath: '本地项目目录',
     projectRef: '客户端项目标识', adapter: 'AI 执行客户端', interval: '监控周期',
+    chooseFolder: '选择文件夹', automation: '仓库执行策略', autoFix: '允许自动修复', autoMerge: '允许自动合并', autoRelease: '允许自动发布',
+    safeSetup: '建议：自动修复 + 30 分钟；合并和发布仍需单独确认。', configureRepair: '设为 30 分钟自动修复',
+    remoteWrites: '允许远程写入（推送 / PR / 合并 / Release）', oneTask: '同一仓库和同一客户端有活动任务时，NEXUS 会等待，不会重复发送。',
     add: '添加', remove: '移除', sync: '立即同步', probe: '重新探测客户端', windows: '识别窗口',
     launch: '启动客户端', capability: '能力检测表', verified: '已验证', partial: '部分支持', unsupported: '不支持',
     installed: '已安装', notInstalled: '未安装', active: '运行中', inactive: '未运行', uiaOn: 'UIA 可用', uiaOff: 'UIA 不可用',
@@ -105,6 +108,9 @@ const LABELS = {
     empty: 'No records yet. Run a scan or add a repository to see real data.',
     error: 'Load failed', addRepo: 'Add repository', repoPlaceholder: 'owner/repo', localPath: 'Local project path',
     projectRef: 'Client project reference', adapter: 'AI execution client', interval: 'Poll interval',
+    chooseFolder: 'Choose folder', automation: 'Repository execution policy', autoFix: 'Allow auto repair', autoMerge: 'Allow auto merge', autoRelease: 'Allow auto release',
+    safeSetup: 'Recommended: auto repair every 30 minutes; merge and release remain separately gated.', configureRepair: 'Set 30-minute auto repair',
+    remoteWrites: 'Allow remote writes (push / PR / merge / release)', oneTask: 'When a repository or client already has an active task, NEXUS waits instead of sending a duplicate.',
     add: 'Add', remove: 'Remove', sync: 'Sync now', probe: 'Probe clients', windows: 'Identify windows',
     launch: 'Launch client', capability: 'Capability matrix', verified: 'Verified', partial: 'Partial', unsupported: 'Unsupported',
     installed: 'Installed', notInstalled: 'Not installed', active: 'Running', inactive: 'Not running', uiaOn: 'UIA available', uiaOff: 'UIA unavailable',
@@ -153,7 +159,7 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState('')
-  const [newRepo, setNewRepo] = useState({ fullName: '', localPath: '', agentProjectRef: '', agentAdapterId: 'chatgpt-desktop', pollIntervalMs: 900000 })
+  const [newRepo, setNewRepo] = useState({ fullName: '', localPath: '', agentProjectRef: '', agentAdapterId: 'chatgpt-desktop', pollIntervalMs: 1800000, automationMode: 'repair', autoFix: true, autoMerge: false, autoRelease: false })
 
   const notify = useCallback((message: string) => { onToast?.(message) }, [onToast])
 
@@ -201,6 +207,15 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
     }
   }, [load, notify])
 
+  const saveSettings = useCallback(async (patch: Record<string, unknown>) => {
+    setBusy('settings')
+    try {
+      await request('/api/autonomy/control/settings', { method: 'POST', body: JSON.stringify(patch) })
+      notify('设置已保存')
+      await load()
+    } catch (cause) { notify(String((cause as Error).message || cause)) } finally { setBusy('') }
+  }, [load, notify])
+
   const taskAction = useCallback(async (id: string, action: string) => {
     setBusy(`${action}:${id}`)
     try {
@@ -215,11 +230,27 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
     if (!/^[^/\s]+\/[^/\s]+$/.test(newRepo.fullName)) { notify('owner/repo required'); return }
     setBusy('add-repo')
     try {
-      await request('/api/autonomy/repositories', { method: 'POST', body: JSON.stringify({ ...newRepo, automationMode: 'observe' }) })
-      setNewRepo({ fullName: '', localPath: '', agentProjectRef: '', agentAdapterId: 'chatgpt-desktop', pollIntervalMs: 900000 })
+      await request('/api/autonomy/repositories', { method: 'POST', body: JSON.stringify(newRepo) })
+      setNewRepo({ fullName: '', localPath: '', agentProjectRef: '', agentAdapterId: 'chatgpt-desktop', pollIntervalMs: 1800000, automationMode: 'repair', autoFix: true, autoMerge: false, autoRelease: false })
       await load()
     } catch (cause) { notify(String((cause as Error).message || cause)) } finally { setBusy('') }
   }, [newRepo, load, notify])
+
+  const chooseLocalFolder = useCallback(async () => {
+    try {
+      const result = await window.nexusDesktop?.addProject?.(text.chooseFolder)
+      if (result?.project?.path) setNewRepo((current) => ({ ...current, localPath: result.project.path }))
+    } catch (cause) { notify(String((cause as Error).message || cause)) }
+  }, [notify, text.chooseFolder])
+
+  const configureRepair = useCallback(async (repo: Repo) => {
+    setBusy(`configure:${repo.id}`)
+    try {
+      await request(`/api/autonomy/repositories/${repo.id}`, { method: 'PATCH', body: JSON.stringify({ automationMode: 'repair', pollIntervalMs: 1800000, autoFix: true, autoMerge: false, autoRelease: false }) })
+      notify(`${repo.fullName} 已设为 30 分钟自动修复`)
+      await load()
+    } catch (cause) { notify(String((cause as Error).message || cause)) } finally { setBusy('') }
+  }, [load, notify])
 
   const probeWindows = useCallback(async (adapterId: string) => {
     setBusy(`windows:${adapterId}`)
@@ -270,6 +301,19 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
           <span><Cpu size={13} />{text.concurrency}: {control?.maxConcurrent ?? '—'}</span>
           <span><Activity size={13} />{text.lastTick}: <Stamp value={control?.lastTickAt} /></span>
         </div>
+      </div>
+      <div className="ax-control-settings">
+        <label>{text.mode}
+          <select value={control?.automationMode || 'observe'} onChange={(event) => void saveSettings({ automationMode: event.target.value })} disabled={Boolean(busy)}>
+            <option value="observe">{text.modeObserve}</option><option value="repair">{text.modeRepair}</option><option value="autonomous">{text.modeAutonomous}</option>
+          </select>
+        </label>
+        <label>{text.concurrency}
+          <select value={control?.maxConcurrent || 1} onChange={(event) => void saveSettings({ maxConcurrent: Number(event.target.value) })} disabled={Boolean(busy)}>
+            <option value={1}>1（推荐）</option><option value={2}>2</option><option value={3}>3</option>
+          </select>
+        </label>
+        <label className="ax-check"><input type="checkbox" checked={Boolean(control?.remoteWritesEnabled)} onChange={(event) => void saveSettings({ remoteWritesEnabled: event.target.checked })} disabled={Boolean(busy)} />{text.remoteWrites}</label>
       </div>
       <div className="ax-control-buttons">
         <button className="ax-primary" disabled={Boolean(busy)} onClick={() => void act(control?.paused ? 'resume' : 'start', {}, control?.paused ? text.resume : text.start)}>
@@ -323,7 +367,7 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
           <div className="ax-panel-head"><div><span className="ax-kicker">CONFIGURE</span><h2>{text.addRepo}</h2></div><FolderGit2 size={16} /></div>
           <div className="ax-form">
             <input value={newRepo.fullName} onChange={(event) => setNewRepo({ ...newRepo, fullName: event.target.value })} placeholder={text.repoPlaceholder} aria-label={text.repoPlaceholder} />
-            <input value={newRepo.localPath} onChange={(event) => setNewRepo({ ...newRepo, localPath: event.target.value })} placeholder={text.localPath} aria-label={text.localPath} />
+            <div className="ax-input-action"><input value={newRepo.localPath} onChange={(event) => setNewRepo({ ...newRepo, localPath: event.target.value })} placeholder={text.localPath} aria-label={text.localPath} /><button type="button" className="ax-ghost" onClick={() => void chooseLocalFolder()} disabled={!window.nexusDesktop?.addProject}>{text.chooseFolder}</button></div>
             <input value={newRepo.agentProjectRef} onChange={(event) => setNewRepo({ ...newRepo, agentProjectRef: event.target.value })} placeholder={text.projectRef} aria-label={text.projectRef} />
             <select value={newRepo.agentAdapterId} onChange={(event) => setNewRepo({ ...newRepo, agentAdapterId: event.target.value })} aria-label={text.adapter}>
               {adapters.map((adapter) => <option value={adapter.id} key={adapter.id}>{adapter.name}</option>)}
@@ -332,8 +376,16 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
             <select value={newRepo.pollIntervalMs} onChange={(event) => setNewRepo({ ...newRepo, pollIntervalMs: Number(event.target.value) })} aria-label={text.interval}>
               <option value={300000}>5 min</option><option value={900000}>15 min</option><option value={1800000}>30 min</option><option value={3600000}>1 hour</option>
             </select>
+            <select value={newRepo.automationMode} onChange={(event) => setNewRepo({ ...newRepo, automationMode: event.target.value })} aria-label={text.automation}>
+              <option value="observe">{text.modeObserve}</option><option value="repair">{text.modeRepair}</option><option value="autonomous">{text.modeAutonomous}</option>
+            </select>
+            <label className="ax-check"><input type="checkbox" checked={newRepo.autoFix} onChange={(event) => setNewRepo({ ...newRepo, autoFix: event.target.checked })} />{text.autoFix}</label>
+            <label className="ax-check"><input type="checkbox" checked={newRepo.autoMerge} onChange={(event) => setNewRepo({ ...newRepo, autoMerge: event.target.checked })} />{text.autoMerge}</label>
+            <label className="ax-check"><input type="checkbox" checked={newRepo.autoRelease} onChange={(event) => setNewRepo({ ...newRepo, autoRelease: event.target.checked })} />{text.autoRelease}</label>
             <button className="ax-primary" onClick={() => void addRepository()} disabled={Boolean(busy)}><ChevronRight size={15} />{text.add}</button>
           </div>
+          <div className="ax-note">{text.safeSetup}</div>
+          <div className="ax-note"><ShieldCheck size={14} />{text.oneTask}</div>
         </section>
         <section className="ax-panel">
           <div className="ax-panel-head"><div><span className="ax-kicker">MONITORING</span><h2>{text.monitors}</h2></div><span className="ax-count">{repos.length}</span></div>
@@ -342,6 +394,7 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
             <p><GitBranch size={12} />{repo.defaultBranch} · {repo.monitorItems?.length || 0} resources · {Math.round(repo.pollIntervalMs / 60000)} min</p>
             <p className="ax-mono">{repo.localPath || '—'}</p>
             <div className="ax-row-actions">
+              <button onClick={() => void configureRepair(repo)} disabled={Boolean(busy)}>{text.configureRepair}</button>
               <button onClick={() => void request(`/api/autonomy/repositories/${repo.id}/sync`, { method: 'POST', body: '{}' }).then(() => load()).catch((cause) => notify(String(cause.message)))}>{text.sync}</button>
               <button onClick={() => void request(`/api/autonomy/repositories/${repo.id}`, { method: 'DELETE' }).then(() => load()).catch((cause) => notify(String(cause.message)))}>{text.remove}</button>
             </div>
