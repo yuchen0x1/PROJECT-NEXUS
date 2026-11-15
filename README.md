@@ -16,7 +16,7 @@
 
 **在线宣传页：[project-nexus.edgeone.dev](https://project-nexus.edgeone.dev/)**（源码在 `website/`）
 
-> **发布状态（如实说明）**：v0.9.2 将作为 Windows x64 开发预览发布，安装包签名状态和 SHA-256 以 Release 资产为准，不是 v1.0 稳定版。完整能力边界见 [已知限制](docs/AUTONOMY_V2_LIMITATIONS.md)。
+> **发布状态（如实说明）**：v0.9.2 已正式发布为 Windows x64 开发预览，安装包未配置 Authenticode 签名；安装包 SHA-256 以 [GitHub Release v0.9.2](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.2) 资产为准，不是 v1.0 稳定版。完整能力边界见 [已知限制](docs/AUTONOMY_V2_LIMITATIONS.md)。
 
 ## 最新更新
 
