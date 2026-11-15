@@ -49,10 +49,11 @@ type Adapter = {
 }
 
 type Task = {
-  id: string; repository: string; kind: string; priority: string; status: string
+  id: string; repoId?: string; repository: string; kind: string; priority: string; status: string
   attempts: number; createdAt: string; updatedAt: string; error: string | null
-  workspace?: { path: string; branch: string; baseSha: string } | null
+  workspace?: { path: string; branch: string; baseSha: string; isolated?: boolean; worktree?: boolean } | null
   verification?: { verdict: string } | null
+  delivery?: { status?: string; pullRequest?: { number: number; url: string }; commit?: { sha?: string } } | null
 }
 
 type Finding = { id: string; repository: string; kind: string; severity: string; priority: string; title: string; status: string; createdAt: string }
@@ -88,6 +89,7 @@ const LABELS = {
     login: '登录', project: '项目', composer: '输入框', sendControl: '发送控件', visible: '可见', missing: '未暴露',
     tasksTitle: '任务队列与执行监控', noTasks: '当前没有任务。', status: '状态', priority: '优先级',
     attempts: '尝试次数', cancel: '取消', takeover: '人工接管', retry: '重试', details: '详情',
+    openPr: '创建草稿 PR', prOpened: '草稿 PR 已创建',
     findings: '问题记录', peers: '同类项目', proposals: '升级建议', license: '许可证', compatible: '兼容',
     review: '需人工复核', recommended: '建议实施', notRecommended: '不建议',
     readiness: '执行就绪诊断', overall: '总体状态', blocking: '硬阻断', conditions: '非阻断条件',
@@ -118,6 +120,7 @@ const LABELS = {
     login: 'Login', project: 'Project', composer: 'Composer', sendControl: 'Send control', visible: 'visible', missing: 'not exposed',
     tasksTitle: 'Task queue and execution monitor', noTasks: 'No tasks yet.', status: 'Status', priority: 'Priority',
     attempts: 'Attempts', cancel: 'Cancel', takeover: 'Take over', retry: 'Retry', details: 'Details',
+    openPr: 'Open draft PR', prOpened: 'Draft PR opened',
     findings: 'Findings', peers: 'Peer projects', proposals: 'Upgrade proposals', license: 'License', compatible: 'Compatible',
     review: 'Legal review', recommended: 'Recommended', notRecommended: 'Not recommended',
     readiness: 'Execution readiness', overall: 'Overall', blocking: 'Hard blockers', conditions: 'Non-blocking conditions',
@@ -234,6 +237,22 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
       notify(`${label}：失败：${String((cause as Error).message || cause)}`)
     } finally { setBusy('') }
   }, [load, notify])
+
+  const openTaskPullRequest = useCallback(async (task: Task) => {
+    if (!task.repoId || !task.workspace?.branch) return notify('创建草稿 PR：任务缺少隔离工作区信息')
+    setBusy(`pr:${task.id}`)
+    notify('创建草稿 PR：正在提交隔离分支并创建 PR…')
+    try {
+      const result = await request<{ pullRequest: { number: number; url: string } }>(`/api/autonomy/delivery/${encodeURIComponent(task.repoId)}/tasks/${encodeURIComponent(task.id)}/pull-request`, {
+        method: 'POST',
+        body: JSON.stringify({ confirm: true, confirmRepository: task.repository, confirmBranch: task.workspace.branch })
+      })
+      await load()
+      notify(`${text.prOpened} #${result.pullRequest.number}`)
+    } catch (cause) {
+      notify(`创建草稿 PR：失败：${String((cause as Error).message || cause)}`)
+    } finally { setBusy('') }
+  }, [load, notify, text.prOpened])
 
   const addRepository = useCallback(async () => {
     if (!/^[^/\s]+\/[^/\s]+$/.test(newRepo.fullName)) { notify('添加仓库：请填写 owner/repo'); return }
@@ -523,6 +542,7 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
               <span><Pill tone={task.status === 'ACCEPTED' ? 'green' : task.status === 'AWAITING_HUMAN' ? 'amber' : task.status.includes('FAIL') ? 'red' : 'blue'}>{task.status}</Pill></span>
               <span>{task.attempts}</span>
               <span className="ax-inline-actions">
+                {task.delivery?.pullRequest ? <a href={task.delivery.pullRequest.url} target="_blank" rel="noreferrer" className="ax-action-link"><GitPullRequest size={13} /> PR #{task.delivery.pullRequest.number}</a> : <button disabled={Boolean(busy) || task.status !== 'ACCEPTED' || task.verification?.verdict !== 'PASS' || !task.workspace?.isolated} onClick={() => void openTaskPullRequest(task)} title={task.status !== 'ACCEPTED' ? '任务必须先通过独立验收' : task.verification?.verdict !== 'PASS' ? '独立验证必须通过' : !task.workspace?.isolated ? '必须使用隔离 worktree' : undefined}><GitPullRequest size={13} />{text.openPr}</button>}
                 <button onClick={() => void taskAction(task.id, 'cancel')}>{text.cancel}</button>
                 <button onClick={() => void taskAction(task.id, 'takeover')}>{text.takeover}</button>
                 <button onClick={() => void taskAction(task.id, 'retry')}>{text.retry}</button>

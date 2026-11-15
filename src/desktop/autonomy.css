@@ -107,6 +107,8 @@
 .ax-row-actions { display: flex; gap: 8px; margin-top: 9px; }
 .ax-row-actions button, .ax-inline-actions button { display: inline-flex; align-items: center; gap: 5px; background: rgba(75, 141, 255, .08); color: #9dc0ff; border: 1px solid var(--ax-border); border-radius: 6px; padding: 4px 9px; font-size: 10.5px; }
 .ax-row-actions button:hover, .ax-inline-actions button:hover { border-color: var(--ax-cyan); color: var(--ax-cyan); }
+.ax-inline-actions a { display: inline-flex; align-items: center; gap: 5px; background: rgba(75, 141, 255, .08); color: #9dc0ff; border: 1px solid var(--ax-border); border-radius: 6px; padding: 4px 9px; font-size: 10.5px; text-decoration: none; }
+.ax-inline-actions a:hover { border-color: var(--ax-cyan); color: var(--ax-cyan); }
 .ax-inline-actions { display: inline-flex; gap: 5px; flex-wrap: wrap; }
 
 .ax-note { display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; padding: 10px 12px; border-radius: 8px; background: rgba(55, 217, 230, .06); border: 1px solid rgba(55, 217, 230, .16); color: #a8c6dd; font-size: 11px; line-height: 1.55; }
