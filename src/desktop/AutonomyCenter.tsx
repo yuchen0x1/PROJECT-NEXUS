@@ -182,8 +182,10 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
       setOverview(ov); setRepos(rp.repositories || []); setAdapters(ad.adapters || [])
       setTasks(tk.items || []); setFindings(fd.items || []); setSessions(ss.items || [])
       setPeers(pr.peers || []); setProposals(pp.items || []); setAudit(au.items || []); setReadiness(rd)
+      return true
     } catch (cause) {
       setError(String((cause as Error).message || cause))
+      return false
     } finally {
       setLoading(false)
     }
@@ -197,12 +199,13 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
 
   const act = useCallback(async (action: string, payload: unknown = {}, label = action) => {
     setBusy(action)
+    notify(`${label}：正在处理…`)
     try {
       await request(`/api/autonomy/control/${action}`, { method: 'POST', body: JSON.stringify(payload) })
-      notify(`${label} OK`)
       await load()
+      notify(`${label}：已完成`)
     } catch (cause) {
-      notify(`${label}: ${String((cause as Error).message || cause)}`)
+      notify(`${label}：失败：${String((cause as Error).message || cause)}`)
     } finally {
       setBusy('')
     }
@@ -210,51 +213,104 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
 
   const saveSettings = useCallback(async (patch: Record<string, unknown>) => {
     setBusy('settings')
+    notify('设置：正在保存…')
     try {
       await request('/api/autonomy/control/settings', { method: 'POST', body: JSON.stringify(patch) })
-      notify('设置已保存')
       await load()
-    } catch (cause) { notify(String((cause as Error).message || cause)) } finally { setBusy('') }
+      notify('设置：已完成')
+    } catch (cause) { notify(`设置：失败：${String((cause as Error).message || cause)}`) } finally { setBusy('') }
   }, [load, notify])
 
   const taskAction = useCallback(async (id: string, action: string) => {
+    const actionLabels: Record<string, string> = { cancel: '取消任务', takeover: '接管任务', retry: '重试任务' }
+    const label = actionLabels[action] || action
     setBusy(`${action}:${id}`)
+    notify(`${label}：正在处理…`)
     try {
       await request(`/api/autonomy/tasks/${id}/${action}`, { method: 'POST', body: '{}' })
       await load()
+      notify(`${label}：已完成`)
     } catch (cause) {
-      notify(String((cause as Error).message || cause))
+      notify(`${label}：失败：${String((cause as Error).message || cause)}`)
     } finally { setBusy('') }
   }, [load, notify])
 
   const addRepository = useCallback(async () => {
-    if (!/^[^/\s]+\/[^/\s]+$/.test(newRepo.fullName)) { notify('owner/repo required'); return }
+    if (!/^[^/\s]+\/[^/\s]+$/.test(newRepo.fullName)) { notify('添加仓库：请填写 owner/repo'); return }
     setBusy('add-repo')
+    notify('添加仓库：正在处理…')
     try {
       await request('/api/autonomy/repositories', { method: 'POST', body: JSON.stringify(newRepo) })
       setNewRepo({ fullName: '', localPath: '', agentProjectRef: '', agentAdapterId: 'chatgpt-desktop', pollIntervalMs: 1800000, automationMode: 'repair', autoFix: true, autoMerge: false, autoRelease: false })
       await load()
-    } catch (cause) { notify(String((cause as Error).message || cause)) } finally { setBusy('') }
+      notify('添加仓库：已完成')
+    } catch (cause) { notify(`添加仓库：失败：${String((cause as Error).message || cause)}`) } finally { setBusy('') }
   }, [newRepo, load, notify])
 
   const chooseLocalFolder = useCallback(async () => {
+    notify('选择文件夹：正在打开…')
     try {
       const result = await window.nexusDesktop?.addProject?.(text.chooseFolder)
-      if (result?.project?.path) setNewRepo((current) => ({ ...current, localPath: result.project.path }))
-    } catch (cause) { notify(String((cause as Error).message || cause)) }
+      if (result?.project?.path) {
+        setNewRepo((current) => ({ ...current, localPath: result.project.path }))
+        notify('选择文件夹：已完成')
+      } else notify('选择文件夹：已取消')
+    } catch (cause) { notify(`选择文件夹：失败：${String((cause as Error).message || cause)}`) }
   }, [notify, text.chooseFolder])
 
   const configureRepair = useCallback(async (repo: Repo) => {
     setBusy(`configure:${repo.id}`)
+    notify(`${repo.fullName}：正在设置 30 分钟自动修复…`)
     try {
       await request(`/api/autonomy/repositories/${repo.id}`, { method: 'PATCH', body: JSON.stringify({ automationMode: 'repair', pollIntervalMs: 1800000, autoFix: true, autoMerge: false, autoRelease: false }) })
-      notify(`${repo.fullName} 已设为 30 分钟自动修复`)
       await load()
-    } catch (cause) { notify(String((cause as Error).message || cause)) } finally { setBusy('') }
+      notify(`${repo.fullName}：已完成 30 分钟自动修复设置`)
+    } catch (cause) { notify(`${repo.fullName}：失败：${String((cause as Error).message || cause)}`) } finally { setBusy('') }
+  }, [load, notify])
+
+  const syncRepository = useCallback(async (repo: Repo) => {
+    setBusy(`sync:${repo.id}`)
+    notify(`${repo.fullName} 同步：正在处理…`)
+    try {
+      await request(`/api/autonomy/repositories/${repo.id}/sync`, { method: 'POST', body: '{}' })
+      await load()
+      notify(`${repo.fullName} 同步：已完成`)
+    } catch (cause) { notify(`${repo.fullName} 同步：失败：${String((cause as Error).message || cause)}`) } finally { setBusy('') }
+  }, [load, notify])
+
+  const removeRepository = useCallback(async (repo: Repo) => {
+    setBusy(`remove:${repo.id}`)
+    notify(`${repo.fullName} 移除：正在处理…`)
+    try {
+      await request(`/api/autonomy/repositories/${repo.id}`, { method: 'DELETE' })
+      await load()
+      notify(`${repo.fullName} 移除：已完成`)
+    } catch (cause) { notify(`${repo.fullName} 移除：失败：${String((cause as Error).message || cause)}`) } finally { setBusy('') }
+  }, [load, notify])
+
+  const probeAdapters = useCallback(async () => {
+    setBusy('probe-adapters')
+    notify('客户端探测：正在处理…')
+    try {
+      await request('/api/autonomy/adapters/probe', { method: 'POST', body: '{}' })
+      await load()
+      notify('客户端探测：已完成')
+    } catch (cause) { notify(`客户端探测：失败：${String((cause as Error).message || cause)}`) } finally { setBusy('') }
+  }, [load, notify])
+
+  const launchAdapter = useCallback(async (adapter: Adapter) => {
+    setBusy(`launch:${adapter.id}`)
+    notify(`${adapter.name} 启动：正在处理…`)
+    try {
+      await request(`/api/autonomy/adapters/${adapter.id}/launch`, { method: 'POST', body: '{}' })
+      await load()
+      notify(`${adapter.name} 启动：已完成`)
+    } catch (cause) { notify(`${adapter.name} 启动：失败：${String((cause as Error).message || cause)}`) } finally { setBusy('') }
   }, [load, notify])
 
   const probeWindows = useCallback(async (adapterId: string) => {
     setBusy(`windows:${adapterId}`)
+    notify('识别窗口：正在处理…')
     try {
       const result = await request<{ ok?: boolean; code?: string; count?: number; windows?: { name: string; processId: number }[] }>('/api/autonomy/adapters/windows', { method: 'POST', body: JSON.stringify({ adapterId }) })
       setWindows((current) => ({ ...current, [adapterId]: {
@@ -265,7 +321,15 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
       } }))
       await request('/api/autonomy/adapters/probe', { method: 'POST', body: '{}' })
       await load()
-    } catch (cause) { notify(String((cause as Error).message || cause)) } finally { setBusy('') }
+      if (result.ok === false) notify(`识别窗口：失败：${String(result.code || 'WINDOW_DISCOVERY_FAILED')}`)
+      else notify(`识别窗口：已完成（发现 ${Number(result.count) || 0} 个窗口）`)
+    } catch (cause) { notify(`识别窗口：失败：${String((cause as Error).message || cause)}`) } finally { setBusy('') }
+  }, [load, notify])
+
+  const refreshData = useCallback(async () => {
+    notify('刷新：正在读取…')
+    const completed = await load()
+    notify(completed ? '刷新：已完成' : '刷新：失败，请查看页面提示')
   }, [load, notify])
 
   const metricValues = useMemo(() => {
@@ -293,7 +357,7 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
         <p>{text.subtitle}</p>
       </div>
       <div className="ax-header-actions">
-        <button className="ax-ghost" onClick={() => void load()} disabled={loading}><RefreshCw size={15} className={loading ? 'ax-spin' : ''} />{text.refresh}</button>
+        <button className="ax-ghost" onClick={() => void refreshData()} disabled={loading || Boolean(busy)}><RefreshCw size={15} className={loading ? 'ax-spin' : ''} />{text.refresh}</button>
         <div className={`ax-state ax-state-${control?.paused ? 'paused' : 'running'}`}><span />{systemState}</div>
       </div>
     </div>
@@ -401,8 +465,8 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
             <p className="ax-mono">{repo.localPath || '—'}</p>
             <div className="ax-row-actions">
               <button onClick={() => void configureRepair(repo)} disabled={Boolean(busy)}>{text.configureRepair}</button>
-              <button onClick={() => void request(`/api/autonomy/repositories/${repo.id}/sync`, { method: 'POST', body: '{}' }).then(() => load()).catch((cause) => notify(String(cause.message)))}>{text.sync}</button>
-              <button onClick={() => void request(`/api/autonomy/repositories/${repo.id}`, { method: 'DELETE' }).then(() => load()).catch((cause) => notify(String(cause.message)))}>{text.remove}</button>
+              <button onClick={() => void syncRepository(repo)} disabled={Boolean(busy)}>{text.sync}</button>
+              <button onClick={() => void removeRepository(repo)} disabled={Boolean(busy)}>{text.remove}</button>
             </div>
           </div>) : <div className="ax-empty">{text.empty}</div>}
         </section>
@@ -417,7 +481,7 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
       {tab === 'clients' && <div className="ax-grid-2">
         <section className="ax-panel ax-span-2">
           <div className="ax-panel-head"><div><span className="ax-kicker">DESKTOP AGENT ADAPTERS</span><h2>{text.capability}</h2></div>
-            <button className="ax-ghost" onClick={() => void request('/api/autonomy/adapters/probe', { method: 'POST', body: '{}' }).then(() => load()).catch((cause) => notify(String((cause as Error).message || cause)))}><RefreshCw size={14} />{text.probe}</button></div>
+            <button className="ax-ghost" onClick={() => void probeAdapters()} disabled={Boolean(busy)}><RefreshCw size={14} />{text.probe}</button></div>
           {adapters.length ? adapters.map((adapter) => <div className="ax-client" key={adapter.id}>
             <div className="ax-client-head">
               <div className="ax-client-icon"><Bot size={18} /></div>
@@ -440,7 +504,7 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
             </div>
             <div className="ax-row-actions">
               <button onClick={() => void probeWindows(adapter.id)} disabled={Boolean(busy)}><ExternalLink size={13} />{text.windows}</button>
-              <button onClick={() => void request(`/api/autonomy/adapters/${adapter.id}/launch`, { method: 'POST', body: '{}' }).then(() => load()).catch((cause) => notify(String(cause.message)))}><Play size={13} />{text.launch}</button>
+              <button onClick={() => void launchAdapter(adapter)} disabled={Boolean(busy)}><Play size={13} />{text.launch}</button>
             </div>
             {windows[adapter.id] && <div className={`ax-note${windows[adapter.id].error ? ' ax-note-red' : ''}`}>
               {windows[adapter.id].error ? `识别失败：${windows[adapter.id].error}` : `${windows[adapter.id].count} window(s): ${windows[adapter.id].windows.map((item) => `${item.name} (pid ${item.processId})`).join(', ') || '—'}`}

@@ -179,7 +179,7 @@ export default function App({ embedded = false, onSetup, activePage, onNavigate,
         {page === 'Settings' && <SettingsPage status={status} />}
       </div>
     </main>
-    {toast && <div className="toast"><TerminalSquare size={16} />{toast}<button onClick={() => setToast(null)}><XCircle size={14} /></button></div>}
+    {toast && <div className="toast" role="status" aria-live="polite"><TerminalSquare size={16} />{toast}<button onClick={() => setToast(null)} aria-label="关闭提示"><XCircle size={14} /></button></div>}
   </div>
 }
 
