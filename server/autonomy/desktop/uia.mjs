@@ -6,11 +6,25 @@
 // fall back to human handoff instead of pretending the client was automated.
 
 import { spawn } from 'node:child_process'
+import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import fsp from 'node:fs/promises'
 
-const DEFAULT_SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'uia-driver.ps1')
+function resolveDefaultScript() {
+  const bundled = path.join(path.dirname(fileURLToPath(import.meta.url)), 'uia-driver.ps1')
+  // electron-builder moves the PowerShell driver to app.asar.unpacked. A
+  // child process cannot read an asar virtual path, so prefer the unpacked
+  // sibling whenever this module is loaded from an installed package.
+  const asarMarker = `${path.sep}app.asar${path.sep}`
+  if (bundled.includes(asarMarker)) {
+    const unpacked = bundled.replace(asarMarker, `${path.sep}app.asar.unpacked${path.sep}`)
+    if (existsSync(unpacked)) return unpacked
+  }
+  return bundled
+}
+
+const DEFAULT_SCRIPT = resolveDefaultScript()
 const PROBE_TTL_MS = 5 * 60_000
 
 function parseJsonOutput(text) {

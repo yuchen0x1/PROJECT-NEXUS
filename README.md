@@ -16,9 +16,18 @@
 
 **在线宣传页：[project-nexus.edgeone.dev](https://project-nexus.edgeone.dev/)**（源码在 `website/`）
 
-> **发布状态（如实说明）**：v0.9.1 已发布为 Windows x64 开发预览，安装包签名状态和 SHA-256 以 Release 资产为准，不是 v1.0 稳定版。完整能力边界见 [已知限制](docs/AUTONOMY_V2_LIMITATIONS.md)。
+> **发布状态（如实说明）**：v0.9.2 将作为 Windows x64 开发预览发布，安装包签名状态和 SHA-256 以 Release 资产为准，不是 v1.0 稳定版。完整能力边界见 [已知限制](docs/AUTONOMY_V2_LIMITATIONS.md)。
 
 ## 最新更新
+
+### v0.9.2 · 验证后草稿 PR 交付与桌面体验修复
+
+- 任务通过独立验收后，可从任务中心把隔离 `nexus/auto/*` 分支提交、推送并创建草稿 PR；网络中断重试会复用已推送提交。
+- 桌面客户端探测失败、窗口识别和自动运维动作都显示明确的处理中、完成或失败提示，不再把发送成功当作代码修复成功。
+- 打包后的 UI Automation 驱动按安装目录解析，窗口识别失败时保留主界面并显示具体限制。
+- 合并和正式发布仍是独立的人工确认步骤，任务详情显示验收、提交和 PR 状态。
+
+[查看完整发布记录](docs/releases/release-notes.md)
 
 ### v0.9.1 · 第二阶段闭环能力与真实诊断
 

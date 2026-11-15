@@ -4,6 +4,7 @@
 
 | 版本 | 日期 | 更新主题 | 分发状态 |
 | --- | --- | --- | --- |
+| v0.9.2 | 2026-11-16 | 验证后草稿 PR 交付与桌面体验修复 | 待正式发布（GitHub Actions） |
 | v0.9.1 | 2026-11-15 | 第二阶段闭环能力与真实诊断 | [已发布](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.1)（Windows 安装包与校验资产由 GitHub Actions 生成，详见 [v0.9.1 说明](docs/releases/v0.9.1.md)） |
 | v0.9.0 | 2026-11-15 | 24/7 自主运维运行时与桌面 AI 客户端接入 | [已发布](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.0)（含 Windows 安装包与校验资产，详见 [v0.9.0 说明](docs/releases/v0.9.0.md)） |
 | v0.8.9 | 2026-11-15 | ZIP 基线三方比较与 Agent 适配器 | [已发布](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.9) |

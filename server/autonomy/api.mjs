@@ -179,6 +179,79 @@ export function registerAutonomyApi(app, { engine, store, delivery, dataDir }) {
     return res.status(201).json(await delivery.createPullRequest(repo, { ...req.body, remoteWritesEnabled: engine.settings.remoteWritesEnabled, confirm: req.body?.confirm === true }))
   })
 
+  // One guarded path for the autonomy task UI: only an independently accepted,
+  // isolated worktree may be committed and opened as a draft PR. The original
+  // checkout is never used, and the two remote writes remain explicit.
+  add('post', '/delivery/:repoId/tasks/:taskId/pull-request', async (req, res) => {
+    const repo = store.get('repositories', req.params.repoId)
+    if (!repo) return res.status(404).json({ error: 'Repository not found.', code: 'NOT_FOUND' })
+    const task = store.get('tasks', req.params.taskId)
+    if (!task || task.repoId !== repo.id) return res.status(404).json({ error: 'Autonomy task not found for this repository.', code: 'TASK_NOT_FOUND' })
+    if (task.delivery?.pullRequest) return res.status(200).json({ task, commit: task.delivery.commit, pullRequest: task.delivery.pullRequest, reused: true })
+    if (task.status !== 'ACCEPTED') return res.status(409).json({ error: 'The task must pass independent acceptance before a PR can be opened.', code: 'TASK_NOT_ACCEPTED' })
+    if (task.verification?.verdict !== 'PASS') return res.status(409).json({ error: 'Independent verification did not pass.', code: 'VERIFICATION_NOT_PASSED' })
+    if (!task.workspace?.isolated || !task.workspace?.worktree || !task.workspace?.path) {
+      return res.status(409).json({ error: 'The task does not have an isolated NEXUS worktree.', code: 'ISOLATED_WORKTREE_REQUIRED' })
+    }
+    if (req.body?.confirm !== true || req.body?.confirmRepository !== repo.fullName || req.body?.confirmBranch !== task.workspace.branch) {
+      return res.status(400).json({ error: 'Confirm the exact repository and generated branch before opening a pull request.', code: 'CONFIRMATION_REQUIRED' })
+    }
+    const report = task.verification?.id ? store.get('verification_reports', task.verification.id) : null
+    const diff = await engine.workspace.collectDiff(task.workspace).catch((error) => ({ error }))
+    if (diff?.error) return res.status(409).json({ error: `Could not collect the isolated worktree diff: ${diff.error.message}`, code: 'DIFF_UNAVAILABLE' })
+    const changedPaths = (diff.changedFiles || []).map((item) => item.path).filter(Boolean)
+    if (!changedPaths.length) return res.status(409).json({ error: 'The accepted task has no file changes to publish.', code: 'NO_CHANGES' })
+    try {
+      const commit = task.delivery?.commit || await delivery.commitWorkspace(repo, {
+        workspacePath: task.workspace.path,
+        branch: task.workspace.branch,
+        message: `fix: publish verified autonomy task ${task.id}`,
+        remoteWritesEnabled: engine.settings.remoteWritesEnabled,
+        confirm: true
+      })
+      if (!task.delivery?.commit) {
+        // Persist the push checkpoint before attempting the second remote write.
+        // A PR request can fail or time out after a successful push; retrying
+        // must reuse the commit instead of trying to commit an empty worktree.
+        store.put('tasks', task.id, {
+          ...task,
+          delivery: { status: 'PUSHED', commit, changedPaths, pushedAt: new Date().toISOString() },
+          updatedAt: new Date().toISOString()
+        })
+      }
+      const pullRequest = await delivery.createPullRequest(repo, {
+        branch: task.workspace.branch,
+        base: repo.defaultBranch || 'main',
+        title: String(req.body?.title || `fix: verified autonomy task ${task.id}`).slice(0, 240),
+        body: String(req.body?.body || [
+          '## PROJECT NEXUS verified autonomy task',
+          '',
+          `Repository: ${repo.fullName}`,
+          `Task: ${task.id}`,
+          `Base commit: ${task.workspace.baseSha}`,
+          `Worktree: ${task.workspace.path}`,
+          `Changed files: ${changedPaths.join(', ')}`,
+          `Independent verification: ${report?.verdict || task.verification.verdict}`,
+          '',
+          'This is a draft pull request. Merge and release remain separate human-gated actions.'
+        ].join('\n')).slice(0, 18_000),
+        issueNumber: Number.isFinite(Number(req.body?.issueNumber)) ? Number(req.body.issueNumber) : null,
+        remoteWritesEnabled: engine.settings.remoteWritesEnabled,
+        confirm: true
+      })
+      const updated = store.put('tasks', task.id, {
+        ...store.get('tasks', task.id),
+        delivery: { status: 'PULL_REQUEST_OPEN', commit, pullRequest, changedPaths, openedAt: new Date().toISOString() },
+        updatedAt: new Date().toISOString()
+      })
+      engine.appendTaskEvent(updated, 'DELIVERY', `Draft pull request #${pullRequest.number} opened for human review.`)
+      store.audit('delivery', 'autonomy-task-pull-request-created', repo.fullName, { taskId: task.id, number: pullRequest.number, branch: task.workspace.branch })
+      return res.status(201).json({ task: updated, commit, pullRequest, changedPaths })
+    } catch (error) {
+      return res.status(error.status || 502).json({ error: error.message, code: error.code || 'PULL_REQUEST_FAILED' })
+    }
+  })
+
   add('post', '/delivery/:repoId/merge', async (req, res) => {
     const repo = store.get('repositories', req.params.repoId)
     if (!repo) return res.status(404).json({ error: 'Repository not found.', code: 'NOT_FOUND' })
@@ -277,8 +350,9 @@ export function registerAutonomyApi(app, { engine, store, delivery, dataDir }) {
     const adapter = engine.adapters.get(req.body?.adapterId || 'chatgpt-desktop')
     if (!adapter) return res.status(404).json({ error: 'Adapter not found.', code: 'NOT_FOUND' })
     const capability = await adapter.uia.probe()
-    if (!capability.available) return res.json({ ok: false, code: 'UIA_UNAVAILABLE', capability })
-    return res.json({ ok: true, adapterId: adapter.id, ...await adapter.uia.windows(adapter.window) })
+    if (!capability.available) return res.json({ ok: false, adapterId: adapter.id, code: 'UIA_UNAVAILABLE', capability, count: 0, windows: [] })
+    const result = await adapter.uia.windows(adapter.window)
+    return res.json({ ok: result.ok !== false, adapterId: adapter.id, ...result, count: Number(result.count) || 0, windows: Array.isArray(result.windows) ? result.windows : [] })
   })
 
   add('post', '/adapters/:id/launch', async (req, res) => {

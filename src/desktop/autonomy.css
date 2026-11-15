@@ -56,6 +56,10 @@
 .ax-control-meta { display: flex; gap: 18px; flex-wrap: wrap; color: var(--ax-muted); font-size: 11.5px; }
 .ax-control-meta span { display: inline-flex; align-items: center; gap: 5px; }
 .ax-control-buttons { display: flex; gap: 9px; flex-wrap: wrap; padding-top: 14px; }
+.ax-control-settings { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; padding-top: 14px; }
+.ax-control-settings label { display: flex; flex-direction: column; gap: 4px; color: var(--ax-muted); font-size: 11px; }
+.ax-control-settings select { min-width: 130px; background: #081220; border: 1px solid var(--ax-border); border-radius: 7px; padding: 7px 9px; color: var(--ax-text); font: inherit; }
+.ax-control-settings .ax-check { flex-direction: row; align-items: center; padding-bottom: 7px; }
 
 .ax-error, .ax-loading { display: flex; align-items: center; gap: 9px; padding: 12px 15px; border-radius: 10px; margin-bottom: 16px; font-size: 12.5px; }
 .ax-error { background: rgba(255, 107, 107, .1); border: 1px solid rgba(255, 107, 107, .3); color: #ffb3b3; }
@@ -103,6 +107,8 @@
 .ax-row-actions { display: flex; gap: 8px; margin-top: 9px; }
 .ax-row-actions button, .ax-inline-actions button { display: inline-flex; align-items: center; gap: 5px; background: rgba(75, 141, 255, .08); color: #9dc0ff; border: 1px solid var(--ax-border); border-radius: 6px; padding: 4px 9px; font-size: 10.5px; }
 .ax-row-actions button:hover, .ax-inline-actions button:hover { border-color: var(--ax-cyan); color: var(--ax-cyan); }
+.ax-inline-actions a { display: inline-flex; align-items: center; gap: 5px; background: rgba(75, 141, 255, .08); color: #9dc0ff; border: 1px solid var(--ax-border); border-radius: 6px; padding: 4px 9px; font-size: 10.5px; text-decoration: none; }
+.ax-inline-actions a:hover { border-color: var(--ax-cyan); color: var(--ax-cyan); }
 .ax-inline-actions { display: inline-flex; gap: 5px; flex-wrap: wrap; }
 
 .ax-note { display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; padding: 10px 12px; border-radius: 8px; background: rgba(55, 217, 230, .06); border: 1px solid rgba(55, 217, 230, .16); color: #a8c6dd; font-size: 11px; line-height: 1.55; }
@@ -120,6 +126,11 @@
 .ax-form input, .ax-form select { width: 100%; background: #081220; border: 1px solid var(--ax-border); border-radius: 7px; padding: 9px 11px; color: var(--ax-text); font-size: 12px; font-family: inherit; }
 .ax-form input:focus, .ax-form select:focus { outline: none; border-color: var(--ax-cyan); }
 .ax-form button { grid-column: 1 / -1; justify-content: center; }
+.ax-input-action { display: flex; gap: 7px; min-width: 0; }
+.ax-input-action input { flex: 1; min-width: 0; }
+.ax-input-action button { flex: 0 0 auto; }
+.ax-form .ax-check { display: flex; align-items: center; gap: 7px; color: var(--ax-muted); font-size: 11px; padding: 0 2px; }
+.ax-form .ax-check input { width: auto; }
 
 .ax-client { border: 1px solid var(--ax-border); border-radius: 10px; padding: 14px; margin-bottom: 12px; background: rgba(8, 18, 32, .55); }
 .ax-client-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
