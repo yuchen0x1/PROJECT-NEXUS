@@ -53,6 +53,7 @@ import { buildProjectOverview } from './services/project-overview.mjs'
 import { registerEvolutionApi } from './services/evolution-api.mjs'
 import { proposalLifecycle, startProposalImplementation } from './services/proposal-implementation.mjs'
 import { createAutonomyRuntime, registerAutonomyApi, startAutonomyTicker } from './autonomy/api.mjs'
+import { apiNotFound, applySecurityHeaders, createRateLimiter, requestIdFor, safeHttpError } from './services/http-hardening.mjs'
 
 const activeOverviewResearch = new Map()
 
@@ -1400,7 +1401,16 @@ async function executeAgentJob(jobId, req) {
 const app = express()
 const localApiToken = String(process.env.NEXUS_LOCAL_API_TOKEN || '')
 const desktopMode = process.env.NEXUS_DESKTOP_MODE === 'true'
+const apiRateLimiter = createRateLimiter({ max: Number(process.env.NEXUS_API_RATE_LIMIT || 600) })
 let desktopOrigin = null
+app.use((req, res, next) => {
+  const requestId = requestIdFor(req.get('x-request-id'))
+  req.nexusRequestId = requestId
+  res.setHeader('X-Request-Id', requestId)
+  applySecurityHeaders(res, { api: req.path.startsWith('/api/') })
+  if (req.path.startsWith('/api/')) return apiRateLimiter(req, res, next)
+  return next()
+})
 app.use((req, res, next) => {
   if (req.path.startsWith('/api/') && localApiToken) {
     const authorization = String(req.get('authorization') || '')
@@ -3270,7 +3280,14 @@ app.post('/api/ai/diagnose', async (req, res) => {
 app.get('/api/settings', (_req, res) => {
   const ai = aiProviderStatus()
   return res.json({
-  github: { configured: githubConfigured(), owner: process.env.GITHUB_OWNER || null, apiUrl: githubApiUrl },
+  github: {
+    configured: githubConfigured() || githubAppConfigured() || state.githubInstallations.length > 0,
+    tokenConfigured: githubConfigured(),
+    appConfigured: githubAppConfigured(),
+    installations: state.githubInstallations.length,
+    owner: process.env.GITHUB_OWNER || null,
+    apiUrl: githubApiUrl
+  },
   ai: { configured: ai.configured, baseUrl: ai.baseUrl, model: ai.model, providerId: ai.providerId },
   tasks: state.settings
   })
@@ -3280,6 +3297,16 @@ app.use(express.static(path.join(root, 'dist')))
 app.use((req, res, next) => {
   if (req.path.startsWith('/api/')) return next()
   res.sendFile(path.join(root, 'dist', 'index.html'))
+})
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) return apiNotFound(res, req.nexusRequestId)
+  return next()
+})
+app.use((error, req, res, next) => {
+  if (res.headersSent) return next(error)
+  const normalized = safeHttpError(error, req.nexusRequestId || requestIdFor())
+  console.error(`[http:${normalized.body.requestId}]`, safeError(error))
+  return res.status(normalized.status).json(normalized.body)
 })
 
 async function recoverIntegrationWork() {
@@ -3358,6 +3385,9 @@ const server = app.listen(port, host, () => {
   // page is required for monitoring, scheduling or recovery to keep running.
   if (autonomyTicker) setTimeout(() => void autonomyTicker.tickNow(), 4_000).unref?.()
 })
+server.requestTimeout = 120_000
+server.headersTimeout = 15_000
+server.keepAliveTimeout = 5_000
 
 async function stopHost() {
   if (shuttingDown) return

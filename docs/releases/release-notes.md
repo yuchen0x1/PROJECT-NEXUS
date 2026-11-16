@@ -6,6 +6,7 @@
 
 | 版本 | 日期 | 更新主题 | 详细说明 |
 | --- | --- | --- | --- |
+| [v0.9.3](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.3) | 2026-11-16 | 项目自主演进与 API 稳定性升级 | [更新、下载与校验](v0.9.3.md) |
 | [v0.9.2](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.2) | 2026-11-16 | 验证后草稿 PR 交付与桌面体验修复 | [更新、下载与校验](v0.9.2.md) |
 | [v0.9.1](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.1) | 2026-11-15 | 第二阶段闭环能力与真实诊断 | [更新、下载与校验](v0.9.1.md) |
 | [v0.9.0](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.0) | 2026-11-15 | 24/7 自主运维运行时与桌面 AI 客户端接入 | [更新、下载与校验](v0.9.0.md) |

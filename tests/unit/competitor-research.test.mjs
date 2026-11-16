@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
-  normalizeCandidate, buildMetricComparison, parseResearchAnalysis, buildResearchPrompt, discoverCompetitors, runCompetitorResearch, selectResearchSources
+  normalizeCandidate, buildMetricComparison, parseResearchAnalysis, buildResearchPrompt, discoverCompetitors, runCompetitorResearch, selectResearchSources, RESEARCH_MAX_CANDIDATES, RESEARCH_CONCURRENCY
 } from '../../server/services/competitor-research.mjs'
+
+describe('research limits', () => {
+  it('keeps the product research floor at fifteen candidates with bounded concurrency', () => {
+    expect(RESEARCH_MAX_CANDIDATES).toBe(15)
+    expect(RESEARCH_CONCURRENCY).toBe(3)
+  })
+})
 
 describe('candidate normalization', () => {
   it('prioritizes runtime code over tooling and excludes hidden instruction directories', () => {

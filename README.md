@@ -16,10 +16,19 @@
 
 **在线宣传页：[project-nexus.edgeone.dev](https://project-nexus.edgeone.dev/)**（源码在 `website/`）
 
-> **发布状态（如实说明）**：v0.9.2 已正式发布为 Windows x64 开发预览，安装包未配置 Authenticode 签名；安装包 SHA-256 以 [GitHub Release v0.9.2](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.2) 资产为准，不是 v1.0 稳定版。完整能力边界见 [已知限制](docs/AUTONOMY_V2_LIMITATIONS.md)。
+> **发布状态（如实说明）**：v0.9.3 已正式发布为 Windows x64 开发预览，安装包未配置 Authenticode 签名；安装包 SHA-256 以 [GitHub Release v0.9.3](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.3) 资产为准，不是 v1.0 稳定版。完整能力边界见 [已知限制](docs/AUTONOMY_V2_LIMITATIONS.md)。
 
 ## 最新更新
 
+
+### v0.9.3 · 项目自主演进与 API 稳定性升级
+
+- API 请求具备统一追踪 ID、安全响应头、单进程速率保护、结构化错误响应和超时预算，异常更容易定位。
+- 同类项目研究默认覆盖 15 个候选，采用有界并发和 prompt 预算，研究任务不会因单个来源拖垮整个队列。
+- Web 与桌面入口按需加载，首屏资源拆分；GitHub 配置页区分 PAT、App 和安装状态。
+- 新增项目审计、竞品分析、升级路线图和升级交付报告，明确已完成、部分完成和外部阻塞项。
+
+[查看完整发布记录](docs/releases/release-notes.md)
 ### v0.9.2 · 验证后草稿 PR 交付与桌面体验修复
 
 - 任务通过独立验收后，可从任务中心把隔离 `nexus/auto/*` 分支提交、推送并创建草稿 PR；网络中断重试会复用已推送提交。
@@ -244,3 +253,15 @@ node tests/autonomy-live-github.mjs   # 真实 GitHub 只读 + 真实 UIA 验收
 ## 许可证
 
 [MIT](LICENSE) © 2026 冷漠不是神 (yuchen0x1)
+
+
+## 2026-11-16 项目演进审计
+
+本轮以 v0.9.2 为基线完成了真实代码审计、16 个开源项目对标和 36 项升级路线图。已落地的变更包括：API 请求追踪 ID、安全响应头、单进程速率保护、结构化 API 404/错误边界、HTTP 超时、15 候选竞品研究、研究并发池与 prompt 预算、Web/Electron 入口按需加载，以及 GitHub PAT/App 状态分层。
+
+- [项目现状审计](PROJECT_AUDIT.md)
+- [竞品对标分析](COMPETITOR_ANALYSIS.md)
+- [36 项升级路线图](UPGRADE_ROADMAP.md)
+- [本轮升级交付报告](UPGRADE_REPORT.md)
+
+本轮没有推送、创建 PR、发布或部署；签名更新、严格 Windows 隔离、真实外部工具扫描、远程写入和 24 小时 soak 仍按 BLOCKED/PARTIAL 记录。

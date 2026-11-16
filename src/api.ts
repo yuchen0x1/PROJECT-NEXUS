@@ -549,7 +549,7 @@ export const api = {
   appInstallUrl: () => request<{ url: string; callback: string }>('/api/github/app/install-url'),
   auditLogs: () => request<{ logs: { id: string; actor: string; action: string; target: string; result: string; risk: string; at: string }[] }>('/api/audit-logs'),
   tasks: () => request<{ tasks: Task[] }>('/api/tasks'),
-  settings: () => request<{ github: { configured: boolean; owner: string | null; apiUrl: string }; ai: { configured: boolean; baseUrl: string | null; model: string | null }; tasks: { concurrency: number; notifications: boolean } }>('/api/settings'),
+  settings: () => request<{ github: { configured: boolean; tokenConfigured: boolean; appConfigured: boolean; installations: number; owner: string | null; apiUrl: string }; ai: { configured: boolean; baseUrl: string | null; model: string | null; providerId?: string | null }; tasks: { concurrency: number; notifications: boolean } }>('/api/settings'),
   hostingOverview: () => request<{ projects: HostingProject[]; enabledCount: number; runs: HostingRun[]; scheduler: { dueNow: number; strategies: string[]; paused: boolean } }>('/api/hosting/overview'),
   hostingRuns: (projectId = '') => request<{ runs: HostingRun[]; total: number }>(`/api/hosting/runs${projectId ? `?projectId=${encodeURIComponent(projectId)}` : ''}`),
   hostingProject: (projectId: string) => request<{ project: HostingProject; runs: HostingRun[] }>(`/api/projects/${encodeURIComponent(projectId)}/hosting`),

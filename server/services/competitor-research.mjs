@@ -7,7 +7,11 @@ import { repositoryApiPath } from './github-paths.mjs'
 // numbers. AI is used only to synthesize the gap analysis; without a
 // provider the report degrades to a metric-based comparison.
 
-export const RESEARCH_MAX_CANDIDATES = 5
+// A research run must be broad enough to support the product's global
+// competitor comparison promise. Deep reads are bounded by a small
+// concurrency pool so the GitHub API is not flooded by a single run.
+export const RESEARCH_MAX_CANDIDATES = 15
+export const RESEARCH_CONCURRENCY = 3
 
 export function selectResearchSources(tree = [], limit = 4) {
   const rank = (item) => /(?:^|\/)(?:__tests__|tests?|spec)\/|\.(?:test|spec)\./i.test(item.path) ? 3 : /(?:approval|checkpoint|scheduler|runtime|executor)/i.test(item.path) ? 0 : /^(?:src|server|packages|openhands|core|apps)\//.test(item.path) ? 1 : 2
@@ -141,11 +145,11 @@ export function buildResearchPrompt({ project, researched }) {
     `Recent commits:`,
     ...candidate.recentCommits.slice(0, 6).map((commit) => `- ${commit.date?.slice(0, 10) || '?'} ${commit.message}`),
     `README excerpt:`,
-    candidate.readmeExcerpt.slice(0, 1800) || '(none)',
-    `Source files with SHAs: ${JSON.stringify(candidate.sources || []).slice(0, 9000)}`,
-    `Recent issues and PRs: ${JSON.stringify(candidate.recentIssues || [])}`,
+    candidate.readmeExcerpt.slice(0, 1200) || '(none)',
+    `Source files with SHAs: ${JSON.stringify(candidate.sources || []).slice(0, 4500)}`,
+    `Recent issues and PRs: ${JSON.stringify(candidate.recentIssues || []).slice(0, 2500)}`,
     `License evidence: ${JSON.stringify(candidate.licenseEvidence || null).slice(0, 1500)}`
-  ].join('\n')).join('\n\n')
+  ].join('\n')).join('\n\n').slice(0, 120_000)
   return [
     'You are analyzing open-source competitors for an autonomous maintenance platform.',
     'Below is the managed repository and genuinely fetched evidence from candidate repositories.',
@@ -206,16 +210,33 @@ export function parseResearchAnalysis(text, { comparison } = {}) {
   }
 }
 
+async function mapWithConcurrency(items, concurrency, worker, signal) {
+  const results = new Array(items.length)
+  let cursor = 0
+  async function consume() {
+    while (true) {
+      if (signal?.aborted) throw signal.reason || new Error('Research was cancelled.')
+      const index = cursor++
+      if (index >= items.length) return
+      results[index] = await worker(items[index])
+    }
+  }
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, () => consume())
+  await Promise.all(workers)
+  return results
+}
+
 // One research run: discover → deep-read → synthesize (AI when available).
 export async function runCompetitorResearch({ project, request, provider = null, signal, limit = RESEARCH_MAX_CANDIDATES } = {}) {
   const self = await researchCompetitor({ request, candidate: { ...project, defaultBranch: project.defaultBranch }, signal })
   project = { ...project, sourceEvidence: { readme: self.readmeExcerpt, sources: self.sources, rootEntries: self.rootEntries } }
   const { query, candidates } = await discoverCompetitors({ project, request, limit, signal })
-  const researched = []
-  for (const candidate of candidates) {
-    if (signal?.aborted) break
-    researched.push(await researchCompetitor({ request, candidate, signal }))
-  }
+  const researched = (await mapWithConcurrency(
+    candidates,
+    RESEARCH_CONCURRENCY,
+    (candidate) => researchCompetitor({ request, candidate, signal }),
+    signal
+  )).filter(Boolean)
   const comparison = buildMetricComparison({ project, researched })
   if (!provider || !researched.length) {
     return {
