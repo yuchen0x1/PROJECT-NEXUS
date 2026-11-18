@@ -16,34 +16,19 @@
 
 **在线宣传页：[project-nexus.edgeone.dev](https://project-nexus.edgeone.dev/)**（源码在 `website/`）
 
-> **发布状态（如实说明）**：v0.9.3 已正式发布为 Windows x64 开发预览，安装包未配置 Authenticode 签名；安装包 SHA-256 以 [GitHub Release v0.9.3](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.3) 资产为准，不是 v1.0 稳定版。完整能力边界见 [已知限制](docs/AUTONOMY_V2_LIMITATIONS.md)。
+> **v0.9.3 发行记录**：该版本为 Windows x64 开发预览，安装包未配置 Authenticode 签名；安装包 SHA-256 以 [GitHub Release v0.9.3](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.3) 资产为准，不是 v1.0 稳定版。完整能力边界见 [已知限制](docs/AUTONOMY_V2_LIMITATIONS.md)。
 
 ## 最新更新
 
+<!-- github-release:start -->
 
-### v0.9.3 · 项目自主演进与 API 稳定性升级
+**[v0.9.3](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.3)** · 2026-11-16
 
-- API 请求具备统一追踪 ID、安全响应头、单进程速率保护、结构化错误响应和超时预算，异常更容易定位。
-- 同类项目研究默认覆盖 15 个候选，采用有界并发和 prompt 预算，研究任务不会因单个来源拖垮整个队列。
-- Web 与桌面入口按需加载，首屏资源拆分；GitHub 配置页区分 PAT、App 和安装状态。
-- 新增项目审计、竞品分析、升级路线图和升级交付报告，明确已完成、部分完成和外部阻塞项。
+本版本把项目自主演进从一次性建议推进为可复核的工程流程：加强 API 请求追踪与错误边界，扩容竞品研究默认候选与预算，拆分 Web/Electron 首屏入口，并公开审计、对标和升级路线图。Windows x64 仍是 0.x 开发预览。
 
-[查看完整发布记录](docs/releases/release-notes.md)
-### v0.9.2 · 验证后草稿 PR 交付与桌面体验修复
+[全部发行记录](https://github.com/yuchen0x1/PROJECT-NEXUS/releases)
 
-- 任务通过独立验收后，可从任务中心把隔离 `nexus/auto/*` 分支提交、推送并创建草稿 PR；网络中断重试会复用已推送提交。
-- 桌面客户端探测失败、窗口识别和自动运维动作都显示明确的处理中、完成或失败提示，不再把发送成功当作代码修复成功。
-- 打包后的 UI Automation 驱动按安装目录解析，窗口识别失败时保留主界面并显示具体限制。
-- 合并和正式发布仍是独立的人工确认步骤，任务详情显示验收、提交和 PR 状态。
-
-[查看完整发布记录](docs/releases/release-notes.md)
-
-### v0.9.1 · 第二阶段闭环能力与真实诊断
-
-- 桌面客户端中心增加 ChatGPT Desktop 与 WorkBuddy 的独立能力检测，按真实 UI Automation 控件识别登录、项目、输入框和发送能力，并在客户端受限时明确转入人工接管。
-- 安全扫描接入 CodeQL、Semgrep、Gitleaks、Trivy 的安装探测、版本记录、结果解析、报告保存和历史对比；工具缺失或依赖审计失败会显示为 `BLOCKED`。
-- GitHub 交付流程支持隔离分支、提交推送、草稿 PR、Review/Checks/Actions 读取，以及受明确授权保护的合并、Release 和通知操作。
-- 任务中心保留重启恢复、网络恢复、幂等防重和短时持续运行证据，并如实展示尚未完成的 24 小时测试与客户端限制。
+<!-- github-release:end -->
 
 [查看完整发布记录](docs/releases/release-notes.md)
 
