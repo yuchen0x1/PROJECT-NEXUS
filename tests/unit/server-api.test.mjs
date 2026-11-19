@@ -69,7 +69,7 @@ describe('isolated Phase 3 API and schema migration', () => {
     const records = Array.from({ length: 26 }, (_, index) => ({ id: `repo_${index + 1}`, githubId: index + 1, name: `repo-${index + 1}`, fullName: `fixture/repo-${index + 1}`, owner: 'fixture', hosting: { enabled: false } }))
     await fs.writeFile(stateFile, JSON.stringify({ schemaVersion: 4, projects: records, settings: { hostingPaused: true }, tasks: [{ id: 'history', projectId: 'repo_26', status: 'Success', logs: ['retained'] }] }))
     const port = await freePort(); let errors = ''
-    const child = spawn(process.execPath, ['server/index.mjs'], { cwd: root, windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'], env: { ...process.env, PORT: String(port), NEXUS_STATE_FILE: stateFile, GITHUB_API_URL: githubApiUrl, GITHUB_TOKEN: 'sync-fixture', GITHUB_OWNER: '', NEXUS_ROLE: 'Administrator', NEXUS_ALLOW_ROLE_HEADER: 'false', NEXUS_ENABLE_REMOTE_WRITES: 'false', AI_API_KEY: '', AI_BASE_URL: '', AI_MODEL: '' } })
+    const child = spawn(process.execPath, ['server/index.mjs'], { cwd: root, windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'], env: { ...process.env, PORT: String(port), NEXUS_DATA_DIR: directory, NEXUS_STATE_FILE: stateFile, GITHUB_API_URL: githubApiUrl, GITHUB_TOKEN: 'sync-fixture', GITHUB_OWNER: '', NEXUS_ROLE: 'Administrator', NEXUS_ALLOW_ROLE_HEADER: 'false', NEXUS_ENABLE_REMOTE_WRITES: 'false', AI_API_KEY: '', AI_BASE_URL: '', AI_MODEL: '' } })
     children.push(child); child.stderr.on('data', (chunk) => { errors += chunk })
     const base = `http://127.0.0.1:${port}`; await waitForHealth(base, child, () => errors)
     const post = (automatic = false) => fetch(base + '/api/tasks/sync-repositories', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ automatic }) })
@@ -116,7 +116,7 @@ describe('isolated Phase 3 API and schema migration', () => {
     let stderrText = ''
     const child = spawn(process.execPath, ['server/index.mjs'], {
       cwd: root, windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'],
-      env: { ...process.env, PORT: String(port), NEXUS_STATE_FILE: stateFile, GITHUB_API_URL: githubApiUrl, GITHUB_TOKEN: 'archive-fixture-token', GITHUB_OWNER: '', NEXUS_ROLE: 'Administrator', NEXUS_ALLOW_ROLE_HEADER: 'false', NEXUS_ENABLE_REMOTE_WRITES: 'false', AI_API_KEY: '', AI_BASE_URL: '', AI_MODEL: '' }
+      env: { ...process.env, PORT: String(port), NEXUS_DATA_DIR: directory, NEXUS_STATE_FILE: stateFile, GITHUB_API_URL: githubApiUrl, GITHUB_TOKEN: 'archive-fixture-token', GITHUB_OWNER: '', NEXUS_ROLE: 'Administrator', NEXUS_ALLOW_ROLE_HEADER: 'false', NEXUS_ENABLE_REMOTE_WRITES: 'false', AI_API_KEY: '', AI_BASE_URL: '', AI_MODEL: '' }
     })
     child.stderr.setEncoding('utf8').on('data', (chunk) => { stderrText += chunk })
     children.push(child)
@@ -176,7 +176,7 @@ describe('isolated Phase 3 API and schema migration', () => {
     let stderrText = ''
     const child = spawn(process.execPath, ['server/index.mjs'], {
       cwd: root,
-      env: { ...process.env, PORT: String(port), NEXUS_STATE_FILE: stateFile, NEXUS_ROLE: 'Administrator', NEXUS_ALLOW_ROLE_HEADER: 'false', NEXUS_ENABLE_REMOTE_WRITES: 'false', GITHUB_TOKEN: '', AI_API_KEY: '', AI_BASE_URL: '', AI_MODEL: '' },
+      env: { ...process.env, PORT: String(port), NEXUS_DATA_DIR: directory, NEXUS_STATE_FILE: stateFile, NEXUS_ROLE: 'Administrator', NEXUS_ALLOW_ROLE_HEADER: 'false', NEXUS_ENABLE_REMOTE_WRITES: 'false', GITHUB_TOKEN: '', AI_API_KEY: '', AI_BASE_URL: '', AI_MODEL: '' },
       stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true
     })
     child.stderr.setEncoding('utf8').on('data', (chunk) => { stderrText += chunk })
@@ -189,6 +189,11 @@ describe('isolated Phase 3 API and schema migration', () => {
     const allowedOrigin = await fetch(`${base}/api/health`, { headers: { Origin: 'http://127.0.0.1:5173' } })
     expect(allowedOrigin.status).toBe(200)
     expect(allowedOrigin.headers.get('access-control-allow-origin')).toBe('http://127.0.0.1:5173')
+    const sameOrigin = await fetch(`${base}/api/health`, { headers: { Origin: base } })
+    expect(sameOrigin.status).toBe(200)
+    expect(sameOrigin.headers.get('access-control-allow-origin')).toBe(base)
+    const otherLoopbackPort = await fetch(`${base}/api/health`, { headers: { Origin: 'http://127.0.0.1:1' } })
+    expect(otherLoopbackPort.status).toBe(403)
     const blockedOrigin = await fetch(`${base}/api/health`, { headers: { Origin: 'https://untrusted.example' } })
     expect(blockedOrigin.status).toBe(403)
     const adapterResult = await (await fetch(`${base}/api/integrations/adapters`)).json()
@@ -249,7 +254,7 @@ describe('isolated Phase 3 API and schema migration', () => {
     let stderrText = ''
     const child = spawn(process.execPath, ['server/index.mjs'], {
       cwd: root,
-      env: { ...process.env, PORT: String(port), NEXUS_STATE_FILE: stateFile, GITHUB_API_URL: githubApiUrl, GITHUB_TOKEN: '', NEXUS_ROLE: 'Administrator', NEXUS_ALLOW_ROLE_HEADER: 'false', NEXUS_ENABLE_REMOTE_WRITES: 'false', AI_API_KEY: '', AI_BASE_URL: '', AI_MODEL: '' },
+      env: { ...process.env, PORT: String(port), NEXUS_DATA_DIR: directory, NEXUS_STATE_FILE: stateFile, GITHUB_API_URL: githubApiUrl, GITHUB_TOKEN: '', NEXUS_ROLE: 'Administrator', NEXUS_ALLOW_ROLE_HEADER: 'false', NEXUS_ENABLE_REMOTE_WRITES: 'false', AI_API_KEY: '', AI_BASE_URL: '', AI_MODEL: '' },
       stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true
     })
     child.stderr.setEncoding('utf8').on('data', (chunk) => { stderrText += chunk })
@@ -285,7 +290,7 @@ describe('isolated Phase 3 API and schema migration', () => {
     let stderrText = ''
     const child = spawn(process.execPath, ['server/index.mjs'], {
       cwd: root,
-      env: { ...process.env, PORT: String(port), NEXUS_STATE_FILE: stateFile, GITHUB_API_URL: githubApiUrl, GITHUB_TOKEN: '', GITHUB_APP_ID: '123', GITHUB_APP_CLIENT_ID: 'client-id', GITHUB_APP_PRIVATE_KEY: privateKeyPem, GITHUB_APP_SLUG: 'project-nexus', NEXUS_ROLE: 'Administrator', NEXUS_ALLOW_ROLE_HEADER: 'false', NEXUS_ENABLE_REMOTE_WRITES: 'false', AI_API_KEY: '', AI_BASE_URL: '', AI_MODEL: '' },
+      env: { ...process.env, PORT: String(port), NEXUS_DATA_DIR: directory, NEXUS_STATE_FILE: stateFile, GITHUB_API_URL: githubApiUrl, GITHUB_TOKEN: '', GITHUB_APP_ID: '123', GITHUB_APP_CLIENT_ID: 'client-id', GITHUB_APP_PRIVATE_KEY: privateKeyPem, GITHUB_APP_SLUG: 'project-nexus', NEXUS_ROLE: 'Administrator', NEXUS_ALLOW_ROLE_HEADER: 'false', NEXUS_ENABLE_REMOTE_WRITES: 'false', AI_API_KEY: '', AI_BASE_URL: '', AI_MODEL: '' },
       stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true
     })
     child.stderr.setEncoding('utf8').on('data', (chunk) => { stderrText += chunk })

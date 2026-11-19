@@ -3371,6 +3371,12 @@ setTimeout(() => void sweepExpiredWorkspaces().catch((error) => console.error('W
 setInterval(() => void sweepExpiredWorkspaces().catch((error) => console.error('Workspace sweep failed:', safeError(error))), 6 * 60 * 60_000).unref?.()
 const server = app.listen(port, host, () => {
   const address = server.address()
+  // Browsers send Origin even for same-origin module scripts. Allow the
+  // actual loopback listener without trusting arbitrary Host headers.
+  if (address && typeof address === 'object' && host === '127.0.0.1') {
+    corsOrigins.add(`http://127.0.0.1:${address.port}`)
+    corsOrigins.add(`http://localhost:${address.port}`)
+  }
   if (desktopMode && address && typeof address === 'object') {
     desktopOrigin = `http://127.0.0.1:${address.port}`
     console.log(`NEXUS_DESKTOP_READY:${address.port}`)
