@@ -22,9 +22,9 @@
 
 <!-- github-release:start -->
 
-**[v0.9.3](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.3)** · 2026-11-16
+**[v0.9.4](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.4)** · 2026-11-19
 
-本版本把项目自主演进从一次性建议推进为可复核的工程流程：加强 API 请求追踪与错误边界，扩容竞品研究默认候选与预算，拆分 Web/Electron 首屏入口，并公开审计、对标和升级路线图。Windows x64 仍是 0.x 开发预览。
+修复本机 Web 控制台在默认回环地址启动时，页面资源被来源检查拒绝而显示空白的问题。
 
 [全部发行记录](https://github.com/yuchen0x1/PROJECT-NEXUS/releases)
 
