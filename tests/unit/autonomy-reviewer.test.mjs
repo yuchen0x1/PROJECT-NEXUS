@@ -71,9 +71,11 @@ describe('independent reviewer', () => {
     expect(failing.failures[0].code).toBe('REQUIRED_COMMAND_FAILED')
   })
 
-  it('fails acceptance when the diff contains a secret, a deletion or no change', () => {
+  it('fails acceptance for opaque installation credentials, authorization fields, deletion or no change', () => {
     expect(scanDiffForSecrets(cleanDiff).pass).toBe(true)
-    expect(scanDiffForSecrets({ ...cleanDiff, patch: `const t = 'ghp_${'x'.repeat(30)}'` }).pass).toBe(false)
+    const installationToken = `ghs_${'k9.m-R_s'.repeat(65)}`
+    expect(scanDiffForSecrets({ ...cleanDiff, patch: `const token = '${installationToken}'` }).pass).toBe(false)
+    expect(scanDiffForSecrets({ ...cleanDiff, patch: `const headers = { Authorization: 'Bearer ${installationToken}' }` }).pass).toBe(false)
     expect(scanDiffForSecrets({ ...cleanDiff, deletedFiles: ['src/important.ts'] }).pass).toBe(false)
   })
 

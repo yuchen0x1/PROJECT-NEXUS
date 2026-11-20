@@ -225,8 +225,12 @@ describe('isolated Phase 3 API and schema migration', () => {
   })
 
   it('uses an installation token for project-scoped GitHub operations when no legacy token is configured', async () => {
+    const installationToken = `ghs_${'k9.m-R_s'.repeat(65)}`
     const githubApiUrl = await startHttpServer((req, res) => {
       const requestUrl = new URL(req.url, 'http://127.0.0.1')
+      const authorization = req.headers.authorization || ''
+      expect(authorization === `Bearer ${installationToken}`).toBe(true)
+      expect(req.headers['x-github-stateless-s2s-token']).toBeUndefined()
       let body = {}
       let status = 200
       if (requestUrl.pathname === '/repos/fixture/repo-0/contents') body = [{ name: 'package.json' }]
@@ -246,7 +250,7 @@ describe('isolated Phase 3 API and schema migration', () => {
       schemaVersion: 3,
       projects: [{ id: 'repo_0', name: 'repo-0', fullName: 'fixture/repo-0', owner: 'fixture', defaultBranch: 'main', stack: [], installationId: '123' }],
       tasks: [], activity: [], settings: { concurrency: 3, notifications: false },
-      githubInstallations: [{ installationId: '123', accessToken: 'fixture-token', expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString() }],
+      githubInstallations: [{ installationId: '123', accessToken: installationToken, expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString() }],
       githubWebhookEvents: [], updateConfigs: [], auditLogs: [], integrationReports: [], integrationJobs: [], integrationSchedules: []
     }
     await fs.writeFile(stateFile, JSON.stringify(fixture, null, 2), 'utf8')
@@ -269,6 +273,72 @@ describe('isolated Phase 3 API and schema migration', () => {
     const releases = await fetch(`${base}/api/releases?projectId=repo_0`)
     expect(releases.status).toBe(200)
     expect((await releases.json()).releases).toEqual([])
+  })
+
+  it.each(['stateless-shaped', 'opaque'])('mints, caches and redacts a %s installation token without persisting it', async (shape) => {
+    const token = shape === 'stateless-shaped' ? `ghs_123_${'aB9_-'.repeat(110)}.payload.signature` : `opaque.${'bC8_+-'.repeat(100)}.end`
+    let mints = 0
+    let rejectRequests = false
+    const githubApiUrl = await startHttpServer((req, res) => {
+      res.setHeader('content-type', 'application/json')
+      if (req.url === '/app/installations/123/access_tokens') {
+        mints++
+        return res.end(JSON.stringify({ token, expires_at: new Date(Date.now() + 3_600_000).toISOString() }))
+      }
+      expect(req.headers.authorization === `Bearer ${token}`).toBe(true)
+      expect(req.headers['x-github-stateless-s2s-token']).toBeUndefined()
+      if (rejectRequests) {
+        res.statusCode = 502
+        return res.end(JSON.stringify({ message: `Upstream rejected ${token}; Authorization: Bearer ${token}`, detail: { accessToken: token } }))
+      }
+      if (req.url?.includes('/actions/workflows')) return res.end('{"workflows":[]}')
+      res.statusCode = 404
+      res.end('{}')
+    })
+    const { privateKey } = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 })
+    const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'nexus-token-format-'))
+    directories.push(directory)
+    const stateFile = path.join(directory, 'state.json')
+    await fs.writeFile(stateFile, JSON.stringify({ schemaVersion: 4, projects: [{ id: 'repo_0', name: 'repo-0', fullName: 'fixture/repo-0', owner: 'fixture', defaultBranch: 'main', stack: [], installationId: '123' }], githubInstallations: [{ installationId: '123' }], settings: { hostingPaused: true } }))
+    const port = await freePort()
+    let stderrText = ''
+    const child = spawn(process.execPath, ['server/index.mjs'], {
+      cwd: root,
+      env: { ...process.env, PORT: String(port), NEXUS_DATA_DIR: directory, NEXUS_STATE_FILE: stateFile, GITHUB_API_URL: githubApiUrl, GITHUB_TOKEN: '', GITHUB_APP_ID: '123', GITHUB_APP_PRIVATE_KEY: privateKey.export({ type: 'pkcs8', format: 'pem' }), NEXUS_ROLE: 'Administrator', NEXUS_ALLOW_ROLE_HEADER: 'false', NEXUS_ENABLE_REMOTE_WRITES: 'false', AI_API_KEY: '', AI_BASE_URL: '', AI_MODEL: '' },
+      stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true
+    })
+    child.stderr.setEncoding('utf8').on('data', (chunk) => { stderrText += chunk })
+    children.push(child)
+    const base = `http://127.0.0.1:${port}`
+    await waitForHealth(base, child, () => stderrText)
+    expect((await fetch(`${base}/api/projects/repo_0/workflows`)).status).toBe(200)
+    expect((await fetch(`${base}/api/projects/repo_0/workflows`)).status).toBe(200)
+    expect(mints).toBe(1)
+    rejectRequests = true
+    for (const [endpoint, method] of [['workflows', 'GET'], ['issues/sync', 'POST']]) {
+      const response = await fetch(`${base}/api/projects/repo_0/${endpoint}`, { method })
+      const body = await response.text()
+      expect(response.status).toBe(502)
+      expect(body.includes(token)).toBe(false)
+      expect(body.includes(token.slice(-60))).toBe(false)
+      expect(body).toContain('[REDACTED]')
+    }
+    expect((await fetch(`${base}/api/projects/repo_0/build`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ workflowId: 123 }) })).status).toBe(202)
+    let failedTask
+    for (let attempt = 0; attempt < 100; attempt++) {
+      const { tasks } = await (await fetch(`${base}/api/tasks`)).json()
+      failedTask = tasks.find((task) => task.type === 'build' && task.status === 'Failed')
+      if (failedTask) break
+      await new Promise((resolve) => setTimeout(resolve, 20))
+    }
+    expect(Boolean(failedTask)).toBe(true)
+    expect(JSON.stringify(failedTask).includes(token)).toBe(false)
+    for (const name of ['state.json', 'state.json.bak']) {
+      const persisted = await fs.readFile(path.join(directory, name), 'utf8')
+      expect(persisted.includes(token)).toBe(false)
+      expect(persisted.includes('accessToken')).toBe(false)
+    }
+    expect(stderrText.includes(token)).toBe(false)
   })
 
   it('requires and consumes a one-time GitHub App installation state token', async () => {

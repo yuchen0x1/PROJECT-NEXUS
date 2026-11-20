@@ -97,7 +97,7 @@ export function createWorkspaceManager({ dataDir, execImpl = execFile, clock = (
       if (!diff.fileCount) violations.push({ code: 'NO_CHANGES', detail: 'The AI made no changes in the isolated workspace.' })
       if (diff.deletedFiles.length) violations.push({ code: 'UNEXPECTED_DELETION', detail: `Deleted files: ${diff.deletedFiles.join(', ')}` })
       if (diff.sensitiveFiles.length) violations.push({ code: 'SENSITIVE_FILE_TOUCHED', detail: `Sensitive paths: ${diff.sensitiveFiles.join(', ')}` })
-      const secretPattern = /(gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)/
+      const secretPattern = /(\b(?:gh[pousr]_|github_pat_)[A-Za-z0-9_.-]+|sk-[A-Za-z0-9_-]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)/
       if (secretPattern.test(diff.patch)) violations.push({ code: 'SECRET_IN_DIFF', detail: 'A credential-like string appears in the diff.' })
       return { pass: violations.length === 0, violations }
     },
