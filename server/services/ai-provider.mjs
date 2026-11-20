@@ -62,7 +62,10 @@ function redactSecrets(content, knownSecrets = []) {
   return safe
     .replace(/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g, '[REDACTED PRIVATE KEY]')
     .replace(/(["']?\b(?:authorization|proxy-authorization)\b["']?\s*[:=]\s*["']?)(?:(Bearer|Basic)\s+)?[^\s"',;}]+/gi, (_match, prefix, scheme) => `${prefix}${scheme ? `${scheme} ` : ''}[REDACTED]`)
-    .replace(/(["']?\b(?:api[_-]?key|access[_-]?token|github[_-]?token|token|client[_-]?secret|password|private[_-]?key|x-github-stateless-s2s-token)\b["']?\s*[:=]\s*["']?)[^\s"',;}]+/gi, '$1[REDACTED]')
+    .replace(/(["']?\b(?:api[_-]?key|access[_-]?token|github[_-]?token|token|client[_-]?secret|password|private[_-]?key|x-github-stateless-s2s-token)\b["']?\s*[:=]\s*["']?)([^\s"',;}]+)/gi, (_match, prefix, value) => {
+      const marker = !/x-github-stateless-s2s-token/i.test(prefix) && /^(?:(?:gh[pousr]_|github_pat_)[A-Za-z0-9_.-]+|sk-[A-Za-z0-9_-]{24,}|AKIA[A-Z0-9]{16})$/.test(value) ? '[REDACTED TOKEN]' : '[REDACTED]'
+      return `${prefix}${marker}`
+    })
     .replace(/\b(?:gh[pousr]_|github_pat_)[A-Za-z0-9_.-]+/g, '[REDACTED TOKEN]')
     .replace(/\b(?:sk-[A-Za-z0-9_-]{24,}|AKIA[A-Z0-9]{16})\b/g, '[REDACTED TOKEN]')
     .replace(/(https?:\/\/)[^\s/@:]+:[^\s/@]+@/gi, '$1[REDACTED]@')

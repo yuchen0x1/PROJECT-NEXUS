@@ -140,6 +140,31 @@ describe('task context selection', () => {
     await expect(readContextFileContent(root, 'src/missing.js')).rejects.toMatchObject({ code: 'CONTEXT_FILE_MISSING' })
   })
 
+  it.each(['legacy API key', 'stateless GitHub token', 'opaque credential'])('preserves context marker semantics without leaking a %s', async (shape) => {
+    const credential = shape === 'legacy API key'
+      ? `sk-${'aB9_-'.repeat(8)}`
+      : shape === 'stateless GitHub token'
+        ? `ghs_123_${'aB9_-'.repeat(110)}.payload.signature`
+        : `opaque.${'aB9_+-'.repeat(100)}.end`
+    const marker = shape === 'opaque credential' ? '[REDACTED]' : '[REDACTED TOKEN]'
+    await writeTree({ 'src/credential.js': `const token = "${credential}";\nexport const value = 1\n` })
+    const result = await readContextFileContent(root, 'src/credential.js')
+    expect(result.content).toBe(`const token = "${marker}";\nexport const value = 1\n`)
+    expect(result.content.includes(credential)).toBe(false)
+    expect(result.content.includes(credential.slice(-24))).toBe(false)
+    expect(result.truncated).toBe(false)
+  })
+
+  it('redacts complete opaque values from structured context authorization and sensitive fields', async () => {
+    const credential = `opaque.${'aB9_+-'.repeat(100)}.end`
+    const content = JSON.stringify({ authorization: `Bearer ${credential}`, 'proxy-authorization': `Basic ${credential}`, accessToken: credential })
+    await writeTree({ 'src/headers.json': content })
+    const result = await readContextFileContent(root, 'src/headers.json')
+    expect(result.content.includes(credential)).toBe(false)
+    expect(result.content.includes(credential.slice(-24))).toBe(false)
+    expect(JSON.parse(result.content)).toEqual({ authorization: 'Bearer [REDACTED]', 'proxy-authorization': 'Basic [REDACTED]', accessToken: '[REDACTED]' })
+  })
+
   it('builds a redacted context bundle from the index', async () => {
     await writeTree({
       ...demoTree,
