@@ -17,7 +17,7 @@ const TEXT_EXTENSIONS = new Set([
 const SECRET_PATTERNS = [
   { key: 'private_key', priority: 'P0', pattern: /-----BEGIN (RSA |EC |DSA |OPENSSH |PGP )?PRIVATE KEY-----/, summary: 'A private key block was committed to the repository.' },
   { key: 'aws_key', priority: 'P0', pattern: /AKIA[0-9A-Z]{16}/, summary: 'An AWS access key id pattern was found.' },
-  { key: 'github_token', priority: 'P0', pattern: /gh[pousr]_[A-Za-z0-9]{36,}/, summary: 'A GitHub token pattern was found.' },
+  { key: 'github_token', priority: 'P0', pattern: /\b(?:gh[pousr]_|github_pat_)[A-Za-z0-9_.-]+/, summary: 'A GitHub token pattern was found.' },
   { key: 'slack_token', priority: 'P1', pattern: /xox[baprs]-[A-Za-z0-9-]{10,}/, summary: 'A Slack token pattern was found.' },
   { key: 'generic_secret_assignment', priority: 'P2', pattern: /\b(api[_-]?key|secret|password|token)\b\s*[:=]\s*['"][A-Za-z0-9+/_-]{24,}['"]/i, summary: 'A hardcoded credential assignment was found.' }
 ]

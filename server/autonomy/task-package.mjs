@@ -159,8 +159,8 @@ export function auditPackageSecrets(pkg) {
   })
   const leaked = []
   const patterns = [
-    [/gh[pousr]_[A-Za-z0-9]{20,}/g, 'GitHub token'],
-    [/github_pat_[A-Za-z0-9_]{20,}/g, 'GitHub fine-grained token'],
+    [/\bgh[pousr]_[A-Za-z0-9_.-]+/g, 'GitHub token'],
+    [/\bgithub_pat_[A-Za-z0-9_.-]+/g, 'GitHub fine-grained token'],
     [/sk-[A-Za-z0-9_-]{20,}/g, 'API key'],
     [/-----BEGIN [A-Z ]*PRIVATE KEY-----/g, 'private key']
   ]

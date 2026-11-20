@@ -28,15 +28,26 @@ describe('secret scanning', () => {
     await writeTree(directory, {
       'src/index.js': 'const x = 1\n',
       'server/key.txt': '-----BEGIN RSA PRIVATE KEY-----\nMIIB\n-----END RSA PRIVATE KEY-----',
-      'config/settings.js': "const token = 'ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef1234';\nconst aws = 'AKIAABCDEFGHIJKLMNOP';\n"
+      'config/settings.js': "const token = 'ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef1234';\nconst appToken = 'ghs_k9.m-R_s';\nconst aws = 'AKIAABCDEFGHIJKLMNOP';\n"
     })
     const findings = await scanSecrets({ root: directory })
     const keys = findings.map((finding) => finding.key)
     expect(keys).toContain('private_key')
     expect(keys).toContain('github_token')
+    expect(keys).toContain('generic_secret_assignment')
     expect(keys).toContain('aws_key')
     expect(findings.find((finding) => finding.key === 'private_key').priority).toBe('P0')
     expect(findings.find((finding) => finding.key === 'private_key').path.replace(/\\/g, '/')).toBe('server/key.txt')
+  })
+
+  it('detects short and long installation-shaped strings without exposing their values', async () => {
+    const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'nexus-scan-'))
+    cleanup.push(directory)
+    const tokens = ['ghs_123_a.b-c_d', `ghs_123_${'aB9_-.'.repeat(100)}`]
+    await writeTree(directory, Object.fromEntries(tokens.map((token, index) => [`src/token-${index}.js`, `export const credential = '${token}'`])) )
+    const findings = await scanSecrets({ root: directory })
+    expect(findings.filter((item) => item.key === 'github_token')).toHaveLength(2)
+    for (const token of tokens) expect(JSON.stringify(findings).includes(token)).toBe(false)
   })
 
   it('skips node_modules, .git, and oversized files', async () => {

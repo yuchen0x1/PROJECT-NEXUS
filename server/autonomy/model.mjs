@@ -242,8 +242,9 @@ export function eventFingerprint({ repoId, kind, externalId, version = '' }) {
 
 // Redact anything that must never reach an AI desktop session (directive 7).
 const SECRET_PATTERNS = [
-  /(gh[pousr]_[A-Za-z0-9]{20,})/g,
-  /(github_pat_[A-Za-z0-9_]{20,})/g,
+  /\b(?:gh[pousr]_|github_pat_)[A-Za-z0-9_.-]+/g,
+  /["']?\b(?:authorization|proxy-authorization)\b["']?\s*[:=]\s*["']?(?:(?:Bearer|Basic)\s+)?[^\s"',;}]+/gi,
+  /["']?\b(?:api[_-]?key|access[_-]?token|github[_-]?token|token|client[_-]?secret|password|private[_-]?key)\b["']?\s*[:=]\s*["']?[^\s"',;}]+/gi,
   /(sk-[A-Za-z0-9_-]{20,})/g,
   /(-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----)/g,
   /((?:AI_API_KEY|GITHUB_TOKEN|API_KEY|ACCESS_TOKEN|CLIENT_SECRET|PASSWORD)\s*[=:]\s*\S+)/gi

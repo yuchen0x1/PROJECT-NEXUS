@@ -144,8 +144,8 @@ export function scanDiffForSecrets(diff = {}) {
   const findings = []
   const patch = String(diff.patch || '')
   const patterns = [
-    { regex: /gh[pousr]_[A-Za-z0-9]{20,}/g, code: 'GITHUB_TOKEN_IN_DIFF' },
-    { regex: /github_pat_[A-Za-z0-9_]{20,}/g, code: 'GITHUB_PAT_IN_DIFF' },
+    { regex: /\bgh[pousr]_[A-Za-z0-9_.-]+/g, code: 'GITHUB_TOKEN_IN_DIFF' },
+    { regex: /\bgithub_pat_[A-Za-z0-9_.-]+/g, code: 'GITHUB_PAT_IN_DIFF' },
     { regex: /sk-[A-Za-z0-9_-]{20,}/g, code: 'API_KEY_IN_DIFF' },
     { regex: /-----BEGIN [A-Z ]*PRIVATE KEY-----/g, code: 'PRIVATE_KEY_IN_DIFF' },
     { regex: /(AI_API_KEY|GITHUB_TOKEN|CLIENT_SECRET|PASSWORD)\s*=\s*['"][^'"]{8,}/gi, code: 'HARDCODED_SECRET_IN_DIFF' },

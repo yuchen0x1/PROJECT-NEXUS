@@ -80,10 +80,11 @@ describe('autonomy domain model', () => {
     expect(idempotencyKey(['r1', 'fix', 'a,b'])).toBe(idempotencyKey(['r1', 'fix', 'a,b']))
   })
 
-  it('redacts credentials and flags sensitive paths', () => {
-    const leaked = `token=ghp_${'a'.repeat(30)} and AI_API_KEY=supersecret123`
+  it('redacts opaque GitHub installation credentials and flags sensitive paths', () => {
+    const installationToken = `ghs_${'k9.m-R_s'.repeat(65)}`
+    const leaked = `token=${installationToken} and "Authorization":"Bearer ${installationToken}" and AI_API_KEY=supersecret123`
     const redacted = redactSecrets(leaked)
-    expect(redacted).not.toContain('ghp_')
+    expect(redacted).not.toContain(installationToken)
     expect(redacted).toContain('[REDACTED_BY_NEXUS]')
     expect(isPathSensitive('.env')).toBe(true)
     expect(isPathSensitive('src/server/id_rsa')).toBe(true)
@@ -120,12 +121,12 @@ describe('task package', () => {
     expect(rendered).toContain('deadbeef')
   })
 
-  it('redacts credentials at construction and still blocks hand-crafted leaks', () => {
-    const token = `ghp_${'b'.repeat(30)}`
-    const safe = buildTaskPackage({ repo, workspace, findings, task: { id: 'task_2' }, plan: { summary: `use ${token}` } })
-    expect(safe.objective).not.toContain('ghp_')
+  it('redacts credentials from process output before exposing it to models or releases', () => {
+    const installationToken = `ghs_${'k9.m-R_s'.repeat(65)}`
+    const safe = buildTaskPackage({ repo, workspace, findings, task: { id: 'task_2' }, plan: { summary: `use ${installationToken}` } })
+    expect(safe.objective).not.toContain(installationToken)
     expect(auditPackageSecrets(safe).safe).toBe(true)
-    const raw = { ...safe, objective: `use ghp_${'c'.repeat(30)}` }
+    const raw = { ...safe, objective: `use ${installationToken}` }
     const audit = auditPackageSecrets(raw)
     expect(audit.safe).toBe(false)
     expect(audit.leaked).toContain('GitHub token')

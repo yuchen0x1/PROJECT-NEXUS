@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import http from 'node:http'
-import { assertTrustedProviderUrl, generateLocalAgentOperations, invokeAIProvider, listAIProviders, normalizeUsage, selectAIProvider } from '../../server/services/ai-provider.mjs'
+import { assertTrustedProviderUrl, generateLocalAgentOperations, invokeAIProvider, listAIProviders, normalizeUsage, redactSecrets, selectAIProvider } from '../../server/services/ai-provider.mjs'
 
 const originalEnv = { ...process.env }
 const servers = []
@@ -18,6 +18,25 @@ describe('AI provider registry and execution', () => {
     const result = await invokeAIProvider({ providerOverride: { id: 'fixture', kind: 'openai-compatible', configured: true, baseUrl: `http://127.0.0.1:${server.address().port}`, model: 'fixture', apiKey: 'fixture-key', pricing: { inputPer1M: 1, outputPer1M: 1 } }, messages: [{ role: 'user', content: 'fixture' }], maxRetries: 0 })
     expect(result.usageKnown).toBe(false)
     expect(result.costUsd).toBeNull()
+  })
+  it('redacts opaque installation credentials, structured authorization fields and sensitive assignments', () => {
+    const installationToken = `ghs_${'k9.m-R_s'.repeat(65)}`
+    const error = `GitHub rejected ${installationToken}; {"authorization":"Bearer ${installationToken}","proxy-authorization":"Basic ${installationToken}","access_token":"${installationToken}","X-GitHub-Stateless-S2S-Token":"${installationToken}"}`
+    const redacted = redactSecrets(error)
+
+    expect(redacted).not.toContain(installationToken)
+    expect(redacted).toContain('Bearer [REDACTED]')
+    expect(redacted).toContain('Basic [REDACTED]')
+    expect(redacted).toContain('"X-GitHub-Stateless-S2S-Token":"[REDACTED]"')
+  })
+  it('replaces full known secrets before format heuristics and redacts opaque JSON fields', () => {
+    const secret = `opaque-ghs_${'a'.repeat(40)}+${'z_-.'.repeat(140)}`
+    expect(redactSecrets(`before ${secret} after`, [secret])).toBe('before [REDACTED] after')
+    for (const key of ['token', 'access_token', 'accessToken', 'apiKey', 'clientSecret']) {
+      const result = redactSecrets(JSON.stringify({ [key]: 'synthetic.opaque+value' }))
+      expect(JSON.parse(result)[key]).toBe('[REDACTED]')
+    }
+    expect(redactSecrets('Authorization: Bearer synthetic.opaque+value')).toBe('Authorization: Bearer [REDACTED]')
   })
   it('normalizes usage and rejects untrusted provider URLs', () => {
     expect(normalizeUsage({ prompt_tokens: 3, completion_tokens: 4 })).toEqual({ inputTokens: 3, outputTokens: 4, totalTokens: 7 })

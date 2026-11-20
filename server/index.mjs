@@ -276,9 +276,20 @@ async function githubResponse(endpoint, options, headers, pageMetadata, conditio
   return pageMetadata ? page : body
 }
 
+function redactKnownSecrets(message) {
+  return redactSecrets(String(message), [process.env.GITHUB_TOKEN, process.env.AI_API_KEY, ...Array.from(installationTokens.values(), (item) => item.accessToken)])
+}
+
 function githubResponseError(response, body) {
-  const error = Object.assign(new Error(body?.message || `GitHub API returned ${response.status}`), {
-    status: response.status, body, retryAfter: response.headers.get('retry-after'),
+  const sanitize = (value) => {
+    if (typeof value === 'string') return redactKnownSecrets(value)
+    if (Array.isArray(value)) return value.map(sanitize)
+    if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, value]) => [key, sanitize(value)]))
+    return value
+  }
+  const safeBody = sanitize(body)
+  const error = Object.assign(new Error(safeBody?.message || `GitHub API returned ${response.status}`), {
+    status: response.status, body: safeBody, retryAfter: response.headers.get('retry-after'),
     rateRemaining: response.headers.get('x-ratelimit-remaining'), rateReset: response.headers.get('x-ratelimit-reset')
   })
   if (response.status === 429 || response.status === 403 && (error.retryAfter || error.rateRemaining === '0' || /rate limit|abuse/i.test(error.message))) {
@@ -541,10 +552,10 @@ async function runTask(taskId, executor) {
     task.error = safeError(error)
     task.errorCode = error.code || 'TASK_FAILED'
     task.finishedAt = now()
-    task.logs = [...(task.logs || []), error.message]
+    task.logs = [...(task.logs || []), safeError(error)]
     if (task.metadata?.deliveryId) {
       const eventRecord = state.githubWebhookEvents.find((item) => item.deliveryId === task.metadata.deliveryId)
-      if (eventRecord) { eventRecord.status = 'FAILED'; eventRecord.error = error.message; eventRecord.failedAt = now() }
+      if (eventRecord) { eventRecord.status = 'FAILED'; eventRecord.error = safeError(error); eventRecord.failedAt = now() }
     }
   }
   await saveState()
@@ -560,11 +571,7 @@ function createTask(type, label, metadata = {}) {
 }
 
 function safeError(error) {
-  let message = redactSecrets(String(error?.message || 'Operation failed'))
-  for (const secret of [process.env.GITHUB_TOKEN, process.env.AI_API_KEY, ...state.githubInstallations.map((item) => item.accessToken)]) {
-    if (secret) message = message.split(secret).join('[redacted]')
-  }
-  return message.slice(0, 1000)
+  return redactKnownSecrets(String(error?.message || 'Operation failed')).slice(0, 1000)
 }
 
 const LOCAL_AGENT_MAX_PROMPT_BYTES = 8 * 1024
