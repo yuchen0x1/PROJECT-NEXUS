@@ -14,11 +14,13 @@ const locale = process.env.NEXUS_GUIDE_TEST_LOCALE || 'en-US'
 const batchMode = process.env.NEXUS_GUIDE_BATCH === 'true'
 const labels = JSON.parse(await fs.readFile(path.join(root, `src/locales/${locale}/git.json`), 'utf8'))
 const navigation = JSON.parse(await fs.readFile(path.join(root, `src/locales/${locale}/navigation.json`), 'utf8'))
-const modelLabels = JSON.parse(await fs.readFile(path.join(root, `src/locales/${locale}/agent.json`), 'utf8')).providers.discovery
+const providerLabels = JSON.parse(await fs.readFile(path.join(root, `src/locales/${locale}/agent.json`), 'utf8')).providers
+const modelLabels = providerLabels.discovery
+const commonLabels = JSON.parse(await fs.readFile(path.join(root, `src/locales/${locale}/common.json`), 'utf8'))
 const screenshots = path.join(root, `test-results/${batchMode ? 'batch-repositories' : 'guided-setup'}`)
 await fs.mkdir(screenshots, { recursive: true })
 let rejectProvider = true, rejectRepository = false, rejectModels = true
-let modelRequests = 0
+let modelRequests = 0, inferenceRequests = 0
 let issueRequests = 0
 const mock = http.createServer((req, res) => {
   res.setHeader('content-type', 'application/json')
@@ -29,6 +31,7 @@ const mock = http.createServer((req, res) => {
     return res.end('{"data":[{"id":"fixture-model"},{"id":"fixture-alternate"}]}')
   }
   if (req.url.endsWith('/chat/completions')) {
+    inferenceRequests++
     if (rejectProvider) { res.statusCode = 503; return res.end('{"error":{"message":"Fixture provider unavailable"}}') }
     return res.end(JSON.stringify({ choices: [{ message: { content: 'pong' } }], usage: { prompt_tokens: 1, completion_tokens: 1 } }))
   }
@@ -51,9 +54,9 @@ try {
   state.projects = (batchMode ? ['one', 'two', 'three'] : ['one', 'two']).map((id) => ({ id, fullName: `fixture/${id}`, name: id, owner: 'fixture', defaultBranch: 'main', group: 'fixture', stack: [], hosting: { strategy: 'observe', enabled: false } }))
   await saveStateFile(path.join(temporary, 'state.json'), state)
   const env = { ...process.env, NEXUS_DESKTOP_DATA_DIR: temporary, GITHUB_API_URL: `http://127.0.0.1:${mock.address().port}`, NEXUS_ENABLE_REMOTE_WRITES: 'false' }
-  for (const key of ['ELECTRON_RUN_AS_NODE', 'GITHUB_TOKEN', 'GH_TOKEN', 'GITHUB_OWNER', 'AI_API_KEY', 'AI_BASE_URL', 'AI_MODEL', 'NEXUS_AI_PROVIDERS_JSON']) delete env[key]
+  for (const key of ['ELECTRON_RUN_AS_NODE', 'GITHUB_TOKEN', 'GH_TOKEN', 'GITHUB_OWNER', 'GITHUB_APP_ID', 'GITHUB_APP_PRIVATE_KEY', 'GITHUB_APP_CLIENT_SECRET', 'AI_API_KEY', 'AI_BASE_URL', 'AI_MODEL', 'NEXUS_AI_PROVIDERS_JSON']) delete env[key]
   const installedExe = process.env.NEXUS_GUIDE_INSTALLED_EXE
-  app = await _electron.launch({ executablePath: installedExe || require('electron'), args: installedExe ? ['--nexus-smoke-test'] : [root, '--nexus-smoke-test'], env, timeout: 45000 })
+  app = await _electron.launch({ executablePath: installedExe || process.env.NEXUS_GUIDE_ELECTRON_EXE || require('electron'), args: installedExe ? ['--nexus-smoke-test'] : [root, '--nexus-smoke-test'], env, timeout: 45000 })
   const page = await app.firstWindow()
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setContentSize(1280, 720))
   const pageErrors = []
@@ -63,7 +66,7 @@ try {
   assert.equal(await page.evaluate(async () => (await window.nexusDesktop.getSettings()).preferences.onboardingStage), 'setup')
   await page.locator('.nx-setup-later').click()
   await page.screenshot({ path: path.join(screenshots, `workbench-${locale}.png`) })
-  assert.equal(await page.locator('.nx-rail [data-management-page]').count(), 20)
+  assert.equal(await page.locator('.nx-rail [data-management-page]').count(), 21)
   assert.equal(await page.locator('.nx-remote-navigation').count(), 0)
   await page.locator('[data-management-page="Task Center"]').click()
   await page.locator('.hosted-timeline').waitFor()
@@ -240,8 +243,54 @@ try {
   assert.ok(bounds.y + bounds.height <= await page.evaluate(() => innerHeight))
   await fs.mkdir(path.join(root, 'test-results/guided-setup'), { recursive: true })
   await page.screenshot({ path: path.join(root, `test-results/guided-setup/flat-navigation-${locale}.png`) })
+  // The real renderer/preload/main/service contract must reflect key revocation
+  // immediately, and endpoint/kind edits must require explicit key re-entry.
+  await page.locator('.nx-rail .nx-nav-item').filter({ hasText: navigation.rail.agent }).click()
+  const manager = page.locator('.nx-agent-providers')
+  await manager.getByRole('heading', { name: providerLabels.title, exact: true }).waitFor()
+  if (!await manager.locator('.nx-agent-provider-list').count()) await manager.getByRole('button', { name: commonLabels.aria.expandPanel, exact: true }).click()
+  const row = manager.locator('.nx-agent-provider-row').filter({ hasText: 'Keep provider name' })
+  await row.getByText(providerLabels.keySaved, { exact: true }).waitFor()
+  const beforeRevocation = inferenceRequests
+  await row.getByRole('button', { name: commonLabels.actions.edit, exact: true }).click()
+  await manager.getByLabel(providerLabels.form.baseUrl, { exact: true }).fill(`http://127.0.0.1:${mock.address().port}/changed/v1`)
+  await manager.getByRole('button', { name: commonLabels.actions.save, exact: true }).click()
+  await row.getByText(providerLabels.keyMissing, { exact: true }).waitFor()
+  const staleDiscovery = await page.evaluate((baseUrl) => window.nexusDesktop.fetchProviderModels({ kind: 'openai-compatible', baseUrl, providerId: 'setup-provider' }), `http://127.0.0.1:${mock.address().port}/changed/v1`)
+  assert.equal(staleDiscovery.errorCode, 'key-required')
+  // Re-enter through the UI, then change the wire protocol as well.
+  await row.locator('input[type="password"]').fill('fixture-ai-key')
+  await row.getByRole('button', { name: providerLabels.saveKey, exact: true }).click()
+  await row.getByText(providerLabels.keySaved, { exact: true }).waitFor()
+  await row.getByRole('button', { name: commonLabels.actions.edit, exact: true }).click()
+  await manager.locator('.nx-agent-provider-form select').selectOption('anthropic')
+  await manager.getByRole('button', { name: commonLabels.actions.save, exact: true }).click()
+  await row.getByText(providerLabels.keyMissing, { exact: true }).waitFor()
+  await row.locator('input[type="password"]').fill('fixture-ai-key')
+  await row.getByRole('button', { name: providerLabels.saveKey, exact: true }).click()
+  await row.getByText(providerLabels.keySaved, { exact: true }).waitFor()
+  // Simulate a failed loopback sync in the isolated Electron main process.
+  // Disk deletion alone must not be presented as confirmed service revocation.
+  await app.evaluate(() => {
+    globalThis.__nexusFixtureFetch = globalThis.fetch
+    globalThis.fetch = (input, init) => String(input).endsWith('/api/local-agent/provider-keys')
+      ? Promise.resolve(new Response('{}', { status: 503 }))
+      : globalThis.__nexusFixtureFetch(input, init)
+  })
+  await row.getByRole('button', { name: providerLabels.deleteKey, exact: true }).click()
+  await manager.getByRole('alert').filter({ hasText: 'revocation is not confirmed' }).waitFor()
+  assert.equal(await row.getByText(providerLabels.keySaved, { exact: true }).count(), 1)
+  await app.evaluate(() => { globalThis.fetch = globalThis.__nexusFixtureFetch; delete globalThis.__nexusFixtureFetch })
+  await row.getByRole('button', { name: providerLabels.deleteKey, exact: true }).click()
+  await row.getByText(providerLabels.keyMissing, { exact: true }).waitFor()
+  assert.equal(await manager.getByRole('alert').count(), 0)
+  assert.deepEqual((await page.evaluate(() => window.nexusDesktop.getProviderKeyStatus())).providerIds, [])
+  const revokedTest = await page.evaluate(() => window.nexusDesktop.requestApi({ url: '/api/local-agent/providers/setup-provider/test', method: 'POST', body: '{}' }))
+  assert.equal(revokedTest.body.code, 'PROVIDER_NOT_CONFIGURED')
+  assert.equal(inferenceRequests, beforeRevocation)
+  await page.screenshot({ path: path.join(screenshots, `credential-revoked-${locale}.png`) })
   assert.deepEqual(pageErrors, [])
-  await fs.writeFile(path.join(root, `test-results/${batchMode ? 'batch-repositories' : 'guided-setup'}-${process.env.NEXUS_GUIDE_INSTALLED_EXE ? 'installed-' : ''}${locale}.json`), JSON.stringify({ status: 'PASS', locale, batchMode, fixtureServices: true, installedPackage: Boolean(process.env.NEXUS_GUIDE_INSTALLED_EXE), checks: ['flat-navigation', 'next-saves-and-navigates', 'draft-model-discovery', 'model-failure-retry', 'model-selection-and-manual-entry', 'model-list-invalidation', 'saved-key-model-discovery', 'provider-failure-retry', 'repository-failure-retry', 'script-and-write-consent', 'selected-repository', 'actual-enable', 'feature-tour', 'saved-credential-reuse', 'provider-metadata-preserved', 'explicit-scheduler-resume', '720p-layout', ...(batchMode ? ['select-all-and-none', 'deselect-survives-polling', 'search-keeps-selection', 'batch-policy', 'partial-inspection-retry', 'partial-enable-retry-with-fresh-proof', 'successful-repository-not-repeated', 'unselected-repository-untouched', 'batch-issue-sync-and-repeat'] : [])], at: new Date().toISOString() }, null, 2))
+  await fs.writeFile(path.join(root, `test-results/${batchMode ? 'batch-repositories' : 'guided-setup'}-${process.env.NEXUS_GUIDE_INSTALLED_EXE ? 'installed-' : ''}${locale}.json`), JSON.stringify({ status: 'PASS', locale, batchMode, fixtureServices: true, installedPackage: Boolean(process.env.NEXUS_GUIDE_INSTALLED_EXE), checks: ['flat-navigation', 'next-saves-and-navigates', 'draft-model-discovery', 'model-failure-retry', 'model-selection-and-manual-entry', 'model-list-invalidation', 'saved-key-model-discovery', 'provider-failure-retry', 'repository-failure-retry', 'script-and-write-consent', 'selected-repository', 'actual-enable', 'feature-tour', 'saved-credential-reuse', 'provider-metadata-preserved', 'provider-endpoint-key-binding', 'provider-kind-key-binding', 'desktop-last-key-revocation', 'revocation-sync-failure-and-retry', 'explicit-scheduler-resume', '720p-layout', ...(batchMode ? ['select-all-and-none', 'deselect-survives-polling', 'search-keeps-selection', 'batch-policy', 'partial-inspection-retry', 'partial-enable-retry-with-fresh-proof', 'successful-repository-not-repeated', 'unselected-repository-untouched', 'batch-issue-sync-and-repeat'] : [])], at: new Date().toISOString() }, null, 2))
   console.log('PASS: Flat navigation and complete guided setup, retries after real fixture failures, explicit consent, repository selection, feature tour, saved credential reuse and 720p sidebar layout.')
 } finally {
   await app?.close().catch(() => {})

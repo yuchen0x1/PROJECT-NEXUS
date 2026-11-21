@@ -33,6 +33,14 @@ Generic release editing rejects any supplied `draft` value other than literal `t
 
 These are legacy endpoint guards, not a replacement for the separate hosting/autonomy delivery policies. Actions workflows execute with their own repository-configured permissions and may themselves perform writes; review which workflows Operators can dispatch. Draft-state preflight reads are not atomic with GitHub mutations, so concurrent external publication can race with an edit or upload. No live GitHub write is needed to validate these controls: the regression suite uses disposable state and loopback GitHub/upload stubs.
 
+## Desktop AI provider credentials
+
+Desktop AI keys are encrypted with Electron `safeStorage` and stored separately from provider metadata. The vault persists an opaque, versioned SHA-256 binding over provider identity, protocol, configuration generation, and the full normalized destination URL; it does not persist that URL in the binding. This digest binds ciphertext to a destination but is not encryption or authentication. Stored provider base URLs reject user information, query strings, and fragments; use the separate API-key field instead.
+
+Existing v1 vault entries have no trusted destination binding. They are deliberately not auto-bound: their ciphertext is preserved on disk, but the affected key must be re-entered to use it. While a delete's vault write or atomic rename fails, deletion fails and the existing credential remains active; retry the delete after the disk issue is resolved. Once revocation is confirmed, new network attempts from already-resolved work are rejected, but a request already sent to a provider cannot be recalled.
+
+For compatibility, inference URL validation for environment-configured providers is unchanged in this patch. It still uses the inference URL validator, while model discovery rejects URL user information, queries, and fragments. Aligning those environment-path policies is deferred to a separately scoped compatibility change.
+
 ## Deployment boundary and known gap
 
 The application currently has **no per-user authentication**. `NEXUS_ROLE` is a process-wide identity setting shared by every caller, and source disclosure/repository/branch confirmations are request/UI intent rather than caller authentication. Integration report and job APIs contain source paths, patches, logs and test output. Do not expose the service to an untrusted network.

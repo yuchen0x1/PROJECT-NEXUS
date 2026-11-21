@@ -72,7 +72,7 @@ describe('provider store', () => {
     expect(raw).not.toContain('sk-')
     expect(JSON.parse(raw).providers[0]).not.toHaveProperty('apiKey')
 
-    setRuntimeProviderKeys({ 'main-provider': 'sk-live-key-1234567890' })
+    await setRuntimeProviderKeys({ 'main-provider': 'sk-live-key-1234567890' }, { dataDir })
     const listed = await listPublicProviders({ dataDir })
     expect(listed.find((provider) => provider.id === 'main-provider')).toMatchObject({ configured: true, hasApiKey: true })
     expect(JSON.stringify(listed)).not.toContain('sk-live-key-1234567890')
@@ -107,7 +107,7 @@ describe('provider store', () => {
     })
     expect(await resolveProviderForInvocation({ dataDir, providerId: 'gateway' })).toBeNull()
 
-    setRuntimeProviderKeys({ gateway: 'sk-runtime-key-abcdef' })
+    await setRuntimeProviderKeys({ gateway: 'sk-runtime-key-abcdef' }, { dataDir })
     const resolved = await resolveProviderForInvocation({ dataDir, providerId: 'gateway' })
     expect(resolved).toMatchObject({ id: 'gateway', apiKey: 'sk-runtime-key-abcdef', configured: true })
 
@@ -123,7 +123,7 @@ describe('provider store', () => {
     servers.push(failing)
     const badPort = failing.address().port
     await createProviderRecord({ dataDir, provider: { id: 'bad', name: 'Bad', kind: 'openai-compatible', baseUrl: `http://127.0.0.1:${badPort}`, model: 'm' } })
-    setRuntimeProviderKeys({ bad: 'sk-wrong' })
+    await setRuntimeProviderKeys({ bad: 'sk-wrong' }, { dataDir })
     const badResult = await testProviderRecord({ dataDir, providerId: 'bad' })
     expect(badResult.ok).toBe(false)
     expect(badResult.error).not.toContain('sk-wrong')
@@ -134,7 +134,7 @@ describe('provider store', () => {
     servers.push(good)
     const goodPort = good.address().port
     await createProviderRecord({ dataDir, provider: { id: 'good', name: 'Good', kind: 'openai-compatible', baseUrl: `http://127.0.0.1:${goodPort}`, model: 'm' } })
-    setRuntimeProviderKeys({ good: 'sk-right' })
+    await setRuntimeProviderKeys({ good: 'sk-right' }, { dataDir })
     const goodResult = await testProviderRecord({ dataDir, providerId: 'good' })
     expect(goodResult.ok).toBe(true)
     expect(goodResult.replyPreview).toBe('pong')

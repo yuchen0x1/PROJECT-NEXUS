@@ -12,6 +12,28 @@ afterEach(async () => {
 })
 
 describe('AI provider registry and execution', () => {
+  it.each(['openai-compatible', 'anthropic', 'gemini'])('rejects inference redirects without forwarding %s credentials or prompt bodies', async (kind) => {
+    let forwarded = 0, attempts = 0
+    const target = http.createServer((_req, res) => { forwarded++; res.end('{}') })
+    servers.push(target)
+    await new Promise((resolve) => target.listen(0, '127.0.0.1', resolve))
+    let status = 301
+    const source = http.createServer((req, res) => {
+      attempts++
+      const header = kind === 'anthropic' ? 'x-api-key' : kind === 'gemini' ? 'x-goog-api-key' : 'authorization'
+      expect(req.headers[header]).toBe(kind === 'openai-compatible' ? 'Bearer fixture-redirect-key' : 'fixture-redirect-key')
+      // Include same-origin redirects as well as cross-origin 307/308 replays.
+      res.writeHead(status, { location: status < 307 ? '/redirected' : `http://127.0.0.1:${target.address().port}/redirected` })
+      res.end()
+    })
+    servers.push(source)
+    await new Promise((resolve) => source.listen(0, '127.0.0.1', resolve))
+    for (status of [301, 302, 303, 307, 308]) {
+      await expect(invokeAIProvider({ providerOverride: { id: 'fixture', kind, baseUrl: `http://127.0.0.1:${source.address().port}`, model: 'fixture', apiKey: 'fixture-redirect-key' }, messages: [{ role: 'user', content: 'fixture-private-prompt' }], maxRetries: 2 })).rejects.toMatchObject({ code: 'AI_REDIRECT_REJECTED', status })
+    }
+    expect(attempts).toBe(5)
+    expect(forwarded).toBe(0)
+  })
   it.each([undefined, { total_tokens: -1 }, { total_tokens: '' }])('marks missing or malformed provider usage unknown instead of claiming a zero-cost request: %j', async (usage) => {
     const server = http.createServer((_req, res) => { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ choices: [{ message: { content: 'response without accounting' } }], usage })) })
     servers.push(server); await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
