@@ -1,5 +1,33 @@
 # UPGRADE_REPORT
 
+## 2026-11-21 · 首轮交付：Windows 发行完整性
+
+**候选状态：已在 Windows 本地构建并验证，未合并、未推送 tag、未创建 Release。** 基线 `origin/main` 是 `464f75b`。已有 [PR #15](https://github.com/yuchen0x1/PROJECT-NEXUS/pull/15) 是此前的凭据脱敏修复，不是本轮交付。
+
+| 项目 | 本轮结果 |
+| --- | --- |
+| 现状与故障 | [v0.9.4](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.4) 已公开但无 Windows 资产；[发行工作流](https://github.com/yuchen0x1/PROJECT-NEXUS/actions/runs/44571127933) 在检查公开重名版本时终止。没有改动该 Release。 |
+| 实现 | 分离无发布权限的 Windows 构建与特权发布；支持 PR 构建和仅验证；正式路径要求主分支 dispatch、tag、可信签名；对账草稿、四项远端资产和 tag 后再报告完成。修复 Electron 测试尚未等到 renderer 就检查标题的问题。 |
+| 性能、UI | 未做产品性能或 UI 改造，未报告性能收益。实测 Electron 主窗口、带鉴权的 preload、更新设置、中文切换和浅色；保留[实际截图](docs/evidence/2026-11-21-windows-settings.png)。 |
+| 研究 | 阅读 Temporal、Windmill、Prefect 的指定提交与活动记录；本轮采用构建和发布分权，不引入运行时依赖。见 [研究记录](docs/RESEARCH_LOG.md)。 |
+| 关键文件 | `.github/workflows/release-desktop.yml`、`scripts/publish-desktop-release.mjs`、`tests/unit/desktop-release.test.mjs`、`tests/desktop.smoke.mjs`、版本与 [Release 管理](docs/RELEASE_MANAGEMENT.md)。 |
+| 测试 | 锁文件安装、TypeScript、ESLint、Vite 生产构建、`vitest --maxWorkers 2`：最终 75 个文件、442 个用例通过（含转入 Latest 的复核回归）。初次默认并发有 3 个测试超时；以 CI 并发复跑通过。YAML、Actions SHA 和七段 PowerShell 解析通过。 |
+| Windows | Windows 11 / Node 26.13.1。官方直连下载超时后，用 npm 锁定 Electron 发行包的 SHA-256 验证镜像下载，成功构建 x64 NSIS。`desktop:verify-update` 和 `sha256sum -c` 通过；Windows `win-unpacked` 原生冒烟通过。未在用户主机安装或覆盖现有应用。 |
+| 本地候选摘要 | `PROJECT-NEXUS-0.9.5-win-x64-setup.exe`，122969134 字节，SHA-256 `53b394505318a280a5898659cedef03657b36a8e668e66578cecaa5402845b89`。只对应本轮**未签名**本地产物，不是公开发布资产。 |
+| 安全检查 | npm 官方 advisory：全依赖和仅运行依赖均为 0。镜像 registry 不支持 audit，已用官方 endpoint 重试。没有 Docker daemon、签名升级/回滚或其他认证级扫描证据。 |
+| 独立审查 | 首审发现 tag-push 信任边界、tag 并发变化和签名配置空缺；复审要求独立核对 GitHub Release 与 Latest 频道。已实施并通过最终独立聚焦复核，未发现剩余关键代码阻塞；仓库侧保护和签名仍未配置。 |
+| 发布门禁 | 仓库未配置签名环境、签名秘密或证书指纹；默认分支及发行 tag 保护缺失，immutable releases 关闭；候选未在 GitHub 运行，也无旧版签名升级和回滚证据。新 Release 版本和 URL 均无。 |
+
+### 下轮恢复顺序
+
+1. 从本地 `fix/verified-desktop-release` 浏览源码和候选验证结果；原工作区保留原分支且无用户改动被覆盖。
+2. 独立验收 GitHub 写入权限、Provider 撤销、启动租约和 Autonomy 路由候选。四个任务各自保留分支，不把尚未验收的功能列入 v0.9.5。
+3. 以 [发布管理](docs/RELEASE_MANAGEMENT.md) 配置可信签名和受保护环境，运行无发布的签名验证；在隔离 Windows 环境验证旧版安装升级、状态保留和失败恢复，取得真实 CI 结果后再履行合并及发布门禁。没有开启未经验证的远程自动写入、OS 隔离或 24 小时运行承诺。
+
+---
+
+下文为 2026-11-16 的历史交付。
+
 - 交付日期：2026-11-16（Asia/Shanghai）
 - 项目：PROJECT NEXUS
 - 基线：main / v0.9.2

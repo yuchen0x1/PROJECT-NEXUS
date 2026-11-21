@@ -96,7 +96,8 @@ try {
   let page = context.pages()[0]
   if (!page) page = await context.waitForEvent('page', { timeout: 15_000 })
   await page.waitForLoadState('domcontentloaded', { timeout: 20_000 })
-  await page.waitForFunction(() => document.title.includes('PROJECT NEXUS'), null, { timeout: 20_000 })
+  // The static HTML has a generic title until the workstation mounts and localizes it.
+  await page.waitForFunction(() => document.title === 'PROJECT NEXUS — Windows Workstation', null, { timeout: 20_000 })
   assert.equal(await page.title(), 'PROJECT NEXUS — Windows Workstation')
   await page.getByRole('heading', { name: 'Workbench', exact: true }).waitFor({ timeout: 15_000 })
   await page.getByText('Online', { exact: true }).waitFor({ timeout: 15_000 })

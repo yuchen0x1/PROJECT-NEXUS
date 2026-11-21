@@ -1,50 +1,81 @@
 name: Release Windows desktop
 
 on:
-  push:
-    tags: ['v*']
+  pull_request:
+    paths:
+      - '.github/workflows/release-desktop.yml'
+      - 'scripts/*desktop*release*.mjs'
+      - 'scripts/verify-desktop-update.mjs'
+      - 'tests/desktop.smoke.mjs'
+      - 'tests/unit/desktop-release.test.mjs'
+      - 'desktop/**'
+      - 'package*.json'
   workflow_dispatch:
     inputs:
       release_tag:
-        description: Existing stable version tag to build and publish
+        description: Existing stable tag on the default branch to build or publish
         required: true
         type: string
+      verify_only:
+        description: Build and verify the tagged installer without writing a release
+        default: true
+        type: boolean
+      verify_signature:
+        description: Use the protected signing environment during a verify-only run
+        default: false
+        type: boolean
 
 permissions:
   contents: read
 
-concurrency:
-  group: desktop-release-${{ inputs.release_tag || github.ref_name }}
-  cancel-in-progress: false
-
 jobs:
-  release:
+  package:
+    if: github.event_name != 'workflow_dispatch' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: windows-2022
     timeout-minutes: 30
+    environment: ${{ github.event_name == 'workflow_dispatch' && (!inputs.verify_only || inputs.verify_signature) && 'windows-release-signing' || 'windows-release-verification' }}
     env:
-      RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
-    permissions:
-      contents: write
+      RELEASE_TAG: ${{ inputs.release_tag }}
+      SIGN_RELEASE: ${{ github.event_name == 'workflow_dispatch' && (!inputs.verify_only || inputs.verify_signature) }}
+    outputs:
+      sha: ${{ steps.source.outputs.sha }}
+      tag: ${{ steps.source.outputs.tag }}
     steps:
-      - uses: actions/checkout@v7
+      - name: Validate tag syntax
+        if: github.event_name != 'pull_request'
+        shell: pwsh
+        run: |
+          if ($env:RELEASE_TAG -cnotmatch '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$') { throw 'Expected a stable tag (vX.Y.Z).' }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
-      - uses: actions/setup-node@v7
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.release_tag) || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '24.20.0'
           cache: npm
-      - name: Require a matching, increasing stable version
+      - name: Bind the package to a tag on the default branch
+        id: source
+        if: github.event_name != 'pull_request'
         shell: pwsh
         env:
-          GH_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           $version = node -p "require('./package.json').version"
-          if ($env:RELEASE_TAG -cne "v$version" -or $version -notmatch '^\d+\.\d+\.\d+$') { throw 'Tag must match a stable package.json version, for example v0.8.1.' }
-          $releases = gh api "repos/$env:GITHUB_REPOSITORY/releases?per_page=100" | ConvertFrom-Json
-          if ($LASTEXITCODE -ne 0) { throw 'Could not read existing releases.' }
-          if ($releases | Where-Object { $_.tag_name -eq $env:RELEASE_TAG }) { throw 'This release already exists; use a new version.' }
-          $latest = $releases | Where-Object { -not $_.draft -and -not $_.prerelease -and $_.tag_name -match '^v\d+\.\d+\.\d+$' } | Sort-Object { [version]($_.tag_name.Substring(1)) } -Descending | Select-Object -First 1
-          if ($latest -and [version]$version -le [version]($latest.tag_name.Substring(1))) { throw 'The new version must be greater than the published version.' }
+          if ($LASTEXITCODE -ne 0 -or $env:RELEASE_TAG -cne "v$version") { throw 'Tag must match package.json.' }
+          $sha = git rev-parse HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'Could not resolve checked-out commit.' }
+          $tagSha = git rev-parse --verify "refs/tags/$($env:RELEASE_TAG)^{commit}"
+          if ($LASTEXITCODE -ne 0 -or $sha -cne $tagSha) { throw 'The tagged commit changed.' }
+          git merge-base --is-ancestor $sha "refs/remotes/origin/$env:DEFAULT_BRANCH"
+          if ($LASTEXITCODE -ne 0) { throw 'The tag must point to a commit on the default branch.' }
+          $notes = "docs/releases/$env:RELEASE_TAG.md"
+          if (-not (Test-Path -LiteralPath $notes -PathType Leaf)) { throw 'Version-specific release notes are required.' }
+          $heading = Get-Content -LiteralPath $notes -TotalCount 1
+          if (-not $heading -or -not $heading.StartsWith("# $env:RELEASE_TAG · ", [StringComparison]::Ordinal)) { throw 'Release notes must start with: # vX.Y.Z · Title.' }
+          "sha=$sha" >> $env:GITHUB_OUTPUT
+          "tag=$env:RELEASE_TAG" >> $env:GITHUB_OUTPUT
       - run: npm ci
       - name: Use an unambiguous temporary test directory
         shell: pwsh
@@ -60,7 +91,6 @@ jobs:
           import { runCommand } from './server/services/agent/executor.mjs'
           for (const command of ['git --version', 'node --version']) {
             const result = await runCommand({ cwd: process.cwd(), command, timeoutMs: 15000 })
-            console.log(JSON.stringify(result))
             if (!result.ok) throw new Error('Windows command runner preflight failed: ' + command)
           }
           '@ | node --input-type=module
@@ -69,40 +99,85 @@ jobs:
       - run: npm run lint
       - name: Run complete regression suite
         run: npx vitest run --bail 1 --maxWorkers 2
-      - run: npm run build
       - name: Build installer and update metadata
         run: npm run desktop:package:win
         env:
-          # Optional Windows Authenticode certificate. Never put these in the app.
-          CSC_LINK: ${{ secrets.WINDOWS_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
+          CSC_LINK: ${{ env.SIGN_RELEASE == 'true' && secrets.WINDOWS_CSC_LINK || '' }}
+          CSC_KEY_PASSWORD: ${{ env.SIGN_RELEASE == 'true' && secrets.WINDOWS_CSC_KEY_PASSWORD || '' }}
       - run: npm run desktop:verify-update
-      - uses: actions/upload-artifact@v7
-        with:
-          name: windows-update-${{ env.RELEASE_TAG }}
-          path: |
-            release/*.exe
-            release/*.blockmap
-            release/latest.yml
-            release/SHA256SUMS.txt
-          if-no-files-found: error
-      - name: Upload all assets before publishing the release
+      - name: Smoke-test the packaged desktop application
+        shell: pwsh
+        run: |
+          $env:NEXUS_TEST_DESKTOP_EXECUTABLE = (Resolve-Path -LiteralPath 'release/win-unpacked/PROJECT NEXUS.exe').Path
+          node tests/desktop.smoke.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'The packaged desktop application did not pass smoke testing.' }
+      - name: Require the trusted Windows signer for public releases
+        if: env.SIGN_RELEASE == 'true'
         shell: pwsh
         env:
-          GH_TOKEN: ${{ github.token }}
+          EXPECTED_SIGNER: ${{ vars.WINDOWS_SIGNER_SHA256 }}
         run: |
-          $assets = @(Get-ChildItem -LiteralPath release -File | Where-Object { $_.Name -match '\.(exe|blockmap)$' -or $_.Name -in @('latest.yml', 'SHA256SUMS.txt') } | ForEach-Object { $_.FullName })
-          $notes = "docs/releases/$($env:RELEASE_TAG).md"
-          if (-not (Test-Path -LiteralPath $notes)) { throw 'Write version-specific release notes before publishing.' }
-          $heading = Get-Content -LiteralPath $notes -TotalCount 1
-          if ($heading -notmatch '^# (v\d+\.\d+\.\d+ · .+)$') { throw 'Release notes must start with: # vX.Y.Z · 中文主题' }
-          $title = $Matches[1]
-          if (-not $title.StartsWith("$($env:RELEASE_TAG) · ", [StringComparison]::Ordinal)) { throw 'Release note title must match the release tag.' }
-          # The H1 heading becomes the release title; publishing the whole file would render it twice.
-          $body = (Get-Content -LiteralPath $notes | Select-Object -Skip 1) -join "`n"
-          $releaseNotes = Join-Path $env:RUNNER_TEMP 'release-notes-body.md'
-          Set-Content -LiteralPath $releaseNotes -Value $body -Encoding utf8NoBOM
-          gh release create $env:RELEASE_TAG @assets --repo $env:GITHUB_REPOSITORY --verify-tag --title $title --notes-file $releaseNotes --draft
-          if ($LASTEXITCODE -ne 0) { throw 'Upload failed; the release remains unpublished.' }
-          gh release edit $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --draft=false --latest
-          if ($LASTEXITCODE -ne 0) { throw 'Could not publish the completed release.' }
+          if ($env:EXPECTED_SIGNER -notmatch '^[a-fA-F0-9]{64}$') { throw 'Configure the WINDOWS_SIGNER_SHA256 repository variable before publishing.' }
+          $version = node -p "require('./package.json').version"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not read the package version.' }
+          foreach ($file in @("release/PROJECT-NEXUS-$version-win-x64-setup.exe", 'release/win-unpacked/PROJECT NEXUS.exe')) {
+            $signature = Get-AuthenticodeSignature -LiteralPath $file
+            if ($signature.Status -ne 'Valid' -or -not $signature.SignerCertificate) { throw "Windows signature is not valid: $file" }
+            $fingerprint = $signature.SignerCertificate.GetCertHashString([System.Security.Cryptography.HashAlgorithmName]::SHA256)
+            if ($fingerprint -ne $env:EXPECTED_SIGNER) { throw "Unexpected Windows signer: $file" }
+          }
+      - name: Stage only the verified release assets
+        shell: pwsh
+        run: |
+          $version = node -p "require('./package.json').version"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not read the package version.' }
+          $installer = "PROJECT-NEXUS-$version-win-x64-setup.exe"
+          New-Item -ItemType Directory -Path release-bundle | Out-Null
+          foreach ($name in @($installer, "$installer.blockmap", 'latest.yml', 'SHA256SUMS.txt')) {
+            Copy-Item -LiteralPath (Join-Path release $name) -Destination release-bundle -ErrorAction Stop
+          }
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: windows-update-${{ steps.source.outputs.tag || github.sha }}
+          path: release-bundle/
+          if-no-files-found: error
+
+  publish:
+    if: github.event_name == 'workflow_dispatch' && !inputs.verify_only && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    needs: package
+    runs-on: ubuntu-latest
+    environment: windows-release-publication
+    timeout-minutes: 15
+    concurrency:
+      group: desktop-release-publish
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    env:
+      RELEASE_SHA: ${{ needs.package.outputs.sha }}
+      RELEASE_TAG: ${{ needs.package.outputs.tag }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # Only execute the publishing script from the default branch on manual dispatch.
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24.20.0'
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: windows-update-${{ needs.package.outputs.tag }}
+          path: release-bundle
+      - name: Verify the tagged notes and publish the complete draft
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_PROMPT_DISABLED: '1'
+        run: |
+          set -euo pipefail
+          # Read release notes from the verified tag, not from current main or an artifact.
+          git -c protocol.version=2 fetch --no-tags origin "refs/tags/$RELEASE_TAG"
+          test "$(git rev-parse 'FETCH_HEAD^{commit}')" = "$RELEASE_SHA"
+          git show "$RELEASE_SHA:docs/releases/$RELEASE_TAG.md" > "$RUNNER_TEMP/tagged-notes.md"
+          node scripts/publish-desktop-release.mjs "$RELEASE_TAG" "$RELEASE_SHA" release-bundle "$RUNNER_TEMP/tagged-notes.md" "$RUNNER_TEMP/release-notes-body.md"

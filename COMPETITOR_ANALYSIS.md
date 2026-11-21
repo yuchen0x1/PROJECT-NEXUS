@@ -5,6 +5,10 @@
 - 研究数量：16 个项目。
 - 许可证原则：只借鉴公开实现思路；未把外部代码复制进 PROJECT NEXUS。任何未来移植必须重新检查当前许可证、依赖许可证和版权义务。
 
+## 2026-11-21：持久恢复与发布对标
+
+本轮额外深入阅读 Temporal、Windmill 和 Prefect 的指定版本源码。采用 Prefect 的构建/发布权限分离；保留本地调度器，借鉴 Temporal 的重试 fencing 与 Windmill 的真实隔离能力探测。不新增外部运行时依赖。版本、许可证、源码、Issue/PR 与实施结果见 [研究记录](docs/RESEARCH_LOG.md) 和 [技术决策](docs/TECHNOLOGY_DECISIONS.md)。
+
 ## 1. 对标总表
 
 | 项目 | 实际观察到的优势 | PROJECT NEXUS 现状 | 差距/风险 | 决策 |
