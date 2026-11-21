@@ -13,16 +13,21 @@
 | 关键文件 | `.github/workflows/release-desktop.yml`、`scripts/publish-desktop-release.mjs`、`tests/unit/desktop-release.test.mjs`、`tests/desktop.smoke.mjs`、版本与 [Release 管理](docs/RELEASE_MANAGEMENT.md)。 |
 | 测试 | 锁文件安装、TypeScript、ESLint、Vite 生产构建、`vitest --maxWorkers 2`：最终 75 个文件、442 个用例通过（含转入 Latest 的复核回归）。初次默认并发有 3 个测试超时；以 CI 并发复跑通过。YAML、Actions SHA 和七段 PowerShell 解析通过。 |
 | Windows | Windows 11 / Node 26.13.1。官方直连下载超时后，用 npm 锁定 Electron 发行包的 SHA-256 验证镜像下载，成功构建 x64 NSIS。`desktop:verify-update` 和 `sha256sum -c` 通过；Windows `win-unpacked` 原生冒烟通过。未在用户主机安装或覆盖现有应用。 |
+| 调度与稳定性 | 90.05 秒 Windows Electron 隔离 fixture 运行：3 个协作工作流、27 次本地模拟模型请求、2 次资源采样，错误为 0，测试原始项目和应用快照匹配。短测终态 `PARTIAL`，`continuous24hVerified: false`；回执在工作树 `test-results/soak/2026-11-21T11-43-43-433Z/status.json`。首轮 24 小时运行 `2026-11-21T11-50-15-563Z` 的进程以 `0x40010004` 退出（原因未确认）；最后回执停在 23 分 02 秒、24 次采样、1 个工作流、应用错误 0，`Running` 是中断前的旧状态，不是仍在运行。确认旧进程退出后已从新隔离目录重跑 `2026-11-21T13-30-49-951Z`，仍未取得 24 小时验收。fixture 不代表真实外部 AI 服务或签名安装升级。 |
 | 本地候选摘要 | `PROJECT-NEXUS-0.9.5-win-x64-setup.exe`，122969134 字节，SHA-256 `53b394505318a280a5898659cedef03657b36a8e668e66578cecaa5402845b89`。只对应本轮**未签名**本地产物，不是公开发布资产。 |
 | 安全检查 | npm 官方 advisory：全依赖和仅运行依赖均为 0。镜像 registry 不支持 audit，已用官方 endpoint 重试。没有 Docker daemon、签名升级/回滚或其他认证级扫描证据。 |
 | 独立审查 | 首审发现 tag-push 信任边界、tag 并发变化和签名配置空缺；复审要求独立核对 GitHub Release 与 Latest 频道。已实施并通过最终独立聚焦复核，未发现剩余关键代码阻塞；仓库侧保护和签名仍未配置。 |
 | 发布门禁 | 仓库未配置签名环境、签名秘密或证书指纹；默认分支及发行 tag 保护缺失，immutable releases 关闭；候选未在 GitHub 运行，也无旧版签名升级和回滚证据。新 Release 版本和 URL 均无。 |
 
-### 下轮恢复顺序
+### 独立候选与恢复顺序
 
-1. 从本地 `fix/verified-desktop-release` 浏览源码和候选验证结果；原工作区保留原分支且无用户改动被覆盖。
-2. 独立验收 GitHub 写入权限、Provider 撤销、启动租约和 Autonomy 路由候选。四个任务各自保留分支，不把尚未验收的功能列入 v0.9.5。
-3. 以 [发布管理](docs/RELEASE_MANAGEMENT.md) 配置可信签名和受保护环境，运行无发布的签名验证；在隔离 Windows 环境验证旧版安装升级、状态保留和失败恢复，取得真实 CI 结果后再履行合并及发布门禁。没有开启未经验证的远程自动写入、OS 隔离或 24 小时运行承诺。
+- `fix/verified-desktop-release` 保留 v0.9.5 候选及发行证据。原工作区保留原分支且无用户改动被覆盖。
+- `fix/guarded-autonomy-routing` (`2fbfae8`)：恢复总览所需的十项读取，保留角色、会话及只读门禁，界面隐藏不可用操作。Windows 75 个测试文件、437 项通过，TypeScript、ESLint、生产构建、独立复核及 Chromium 回归通过。Chromium 使用合成记录，通过真实侧栏导航验证显示和刷新，未发出写请求；该工作树保留 `test-results/autonomy-browser/` 截图。内置浏览器手动导航曾超时，不计作通过。
+- `fix/github-write-guard` (`bff3431`)：五条旧 GitHub 写入在发送前重查开关；发布要求 Administrator 和显式确认，编辑和上传仅限草稿。Windows 464 项本地测试通过，独立复审的 40 项 API 测试通过；夹具没有写真实 GitHub。
+- `fix/provider-credential-lifecycle` (`d13a508`)：凭据绑定使用摘要，阻止旧凭据在改址后复用，并能撤销最后一个密钥。Windows 75 个测试文件、457 项通过；独立复核 63 项通过，源码启动的 Electron 本地夹具通过。旧版未绑定密钥须重新录入；未运行已安装包或真实远端模型。
+- `fix/startup-state-ownership` (`668303d`)：恢复前取得状态所有权并先验证监听；拒绝活跃进程重入。Windows 74 个测试文件、442 项通过；关闭 SQLite 的 19 项启动/持久化测试通过，独立复核通过。范围仅为启动所有权；不宣称优雅停机或 Compose 无人值守重启，实际 Compose 未验收。
+- 未合并上面四个本地分支至 v0.9.5。组合试算显示 Autonomy 与 GitHub 写入门禁在 `server/index.mjs` 重叠，GitHub 与 Provider 在 `docs/SECURITY.md` 重叠；按顺序分别解决并复验，不将各分支本地结果当成组合后的证据。
+- 以 [发布管理](docs/RELEASE_MANAGEMENT.md) 配置可信签名和保护规则，运行无发布的签名验证；在隔离 Windows 环境验证旧版安装升级、状态保留和失败恢复，取得真实 GitHub CI 后再履行合并及发布门禁。继续检查 24 小时运行的最终回执，不把短测、重跑中或外部中断视为通过。
 
 ---
 
