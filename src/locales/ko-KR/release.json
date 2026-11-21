@@ -9,6 +9,7 @@
     "draftQueued": "릴리스 초안이 대기열에 추가되었습니다",
     "draftFailed": "릴리스 초안 실패",
     "publishQueued": "릴리스 게시가 대기열에 추가되었습니다",
+    "confirmPublish": "GitHub의 {{repository}}에서 {{tag}}를 게시하시겠습니까? 초안과 자산이 공개됩니다. 관리자 권한이 필요합니다.",
     "loadFailed": "릴리스를 불러올 수 없습니다"
   },
   "form": {

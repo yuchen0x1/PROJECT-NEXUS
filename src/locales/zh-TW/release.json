@@ -9,6 +9,7 @@
     "draftQueued": "發佈草稿已排入佇列",
     "draftFailed": "發佈草稿建立失敗",
     "publishQueued": "發佈操作已排入佇列",
+    "confirmPublish": "確認在 GitHub 上發佈 {{repository}} 的 {{tag}}？這將公開草稿及其資產，需要管理員權限。",
     "loadFailed": "無法載入發佈"
   },
   "form": {

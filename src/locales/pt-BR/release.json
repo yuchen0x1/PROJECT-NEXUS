@@ -9,6 +9,7 @@
     "draftQueued": "Rascunho de release enfileirado",
     "draftFailed": "Falha no rascunho de release",
     "publishQueued": "Publicação de release enfileirada",
+    "confirmPublish": "Publicar {{tag}} de {{repository}} no GitHub? O rascunho e seus artefatos se tornarão públicos. É necessária permissão de administrador.",
     "loadFailed": "Não foi possível carregar os releases"
   },
   "form": {

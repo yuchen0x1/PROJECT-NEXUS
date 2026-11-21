@@ -9,6 +9,7 @@
     "draftQueued": "Borrador de publicación en cola",
     "draftFailed": "Error en el borrador de publicación",
     "publishQueued": "Publicación en cola",
+    "confirmPublish": "¿Publicar {{tag}} de {{repository}} en GitHub? El borrador y sus artefactos se harán públicos. Se requieren permisos de administrador.",
     "loadFailed": "No se pudieron cargar las publicaciones"
   },
   "form": {

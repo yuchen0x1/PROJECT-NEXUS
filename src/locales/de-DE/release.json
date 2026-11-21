@@ -9,6 +9,7 @@
     "draftQueued": "Release-Entwurf in Warteschlange gestellt",
     "draftFailed": "Release-Entwurf fehlgeschlagen",
     "publishQueued": "Release-Veröffentlichung in Warteschlange gestellt",
+    "confirmPublish": "{{tag}} in {{repository}} auf GitHub veröffentlichen? Dadurch werden der Entwurf und seine Artefakte öffentlich. Administratorrechte sind erforderlich.",
     "loadFailed": "Releases konnten nicht geladen werden"
   },
   "form": {

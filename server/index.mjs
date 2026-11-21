@@ -72,7 +72,7 @@ const appConfig = {
   privateKey: process.env.GITHUB_APP_PRIVATE_KEY || '',
   webhookSecret: process.env.GITHUB_WEBHOOK_SECRET || ''
 }
-const activeRole = String(process.env.NEXUS_ROLE || 'Administrator')
+const activeRole = process.env.NEXUS_ROLE ?? 'Administrator'
 const allowRoleHeader = process.env.NEXUS_ALLOW_ROLE_HEADER === 'true'
 const corsOrigins = new Set(
   String(process.env.NEXUS_CORS_ORIGINS || 'http://127.0.0.1:5173,http://localhost:5173')
@@ -166,19 +166,31 @@ function githubAppConfigured() {
 }
 
 function currentRole(req) {
-  if (allowRoleHeader && req?.get('x-nexus-role')) return req.get('x-nexus-role')
-  return activeRole
+  return (allowRoleHeader ? req?.get('x-nexus-role') : undefined) ?? activeRole
 }
 
 const roleRank = { Viewer: 1, Operator: 2, Administrator: 3 }
 
 function requireRole(req, res, required) {
   const role = currentRole(req)
-  if ((roleRank[role] || 0) < roleRank[required]) {
+  if (!Object.hasOwn(roleRank, role) || !Object.hasOwn(roleRank, required) || roleRank[role] < roleRank[required]) {
     res.status(403).json({ code: 'INSUFFICIENT_ROLE', required, role })
     return false
   }
   return true
+}
+
+function assertGithubWritesEnabled() {
+  if (!remoteWritesEnabled()) throw Object.assign(new Error('Enable remote writes explicitly before dispatching workflows or changing GitHub releases.'), { code: 'REMOTE_WRITES_DISABLED', status: 403 })
+  if (allowRoleHeader) throw Object.assign(new Error('Remote writes are disabled while role identity can be supplied by a request header.'), { code: 'UNTRUSTED_ROLE_MODE', status: 403 })
+}
+
+function requireGithubWrite(req, res, required = 'Operator') {
+  try { assertGithubWritesEnabled() } catch (error) {
+    res.status(403).json({ code: error.code, message: error.message })
+    return false
+  }
+  return requireRole(req, res, required)
 }
 
 function audit(req, action, target, result, risk = 'low', detail = {}) {
@@ -252,11 +264,19 @@ async function githubFetch(endpoint, options = {}) {
   return githubResponse(endpoint, fetchOptions, headers, returnPageMetadata, repositoryCache)
 }
 
-async function githubResponse(endpoint, options, headers, pageMetadata, conditional) {
+function sendGithubWrite(url, options) {
+  const request = { ...options, redirect: 'error' }
+  // No await between checking the live switch and starting the mutation.
+  assertGithubWritesEnabled()
+  return fetch(url, request)
+}
+
+async function githubResponse(endpoint, { guardedWrite = false, ...options }, headers, pageMetadata, conditional) {
   const key = `${crypto.createHash('sha256').update(headers.Authorization || '').digest('hex')}:${endpoint}`
   const cached = conditional ? repositoryPages.get(key) : null
   if (cached?.etag) headers['If-None-Match'] = cached.etag
-  const response = await fetch(githubRequestUrl(endpoint), { ...options, headers, ...(conditional && !options.signal ? { signal: AbortSignal.timeout(30_000) } : {}) })
+  const send = guardedWrite ? sendGithubWrite : fetch
+  const response = await send(githubRequestUrl(endpoint), { ...options, headers, ...(conditional && !options.signal ? { signal: AbortSignal.timeout(30_000) } : {}) })
   if (conditional) {
     const pollSeconds = Number(response.headers.get('x-poll-interval'))
     if (pollSeconds > 0) repositoryPollUntil = Math.max(repositoryPollUntil, Date.now() + pollSeconds * 1000)
@@ -312,6 +332,23 @@ function githubRequestUrl(endpoint) {
 async function githubFetchForProject(project, endpoint, options = {}) {
   if (project?.installationId) return installationFetch(project.installationId, endpoint, options)
   return githubFetch(endpoint, options)
+}
+
+function githubWriteForProject(project, endpoint, options) {
+  // Avoid resolving credentials if already disabled; enforce again at fetch.
+  assertGithubWritesEnabled()
+  return githubFetchForProject(project, endpoint, { ...options, guardedWrite: true })
+}
+
+function githubReleaseUploadUrl(project, releaseId, template, assetName) {
+  const base = new URL(githubUploadsUrl)
+  const expectedPath = `${base.pathname.replace(/\/$/, '')}/repos/${repoFromProject(project)}/releases/${encodeURIComponent(releaseId)}/assets`
+  const url = URL.parse(String(template || '').replace(/\{.*$/, ''))
+  if (!url || !['http:', 'https:'].includes(url.protocol) || url.origin !== base.origin || url.pathname !== expectedPath || url.username || url.password || url.search || url.hash) {
+    throw Object.assign(new Error('GitHub did not return a valid upload URL for this repository and release.'), { code: 'INVALID_RELEASE_UPLOAD_URL', status: 502 })
+  }
+  url.searchParams.set('name', assetName)
+  return url
 }
 
 async function githubTokenForProject(project) {
@@ -3102,6 +3139,7 @@ app.get('/api/projects/:projectId/runs', async (req, res) => {
 app.post('/api/projects/:projectId/build', async (req, res) => {
   const project = state.projects.find((item) => item.id === req.params.projectId)
   if (!project) return res.status(404).json({ message: 'Project not found' })
+  if (!requireGithubWrite(req, res)) return
   if (!projectGithubConfigured(project)) return notConfigured(res)
   const workflowId = req.body?.workflowId
   if (!workflowId) return res.status(400).json({ message: 'workflowId is required' })
@@ -3109,7 +3147,7 @@ app.post('/api/projects/:projectId/build', async (req, res) => {
   await saveState()
   void runTask(task.id, async () => {
     const ref = req.body.ref || project.defaultBranch
-    await githubFetchForProject(project, `/repos/${repoFromProject(project)}/actions/workflows/${encodeURIComponent(workflowId)}/dispatches`, {
+    await githubWriteForProject(project, `/repos/${repoFromProject(project)}/actions/workflows/${encodeURIComponent(workflowId)}/dispatches`, {
       method: 'POST',
       body: JSON.stringify({ ref, inputs: req.body.inputs || {} }),
       headers: { 'Content-Type': 'application/json' }
@@ -3175,16 +3213,17 @@ app.post('/api/tasks/update-check-all', async (req, res) => {
 app.post('/api/projects/:projectId/releases', async (req, res) => {
   const project = state.projects.find((item) => item.id === req.params.projectId)
   if (!project) return res.status(404).json({ message: 'Project not found' })
-  if (!requireRole(req, res, 'Operator')) return
+  if (!requireGithubWrite(req, res)) return
   if (!githubConfigured() && !project.installationId) return notConfigured(res)
   const tagName = String(req.body?.tagName || '').trim()
   if (!/^v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(tagName)) return res.status(400).json({ code: 'INVALID_SEMVER', message: 'tagName must be a semantic version such as v1.2.3 or v1.2.3-beta.1.' })
   const task = createTask('release-create', `Create release draft for ${project.fullName}`, { projectId: project.id, tagName })
   await saveState()
   void runTask(task.id, async () => {
+    assertGithubWritesEnabled()
     const existing = await githubFetchForProject(project, `/repos/${repoFromProject(project)}/releases/tags/${encodeURIComponent(tagName)}`).catch((error) => error.status === 404 ? null : Promise.reject(error))
     if (existing) throw new Error(`Release ${tagName} already exists; existing releases cannot be overwritten.`)
-    const release = await githubFetchForProject(project, `/repos/${repoFromProject(project)}/releases`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tag_name: tagName, name: req.body.name || tagName, body: req.body.body || '', target_commitish: req.body.targetCommitish || project.defaultBranch, draft: true, prerelease: Boolean(req.body.prerelease) }) })
+    const release = await githubWriteForProject(project, `/repos/${repoFromProject(project)}/releases`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tag_name: tagName, name: req.body.name || tagName, body: req.body.body || '', target_commitish: req.body.targetCommitish || project.defaultBranch, draft: true, prerelease: Boolean(req.body.prerelease) }) })
     audit(req, 'release_draft_create', project.fullName, 'success', 'medium', { releaseId: release.id, tagName })
     state.activity.unshift({ id: id('activity'), type: 'release', message: `Created draft ${tagName} for ${project.fullName}`, at: now() })
     await saveState()
@@ -3196,26 +3235,31 @@ app.post('/api/projects/:projectId/releases', async (req, res) => {
 app.patch('/api/projects/:projectId/releases/:releaseId', async (req, res) => {
   const project = state.projects.find((item) => item.id === req.params.projectId)
   if (!project) return res.status(404).json({ message: 'Project not found' })
-  if (!requireRole(req, res, 'Operator')) return
+  if (!requireGithubWrite(req, res)) return
+  // Never forward a publication state from the generic metadata edit route.
+  if (Object.hasOwn(req.body || {}, 'draft') && req.body.draft !== true) return res.status(400).json({ code: 'RELEASE_PUBLISH_REQUIRED', message: 'Use the Administrator publish endpoint with confirm=true to publish a release.' })
   if (!githubConfigured() && !project.installationId) return notConfigured(res)
   try {
-    const release = await githubFetchForProject(project, `/repos/${repoFromProject(project)}/releases/${encodeURIComponent(req.params.releaseId)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: req.body.name, body: req.body.body, draft: req.body.draft, prerelease: req.body.prerelease, target_commitish: req.body.targetCommitish }) })
+    const endpoint = `/repos/${repoFromProject(project)}/releases/${encodeURIComponent(req.params.releaseId)}`
+    const current = await githubFetchForProject(project, endpoint)
+    if (current.draft !== true) return res.status(409).json({ code: 'RELEASE_NOT_DRAFT', message: 'Only draft releases can be edited here.' })
+    const release = await githubWriteForProject(project, endpoint, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: req.body.name, body: req.body.body, prerelease: req.body.prerelease, target_commitish: req.body.targetCommitish }) })
     audit(req, 'release_edit', project.fullName, 'success', 'medium', { releaseId: release.id })
     await saveState()
     res.json({ release })
-  } catch (error) { res.status(error.status || 500).json({ message: error.message }) }
+  } catch (error) { res.status(error.status || 500).json({ code: error.code, message: error.message }) }
 })
 
 app.post('/api/projects/:projectId/releases/:releaseId/publish', async (req, res) => {
   const project = state.projects.find((item) => item.id === req.params.projectId)
   if (!project) return res.status(404).json({ message: 'Project not found' })
-  if (!requireRole(req, res, 'Administrator')) return
+  if (!requireGithubWrite(req, res, 'Administrator')) return
   if (req.body?.confirm !== true) return res.status(400).json({ code: 'CONFIRMATION_REQUIRED', message: 'Publishing requires confirm=true.' })
   if (!githubConfigured() && !project.installationId) return notConfigured(res)
   const task = createTask('release-publish', `Publish release ${req.params.releaseId} for ${project.fullName}`, { projectId: project.id, releaseId: req.params.releaseId })
   await saveState()
   void runTask(task.id, async () => {
-    const release = await githubFetchForProject(project, `/repos/${repoFromProject(project)}/releases/${encodeURIComponent(req.params.releaseId)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ draft: false }) })
+    const release = await githubWriteForProject(project, `/repos/${repoFromProject(project)}/releases/${encodeURIComponent(req.params.releaseId)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ draft: false }) })
     audit(req, 'release_publish', project.fullName, 'success', 'high', { releaseId: release.id, tagName: release.tag_name })
     await saveState()
     return release
@@ -3226,21 +3270,22 @@ app.post('/api/projects/:projectId/releases/:releaseId/publish', async (req, res
 app.post('/api/projects/:projectId/releases/:releaseId/assets', async (req, res) => {
   const project = state.projects.find((item) => item.id === req.params.projectId)
   if (!project) return res.status(404).json({ message: 'Project not found' })
-  if (!requireRole(req, res, 'Operator')) return
+  if (!requireGithubWrite(req, res)) return
   if (!req.body?.assetName || !req.body?.contentBase64) return res.status(400).json({ message: 'assetName and contentBase64 are required.' })
   if (!githubConfigured() && !project.installationId) return notConfigured(res)
   try {
     const release = await githubFetchForProject(project, `/repos/${repoFromProject(project)}/releases/${encodeURIComponent(req.params.releaseId)}`)
+    if (release.draft !== true) return res.status(409).json({ code: 'RELEASE_NOT_DRAFT', message: 'Assets can only be uploaded to a draft release.' })
     const content = Buffer.from(req.body.contentBase64, 'base64')
-    const uploadUrl = String(release.upload_url || '').replace(/\{.*$/, '')
-    if (!uploadUrl) return res.status(502).json({ message: 'GitHub release did not return an upload URL.' })
+    const uploadUrl = githubReleaseUploadUrl(project, req.params.releaseId, release.upload_url, req.body.assetName)
+    assertGithubWritesEnabled()
     const token = await githubTokenForProject(project)
-    const response = await fetch(`${uploadUrl}?name=${encodeURIComponent(req.body.assetName)}`, { method: 'POST', headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', Authorization: `Bearer ${token}`, 'Content-Type': req.body.contentType || 'application/octet-stream' }, body: content })
+    const response = await sendGithubWrite(uploadUrl, { method: 'POST', headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', Authorization: `Bearer ${token}`, 'Content-Type': req.body.contentType || 'application/octet-stream' }, body: content })
     const body = await response.json().catch(() => ({}))
     if (!response.ok) return res.status(response.status).json({ message: body.message || 'Asset upload failed.' })
     audit(req, 'release_asset_upload', project.fullName, 'success', 'high', { releaseId: release.id, assetName: req.body.assetName, sha256: crypto.createHash('sha256').update(content).digest('hex') })
     res.status(201).json({ asset: body, sha256: crypto.createHash('sha256').update(content).digest('hex') })
-  } catch (error) { res.status(error.status || 500).json({ message: error.message }) }
+  } catch (error) { res.status(error.status || 500).json({ code: error.code, message: error.message }) }
 })
 
 app.get('/api/releases', async (req, res) => {

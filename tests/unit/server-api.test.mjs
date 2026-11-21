@@ -1,4 +1,5 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { api } from '../../src/api.ts'
 import crypto from 'node:crypto'
 import fs from 'node:fs/promises'
 import http from 'node:http'
@@ -22,11 +23,11 @@ async function freePort() {
   return address.port
 }
 
-async function waitForHealth(base, child, stderr) {
+async function waitForHealth(base, child, stderr, headers = {}) {
   for (let attempt = 0; attempt < 100; attempt += 1) {
     if (child.exitCode !== null) throw new Error(`Server exited early: ${stderr()}`)
     try {
-      const response = await fetch(`${base}/api/health`)
+      const response = await fetch(`${base}/api/health`, { headers })
       if (response.ok) return
     } catch {}
     await new Promise((resolve) => setTimeout(resolve, 50))
@@ -41,7 +42,81 @@ async function startHttpServer(handler) {
   return `http://127.0.0.1:${server.address().port}`
 }
 
+const fixtureTokenPath = '/app/installations/123/access_tokens'
+const fixtureAssetPath = '/repos/fixture/repo-0/releases/7/assets'
+
+async function startGithubWriteFixture({ credential = 'pat', role = 'Administrator', enabled, envEnabled = false, roleHeader = false } = {}) {
+  const calls = []
+  const control = { draft: true, onRead: null, heldCredential: null, uploadUrl: undefined, uploadRedirect: null }
+  const token = 'write-guard-fixture-token'
+  const installation = credential !== 'pat'
+  const refresh = credential === 'refreshing-installation'
+  const privateKey = refresh ? crypto.generateKeyPairSync('rsa', { modulusLength: 2048 }).privateKey.export({ type: 'pkcs8', format: 'pem' }) : ''
+  const githubApiUrl = await startHttpServer(async (req, res) => {
+    let text = ''
+    for await (const chunk of req) text += chunk
+    const url = new URL(req.url, 'http://127.0.0.1')
+    const call = { method: req.method, path: url.pathname, body: text ? JSON.parse(text) : null, authorization: req.headers.authorization }
+    calls.push(call)
+    if (req.method === 'GET' && control.onRead) await control.onRead(call)
+    const release = { id: 7, tag_name: 'v1.2.3', draft: control.draft, upload_url: control.uploadUrl ?? `${githubApiUrl}${fixtureAssetPath}{?name,label}` }
+    let body = release
+    if (req.method === 'POST' && url.pathname === fixtureTokenPath) {
+      await control.heldCredential
+      body = { token, expires_at: new Date(Date.now() + 3_600_000).toISOString() }
+    } else if (url.pathname.includes('/releases/tags/')) { res.statusCode = 404; body = { message: 'Not found' } }
+    else if (url.pathname.endsWith('/actions/workflows')) body = { workflows: [] }
+    else if (url.pathname.endsWith('/actions/runs')) body = { workflow_runs: [] }
+    else if (req.method === 'GET' && url.pathname.endsWith('/releases')) body = [release]
+    else if (req.method === 'POST' && url.pathname.endsWith('/dispatches')) { res.statusCode = 204; return res.end() }
+    else if (req.method === 'POST' && url.pathname === fixtureAssetPath) {
+      if (control.uploadRedirect) { res.writeHead(307, { location: control.uploadRedirect }); return res.end() }
+      res.statusCode = 201; body = { id: 8, name: url.searchParams.get('name') }
+    } else if (req.method !== 'GET') body = { ...release, ...call.body }
+    res.setHeader('content-type', 'application/json')
+    res.end(JSON.stringify(body))
+  })
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'nexus-write-guard-'))
+  directories.push(directory)
+  const stateFile = path.join(directory, 'state.json')
+  await fs.writeFile(stateFile, JSON.stringify({
+    schemaVersion: 4,
+    projects: [{ id: 'repo_0', name: 'repo-0', fullName: 'fixture/repo-0', owner: 'fixture', defaultBranch: 'main', ...(installation ? { installationId: '123' } : {}) }],
+    settings: { hostingPaused: true, ...(enabled === undefined ? {} : { remoteWritesEnabled: enabled }) },
+    githubInstallations: installation ? [{ installationId: '123', ...(!refresh ? { accessToken: token, expiresAt: new Date(Date.now() + 3_600_000).toISOString() } : {}) }] : []
+  }))
+  const port = await freePort()
+  let stderrText = ''
+  const headers = { authorization: 'Bearer write-guard-local-session' }
+  const child = spawn(process.execPath, ['server/index.mjs'], {
+    cwd: root, windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'],
+    env: { ...process.env, PORT: String(port), NEXUS_HOST: '127.0.0.1', NEXUS_DATA_DIR: directory, NEXUS_STATE_FILE: stateFile, GITHUB_API_URL: githubApiUrl, GITHUB_UPLOADS_URL: githubApiUrl, GITHUB_TOKEN: installation ? '' : token, GITHUB_OWNER: '', GITHUB_APP_ID: refresh ? '123' : '', GITHUB_APP_PRIVATE_KEY: privateKey, NEXUS_ROLE: role, NEXUS_ALLOW_ROLE_HEADER: String(roleHeader), NEXUS_ENABLE_REMOTE_WRITES: String(envEnabled), NEXUS_DESKTOP_MODE: 'true', NEXUS_LOCAL_API_TOKEN: 'write-guard-local-session', NEXUS_DESKTOP_OWNER_PID: '', AI_API_KEY: '', AI_BASE_URL: '', AI_MODEL: '' }
+  })
+  child.stderr.setEncoding('utf8').on('data', (chunk) => { stderrText += chunk })
+  children.push(child)
+  const base = `http://127.0.0.1:${port}`
+  await waitForHealth(base, child, () => stderrText, headers)
+  const send = (endpoint, body, method = 'POST', extraHeaders = {}) => fetch(base + endpoint, { method, headers: { ...headers, 'content-type': 'application/json', ...extraHeaders }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) })
+  const tasks = async () => (await (await send('/api/tasks', undefined, 'GET')).json()).tasks
+  const finish = async (task, status = 'Success') => {
+    await expect.poll(async () => (await tasks()).find((item) => item.id === task.id)?.status).toBe(status)
+    return (await tasks()).find((item) => item.id === task.id)
+  }
+  return { calls, control, send, tasks, finish, token, githubApiUrl }
+}
+
+const githubWriteRoutes = [
+  ['POST', '/build', { workflowId: 123, ref: 'main' }],
+  ['POST', '/releases', { tagName: 'v1.2.3' }],
+  ['PATCH', '/releases/7', { name: 'Release notes' }],
+  ['POST', '/releases/7/publish', { confirm: true }],
+  ['POST', '/releases/7/assets', { assetName: 'fixture.txt', contentBase64: 'e30=' }]
+]
+const projectRoute = (suffix) => `/api/projects/repo_0${suffix}`
+const outboundWrites = (calls) => calls.filter((call) => !['GET', 'HEAD'].includes(call.method))
+
 afterEach(async () => {
+  vi.unstubAllGlobals()
   for (const child of children.splice(0)) {
     if (child.exitCode === null) {
       const exited = new Promise((resolve) => child.once('exit', resolve))
@@ -51,6 +126,197 @@ afterEach(async () => {
   }
   await Promise.all(httpServers.splice(0).map((server) => new Promise((resolve) => server.close(resolve))))
   await Promise.all(directories.splice(0).map((directory) => fs.rm(directory, { recursive: true, force: true })))
+})
+
+describe.each(['pat', 'installation'])('legacy GitHub write authorization (%s)', (credential) => {
+  it.each([
+    ['default-disabled', { role: 'Administrator' }, 'REMOTE_WRITES_DISABLED'],
+    ['persisted-off overrides environment', { enabled: false, envEnabled: true }, 'REMOTE_WRITES_DISABLED'],
+    ['header identity cannot authorize writes', { enabled: true, roleHeader: true }, 'UNTRUSTED_ROLE_MODE'],
+    ['Viewer cannot write or spoof Administrator', { role: 'Viewer', enabled: true }, 'INSUFFICIENT_ROLE'],
+    ['unknown role fails closed', { role: 'Unknown', enabled: true }, 'INSUFFICIENT_ROLE'],
+    ['inherited role name fails closed', { role: 'constructor', enabled: true }, 'INSUFFICIENT_ROLE'],
+    ['empty configured role fails closed', { role: '', enabled: true }, 'INSUFFICIENT_ROLE']
+  ])('rejects all write routes with no GitHub calls or queued tasks: %s', async (_label, config, code) => {
+    const { calls, send, tasks } = await startGithubWriteFixture({ credential, ...config })
+    for (const [method, suffix, body] of githubWriteRoutes) {
+      const response = await send(projectRoute(suffix), body, method, { 'x-nexus-role': 'Administrator' })
+      expect(response.status).toBe(403)
+      expect((await response.json()).code).toBe(code)
+    }
+    expect(await tasks()).toEqual([])
+    expect(calls).toEqual([])
+    // The allow switch must not turn read-only GitHub APIs off.
+    for (const route of [projectRoute('/workflows'), projectRoute('/runs'), '/api/releases?projectId=repo_0']) {
+      expect((await send(route, undefined, 'GET')).status).toBe(200)
+    }
+    expect(calls).toHaveLength(3)
+    expect(outboundWrites(calls)).toEqual([])
+  })
+
+  it('allows Operator dispatch and draft preparation but never publication', async () => {
+    const { calls, send, tasks, finish, token } = await startGithubWriteFixture({ credential, role: 'Operator', envEnabled: true })
+    for (const [method, suffix, body] of githubWriteRoutes) {
+      const response = await send(projectRoute(suffix), { ...body, ...(suffix === '/releases' ? { draft: false } : {}) }, method)
+      if (suffix.endsWith('/publish')) {
+        expect(response.status).toBe(403)
+        expect((await response.json()).code).toBe('INSUFFICIENT_ROLE')
+      } else {
+        expect(response.status).toBe(suffix === '/build' || suffix === '/releases' ? 202 : suffix.endsWith('/assets') ? 201 : 200)
+        const result = await response.json()
+        if (result.task) await finish(result.task)
+        if (suffix.endsWith('/assets')) expect(result.asset.name).toBe(body.assetName)
+      }
+    }
+    expect(await tasks()).toHaveLength(2)
+    expect(outboundWrites(calls)).toMatchObject([
+      { method: 'POST', path: '/repos/fixture/repo-0/actions/workflows/123/dispatches', body: { ref: 'main', inputs: {} } },
+      { method: 'POST', path: '/repos/fixture/repo-0/releases', body: { tag_name: 'v1.2.3', draft: true } },
+      { method: 'PATCH', path: '/repos/fixture/repo-0/releases/7', body: { name: 'Release notes' } },
+      { method: 'POST', path: fixtureAssetPath }
+    ])
+    expect(calls.every((call) => call.authorization === `Bearer ${token}`)).toBe(true)
+    expect(outboundWrites(calls).some((call) => call.body?.draft === false)).toBe(false)
+  })
+
+  it.each(['Operator', 'Administrator'])('does not allow %s to publish through generic PATCH, even with confirm', async (role) => {
+    const { calls, send, tasks } = await startGithubWriteFixture({ credential, role, enabled: true })
+    for (const draft of [false, null, 0, '', 'false', 'true', {}, []]) {
+      const response = await send(projectRoute('/releases/7'), { draft, confirm: true, name: 'Not published' }, 'PATCH')
+      expect(response.status).toBe(400)
+      expect((await response.json()).code).toBe('RELEASE_PUBLISH_REQUIRED')
+    }
+    expect(calls).toEqual([])
+    expect(await tasks()).toEqual([])
+    const response = await send(projectRoute('/releases/7'), { name: 'Draft edit', draft: true }, 'PATCH')
+    expect(response.status).toBe(200)
+    expect(outboundWrites(calls)).toHaveLength(1)
+    expect(outboundWrites(calls)[0].body).toEqual({ name: 'Draft edit' })
+  })
+
+  it('requires a literal confirmation on the dedicated Administrator publish path', async () => {
+    // Persisted opt-in is the same supported switch used by the desktop settings.
+    const { calls, send, tasks, finish } = await startGithubWriteFixture({ credential, enabled: true, envEnabled: false })
+    for (const confirm of [undefined, false, 'true', 1, {}, []]) {
+      const response = await send(projectRoute('/releases/7/publish'), { confirm })
+      expect(response.status).toBe(400)
+      expect((await response.json()).code).toBe('CONFIRMATION_REQUIRED')
+    }
+    expect(calls).toEqual([])
+    expect(await tasks()).toEqual([])
+    const response = await send(projectRoute('/releases/7/publish'), { confirm: true })
+    expect(response.status).toBe(202)
+    await finish((await response.json()).task)
+    expect(outboundWrites(calls)).toEqual([expect.objectContaining({ method: 'PATCH', path: '/repos/fixture/repo-0/releases/7', body: { draft: false } })])
+  })
+
+  it('does not edit or upload assets to an already published release', async () => {
+    const { calls, control, send, tasks } = await startGithubWriteFixture({ credential, enabled: true })
+    control.draft = false
+    for (const [method, suffix, body] of githubWriteRoutes.filter(([, suffix]) => ['/releases/7', '/releases/7/assets'].includes(suffix))) {
+      const response = await send(projectRoute(suffix), body, method)
+      expect(response.status).toBe(409)
+      expect((await response.json()).code).toBe('RELEASE_NOT_DRAFT')
+    }
+    expect(calls).toHaveLength(2)
+    expect(outboundWrites(calls)).toEqual([])
+    expect(await tasks()).toEqual([])
+  })
+
+  it('rechecks the live allow switch after release preflight reads', async () => {
+    const { calls, control, send, finish } = await startGithubWriteFixture({ credential, enabled: true })
+    control.onRead = async () => {
+      const disabled = await send('/api/settings/remote-writes', { enabled: false, confirm: true }, 'PUT')
+      expect(disabled.status).toBe(200)
+    }
+    const response = await send(projectRoute('/releases'), { tagName: 'v1.2.3' })
+    expect(response.status).toBe(202)
+    expect((await finish((await response.json()).task, 'Failed')).errorCode).toBe('REMOTE_WRITES_DISABLED')
+    for (const [method, suffix, body] of githubWriteRoutes.filter(([, suffix]) => ['/releases/7', '/releases/7/assets'].includes(suffix))) {
+      expect((await send('/api/settings/remote-writes', { enabled: true, confirm: true }, 'PUT')).status).toBe(200)
+      const denied = await send(projectRoute(suffix), body, method)
+      expect(denied.status).toBe(403)
+      expect((await denied.json()).code).toBe('REMOTE_WRITES_DISABLED')
+    }
+    expect(calls).toHaveLength(3)
+    expect(outboundWrites(calls)).toEqual([])
+  })
+})
+
+describe('legacy GitHub write send boundary', () => {
+  it.each(githubWriteRoutes.filter(([, suffix]) => ['/build', '/releases/7/publish'].includes(suffix)))('blocks %s %s when disabled during installation credential refresh', async (method, suffix, body) => {
+    const { calls, control, send, finish } = await startGithubWriteFixture({ credential: 'refreshing-installation', enabled: true, envEnabled: true })
+    const credential = Promise.withResolvers()
+    control.heldCredential = credential.promise
+    let task
+    try {
+      const queued = await send(projectRoute(suffix), body, method)
+      expect(queued.status).toBe(202)
+      task = (await queued.json()).task
+      await expect.poll(() => calls.map((call) => call.path)).toEqual([fixtureTokenPath])
+      const disabled = await send('/api/settings/remote-writes', { enabled: false, confirm: true }, 'PUT')
+      expect(disabled.status).toBe(200)
+      expect(await disabled.json()).toEqual({ enabled: false })
+    } finally {
+      credential.resolve()
+    }
+    expect((await finish(task, 'Failed')).errorCode).toBe('REMOTE_WRITES_DISABLED')
+    expect(calls.map(({ method, path }) => [method, path])).toEqual([['POST', fixtureTokenPath]])
+  })
+
+  it('rejects asset destinations outside the configured upload origin or release path', async () => {
+    const { calls, control, send, githubApiUrl } = await startGithubWriteFixture({ enabled: true })
+    const otherOrigin = await startHttpServer((_req, res) => { calls.push({ method: _req.method }); res.end() })
+    for (const uploadUrl of ['', `${otherOrigin}${fixtureAssetPath}{?name,label}`, `${githubApiUrl}/repos/fixture/repo-0/releases/8/assets{?name,label}`]) {
+      control.uploadUrl = uploadUrl
+      const response = await send(projectRoute('/releases/7/assets'), { assetName: 'fixture.txt', contentBase64: 'e30=' })
+      expect(response.status).toBe(502)
+      expect((await response.json()).code).toBe('INVALID_RELEASE_UPLOAD_URL')
+    }
+    expect(calls).toHaveLength(3)
+    expect(outboundWrites(calls)).toEqual([])
+  })
+
+  it('does not follow redirects from the validated upload URL', async () => {
+    const { calls, control, send } = await startGithubWriteFixture({ enabled: true })
+    control.uploadRedirect = '/repos/fixture/repo-0/releases/8/assets'
+    const response = await send(projectRoute('/releases/7/assets'), { assetName: 'fixture.txt', contentBase64: 'e30=' })
+    expect(response.ok).toBe(false)
+    expect(outboundWrites(calls).map((call) => call.path)).toEqual([fixtureAssetPath])
+  })
+
+  it('rejects unknown header roles on role-checked routes without falling back to the process role', async () => {
+    const { calls, send } = await startGithubWriteFixture({ enabled: true, roleHeader: true })
+    for (const role of ['Unknown', 'constructor', 'toString', '__proto__', '']) {
+      const response = await send('/api/audit-logs', undefined, 'GET', { 'x-nexus-role': role })
+      expect(response.status).toBe(403)
+      expect((await response.json()).code).toBe('INSUFFICIENT_ROLE')
+    }
+    expect((await send('/api/audit-logs', undefined, 'GET', { 'x-nexus-role': 'Administrator' })).status).toBe(200)
+    expect(calls).toEqual([])
+  })
+})
+
+describe('release client confirmation', () => {
+  it('does not manufacture confirmation in the API wrapper', async () => {
+    const fetchStub = vi.fn(async () => ({ status: 202, json: async () => ({ task: {} }) }))
+    vi.stubGlobal('fetch', fetchStub)
+    for (const confirm of [undefined, false, true]) {
+      await api.publishRelease('repo_0', 7, confirm)
+      const [url, options] = fetchStub.mock.calls.at(-1)
+      expect(url).toBe('/api/projects/repo_0/releases/7/publish')
+      expect(JSON.parse(options.body)).toEqual(confirm === undefined ? {} : { confirm })
+    }
+  })
+
+  it('places the renderer publication request after repository/tag confirmation', async () => {
+    const source = await fs.readFile(path.join(root, 'src/App.tsx'), 'utf8')
+    const handler = source.slice(source.indexOf('  const publish = async (release:'), source.indexOf("  return <><PageIntro eyebrow={t('release:center.eyebrow')}"))
+    expect(handler).toContain("if (!project || !window.confirm(t('release:center.confirmPublish', { repository: project.fullName, tag: release.tag_name }))) return")
+    expect(handler.indexOf('window.confirm(')).toBeLessThan(handler.indexOf('await api.publishRelease('))
+    expect(source).toContain('onClick={() => void publish(release)}')
+    expect(source.match(/api\.publishRelease\(/g)).toHaveLength(1)
+  })
 })
 
 describe('isolated Phase 3 API and schema migration', () => {
@@ -258,7 +524,7 @@ describe('isolated Phase 3 API and schema migration', () => {
     let stderrText = ''
     const child = spawn(process.execPath, ['server/index.mjs'], {
       cwd: root,
-      env: { ...process.env, PORT: String(port), NEXUS_DATA_DIR: directory, NEXUS_STATE_FILE: stateFile, GITHUB_API_URL: githubApiUrl, GITHUB_TOKEN: '', NEXUS_ROLE: 'Administrator', NEXUS_ALLOW_ROLE_HEADER: 'false', NEXUS_ENABLE_REMOTE_WRITES: 'false', AI_API_KEY: '', AI_BASE_URL: '', AI_MODEL: '' },
+      env: { ...process.env, PORT: String(port), NEXUS_DATA_DIR: directory, NEXUS_STATE_FILE: stateFile, GITHUB_API_URL: githubApiUrl, GITHUB_TOKEN: '', NEXUS_ROLE: 'Administrator', NEXUS_ALLOW_ROLE_HEADER: 'false', NEXUS_ENABLE_REMOTE_WRITES: 'true', AI_API_KEY: '', AI_BASE_URL: '', AI_MODEL: '' },
       stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true
     })
     child.stderr.setEncoding('utf8').on('data', (chunk) => { stderrText += chunk })
@@ -304,7 +570,7 @@ describe('isolated Phase 3 API and schema migration', () => {
     let stderrText = ''
     const child = spawn(process.execPath, ['server/index.mjs'], {
       cwd: root,
-      env: { ...process.env, PORT: String(port), NEXUS_DATA_DIR: directory, NEXUS_STATE_FILE: stateFile, GITHUB_API_URL: githubApiUrl, GITHUB_TOKEN: '', GITHUB_APP_ID: '123', GITHUB_APP_PRIVATE_KEY: privateKey.export({ type: 'pkcs8', format: 'pem' }), NEXUS_ROLE: 'Administrator', NEXUS_ALLOW_ROLE_HEADER: 'false', NEXUS_ENABLE_REMOTE_WRITES: 'false', AI_API_KEY: '', AI_BASE_URL: '', AI_MODEL: '' },
+      env: { ...process.env, PORT: String(port), NEXUS_DATA_DIR: directory, NEXUS_STATE_FILE: stateFile, GITHUB_API_URL: githubApiUrl, GITHUB_TOKEN: '', GITHUB_APP_ID: '123', GITHUB_APP_PRIVATE_KEY: privateKey.export({ type: 'pkcs8', format: 'pem' }), NEXUS_ROLE: 'Administrator', NEXUS_ALLOW_ROLE_HEADER: 'false', NEXUS_ENABLE_REMOTE_WRITES: 'true', AI_API_KEY: '', AI_BASE_URL: '', AI_MODEL: '' },
       stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true
     })
     child.stderr.setEncoding('utf8').on('data', (chunk) => { stderrText += chunk })

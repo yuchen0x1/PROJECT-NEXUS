@@ -9,6 +9,7 @@
     "draftQueued": "リリースドラフトをキューに追加しました",
     "draftFailed": "リリースドラフトに失敗しました",
     "publishQueued": "リリースの公開をキューに追加しました",
+    "confirmPublish": "GitHub の {{repository}} で {{tag}} を公開しますか？ドラフトとアセットが公開されます。管理者権限が必要です。",
     "loadFailed": "リリースを読み込めません"
   },
   "form": {

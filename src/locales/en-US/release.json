@@ -9,6 +9,7 @@
     "draftQueued": "Release draft queued",
     "draftFailed": "Release draft failed",
     "publishQueued": "Release publish queued",
+    "confirmPublish": "Publish {{tag}} in {{repository}} on GitHub? This makes the draft and its assets public and requires Administrator permission.",
     "loadFailed": "Unable to load releases"
   },
   "form": {
