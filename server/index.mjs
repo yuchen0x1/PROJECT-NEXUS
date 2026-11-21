@@ -1482,17 +1482,20 @@ const app = express()
 const localApiToken = String(process.env.NEXUS_LOCAL_API_TOKEN || '')
 const apiRateLimiter = createRateLimiter({ max: Number(process.env.NEXUS_API_RATE_LIMIT || 600) })
 let desktopOrigin = null
+// Express route matching is case-insensitive; middleware must classify the
+// same API paths as the router.
+const isApiPath = (requestPath) => /^\/api(?:\/|$)/i.test(requestPath)
 app.use((req, res, next) => {
   const requestId = requestIdFor(req.get('x-request-id'))
   req.nexusRequestId = requestId
   res.setHeader('X-Request-Id', requestId)
-  applySecurityHeaders(res, { api: req.path.startsWith('/api/') })
+  applySecurityHeaders(res, { api: isApiPath(req.path) })
   if (!ready) return res.status(503).json({ code: 'HOST_NOT_READY', requestId })
-  if (req.path.startsWith('/api/')) return apiRateLimiter(req, res, next)
+  if (isApiPath(req.path)) return apiRateLimiter(req, res, next)
   return next()
 })
 app.use((req, res, next) => {
-  if (req.path.startsWith('/api/') && localApiToken) {
+  if (isApiPath(req.path) && localApiToken) {
     const authorization = String(req.get('authorization') || '')
     const supplied = Buffer.from(authorization.startsWith('Bearer ') ? authorization.slice(7) : '')
     const expected = Buffer.from(localApiToken)
@@ -1502,7 +1505,7 @@ app.use((req, res, next) => {
   }
   const origin = req.get('origin')
   if (origin && !corsOrigins.has(origin) && !(desktopMode && origin === desktopOrigin)) return res.status(403).json({ code: 'CORS_ORIGIN_NOT_ALLOWED', message: 'Origin is not allowed by NEXUS_CORS_ORIGINS.' })
-  if (desktopMode && !req.path.startsWith('/api/')) {
+  if (desktopMode && !isApiPath(req.path)) {
     res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'")
     res.setHeader('X-Content-Type-Options', 'nosniff')
     res.setHeader('Referrer-Policy', 'no-referrer')
@@ -3381,22 +3384,6 @@ app.get('/api/settings', (_req, res) => {
   })
 })
 
-app.use(express.static(path.join(root, 'dist')))
-app.use((req, res, next) => {
-  if (req.path.startsWith('/api/')) return next()
-  res.sendFile(path.join(root, 'dist', 'index.html'))
-})
-app.use((req, res, next) => {
-  if (req.path.startsWith('/api/')) return apiNotFound(res, req.nexusRequestId)
-  return next()
-})
-app.use((error, req, res, next) => {
-  if (res.headersSent) return next(error)
-  const normalized = safeHttpError(error, req.nexusRequestId || requestIdFor())
-  console.error(`[http:${normalized.body.requestId}]`, safeError(error))
-  return res.status(normalized.status).json(normalized.body)
-})
-
 async function recoverIntegrationWork() {
   const pendingScans = []
   let changed = false
@@ -3417,6 +3404,15 @@ async function recoverIntegrationWork() {
   return pendingScans
 }
 
+// --- Autonomy Runtime v2 ---------------------------------------------------
+// Registered from initializeAutonomy() during startHost, BEFORE the terminal
+// API/static fallbacks. Only the overview's local read surface is exposed.
+// Mutating handlers (including the unsigned autonomy webhook) must stay
+// unavailable until role AND intent controls are integrated; an Administrator
+// role alone is not user consent. Existing local-session/origin/rate guards
+// still run before this prefix guard. The existing background worker remains
+// unchanged and independent of the UI. Isolate storage initialization failures
+// from the legacy workstation.
 let autonomyRuntime = null
 let autonomyTicker = null
 
@@ -3430,12 +3426,50 @@ function initializeAutonomy() {
         return githubTokenForProject(project)
       }
     })
+    // Restore only the overview's local read surface. Mutating handlers (including
+    // the unsigned autonomy webhook) must stay unavailable until role AND intent
+    // controls are integrated; an Administrator role alone is not user consent.
+    app.use('/api/autonomy', (req, res, next) => {
+      // Standalone loopback use can work without a desktop session. Do not expose
+      // stored workstation data without a token on a listener bound to the LAN.
+      const standaloneLoopback = !desktopMode && ['127.0.0.1', '::1', 'localhost'].includes(host)
+        && ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress)
+      if (!localApiToken && !standaloneLoopback) {
+        return res.status(401).json({ code: 'LOCAL_SESSION_REQUIRED', message: 'A valid local workstation session is required.' })
+      }
+      if (!requireRole(req, res, 'Viewer')) return
+      if (req.method !== 'GET' && req.method !== 'HEAD') {
+        return res.status(403).json({ code: 'AUTONOMY_READ_ONLY', message: 'Only autonomy overview reads are available; actions require separately integrated role and intent controls.' })
+      }
+      return next()
+    })
     registerAutonomyApi(app, { engine: autonomyRuntime.engine, store: autonomyRuntime.store, delivery: autonomyRuntime.delivery, dataDir })
   } catch (error) {
     autonomyRuntime?.store.close()
     autonomyRuntime = null
     console.error('[autonomy] initialization failed; legacy workstation continues:', safeError(error))
   }
+}
+
+// Terminal middleware must follow ALL API registration, including autonomy, so
+// it is deferred to host startup instead of module load time.
+let terminalMiddlewareRegistered = false
+function registerTerminalMiddleware() {
+  app.use(express.static(path.join(root, 'dist')))
+  app.use((req, res, next) => {
+    if (isApiPath(req.path)) return next()
+    res.sendFile(path.join(root, 'dist', 'index.html'))
+  })
+  app.use((req, res, next) => {
+    if (isApiPath(req.path)) return apiNotFound(res, req.nexusRequestId)
+    return next()
+  })
+  app.use((error, req, res, next) => {
+    if (res.headersSent) return next(error)
+    const normalized = safeHttpError(error, req.nexusRequestId || requestIdFor())
+    console.error(`[http:${normalized.body.requestId}]`, safeError(error))
+    return res.status(normalized.status).json(normalized.body)
+  })
 }
 
 async function stopHost(server) {
@@ -3473,6 +3507,12 @@ async function startHost() {
     await loadState()
     checkStartup()
     initializeAutonomy()
+    // Terminal middleware must follow ALL API registration, including autonomy.
+    // Register only once; repeated startHost attempts must not stack it.
+    if (!terminalMiddlewareRegistered) {
+      terminalMiddlewareRegistered = true
+      registerTerminalMiddleware()
+    }
     pendingScans = await recoverIntegrationWork()
     checkStartup()
     await recoverLocalAgentTasks()

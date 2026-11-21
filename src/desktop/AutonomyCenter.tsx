@@ -11,6 +11,7 @@ import { request } from '../api'
 import './autonomy.css'
 
 type Overview = {
+  apiAccess?: 'read-only' | 'read-write'
   repositoriesManaged: number
   repositoriesHealthy: number
   newProblems: number
@@ -69,15 +70,17 @@ type Tab = 'overview' | 'repositories' | 'clients' | 'tasks' | 'research' | 'aud
 const LABELS = {
   zh: {
     eyebrow: 'AUTONOMY RUNTIME V2', title: '自动运维指挥中心',
-    subtitle: '独立于页面的 24/7 仓库监控、桌面 AI 客户端调度与独立验收',
+    subtitle: '查看仓库监控、桌面 AI 客户端状态与独立验收记录',
+    readOnly: '只读模式：可以查看和刷新记录，不能更改设置、启动客户端或执行任务。',
     running: '运行中', paused: '已暂停', stopped: '已停止', offline: '未连接',
     start: '启动自动运维', pause: '暂停', resume: '恢复', stop: '停止当前任务',
     scan: '立即扫描', research: '立即研究', run: '执行待处理任务',
     metrics: ['管理仓库', '正常运行', '新问题', '待修复任务', 'AI 执行中', '已修复', '待验收', '安全风险', '同类项目', '最近版本', '执行记录', '客户端状态'],
     tabs: { overview: '总览', repositories: '仓库监控', clients: '桌面客户端', tasks: '任务与执行', research: '智能研究', audit: '审计日志' },
-    controlTitle: '全局自动运维开关', backend: '存储后端', mode: '自动化等级', concurrency: '并发上限',
+    controlTitle: '自动运维状态', backend: '存储后端', mode: '自动化等级', concurrency: '并发上限',
     monitors: '监控', lastTick: '最近调度', refresh: '刷新', loading: '正在读取真实运行数据…',
-    empty: '暂无记录。执行扫描或添加仓库后，这里会显示真实数据。',
+    empty: '暂无记录。',
+    refreshing: '正在刷新…', refreshed: '已刷新', refreshFailed: '刷新失败，请查看页面提示。',
     error: '读取失败', addRepo: '添加仓库', repoPlaceholder: 'owner/repo', localPath: '本地项目目录',
     projectRef: '客户端项目标识', adapter: 'AI 执行客户端', interval: '监控周期',
     chooseFolder: '选择文件夹', automation: '仓库执行策略', autoFix: '允许自动修复', autoMerge: '允许自动合并', autoRelease: '允许自动发布',
@@ -100,15 +103,17 @@ const LABELS = {
   },
   en: {
     eyebrow: 'AUTONOMY RUNTIME V2', title: 'Autonomous Operations Command Center',
-    subtitle: 'Page-independent 24/7 repository monitoring, desktop AI client orchestration and independent acceptance',
+    subtitle: 'View repository monitoring, desktop AI client status and independent review records',
+    readOnly: 'Read-only mode: you can view and refresh records, but cannot change settings, launch clients or run tasks.',
     running: 'Running', paused: 'Paused', stopped: 'Stopped', offline: 'Offline',
     start: 'Start autonomy', pause: 'Pause', resume: 'Resume', stop: 'Stop current task',
     scan: 'Scan now', research: 'Research now', run: 'Run pending tasks',
     metrics: ['Repositories', 'Healthy', 'New problems', 'Pending fixes', 'AI running', 'Fixed', 'Awaiting verify', 'Security risks', 'Peer projects', 'Last release', 'Recent runs', 'Client status'],
     tabs: { overview: 'Overview', repositories: 'Monitoring', clients: 'Desktop clients', tasks: 'Tasks & runs', research: 'Intelligence', audit: 'Audit log' },
-    controlTitle: 'Global autonomy switch', backend: 'Store backend', mode: 'Automation level', concurrency: 'Concurrency',
+    controlTitle: 'Autonomy status', backend: 'Store backend', mode: 'Automation level', concurrency: 'Concurrency',
     monitors: 'Monitor', lastTick: 'Last tick', refresh: 'Refresh', loading: 'Reading real runtime data…',
-    empty: 'No records yet. Run a scan or add a repository to see real data.',
+    empty: 'No records yet.',
+    refreshing: 'Refreshing…', refreshed: 'Refreshed', refreshFailed: 'Refresh failed. See the page for details.',
     error: 'Load failed', addRepo: 'Add repository', repoPlaceholder: 'owner/repo', localPath: 'Local project path',
     projectRef: 'Client project reference', adapter: 'AI execution client', interval: 'Poll interval',
     chooseFolder: 'Choose folder', automation: 'Repository execution policy', autoFix: 'Allow auto repair', autoMerge: 'Allow auto merge', autoRelease: 'Allow auto release',
@@ -346,10 +351,10 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
   }, [load, notify])
 
   const refreshData = useCallback(async () => {
-    notify('刷新：正在读取…')
+    notify(text.refreshing)
     const completed = await load()
-    notify(completed ? '刷新：已完成' : '刷新：失败，请查看页面提示')
-  }, [load, notify])
+    notify(completed ? text.refreshed : text.refreshFailed)
+  }, [load, notify, text.refreshing, text.refreshed, text.refreshFailed])
 
   const metricValues = useMemo(() => {
     if (!overview) return []
@@ -366,7 +371,11 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
   const metricIcons = [FolderGit2, CheckCircle2, AlertTriangle, Layers, Bot, CircleDot, ShieldCheck, ShieldAlert, Search, GitPullRequest, Activity, Cpu]
   const metricTones = ['cyan', 'green', 'amber', 'blue', 'blue', 'green', 'cyan', 'red', 'purple', 'blue', 'cyan', 'green']
   const control = overview?.control
-  const systemState = !control?.enabled ? text.stopped : control.paused ? text.paused : text.running
+  const readOnly = overview?.apiAccess !== 'read-write'
+  const actionsDisabled = readOnly || Boolean(error) || Boolean(busy)
+  const systemState = !control || error ? 'offline' : !control.enabled ? 'stopped' : control.paused ? 'paused' : 'running'
+  const modeLabels = { observe: text.modeObserve, repair: text.modeRepair, autonomous: text.modeAutonomous }
+  const mode = control?.automationMode
 
   return <div className="ax-root">
     <div className="ax-header">
@@ -377,7 +386,7 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
       </div>
       <div className="ax-header-actions">
         <button className="ax-ghost" onClick={() => void refreshData()} disabled={loading || Boolean(busy)}><RefreshCw size={15} className={loading ? 'ax-spin' : ''} />{text.refresh}</button>
-        <div className={`ax-state ax-state-${control?.paused ? 'paused' : 'running'}`}><span />{systemState}</div>
+        <div className={`ax-state ax-state-${systemState === 'running' ? 'running' : 'paused'}`}><span />{text[systemState]}</div>
       </div>
     </div>
 
@@ -386,12 +395,13 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
         <div><Radio size={16} /><strong>{text.controlTitle}</strong></div>
         <div className="ax-control-meta">
           <span><Database size={13} />{text.backend}: {control?.storeBackend || '—'}</span>
-          <span><ShieldCheck size={13} />{text.mode}: {control?.automationMode === 'observe' ? text.modeObserve : control?.automationMode === 'repair' ? text.modeRepair : text.modeAutonomous}</span>
+          <span><ShieldCheck size={13} />{text.mode}: {mode && Object.hasOwn(modeLabels, mode) ? modeLabels[mode as keyof typeof modeLabels] : '—'}</span>
           <span><Cpu size={13} />{text.concurrency}: {control?.maxConcurrent ?? '—'}</span>
           <span><Activity size={13} />{text.lastTick}: <Stamp value={control?.lastTickAt} /></span>
         </div>
       </div>
-      <div className="ax-control-settings">
+      {overview && readOnly && <div className="ax-note" role="status"><ShieldCheck size={14} />{text.readOnly}</div>}
+      {!readOnly && <><div className="ax-control-settings">
         <label>{text.mode}
           <select value={control?.automationMode || 'observe'} onChange={(event) => void saveSettings({ automationMode: event.target.value })} disabled={Boolean(busy)}>
             <option value="observe">{text.modeObserve}</option><option value="repair">{text.modeRepair}</option><option value="autonomous">{text.modeAutonomous}</option>
@@ -413,7 +423,7 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
         <button className="ax-ghost" disabled={Boolean(busy)} onClick={() => void act('research-now', {}, text.research)}><Search size={15} />{text.research}</button>
         <button className="ax-ghost" disabled={Boolean(busy)} onClick={() => void act('run-now', {}, text.run)}><Zap size={15} />{text.run}</button>
         <button className="ax-danger" disabled={Boolean(busy)} onClick={() => void act('stop', {}, text.stop)}><Square size={15} />{text.stop}</button>
-      </div>
+      </div></>}
     </section>
 
     {error && <div className="ax-error"><AlertTriangle size={16} />{text.error}: {error}</div>}
@@ -452,7 +462,7 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
       </div>}
 
       {tab === 'repositories' && <div className="ax-grid-2">
-        <section className="ax-panel">
+        {!readOnly && <section className="ax-panel">
           <div className="ax-panel-head"><div><span className="ax-kicker">CONFIGURE</span><h2>{text.addRepo}</h2></div><FolderGit2 size={16} /></div>
           <div className="ax-form">
             <input value={newRepo.fullName} onChange={(event) => setNewRepo({ ...newRepo, fullName: event.target.value })} placeholder={text.repoPlaceholder} aria-label={text.repoPlaceholder} />
@@ -475,18 +485,18 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
           </div>
           <div className="ax-note">{text.safeSetup}</div>
           <div className="ax-note"><ShieldCheck size={14} />{text.oneTask}</div>
-        </section>
-        <section className="ax-panel">
+        </section>}
+        <section className={`ax-panel${readOnly ? ' ax-span-2' : ''}`}>
           <div className="ax-panel-head"><div><span className="ax-kicker">MONITORING</span><h2>{text.monitors}</h2></div><span className="ax-count">{repos.length}</span></div>
           {repos.length ? repos.map((repo) => <div className="ax-row" key={repo.id}>
             <div className="ax-row-main"><strong>{repo.fullName}</strong><Pill tone={repo.enabled ? 'green' : 'amber'}>{repo.automationMode}</Pill></div>
             <p><GitBranch size={12} />{repo.defaultBranch} · {repo.monitorItems?.length || 0} resources · {Math.round(repo.pollIntervalMs / 60000)} min</p>
             <p className="ax-mono">{repo.localPath || '—'}</p>
-            <div className="ax-row-actions">
-              <button onClick={() => void configureRepair(repo)} disabled={Boolean(busy)}>{text.configureRepair}</button>
-              <button onClick={() => void syncRepository(repo)} disabled={Boolean(busy)}>{text.sync}</button>
-              <button onClick={() => void removeRepository(repo)} disabled={Boolean(busy)}>{text.remove}</button>
-            </div>
+            {!readOnly && <div className="ax-row-actions">
+              <button onClick={() => void configureRepair(repo)} disabled={actionsDisabled}>{text.configureRepair}</button>
+              <button onClick={() => void syncRepository(repo)} disabled={actionsDisabled}>{text.sync}</button>
+              <button onClick={() => void removeRepository(repo)} disabled={actionsDisabled}>{text.remove}</button>
+            </div>}
           </div>) : <div className="ax-empty">{text.empty}</div>}
         </section>
         <section className="ax-panel ax-span-2">
@@ -500,7 +510,7 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
       {tab === 'clients' && <div className="ax-grid-2">
         <section className="ax-panel ax-span-2">
           <div className="ax-panel-head"><div><span className="ax-kicker">DESKTOP AGENT ADAPTERS</span><h2>{text.capability}</h2></div>
-            <button className="ax-ghost" onClick={() => void probeAdapters()} disabled={Boolean(busy)}><RefreshCw size={14} />{text.probe}</button></div>
+            {!readOnly && <button className="ax-ghost" onClick={() => void probeAdapters()} disabled={actionsDisabled}><RefreshCw size={14} />{text.probe}</button>}</div>
           {adapters.length ? adapters.map((adapter) => <div className="ax-client" key={adapter.id}>
             <div className="ax-client-head">
               <div className="ax-client-icon"><Bot size={18} /></div>
@@ -521,10 +531,10 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
               {' '}{text.composer}: {adapter.uiEvidence?.hasComposer ? text.visible : text.missing} ·
               {' '}{text.sendControl}: {adapter.uiEvidence?.hasSendControl ? text.visible : text.missing}
             </div>
-            <div className="ax-row-actions">
-              <button onClick={() => void probeWindows(adapter.id)} disabled={Boolean(busy)}><ExternalLink size={13} />{text.windows}</button>
-              <button onClick={() => void launchAdapter(adapter)} disabled={Boolean(busy)}><Play size={13} />{text.launch}</button>
-            </div>
+            {!readOnly && <div className="ax-row-actions">
+              <button onClick={() => void probeWindows(adapter.id)} disabled={actionsDisabled}><ExternalLink size={13} />{text.windows}</button>
+              <button onClick={() => void launchAdapter(adapter)} disabled={actionsDisabled}><Play size={13} />{text.launch}</button>
+            </div>}
             {windows[adapter.id] && <div className={`ax-note${windows[adapter.id].error ? ' ax-note-red' : ''}`}>
               {windows[adapter.id].error ? `识别失败：${windows[adapter.id].error}` : `${windows[adapter.id].count} window(s): ${windows[adapter.id].windows.map((item) => `${item.name} (pid ${item.processId})`).join(', ') || '—'}`}
             </div>}
@@ -542,10 +552,12 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
               <span><Pill tone={task.status === 'ACCEPTED' ? 'green' : task.status === 'AWAITING_HUMAN' ? 'amber' : task.status.includes('FAIL') ? 'red' : 'blue'}>{task.status}</Pill></span>
               <span>{task.attempts}</span>
               <span className="ax-inline-actions">
-                {task.delivery?.pullRequest ? <a href={task.delivery.pullRequest.url} target="_blank" rel="noreferrer" className="ax-action-link"><GitPullRequest size={13} /> PR #{task.delivery.pullRequest.number}</a> : <button disabled={Boolean(busy) || task.status !== 'ACCEPTED' || task.verification?.verdict !== 'PASS' || !task.workspace?.isolated} onClick={() => void openTaskPullRequest(task)} title={task.status !== 'ACCEPTED' ? '任务必须先通过独立验收' : task.verification?.verdict !== 'PASS' ? '独立验证必须通过' : !task.workspace?.isolated ? '必须使用隔离 worktree' : undefined}><GitPullRequest size={13} />{text.openPr}</button>}
-                <button onClick={() => void taskAction(task.id, 'cancel')}>{text.cancel}</button>
-                <button onClick={() => void taskAction(task.id, 'takeover')}>{text.takeover}</button>
-                <button onClick={() => void taskAction(task.id, 'retry')}>{text.retry}</button>
+                {task.delivery?.pullRequest ? <a href={task.delivery.pullRequest.url} target="_blank" rel="noreferrer" className="ax-action-link"><GitPullRequest size={13} /> PR #{task.delivery.pullRequest.number}</a> : readOnly ? '—' : <button disabled={actionsDisabled || task.status !== 'ACCEPTED' || task.verification?.verdict !== 'PASS' || !task.workspace?.isolated} onClick={() => void openTaskPullRequest(task)} title={task.status !== 'ACCEPTED' ? '任务必须先通过独立验收' : task.verification?.verdict !== 'PASS' ? '独立验证必须通过' : !task.workspace?.isolated ? '必须使用隔离 worktree' : undefined}><GitPullRequest size={13} />{text.openPr}</button>}
+                {!readOnly && <>
+                  <button disabled={actionsDisabled} onClick={() => void taskAction(task.id, 'cancel')}>{text.cancel}</button>
+                  <button disabled={actionsDisabled} onClick={() => void taskAction(task.id, 'takeover')}>{text.takeover}</button>
+                  <button disabled={actionsDisabled} onClick={() => void taskAction(task.id, 'retry')}>{text.retry}</button>
+                </>}
               </span>
             </div>)}
           </div> : <div className="ax-empty">{text.noTasks}</div>}
