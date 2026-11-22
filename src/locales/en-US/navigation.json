@@ -10,7 +10,8 @@
     "settings": "Settings",
     "collapse": "Collapse sidebar",
     "expand": "Expand sidebar",
-    "localBadge": "LOCAL"
+    "localBadge": "LOCAL",
+    "appSettings": "App settings"
   },
   "topbar": {
     "machine": "Local machine",

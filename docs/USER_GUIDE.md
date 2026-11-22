@@ -26,6 +26,26 @@
 ---
 # User guide
 
+## Navigation in PROJECT NEXUS 2.0
+
+The remote console now groups its 21 legacy pages under nine centers. A center is only a grouping: every leaf keeps its original page, API calls, data and permission checks.
+
+| Center | Leaves |
+| --- | --- |
+| Dashboard | Overview, Monitoring |
+| Repository Center | Projects, Repository Scanner, Issues |
+| AI Autopilot | AI Autonomy, AI Operations, Hosting |
+| Development Center | Build Center, AI Pipeline |
+| Security Center | Security Center, Security Findings, Update Security |
+| Research Center | Research |
+| Release Center | Release Center, Auto Update |
+| Task Center | Task Center, Integration History |
+| Settings | Server settings, GitHub Connections, Adapter Center |
+
+Click a center in the left rail to expand it; the first leaf opens automatically. `Ctrl+K` searches every center and leaf by name. The web console and the Electron app share one registry (`src/nav/centers.ts`), so both surfaces always offer the same pages.
+
+The desktop **Settings** page (gear icon or the Settings center) also shows the live AI provider state, default model, API endpoint, concurrent task limit and desktop-notification switch, read from `/api/settings`. Appearance and language remain in the same page; the AI and task values are read-only status indicators here — provider credentials are managed on the AI Agent page.
+
 ## Connect and manage repositories
 
 1. Copy `.env.example` to `.env` and configure a GitHub token or GitHub App.

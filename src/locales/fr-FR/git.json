@@ -43,7 +43,18 @@
       "syncQueued": "Synchronisation des dépôts mise en file d'attente",
       "syncFailed": "Échec de la synchronisation"
     },
-    "embeddedRemote": "Console distante"
+    "embeddedRemote": "Console distante",
+    "centers": {
+      "dashboard": "Tableau de bord",
+      "repositories": "Centre des dépôts",
+      "autopilot": "Pilotage IA autonome",
+      "development": "Développement et workflows",
+      "security": "Centre de sécurité",
+      "research": "Centre de recherche",
+      "release": "Centre des versions",
+      "task": "Centre des tâches",
+      "settings": "Paramètres"
+    }
   },
   "overview": {
     "eyebrow": "Vue d'ensemble opérationnelle",
@@ -106,7 +117,8 @@
     "startSync": "Démarrer la synchronisation",
     "scanStack": "Analyser la stack",
     "scanToast": "Analyse mise en file d'attente pour {{repository}}",
-    "noDescription": "Aucune description de dépôt fournie."
+    "noDescription": "Aucune description de dépôt fournie.",
+    "filterAria": "Filtrer les projets par groupe"
   },
   "monitoring": {
     "eyebrow": "Signaux de santé",

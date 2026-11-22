@@ -5,39 +5,20 @@ import { useTranslation } from 'react-i18next'
 import {
   Activity, AlertTriangle, ArrowUpRight, Bot, Boxes, CheckCircle2, CircleDot, Code2, GitBranch,
   GitFork, GitPullRequest, Hammer, LayoutDashboard, ListChecks, Loader2, Menu, PackageCheck, Plus, Radio, RefreshCw,
-  Rocket, Search, Settings2, ShieldCheck, Sparkles, TerminalSquare, Webhook, XCircle
+  Moon, Rocket, Search, Settings2, ShieldCheck, Sparkles, Sun, TerminalSquare, Webhook, XCircle
 } from 'lucide-react'
 import { api, HostingProject, HostingRun, IntegrationJob, IntegrationReport, IssueActivity, Project, ResearchReport, UpgradeProposal, SecurityFinding, Task, ThreeWayComparison, UpstreamBaseline, UpstreamProfile } from './api'
 import { formatStamp } from './i18n/format'
+import { useSettings } from './i18n/settings'
+import { LANGUAGES } from './i18n/languages'
+import { isRemotePage, NAV_CENTERS, REMOTE_NAV_PAGES, type CenterId, type NavCenter, type RemotePage } from './nav/centers'
 import AutonomyCenter from './desktop/AutonomyCenter'
 
-export type RemotePage = 'Autonomy' | 'Overview' | 'Projects' | 'Build Center' | 'Release Center' | 'Auto Update' | 'Repository Scanner' | 'AI Pipeline' | 'Adapter Center' | 'Update Security' | 'Integration History' | 'GitHub Connections' | 'Monitoring' | 'AI Operations' | 'Task Center' | 'Security Center' | 'Hosting' | 'Issues' | 'Security Findings' | 'Research' | 'Settings'
-
-// Internal page identifiers stay stable; labels are resolved through i18n.
+// Leaf identifiers stay stable; labels are resolved through i18n. RemotePage
+// is re-exported so desktop modules importing it from '../App' keep working.
+export type { RemotePage }
+export { NAV_CENTERS, REMOTE_NAV_PAGES, isRemotePage }
 type Page = RemotePage
-export const REMOTE_NAV_PAGES: { page: Page; key: string; icon: typeof LayoutDashboard }[] = [
-  { page: 'Autonomy', key: 'autonomy', icon: Radio },
-  { page: 'Overview', key: 'overview', icon: LayoutDashboard },
-  { page: 'Projects', key: 'projects', icon: Boxes },
-  { page: 'Build Center', key: 'buildCenter', icon: Hammer },
-  { page: 'Release Center', key: 'releaseCenter', icon: PackageCheck },
-  { page: 'Auto Update', key: 'autoUpdate', icon: RefreshCw },
-  { page: 'Repository Scanner', key: 'repositoryScanner', icon: Code2 },
-  { page: 'AI Pipeline', key: 'aiPipeline', icon: Bot },
-  { page: 'Adapter Center', key: 'adapterCenter', icon: Boxes },
-  { page: 'Update Security', key: 'updateSecurity', icon: ShieldCheck },
-  { page: 'Integration History', key: 'integrationHistory', icon: Activity },
-  { page: 'GitHub Connections', key: 'githubConnections', icon: GitFork },
-  { page: 'Monitoring', key: 'monitoring', icon: Radio },
-  { page: 'AI Operations', key: 'aiOperations', icon: Bot },
-  { page: 'Task Center', key: 'taskCenter', icon: ListChecks },
-  { page: 'Security Center', key: 'securityCenter', icon: ShieldCheck },
-  { page: 'Hosting', key: 'hosting', icon: Radio },
-  { page: 'Issues', key: 'issues', icon: CircleDot },
-  { page: 'Security Findings', key: 'securityFindings', icon: ShieldCheck },
-  { page: 'Research', key: 'research', icon: Search },
-  { page: 'Settings', key: 'serverSettings', icon: Settings2 }
-]
 
 const METRICS: { key: string; labelKey: string; icon: typeof Boxes; tone: string }[] = [
   { key: 'repositories', labelKey: 'repositories', icon: GitFork, tone: 'cyan' },
@@ -88,6 +69,7 @@ function ProjectCard({ project, onOpen }: { project: Project; onOpen: () => void
 
 export default function App({ embedded = false, onSetup, activePage, onNavigate, focusProjectId }: { embedded?: boolean; onSetup?: () => void; activePage?: RemotePage; onNavigate?: (page: RemotePage) => void; focusProjectId?: string } = {}) {
   const { t } = useTranslation()
+  const { resolvedTheme, setTheme } = useSettings()
   const [internalPage, setInternalPage] = useState<Page>('Overview')
   const page = activePage || internalPage
   const setPage = (next: Page) => { setInternalPage(next); onNavigate?.(next) }
@@ -126,7 +108,12 @@ export default function App({ embedded = false, onSetup, activePage, onNavigate,
     return () => { window.clearInterval(timer); window.removeEventListener(REPOSITORY_SYNC_EVENT, update); document.removeEventListener('visibilitychange', update) }
   }, [refresh])
   useEffect(() => {
-    const handler = (event: Event) => setPage((event as CustomEvent<Page>).detail)
+    const handler = (event: Event) => {
+      // Only allowlisted leaf identifiers move the console; unknown values are
+      // ignored instead of rendering a blank page.
+      const detail = (event as CustomEvent).detail
+      if (isRemotePage(detail)) setPage(detail)
+    }
     window.addEventListener('navigate', handler)
     return () => window.removeEventListener('navigate', handler)
   }, [])
@@ -140,20 +127,40 @@ export default function App({ embedded = false, onSetup, activePage, onNavigate,
     finally { setSyncing(false) }
   }
   const metrics = overview?.metrics || {}
+  const activeCenter: NavCenter = useMemo(() => NAV_CENTERS.find((center) => center.leaves.includes(page)) || NAV_CENTERS[0], [page])
+  const centerLabels: Record<CenterId, string> = useMemo(() => Object.fromEntries(
+    NAV_CENTERS.map(({ id, key }) => [id, t(`git:shell.centers.${key}`)])
+  ) as Record<CenterId, string>, [t])
   const navLabels: Record<Page, string> = useMemo(() => Object.fromEntries(
     REMOTE_NAV_PAGES.map(({ page: target, key }) => [target, t(`git:shell.nav.${key}`)])
   ) as Record<Page, string>, [t])
+  const navigateCenter = (center: NavCenter) => { setPage(center.defaultLeaf); setMobileNav(false) }
+  const navigateLeaf = (target: Page) => { setPage(target); setMobileNav(false) }
 
   return <div className={`app-shell ${embedded ? 'embedded-console' : ''}`}>
     <aside className={`sidebar ${mobileNav ? 'open' : ''}`}>
       <div className="brand"><div className="brand-glyph"><span /></div><div><strong>NEXUS</strong><small>{t('common:app.remoteTagline')}</small></div></div>
       <div className="sidebar-section-label">{t('git:shell.sections.workspace')}</div>
-      <nav>{REMOTE_NAV_PAGES.map(({ page: target, icon: Icon }) => <button key={target} className={page === target ? 'nav-item active' : 'nav-item'} onClick={() => { setPage(target); setMobileNav(false) }}><Icon size={17} /><span>{navLabels[target]}</span>{target === 'Task Center' && tasks.some((task) => ['Pending', 'Running'].includes(task.status)) && <span className="nav-count">{tasks.filter((task) => ['Pending', 'Running'].includes(task.status)).length}</span>}</button>)}</nav>
+      <nav className="center-nav" aria-label={t('common:aria.mainNavigation')}>
+        {NAV_CENTERS.map((center) => {
+          const Icon = center.icon
+          const active = center.id === activeCenter.id
+          const activeTasks = center.leaves.includes('Task Center') && tasks.some((task) => ['Pending', 'Running'].includes(task.status))
+          return <div className={`center-group ${active ? 'active' : ''}`} key={center.id}>
+            <button className={`nav-item center-nav-item ${active ? 'active' : ''}`} aria-expanded={active} onClick={() => navigateCenter(center)}>
+              <Icon size={17} /><span>{centerLabels[center.id]}</span>{activeTasks && <span className="nav-count">{tasks.filter((task) => ['Pending', 'Running'].includes(task.status)).length}</span>}
+            </button>
+            {active && <div className="center-leaves" aria-label={centerLabels[center.id]}>
+              {center.leaves.map((target) => <button key={target} className={`leaf-nav-item ${page === target ? 'active' : ''}`} aria-current={page === target ? 'page' : undefined} onClick={() => navigateLeaf(target)}><span className="leaf-nav-dot" />{navLabels[target]}</button>)}
+            </div>}
+          </div>
+        })}
+      </nav>
       <div className="sidebar-bottom"><div className="connection-card"><div className={`connection-led ${status?.configured ? 'live' : ''}`} /><div><strong>{status?.configured ? t('git:shell.connection.connected') : t('git:shell.connection.notConnected')}</strong><span>{status?.configured ? status.owner || t('git:shell.connection.authenticated') : t('git:shell.connection.addToken')}</span></div></div><div className="sidebar-foot"><ShieldCheck size={14} /> {t('git:shell.foot')}</div></div>
     </aside>
     {mobileNav && <button className="scrim" onClick={() => setMobileNav(false)} aria-label={t('common:aria.closeDialog')} />}
     <main className="main-area">
-      <header className="topbar"><button className="mobile-menu" onClick={() => setMobileNav(!mobileNav)}><Menu size={20} /></button><div className="breadcrumb"><span>PROJECT NEXUS</span><span>/</span><strong>{page === 'Overview' ? t('git:overview.title') : navLabels[page]}</strong></div><div className="top-actions"><div className="search-box"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t('git:shell.topbar.searchPlaceholder')} aria-label={t('git:shell.topbar.searchPlaceholder')} /></div><button className="icon-button" onClick={() => void sync()} disabled={syncing || syncStatus?.running} aria-label={t('git:shell.topbar.refresh')}><RefreshCw size={16} /></button><div className="avatar">{status?.owner?.slice(0, 2).toUpperCase() || <GitFork size={16} />}</div></div></header>
+      <header className="topbar"><button className="mobile-menu" onClick={() => setMobileNav(!mobileNav)}><Menu size={20} /></button><div className="breadcrumb"><span>PROJECT NEXUS</span><span>/</span><strong>{centerLabels[activeCenter.id]}</strong>{page !== activeCenter.defaultLeaf && <><span>/</span><strong>{page === 'Overview' ? t('git:overview.title') : navLabels[page]}</strong></>}</div><div className="top-actions"><div className="search-box"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t('git:shell.topbar.searchPlaceholder')} aria-label={t('git:shell.topbar.searchPlaceholder')} /></div><button className="icon-button" onClick={() => void sync()} disabled={syncing || syncStatus?.running} aria-label={t('git:shell.topbar.refresh')}><RefreshCw size={16} /></button><button className="icon-button" onClick={() => void setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')} aria-label={t('common:theme.toggle')} title={t('common:theme.toggle')}>{resolvedTheme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}</button><div className="avatar">{status?.owner?.slice(0, 2).toUpperCase() || <GitFork size={16} />}</div></div></header>
       <div className="content" data-repository-syncing={syncing || syncStatus?.running ? 'true' : 'false'}>
         <div className="repository-sync-status" role="status"><span>{t(syncing || syncStatus?.running ? 'git:syncStatus.running' : 'git:syncStatus.last', { time: syncStatus?.lastSuccessAt ? formatStamp(syncStatus.lastSuccessAt) : t('git:syncStatus.never') })}</span><small>{syncStatus?.lastErrorCode ? t('git:syncStatus.retry', { time: syncStatus.nextSyncAt ? formatStamp(syncStatus.nextSyncAt) : '' }) : t('git:syncStatus.interval')}</small></div>
         {page === 'Autonomy' && <AutonomyCenter onToast={setToast} />}
@@ -179,7 +186,7 @@ export default function App({ embedded = false, onSetup, activePage, onNavigate,
         {page === 'Settings' && <SettingsPage status={status} />}
       </div>
     </main>
-    {toast && <div className="toast" role="status" aria-live="polite"><TerminalSquare size={16} />{toast}<button onClick={() => setToast(null)} aria-label="关闭提示"><XCircle size={14} /></button></div>}
+    {toast && <div className="toast" role="status" aria-live="polite"><TerminalSquare size={16} />{toast}<button onClick={() => setToast(null)} aria-label={t('common:aria.dismissError')}><XCircle size={14} /></button></div>}
   </div>
 }
 
@@ -200,8 +207,11 @@ function Overview({ metrics, projects, tasks, activity, configured, onSync, onOp
 
 function Projects({ projects, query, onSync, onOpen, onScan }: { projects: Project[]; query: string; onSync: () => void; onOpen: (p: Project) => void; onScan: (p: Project) => void }) {
   const { t } = useTranslation()
+  const [selectedGroup, setSelectedGroup] = useState('')
   const groups = useMemo(() => [...new Set(projects.map((project) => project.group))].filter(Boolean), [projects])
-  return <><PageIntro eyebrow={t('git:projects.eyebrow')} title={t('git:projects.title')} detail={t('git:projects.subtitle')} action={<button className="primary-button" onClick={onSync}><RefreshCw size={16} /> {t('git:projects.sync')}</button>} /><div className="filter-bar"><div className="filter-summary"><span className="data-count">{projects.length}</span><span>{t('git:projects.visible', { count: projects.length })}</span>{query && <span className="filter-query">{t('git:projects.matching', { query })}</span>}</div><div className="group-chips"><button className="chip active">{t('git:projects.all')}</button>{groups.map((group) => <button className="chip" key={group}>{group}</button>)}</div></div>{projects.length ? <div className="project-list-grid">{projects.map((project) => <div className="project-list-item" key={project.id}><ProjectCard project={project} onOpen={() => onOpen(project)} /><button className="scan-button" onClick={() => onScan(project)} title={t('git:projects.scanStack')}><Code2 size={15} /> {t('git:projects.scanStack')}</button></div>)}</div> : <div className="panel"><EmptyState title={t('git:projects.emptyTitle')} detail={t('git:projects.emptyDetail')} action={<button className="secondary-button" onClick={onSync}>{t('git:projects.startSync')}</button>} /></div>}</>
+  useEffect(() => { setSelectedGroup((current) => (current && groups.includes(current) ? current : '')) }, [groups]) // eslint-disable-line react-hooks/exhaustive-deps
+  const visible = selectedGroup ? projects.filter((project) => project.group === selectedGroup) : projects
+  return <><PageIntro eyebrow={t('git:projects.eyebrow')} title={t('git:projects.title')} detail={t('git:projects.subtitle')} action={<button className="primary-button" onClick={onSync}><RefreshCw size={16} /> {t('git:projects.sync')}</button>} /><div className="filter-bar"><div className="filter-summary"><span className="data-count">{visible.length}</span><span>{t('git:projects.visible', { count: visible.length })}</span>{query && <span className="filter-query">{t('git:projects.matching', { query })}</span>}</div><div className="group-chips" role="group" aria-label={t('git:projects.filterAria')}><button className={selectedGroup === '' ? 'chip active' : 'chip'} onClick={() => setSelectedGroup('')}>{t('git:projects.all')}</button>{groups.map((group) => <button className={selectedGroup === group ? 'chip active' : 'chip'} aria-pressed={selectedGroup === group} key={group} onClick={() => setSelectedGroup((current) => (current === group ? '' : group))}>{group}</button>)}</div></div>{visible.length ? <div className="project-list-grid">{visible.map((project) => <div className="project-list-item" key={project.id}><ProjectCard project={project} onOpen={() => onOpen(project)} /><button className="scan-button" onClick={() => onScan(project)} title={t('git:projects.scanStack')}><Code2 size={15} /> {t('git:projects.scanStack')}</button></div>)}</div> : <div className="panel"><EmptyState title={t('git:projects.emptyTitle')} detail={t('git:projects.emptyDetail')} action={<button className="secondary-button" onClick={onSync}>{t('git:projects.startSync')}</button>} /></div>}</>
 }
 
 // Repository Upstream Profile panel (master directive PART 3): verifies the
@@ -368,7 +378,7 @@ function RepositoryScanner({ projects, onToast }: { projects: Project[]; onToast
     } catch (error) { onToast(error instanceof Error ? error.message : t('git:shell.toast.loadFailed')) }
     finally { setLoading(false) }
   }
-  useEffect(() => { void load(); const timer = window.setInterval(() => void load(), 4000); return () => window.clearInterval(timer) }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { void load(); const timer = window.setInterval(() => { if (document.visibilityState !== 'hidden') void load() }, 4000); return () => window.clearInterval(timer) }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const latest = new Map<string, IntegrationReport>()
   for (const report of reports) if (!latest.has(report.projectId)) latest.set(report.projectId, report)
   const activeFor = (projectId: string) => jobs.some((job) => job.projectId === projectId && ['Pending', 'Running'].includes(job.status))
@@ -420,7 +430,7 @@ function AIIntegrationPipeline({ onToast }: { onToast: (message: string) => void
     } catch (error) { onToast(error instanceof Error ? error.message : t('git:shell.toast.loadFailed')) }
     finally { setLoading(false) }
   }
-  useEffect(() => { void load(); const timer = window.setInterval(() => void load(), 4000); return () => window.clearInterval(timer) }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { void load(); const timer = window.setInterval(() => { if (document.visibilityState !== 'hidden') void load() }, 4000); return () => window.clearInterval(timer) }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const selected = reports.find((report) => report.id === selectedReportId)
   const prepare = async () => {
     if (!selected || !window.confirm(t('automation:pipeline.confirmPrepare', { repository: selected.repository }))) return
@@ -477,7 +487,7 @@ function IntegrationHistory({ onToast }: { onToast: (message: string) => void })
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<IntegrationReport | null>(null)
   const load = async () => { try { const [reportResult, jobResult] = await Promise.all([api.integrationReports(), api.integrationJobs()]); setReports(reportResult.reports); setJobs(jobResult.jobs) } catch (error) { onToast(error instanceof Error ? error.message : t('git:shell.toast.loadFailed')) } finally { setLoading(false) } }
-  useEffect(() => { void load(); const timer = window.setInterval(() => void load(), 5000); return () => window.clearInterval(timer) }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { void load(); const timer = window.setInterval(() => { if (document.visibilityState !== 'hidden') void load() }, 5000); return () => window.clearInterval(timer) }, []) // eslint-disable-line react-hooks/exhaustive-deps
   return <><PageIntro eyebrow={t('tasks:history.eyebrow')} title={t('tasks:history.title')} detail={t('tasks:history.subtitle')} action={<button className="secondary-button" onClick={() => void load()}><RefreshCw size={15} /> {t('tasks:history.refresh')}</button>} />
     <div className="history-columns"><div className="panel"><div className="panel-head"><div><div className="panel-kicker">{t('tasks:history.reportsKicker')}</div><h2>{t('tasks:history.reportsTitle', { count: reports.length })}</h2></div></div>{loading ? <div className="loading-row"><Loader2 className="spin" size={18} /> {t('common:states.loading')}</div> : reports.length ? <div className="history-list">{reports.map((report) => <button className={`history-row ${selected?.id === report.id ? 'selected' : ''}`} key={report.id} onClick={() => setSelected(report)}><div><strong>{report.repository}</strong><span>{report.commitSha.slice(0, 12)} · {formatStamp(report.scannedAt)}</span></div><StatusPill status={report.assessment.status} /></button>)}</div> : <EmptyState title={t('tasks:history.noReportsTitle')} detail={t('tasks:history.noReportsDetail')} />}</div>
       <div className="panel history-detail"><div className="panel-head"><div><div className="panel-kicker">{t('tasks:history.detailKicker')}</div><h2>{selected?.repository || t('tasks:history.detailEmptyTitle')}</h2></div></div>{selected ? <><div className="signal-row"><span>{t('tasks:history.fields.commit')}</span><code>{selected.commitSha}</code></div><div className="signal-row"><span>{t('tasks:history.fields.files')}</span><strong>{t('tasks:history.fields.filesValue', { read: selected.scannedFileCount, selected: selected.selectedPaths.length })}</strong></div><div className="signal-row"><span>{t('tasks:history.fields.status')}</span><StatusPill status={`${selected.assessment.status} · ${selected.assessment.score}`} /></div><div className="signal-row"><span>{t('tasks:history.fields.codeSupport')}</span><StatusPill status={selected.readiness.codeSupportsUpdates ? t('tasks:history.evidenceFound') : t('tasks:history.evidenceMissing')} /></div><div className="signal-row"><span>{t('tasks:history.fields.releasePipeline')}</span><StatusPill status={selected.readiness.ciBuildsUpdateArtifacts ? t('tasks:history.evidenceFound') : t('tasks:history.evidenceMissing')} /></div><div className="signal-row"><span>{t('tasks:history.fields.coverage')}</span><StatusPill status={selected.truncated ? t('tasks:history.coveragePartial') : t('tasks:history.coverageComplete')} /></div><div className="signal-row"><span>{t('tasks:history.fields.verified')}</span><StatusPill status={t('tasks:history.notVerified')} /></div>{(selected.detectedPlatforms || []).length > 0 && <div className="change-files"><strong>{t('tasks:history.platformsTitle')}</strong><ul>{(selected.detectedPlatforms || []).map((item) => <li key={item.platform}><code>{item.platform}</code> · {item.status} · {item.evidencePaths.join(', ')}</li>)}</ul></div>}<div className="change-files"><strong>{t('tasks:history.pathsTitle')}</strong><ul>{selected.selectedPaths.map((file) => <li key={file}><code>{file}</code></li>)}</ul></div>{selected.readErrors.length > 0 && <div className="task-error visible">{t('tasks:history.readErrors', { count: selected.readErrors.length })}</div>}</> : <EmptyState title={t('tasks:history.chooseTitle')} detail={t('tasks:history.chooseDetail')} />}</div></div>
@@ -531,7 +541,7 @@ function TaskCenter({ tasks, onRefresh, onToast }: { tasks: Task[]; onRefresh: (
   const { t } = useTranslation()
   const [jobs, setJobs] = useState<IntegrationJob[]>([])
   const loadJobs = async () => { try { setJobs((await api.integrationJobs()).jobs) } catch (error) { onToast(error instanceof Error ? error.message : t('git:shell.toast.loadFailed')) } }
-  useEffect(() => { void loadJobs(); const timer = window.setInterval(() => void loadJobs(), 3500); return () => window.clearInterval(timer) }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { void loadJobs(); const timer = window.setInterval(() => { if (document.visibilityState !== 'hidden') void loadJobs() }, 3500); return () => window.clearInterval(timer) }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const cancel = async (job: IntegrationJob) => { try { await api.cancelIntegrationJob(job.id); onToast(t('tasks:center.cancelToast', { repository: job.repository })); await loadJobs(); onRefresh() } catch (error) { onToast(error instanceof Error ? error.message : t('git:shell.toast.loadFailed')) } }
   const retry = async (job: IntegrationJob) => {
     const confirmDisclosure = job.type === 'agent'
@@ -559,7 +569,7 @@ function HostingCenter({ projects, onToast, initialProjectId }: { projects: Proj
     } catch (error) { onToast(error instanceof Error ? error.message : t('git:hosting.loadFailed')) }
     finally { setLoading(false) }
   }
-  useEffect(() => { void load(); const timer = window.setInterval(() => void load(), 6000); return () => window.clearInterval(timer) }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { void load(); const timer = window.setInterval(() => { if (document.visibilityState !== 'hidden') void load() }, 6000); return () => window.clearInterval(timer) }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const selected = data?.projects.find((project) => project.id === selectedId) || null
   const runs = data?.runs.filter((run) => !selected || run.projectId === selected.id).slice(0, 20) || []
   const update = async (action: string, operation: () => Promise<unknown>) => {
@@ -590,7 +600,7 @@ function IssuesCenter({ projects, onToast }: { projects: Project[]; onToast: (me
     catch (error) { onToast(error instanceof Error ? error.message : t('git:issues.loadFailed')) }
     finally { setLoading(false) }
   }
-  useEffect(() => { void load(); const timer = window.setInterval(() => void load(), 7000); return () => window.clearInterval(timer) }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { void load(); const timer = window.setInterval(() => { if (document.visibilityState !== 'hidden') void load() }, 7000); return () => window.clearInterval(timer) }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const visible = selectedProjectId ? issues.filter((issue) => issue.projectId === selectedProjectId) : issues
   const sync = async (projectId: string) => {
     setBusy(`sync:${projectId}`)
@@ -654,7 +664,24 @@ function ResearchCenter({ projects, onToast, initialProjectId }: { projects: Pro
 
 function SettingsPage({ status }: { status: { configured: boolean; owner: string | null; apiUrl: string; permissions: string[] } | null }) {
   const { t } = useTranslation()
-  return <><PageIntro eyebrow={t('git:serverSettings.eyebrow')} title={t('git:serverSettings.title')} detail={t('git:serverSettings.subtitle')} /><div className="settings-grid"><div className="panel settings-panel"><div className="panel-kicker">{t('git:serverSettings.githubKicker')}</div><h2>{t('git:serverSettings.githubTitle')}</h2><div className="setting-line"><span>{t('git:serverSettings.fields.status')}</span><StatusPill status={status?.configured ? t('git:serverSettings.fields.connected') : t('common:states.blocked')} /></div><div className="setting-line"><span>{t('git:serverSettings.fields.owner')}</span><strong>{status?.owner || t('git:serverSettings.fields.notConfigured')}</strong></div><div className="setting-line"><span>{t('git:serverSettings.fields.apiEndpoint')}</span><code>{status?.apiUrl || '—'}</code></div><div className="setting-line"><span>{t('git:serverSettings.fields.grantedSurface')}</span><strong>{status?.permissions?.length ? status.permissions.join(', ') : t('git:serverSettings.fields.noToken')}</strong></div></div><div className="panel settings-panel"><div className="panel-kicker">{t('git:serverSettings.safetyKicker')}</div><h2>{t('git:serverSettings.safetyTitle')}</h2><div className="guardrail"><ShieldCheck size={16} /><div><strong>{t('git:serverSettings.credentialsTitle')}</strong><span>{t('git:serverSettings.credentialsDetail')}</span></div></div><div className="guardrail"><GitBranch size={16} /><div><strong>{t('git:serverSettings.refTitle')}</strong><span>{t('git:serverSettings.refDetail')}</span></div></div><div className="guardrail"><AlertTriangle size={16} /><div><strong>{t('git:serverSettings.guardsTitle')}</strong><span>{t('git:serverSettings.guardsDetail')}</span></div></div></div></div></>
+  const { preferences, resolvedTheme, setTheme, setLanguage } = useSettings()
+  const [runtime, setRuntime] = useState<Awaited<ReturnType<typeof api.settings>> | null>(null)
+  const [runtimeError, setRuntimeError] = useState('')
+  const [loadingRuntime, setLoadingRuntime] = useState(true)
+  const loadRuntime = () => {
+    setLoadingRuntime(true)
+    api.settings().then((data) => { setRuntime(data); setRuntimeError('') }).catch((error) => setRuntimeError(error instanceof Error ? error.message : String(error))).finally(() => setLoadingRuntime(false))
+  }
+  useEffect(() => { void loadRuntime() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const updateTheme = (value: string) => {
+    if (value === 'dark' || value === 'light' || value === 'system') void setTheme(value)
+  }
+  return <><PageIntro eyebrow={t('git:serverSettings.eyebrow')} title={t('git:serverSettings.title')} detail={t('git:serverSettings.subtitle')} /><div className="settings-grid">
+    <div className="panel settings-panel"><div className="panel-kicker">{t('git:serverSettings.githubKicker')}</div><h2>{t('git:serverSettings.githubTitle')}</h2><div className="setting-line"><span>{t('git:serverSettings.fields.status')}</span><StatusPill status={status?.configured ? t('git:serverSettings.fields.connected') : t('common:states.blocked')} /></div><div className="setting-line"><span>{t('git:serverSettings.fields.owner')}</span><strong>{status?.owner || t('git:serverSettings.fields.notConfigured')}</strong></div><div className="setting-line"><span>{t('git:serverSettings.fields.apiEndpoint')}</span><code>{status?.apiUrl || '—'}</code></div><div className="setting-line"><span>{t('git:serverSettings.fields.grantedSurface')}</span><strong>{status?.permissions?.length ? status.permissions.join(', ') : t('git:serverSettings.fields.noToken')}</strong></div></div>
+    <div className="panel settings-panel"><div className="panel-kicker">{t('settings:sections.ai')}</div><h2>{t('settings:ai.title')}</h2>{loadingRuntime ? <div className="loading-row"><Loader2 className="spin" size={18} /> {t('common:states.loading')}</div> : runtimeError ? <div className="loading-row" role="alert">{runtimeError}<button className="ghost-button" onClick={() => void loadRuntime()}>{t('common:actions.retry')}</button></div> : <><div className="setting-line"><span>{t('settings:ai.status')}</span><StatusPill status={runtime?.ai.configured ? t('settings:ai.configured') : t('settings:ai.notConfigured')} /></div><div className="setting-line"><span>{t('settings:ai.provider')}</span><strong>{runtime?.ai.providerId || t('settings:ai.notConfigured')}</strong></div><div className="setting-line"><span>{t('settings:ai.model')}</span><code>{runtime?.ai.model || '—'}</code></div><div className="setting-line"><span>{t('settings:ai.endpoint')}</span><code>{runtime?.ai.baseUrl || '—'}</code></div><div className="setting-line"><span>{t('settings:tasks.concurrency')}</span><strong>{runtime ? String(runtime.tasks.concurrency) : '—'}</strong></div><div className="setting-line"><span>{t('settings:tasks.notifications')}</span><StatusPill status={runtime?.tasks.notifications ? t('common:states.on') : t('common:states.off')} /></div><div className="guardrail"><ShieldCheck size={16} /><div><strong>{t('settings:ai.title')}</strong><span>{t('settings:ai.hint')}</span></div></div></>}</div>
+    <div className="panel settings-panel"><div className="panel-kicker">{t('git:serverSettings.safetyKicker')}</div><h2>{t('git:serverSettings.safetyTitle')}</h2><div className="guardrail"><ShieldCheck size={16} /><div><strong>{t('git:serverSettings.credentialsTitle')}</strong><span>{t('git:serverSettings.credentialsDetail')}</span></div></div><div className="guardrail"><GitBranch size={16} /><div><strong>{t('git:serverSettings.refTitle')}</strong><span>{t('git:serverSettings.refDetail')}</span></div></div><div className="guardrail"><AlertTriangle size={16} /><div><strong>{t('git:serverSettings.guardsTitle')}</strong><span>{t('git:serverSettings.guardsDetail')}</span></div></div></div>
+    <div className="panel settings-panel"><div className="panel-kicker">{t('settings:sections.appearance')}</div><h2>{t('settings:appearance.themeLabel')}</h2><div className="setting-line"><span>{t('settings:appearance.themeLabel')}</span><select className="inline-select" aria-label={t('settings:appearance.themeLabel')} value={preferences.theme} onChange={(event) => updateTheme(event.target.value)}><option value="dark">{t('common:theme.dark')}</option><option value="light">{t('common:theme.light')}</option><option value="system">{t('common:theme.system')}</option></select></div><div className="setting-line"><span>{t('settings:appearance.languageLabel')}</span><select className="inline-select" aria-label={t('settings:appearance.languageLabel')} value={preferences.language || 'en-US'} onChange={(event) => void setLanguage(event.target.value)}>{LANGUAGES.map((language) => <option key={language.code} value={language.code}>{language.nativeName}</option>)}</select></div><div className="guardrail"><Sun size={16} /><div><strong>{t('settings:appearance.themeHint')}</strong><span>{t('common:theme.toggle')}: {resolvedTheme === 'dark' ? t('common:theme.dark') : t('common:theme.light')}</span></div></div></div>
+  </div></>
 }
 
 function HostedTimeline({ onToast }: { onToast: (message: string) => void }) {
@@ -664,7 +691,7 @@ function HostedTimeline({ onToast }: { onToast: (message: string) => void }) {
   useEffect(() => {
     let active = true
     const load = () => api.hostedJobs().then((data) => { if (active) setJobs(data.jobs) }).catch((cause) => { if (active) onToast(cause.message) })
-    void load(); const timer = window.setInterval(() => void load(), 5000)
+    void load(); const timer = window.setInterval(() => { if (active && document.visibilityState !== 'hidden') void load() }, 5000)
     return () => { active = false; window.clearInterval(timer) }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
   return <section className="panel hosted-timeline"><h2>{t('git:upgrade.jobsTitle')}</h2>{jobs.length ? jobs.map((job) => <details key={job.id} className="hosting-run-row"><summary>{job.priority} · {job.repository} #{job.issueNumber} <StatusPill status={job.status} /></summary><p>{formatStamp(job.createdAt)}</p><div className="signal-row"><span>{t('git:upgrade.execution')}</span><StatusPill status={job.executionStatus || 'NotStarted'} /></div><div className="signal-row"><span>{t('git:upgrade.delivery')}</span><StatusPill status={job.deliveryStatus || 'NotStarted'} /></div>{job.releasePlan && <p>{job.releasePlan.adapter} · {job.releasePlan.tag} · <StatusPill status={job.releasePlan.status} /> {job.releasePlan.blockedReason}</p>}{job.operations?.length ? <details><summary>{t('git:upgrade.receipts')} ({job.operations.length})</summary><ul>{job.operations.map((operation) => <li key={operation.key}><code>{operation.endpoint}</code> <StatusPill status={operation.status} /></li>)}</ul></details> : null}{['Interrupted', 'Blocked'].includes(job.status) && <button className="secondary-button" disabled={checking === job.id} onClick={async () => { setChecking(job.id); try { const result = await api.reconcileHostedJob(job.id); onToast(t(`common:status.${result.job.reconciliation}`, { defaultValue: result.job.reconciliation })); const next = await api.hostedJobs(); setJobs(next.jobs) } catch (error) { onToast(error instanceof Error ? error.message : String(error)) } finally { setChecking('') } }}>{t('git:upgrade.reconcile')}</button>}{job.error && <p role="alert">{job.error}</p>}<ol>{job.events.map((event, index) => <li key={index}><time>{formatStamp(event.at)}</time> {event.detail}</li>)}</ol></details>) : <p>{t('git:issues.emptyTitle')}</p>}</section>

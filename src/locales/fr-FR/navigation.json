@@ -10,7 +10,8 @@
     "settings": "Paramètres",
     "collapse": "Réduire la barre latérale",
     "expand": "Développer la barre latérale",
-    "localBadge": "LOCAL"
+    "localBadge": "LOCAL",
+    "appSettings": "Réglages de l’application"
   },
   "topbar": {
     "machine": "Machine locale",

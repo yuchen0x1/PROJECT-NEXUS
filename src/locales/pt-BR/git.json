@@ -43,7 +43,18 @@
       "syncQueued": "Sincronização de repositórios enfileirada",
       "syncFailed": "Falha na sincronização"
     },
-    "embeddedRemote": "Console remoto"
+    "embeddedRemote": "Console remoto",
+    "centers": {
+      "dashboard": "Painel",
+      "repositories": "Central de repositórios",
+      "autopilot": "Autopilot de IA",
+      "development": "Desenvolvimento e fluxos",
+      "security": "Central de segurança",
+      "research": "Central de pesquisa",
+      "release": "Central de releases",
+      "task": "Central de tarefas",
+      "settings": "Configurações"
+    }
   },
   "overview": {
     "eyebrow": "Visão operacional",
@@ -106,7 +117,8 @@
     "startSync": "Iniciar sincronização",
     "scanStack": "Verificar stack",
     "scanToast": "Verificação enfileirada para {{repository}}",
-    "noDescription": "Nenhuma descrição de repositório fornecida."
+    "noDescription": "Nenhuma descrição de repositório fornecida.",
+    "filterAria": "Filtrar projetos por grupo"
   },
   "monitoring": {
     "eyebrow": "Sinais de integridade",

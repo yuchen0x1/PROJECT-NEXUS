@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/yuchen0x1/PROJECT-NEXUS/releases/latest"><img src="https://img.shields.io/github/v/release/yuchen0x1/PROJECT-NEXUS?label=%E6%9C%80%E6%96%B0%E7%89%88" alt="最新版本"></a>
-  <img src="https://img.shields.io/badge/%E7%8A%B6%E6%80%81-0.x%20%E5%BC%80%E5%8F%91%E9%A2%84%E8%A7%88-orange" alt="开发预览">
+  <img src="https://img.shields.io/badge/%E7%8A%B6%E6%80%81-2.0%20%E6%9C%AC%E5%9C%B0%E5%80%99%E9%80%89-orange" alt="本地候选">
   <img src="https://img.shields.io/badge/%E5%B9%B3%E5%8F%B0-Windows%20x64-0078d6" alt="Windows x64">
   <a href="LICENSE"><img src="https://img.shields.io/badge/%E8%AE%B8%E5%8F%AF-MIT-blue" alt="MIT License"></a>
   <a href="https://project-nexus.edgeone.dev/"><img src="https://img.shields.io/badge/%E5%AE%98%E7%BD%91-project--nexus.edgeone.dev-teal" alt="官网"></a>
@@ -16,7 +16,7 @@
 
 **在线宣传页：[project-nexus.edgeone.dev](https://project-nexus.edgeone.dev/)**（源码在 `website/`）
 
-> **v0.9.3 发行记录**：该版本为 Windows x64 开发预览，安装包未配置 Authenticode 签名；安装包 SHA-256 以 [GitHub Release v0.9.3](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.3) 资产为准，不是 v1.0 稳定版。完整能力边界见 [已知限制](docs/AUTONOMY_V2_LIMITATIONS.md)。
+> **v2.0.0（本地候选）**：9 中心导航重构、重复调度收口与 AI 输出边界。代码与测试已完成，因本环境无 Git 远程、无签名证书，尚未推送/打 Tag/发布；安装包与 SHA256 待具备发布条件后按 [发布管理](docs/RELEASE_MANAGEMENT.md) 流程产出。架构与验收见 [PROJECT_NEXUS_2.0_REFACTOR_REPORT.md](PROJECT_NEXUS_2.0_REFACTOR_REPORT.md)。
 
 ## 最新更新
 
@@ -63,6 +63,26 @@
 - 应用内自动更新、Draft PR / Release 管理、GitHub App 与 Webhook HMAC。
 - 明确授权边界：脚本执行、远程写入、合并发布均需逐项授权。
 
+## 2.0 导航重构：9 个功能中心
+
+2.0 将原来平铺的 21 个顶层页面收拢为 9 个功能中心。**中心只是分组，不是新功能**：每个叶子仍是原有页面组件、原有 API 与原有权限门控，数据库格式、历史数据与隔离 Worktree 均未改变。
+
+| 中心 | 中文名 | 包含的既存页面 |
+| --- | --- | --- |
+| Dashboard | 总览控制台 | 总览、监控 |
+| Repository Center | 仓库中心 | 项目、仓库扫描、Issue 跟踪 |
+| AI Autopilot | AI 自主运维 | AI 自动运维、AI Operations、托管 |
+| Development Center | 开发与工作流 | 构建中心、AI 流水线 |
+| Security Center | 安全与质量 | 安全中心、安全发现、更新安全 |
+| Research Center | 智能研究 | 竞品研究 |
+| Release Center | 发布与交付 | 发布中心、自动更新 |
+| Task Center | 任务与日志 | 任务中心、集成历史 |
+| Settings | 系统设置 | 服务器设置、GitHub 连接、适配器中心 |
+
+- 单一注册表 `src/nav/centers.ts` 同时驱动 Web 侧边栏、Electron ActivityBar 与命令面板，三个界面不会各自漂移。
+- 叶子标识（如 `Build Center`、`Task Center`）保持稳定，历史导航事件、通知跳转与深链继续有效。
+- 回归测试：`tests/unit/navigation-registry.test.ts`（9 中心 / 21 叶子不变量）与 `npm run test:desktop:centers`（真实 Electron 中的中心、叶子与命令面板验收）。
+
 ## 系统架构
 
 ```
@@ -78,7 +98,7 @@ Electron 主进程 (托盘常驻 / 崩溃重启 / DPAPI 凭据)
              ├─ intelligence.mjs  就绪诊断与同类项目情报
              ├─ db.mjs            SQLite (schema v2) + JSON 降级
              └─ api.mjs           REST + 后台 ticker
-React / Vite 前端（20 个既存页面 + 1 个指挥中心）
+React / Vite 前端（9 个功能中心，包含全部 21 个既存页面；见下方「2.0 导航重构」）
 ```
 
 数据：`data/state.json`（既有 schema v4，不迁移）与 `data/autonomy.db`（新增，独立）。详见 [架构说明](docs/AUTONOMY_V2_ARCHITECTURE.md)。
@@ -134,7 +154,7 @@ npm run desktop:dev
 
 ## 自动运维使用方法
 
-指挥中心（导航「AI 自动运维」）提供：
+指挥中心（导航「系统设置」之前的一级中心「AI 自主运维」）提供：
 
 - **启动 / 暂停 / 恢复**：全局自动运维开关。
 - **立即扫描 / 立即研究 / 执行待处理任务 / 停止当前任务**：手动触发。

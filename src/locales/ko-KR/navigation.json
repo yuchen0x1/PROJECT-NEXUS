@@ -10,7 +10,8 @@
     "settings": "설정",
     "collapse": "사이드바 접기",
     "expand": "사이드바 펼치기",
-    "localBadge": "로컬"
+    "localBadge": "로컬",
+    "appSettings": "앱 설정"
   },
   "topbar": {
     "machine": "로컬 머신",
