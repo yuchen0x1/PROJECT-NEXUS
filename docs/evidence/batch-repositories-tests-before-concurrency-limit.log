@@ -1,0 +1,42 @@
+npm warn Unknown env config "store-dir". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> project-nexus@0.6.0 test
+> vitest run
+
+
+ RUN  v5.1.0 C:/Users/lenmo/Desktop/PROJECT NEXUS
+
+warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src.txt', LF will be replaced by CRLF the next time Git touches it
+To C:\Users\lenmo\AppData\Local\Temp\nexus-repo-bare-nkTrSB
+ * [new branch]      main -> main
+warning: in the working copy of 'src.txt', LF will be replaced by CRLF the next time Git touches it
+To C:\Users\lenmo\AppData\Local\Temp\nexus-repo-bare-nkTrSB
+   ca2f267..03375ef  main -> main
+Preparing worktree (new branch 'nexus-fix/task-1')
+Preparing worktree (new branch 'nexus-fix/task-2')
+ ❯ tests/unit/repo-workspace.test.mjs (8 tests | 1 failed) 16320ms
+   ❯ ensureRepoCache (2)
+     × clones once, reuses the cache, and fast-forwards to new commits 5011ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/repo-workspace.test.mjs > ensureRepoCache > clones once, reuses the cache, and fast-forwards to new commits
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/unit/repo-workspace.test.mjs:66:3
+     64|
+     65| describe('ensureRepoCache', () => {
+     66|   it('clones once, reuses the cache, and fast-forwards to new commits'…
+       |   ^
+     67|     const fullName = 'fixture/cache-repo'
+     68|     const remoteUrl = path.join(originBare, '.')
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 43 passed (44)
+      Tests  1 failed | 243 passed (244)
+   Start at  14:32:35
+   Duration  203.17s (tests 99%, import 1%)
+

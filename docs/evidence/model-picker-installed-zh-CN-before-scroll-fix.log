@@ -1,0 +1,11 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+page.waitForFunction: Timeout 30000ms exceeded.
+    at C:\Users\lenmo\Desktop\PROJECT NEXUS\tests\guided-setup-desktop.mjs:96:14 {
+  log: [],
+  name: 'TimeoutError'
+}
+
+Node.js v24.20.0

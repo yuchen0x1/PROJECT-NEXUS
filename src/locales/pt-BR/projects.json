@@ -1,0 +1,48 @@
+{
+  "page": {
+    "title": "Projetos",
+    "subtitle": "Pastas registradas"
+  },
+  "registered": {
+    "title": "Pastas registradas",
+    "detail": "As referências de pastas são armazenadas neste perfil de usuário do Windows, separadas dos registros de projetos do GitHub.",
+    "count": "{{count}} PROJETOS"
+  },
+  "table": {
+    "project": "Projeto",
+    "scanStatus": "Status da verificação",
+    "actions": "Ações",
+    "technologies": "Tecnologias detectadas"
+  },
+  "row": {
+    "missing": "Pasta ausente",
+    "pathChanged": "Caminho alterado",
+    "scanned": "Verificado",
+    "awaitingScan": "Aguardando verificação",
+    "notScanned": "Não verificado",
+    "scanLimit": "Limite de verificação atingido",
+    "lastScan": "Última verificação {{time}}",
+    "scanAction": "Verificar",
+    "scanAria": "Verificar {{name}}",
+    "removeAria": "Remover {{name}} do NEXUS"
+  },
+  "empty": {
+    "title": "Nenhum projeto local foi adicionado",
+    "detail": "Escolha uma pasta de projeto. O NEXUS não pesquisará outras pastas deste computador."
+  },
+  "dialogs": {
+    "addFolder": "Adicionar uma pasta de projeto local",
+    "removeTitle": "Remover projeto do NEXUS",
+    "removeMessage": "Remover {{name}} da lista de projetos locais?",
+    "removeDetail": "Isso remove apenas a referência do NEXUS. Nenhum arquivo do projeto será excluído ou alterado.",
+    "removeConfirm": "Remover do NEXUS",
+    "removeCancel": "Manter projeto"
+  },
+  "selected": {
+    "label": "Projeto selecionado",
+    "lastScan": "Última verificação {{time}}"
+  },
+  "tech": {
+    "none": "Sem marcadores de stack conhecidos"
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "page": {
+    "title": "Paramètres",
+    "subtitle": "Apparence, langue et comportement de la station de travail."
+  },
+  "sections": {
+    "appearance": "Apparence et langue",
+    "agent": "Agent IA",
+    "startup": "Démarrage",
+    "about": "À propos"
+  },
+  "appearance": {
+    "languageLabel": "Langue de l'interface",
+    "languageHint": "S'applique immédiatement à l'ensemble de l'application. Votre choix est conservé après redémarrage.",
+    "languageChanged": "Langue changée en {{language}}",
+    "coverageNote": "Toutes les langues fournies sont entièrement relues pour cette version.",
+    "themeLabel": "Thème",
+    "themeHint": "Suivre Windows applique en temps réel le réglage clair ou sombre du système.",
+    "motionLabel": "Réduire les animations",
+    "motionHint": "Réduit au minimum les animations et les transitions dans toute la station de travail.",
+    "agentReplyLabel": "Langue de réponse de l'agent",
+    "agentReplyHint": "N'affecte que le texte explicatif rédigé par l'agent. Le code, les commandes et les chemins de fichiers ne sont jamais modifiés.",
+    "agentReplyUi": "Suivre la langue de l'interface",
+    "agentReplyInput": "Suivre la langue de ma requête",
+    "agentReplyFixed": "Toujours utiliser :"
+  },
+  "startup": {
+    "autoStartLabel": "Démarrer avec Windows",
+    "autoStartDetail": "Lance NEXUS après votre connexion. Ce réglage ne change qu'après votre confirmation."
+  },
+  "about": {
+    "version": "Version",
+    "platform": "Plateforme",
+    "dataPath": "Données utilisateur",
+    "logsPath": "Journaux",
+    "cachePath": "Cache",
+    "settingsFile": "Fichier de paramètres",
+    "systemLocale": "Langue du système",
+    "openLogs": "Ouvrir le dossier des journaux"
+  },
+  "appUpdate": {
+    "title": "Mise à jour de NEXUS",
+    "check": "Rechercher les mises à jour",
+    "updateNow": "Mettre à jour",
+    "working": "Veuillez patienter…",
+    "later": "Plus tard",
+    "progress": "Progression du téléchargement",
+    "restartHint": "La mise à jour enregistre l’état et arrête les tâches en cours. L’application se rouvrira après l’installation.",
+    "states": {
+      "disabled": "Les mises à jour sont disponibles dans l’application Windows installée.",
+      "idle": "Recherche au démarrage et toutes les 4 heures.",
+      "checking": "Recherche de mises à jour…",
+      "up-to-date": "Votre version est à jour.",
+      "available": "La version {{version}} est disponible.",
+      "downloading": "Téléchargement de {{version}} · {{percent}}%",
+      "downloaded": "Mise à jour téléchargée. Prête à être installée.",
+      "installing": "Enregistrement et installation. NEXUS se rouvrira automatiquement.",
+      "error": "Échec de la mise à jour. Vous pouvez réessayer."
+    },
+    "errors": {
+      "check": "Impossible de rechercher les mises à jour. Vérifiez votre connexion et réessayez.",
+      "download": "Échec du téléchargement ou de la vérification. La mise à jour n’a pas été installée. Réessayez une fois connecté.",
+      "install": "Échec de l’installation. Vos données sont conservées ; réessayez ou redémarrez NEXUS.",
+      "bridge": "Impossible de joindre le service de mise à jour. Rouvrez NEXUS et réessayez."
+    },
+    "history": {
+      "title": "Notes de version",
+      "hint": "Consultez les changements du plus récent au plus ancien.",
+      "current": "Version installée",
+      "available": "Disponible",
+      "missingNotes": "Aucune note fournie pour cette version.",
+      "releases": {
+        "v0_8_9": {
+          "title": "Diff à trois volets de la base ZIP et adaptateurs d’agent",
+          "summary": "Le profil amont gagne une base de référence ZIP : après capture, chaque chemin est classé entre la base, votre dépôt et le dernier état amont — conflits, changements amont transférables et vos propres modifications — sans télécharger de contenu. Les outils locaux d’IA s’intègrent via un registre d’adaptateurs unifié, et un nouveau canal d’assistance bureau détecte l’application Codex installée, peut la lancer et afficher les espaces de travail dans l’Explorateur."
+        },
+        "v0_8_8": {
+          "title": "Pont Codex local et profils d’origine des dépôts",
+          "summary": "Les tâches peuvent être confiées au Codex local via l’interface officielle app-server : des sessions indépendantes n’écrivent que dans un espace de travail isolé, diffusent les événements en direct et font l’objet d’une acceptation indépendante. Les dépôts gagnent un profil d’origine avec forks vérifiés par GitHub, historiques partagés prouvés et déclarations explicites ZIP ou tierces. Les nouvelles découvertes de mise à jour déclenchent un toast et une entrée dans le centre de notifications."
+        },
+        "v0_8_3": {
+          "title": "Affichage des mises à jour et historique",
+          "summary": "Corrige le chevauchement avec les titres de page. Sépare version, état et actions ; ajoute un historique dépliable hors ligne et les notes des nouvelles versions."
+        },
+        "v0_8_2": {
+          "title": "Mises à jour automatiques",
+          "summary": "Vérification au démarrage puis toutes les quatre heures, progression, nouvelle tentative, sauvegarde et installation avec relance. Corrige des délais de démarrage de commandes Windows."
+        },
+        "v0_8_0": {
+          "title": "Nouvelle icône et maintenance collaborative",
+          "summary": "Uniformise le N bleu et ajoute six rôles, des tests isolés, la reprise aux points de contrôle, la mémoire de projet et les mesures de ressources."
+        },
+        "v0_7_0": {
+          "title": "Vue des projets et gestion par lots",
+          "summary": "Ajoute un graphe interactif, les réglages de plusieurs dépôts, un guide, les listes de modèles et des états de livraison plus clairs."
+        },
+        "v0_3_0": {
+          "title": "Moteur de développement autonome",
+          "summary": "Plans en plusieurs tours, 34 outils, tests réels, réparations limitées et revue indépendante, avec annulation et application confirmée dans des espaces isolés."
+        },
+        "v0_2_1": {
+          "title": "Expérience de bureau et dix langues",
+          "summary": "Revoit navigation, paramètres, notifications et palette. Ajoute dix langues et deux thèmes ; corrige les notifications des tâches en pause et leur navigation."
+        },
+        "v0_1_0": {
+          "title": "Bureau Windows et Agent local",
+          "summary": "Premier aperçu de bureau avec propositions IA locales, espaces isolés, application confirmée et journaux de tâches."
+        },
+        "v0_8_4": {
+          "title": "Filtrage et état des dépôts archivés",
+          "summary": "Masque les dépôts archivés par défaut et affiche leur état. Ils ne sont pas sélectionnables ; la sélection globale et le compteur ne concernent que les dépôts disponibles. La synchronisation retire les nouvelles archives de la sélection."
+        },
+        "v0_8_5": {
+          "title": "Synchronisation et actualisation des dépôts",
+          "summary": "Corrige les compteurs après suppression. Attend la fin, synchronise environ toutes les 60 s au premier plan, suspend en arrière-plan, partage les requêtes et respecte les limites. Historique et espaces conservés."
+        },
+        "v0_8_6": {
+          "title": "Tutoriel automatique au premier démarrage",
+          "summary": "Le premier démarrage ouvre automatiquement la configuration guidée. Vous pouvez reprendre plus tard et découvrir où consulter les tâches et les résultats. Une fois terminé, le guide reste accessible depuis son bouton."
+        },
+        "v0_8_7": {
+          "title": "Installation des outils en un clic",
+          "summary": "La page d'environnement gagne un téléchargement en un clic : les outils de développement manquants sont installés silencieusement via winget, puis PATH est actualisé et l'environnement réanalysé sans redémarrage de l'application."
+        }
+      }
+    }
+  }
+}

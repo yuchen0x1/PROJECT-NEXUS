@@ -1,0 +1,192 @@
+{
+  "ranAt": "2026-11-14T21:06:14.410Z",
+  "credentialPresent": true,
+  "backend": "sqlite",
+  "schemaVersion": 2,
+  "first": {
+    "verdict": "PASS",
+    "mode": "poll",
+    "eventCount": 0,
+    "resources": [
+      {
+        "resource": "issues",
+        "events": 0,
+        "skipped": false,
+        "notModified": false,
+        "error": null,
+        "degraded": false,
+        "findings": 0
+      },
+      {
+        "resource": "issue_comments",
+        "events": 0,
+        "skipped": false,
+        "notModified": false,
+        "error": null,
+        "degraded": false,
+        "findings": 0
+      },
+      {
+        "resource": "pull_requests",
+        "events": 0,
+        "skipped": false,
+        "notModified": false,
+        "error": null,
+        "degraded": false,
+        "findings": 0
+      },
+      {
+        "resource": "pr_reviews",
+        "events": 0,
+        "skipped": false,
+        "notModified": false,
+        "error": null,
+        "degraded": false,
+        "findings": 0
+      },
+      {
+        "resource": "commits",
+        "events": 0,
+        "skipped": false,
+        "notModified": false,
+        "error": null,
+        "degraded": false,
+        "findings": 0
+      },
+      {
+        "resource": "branches",
+        "events": 0,
+        "skipped": false,
+        "notModified": false,
+        "error": null,
+        "degraded": false,
+        "findings": 0
+      },
+      {
+        "resource": "releases",
+        "events": 0,
+        "skipped": false,
+        "notModified": false,
+        "error": null,
+        "degraded": false,
+        "findings": 0
+      },
+      {
+        "resource": "actions_runs",
+        "events": 0,
+        "skipped": false,
+        "notModified": false,
+        "error": null,
+        "degraded": false,
+        "findings": 0
+      },
+      {
+        "resource": "repository",
+        "events": 0,
+        "skipped": false,
+        "notModified": false,
+        "error": null,
+        "degraded": false,
+        "findings": 0
+      }
+    ],
+    "errors": []
+  },
+  "second": {
+    "verdict": "PASS",
+    "mode": "poll",
+    "eventCount": 0,
+    "notModifiedCount": 9,
+    "resources": [
+      {
+        "resource": "issues",
+        "events": 0,
+        "skipped": false,
+        "notModified": true,
+        "error": null,
+        "degraded": false,
+        "findings": 0
+      },
+      {
+        "resource": "issue_comments",
+        "events": 0,
+        "skipped": false,
+        "notModified": true,
+        "error": null,
+        "degraded": false,
+        "findings": 0
+      },
+      {
+        "resource": "pull_requests",
+        "events": 0,
+        "skipped": false,
+        "notModified": true,
+        "error": null,
+        "degraded": false,
+        "findings": 0
+      },
+      {
+        "resource": "pr_reviews",
+        "events": 0,
+        "skipped": false,
+        "notModified": true,
+        "error": null,
+        "degraded": false,
+        "findings": 0
+      },
+      {
+        "resource": "commits",
+        "events": 0,
+        "skipped": false,
+        "notModified": true,
+        "error": null,
+        "degraded": false,
+        "findings": 0
+      },
+      {
+        "resource": "branches",
+        "events": 0,
+        "skipped": false,
+        "notModified": true,
+        "error": null,
+        "degraded": false,
+        "findings": 0
+      },
+      {
+        "resource": "releases",
+        "events": 0,
+        "skipped": false,
+        "notModified": true,
+        "error": null,
+        "degraded": false,
+        "findings": 0
+      },
+      {
+        "resource": "actions_runs",
+        "events": 0,
+        "skipped": false,
+        "notModified": true,
+        "error": null,
+        "degraded": false,
+        "findings": 0
+      },
+      {
+        "resource": "repository",
+        "events": 0,
+        "skipped": false,
+        "notModified": true,
+        "error": null,
+        "degraded": false,
+        "findings": 0
+      }
+    ]
+  },
+  "totals": {
+    "events": 0,
+    "findings": 0,
+    "cursors": 9,
+    "monitorRuns": 2
+  },
+  "dedupeVerified": true,
+  "etagPersisted": 9
+}

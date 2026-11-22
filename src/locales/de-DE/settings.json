@@ -1,0 +1,128 @@
+{
+  "page": {
+    "title": "Einstellungen",
+    "subtitle": "Erscheinungsbild, Sprache und Verhalten des Arbeitsplatzes."
+  },
+  "sections": {
+    "appearance": "Erscheinungsbild und Sprache",
+    "agent": "KI-Agent",
+    "startup": "Start",
+    "about": "Über"
+  },
+  "appearance": {
+    "languageLabel": "Sprache der Oberfläche",
+    "languageHint": "Gilt sofort für die gesamte Anwendung. Ihre Auswahl bleibt über Neustarts hinweg erhalten.",
+    "languageChanged": "Sprache geändert zu {{language}}",
+    "coverageNote": "Alle ausgelieferten Sprachen sind für diese Release vollständig geprüft.",
+    "themeLabel": "Design",
+    "themeHint": "„Windows folgen“ übernimmt die helle oder dunkle Systemeinstellung in Echtzeit.",
+    "motionLabel": "Bewegung reduzieren",
+    "motionHint": "Minimiert Animationen und Übergänge im gesamten Arbeitsplatz.",
+    "agentReplyLabel": "Antwortsprache des Agenten",
+    "agentReplyHint": "Beeinflusst nur den erläuternden Text des Agenten. Code, Befehle und Dateipfade werden niemals geändert.",
+    "agentReplyUi": "Sprache der Oberfläche folgen",
+    "agentReplyInput": "Sprache meiner Anfrage folgen",
+    "agentReplyFixed": "Immer verwenden:"
+  },
+  "startup": {
+    "autoStartLabel": "Mit Windows starten",
+    "autoStartDetail": "Startet NEXUS nach Ihrer Anmeldung. Diese Einstellung ändert sich erst nach Ihrer Bestätigung."
+  },
+  "about": {
+    "version": "Version",
+    "platform": "Plattform",
+    "dataPath": "Benutzerdaten",
+    "logsPath": "Protokolle",
+    "cachePath": "Cache",
+    "settingsFile": "Einstellungsdatei",
+    "systemLocale": "Systemsprache",
+    "openLogs": "Protokollordner öffnen"
+  },
+  "appUpdate": {
+    "title": "NEXUS-App aktualisieren",
+    "check": "Nach Updates suchen",
+    "updateNow": "Jetzt aktualisieren",
+    "working": "Bitte warten…",
+    "later": "Später",
+    "progress": "Download-Fortschritt",
+    "restartHint": "Beim Aktualisieren wird der Zustand gespeichert und laufende Aufgaben werden gestoppt. Nach der Installation öffnet sich die App automatisch.",
+    "states": {
+      "disabled": "Updates sind in der installierten Windows-App verfügbar.",
+      "idle": "Automatische Prüfung beim Start und alle 4 Stunden.",
+      "checking": "Updates werden gesucht…",
+      "up-to-date": "Sie verwenden die aktuelle Version.",
+      "available": "Version {{version}} ist verfügbar.",
+      "downloading": "{{version}} wird heruntergeladen · {{percent}}%",
+      "downloaded": "Update heruntergeladen. Bereit zur Installation.",
+      "installing": "Zustand wird gespeichert und das Update installiert. NEXUS öffnet sich automatisch.",
+      "error": "Update fehlgeschlagen. Erneuter Versuch möglich."
+    },
+    "errors": {
+      "check": "Updates konnten nicht geprüft werden. Netzwerk prüfen und erneut versuchen.",
+      "download": "Download oder Prüfung fehlgeschlagen. Das Update wurde nicht installiert. Nach dem Verbinden erneut versuchen.",
+      "install": "Installation fehlgeschlagen. Ihre Daten bleiben erhalten. Erneut versuchen oder NEXUS neu starten.",
+      "bridge": "Update-Dienst nicht erreichbar. NEXUS erneut öffnen und wieder versuchen."
+    },
+    "history": {
+      "title": "Versionshinweise",
+      "hint": "Änderungen von der neuesten zur ältesten Version.",
+      "current": "Installiert",
+      "available": "Verfügbar",
+      "missingNotes": "Für diese Version liegen keine Versionshinweise vor.",
+      "releases": {
+        "v0_8_9": {
+          "title": "ZIP-Baseline dreiseitiger Vergleich und Agent-Adapter",
+          "summary": "Das Upstream-Profil erhält eine ZIP-Baseline: Nach der Erfassung wird jeder Pfad über Baseline, Ihr Repository und den Upstream-Neustand klassifiziert — Konflikte, portierbare Upstream-Änderungen und Ihre eigenen Bearbeitungen — ohne Dateiinhalte herunterzuladen. Lokale KI-Tools integrieren sich über eine einheitliche Adapter-Registrierung; ein Desktop-Assistenzkanal erkennt die installierte Codex-Desktop-App, kann sie starten und Arbeitsbereiche im Explorer anzeigen."
+        },
+        "v0_8_8": {
+          "title": "Lokale Codex-Brücke und Repository-Herkunftsprofile",
+          "summary": "Aufgaben lassen sich über die offizielle App-Server-Schnittstelle an den lokalen Codex übergeben: unabhängige Sitzungen schreiben ausschließlich in einen isolierten Arbeitsbereich, streamen Ereignisse live und werden eigenständig abgenommen. Repositories erhalten ein Herkunftsprofil mit GitHub-verifizierten Forks, nachgewiesenen gemeinsamen Historien und expliziten ZIP- bzw. Drittanbieter-Deklarationen. Neue Update-Funde erscheinen zusätzlich als Toast und Benachrichtigung."
+        },
+        "v0_8_3": {
+          "title": "Update-Anzeige und Versionsverlauf",
+          "summary": "Behebt überlappende Update- und Seitentitel. Version, Status und Aktionen sind getrennt; ausklappbare Versionshinweise zeigen Offline-Verlauf und neue Updates."
+        },
+        "v0_8_2": {
+          "title": "Automatische App-Updates",
+          "summary": "Prüfung beim Start und alle vier Stunden, Download-Fortschritt, Wiederholung, Speichern und Installation mit Neustart. Behebt Zeitüberschreitungen beim Start von Windows-Befehlen."
+        },
+        "v0_8_0": {
+          "title": "Neues Symbol und gemeinsame Wartung",
+          "summary": "Einheitliches blaues N, sechs Rollen, getrennte Tests, Wiederaufnahme an Prüfpunkten, Projektgedächtnis und Ressourcenwerte."
+        },
+        "v0_7_0": {
+          "title": "Projektübersicht und Stapelverwaltung",
+          "summary": "Interaktiver Projektgraph, Einstellungen für mehrere Repositories, Einrichtungsassistent, Modelllisten sowie klare Ausführungs- und Auslieferungszustände."
+        },
+        "v0_3_0": {
+          "title": "Autonome Entwicklungsengine",
+          "summary": "Mehrstufige Pläne, 34 Werkzeuge, echte Tests, begrenzte Reparaturen und unabhängige Prüfung mit Rücknahme und bestätigter Übernahme in isolierten Arbeitsbereichen."
+        },
+        "v0_2_1": {
+          "title": "Desktop-Oberfläche und zehn Sprachen",
+          "summary": "Navigation, Einstellungen, Benachrichtigungen und Befehlspalette überarbeitet. Zehn Sprachen und helle/dunkle Designs; Korrekturen für pausierte Aufgaben und Benachrichtigungsziele."
+        },
+        "v0_1_0": {
+          "title": "Windows-Desktop und lokaler Agent",
+          "summary": "Erste Desktop-Vorschau mit lokalen KI-Vorschlägen, isolierten Arbeitsbereichen, bestätigter Übernahme und Aufgabenprotokollen."
+        },
+        "v0_8_4": {
+          "title": "Archivfilter und Repository-Status",
+          "summary": "Archivierte Repositories werden standardmäßig ausgeblendet und alle Zeilen zeigen ihren Status. Archivierte sind nicht auswählbar; Gesamtauswahl und Zähler berücksichtigen nur verfügbare Repositories. Neue Archivierungen werden nach der Synchronisierung abgewählt."
+        },
+        "v0_8_5": {
+          "title": "Repository-Abgleich und regelmäßige Aktualisierung",
+          "summary": "Korrigiert veraltete Zahlen nach dem Löschen. Wartet auf den Abschluss, synchronisiert im Vordergrund etwa alle 60 Sekunden, pausiert unsichtbar, bündelt Anfragen und beachtet Limits. Verlauf und Arbeitsbereiche bleiben erhalten."
+        },
+        "v0_8_6": {
+          "title": "Automatische Anleitung beim ersten Start",
+          "summary": "Beim ersten Start öffnet sich die geführte Einrichtung automatisch. Du kannst später fortfahren und anschließend die Aufgaben und Ergebnisse kennenlernen. Nach Abschluss bleibt die Anleitung über die Schaltfläche erreichbar."
+        },
+        "v0_8_7": {
+          "title": "Entwicklungswerkzeuge mit einem Klick",
+          "summary": "Die Umgebungsseite erhält einen Download mit einem Klick: Fehlende Entwicklungswerkzeuge werden über winget still installiert, danach wird PATH aktualisiert und die Umgebung ohne Anwendungsneustart neu geprüft."
+        }
+      }
+    }
+  }
+}

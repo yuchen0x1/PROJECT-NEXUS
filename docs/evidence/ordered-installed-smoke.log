@@ -1,0 +1,8 @@
+PASS: Seven-step setup renders; prerequisites and remote-delivery default stay guarded; Escape closes the dialog.
+PASS: Installed ASAR invokes the unpacked Windows Job Object command runner successfully.
+PASS: Freshly installed executable rendered the Windows workstation.
+PASS: Desktop preload bridge reports dataPath under the disposable LOCALAPPDATA profile.
+PASS: Authenticated bridge API health returned 200; direct renderer API health returned 401.
+PASS: Packaged app state and startup log were written under the disposable profile.
+Installed executable: C:\Users\lenmo\AppData\Local\Programs\PROJECT NEXUS\PROJECT NEXUS.exe
+Temporary app data: C:\Users\lenmo\AppData\Local\Temp\nexus-installed-package-smoke-A4Khbf\PROJECT NEXUS

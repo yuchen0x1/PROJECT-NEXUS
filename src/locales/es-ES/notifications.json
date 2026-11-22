@@ -1,0 +1,112 @@
+{
+  "activity": {
+    "workstationReady": {
+      "label": "Estación de trabajo lista",
+      "detail_one": "{{count}} proyecto local registrado.",
+      "detail_other": "{{count}} proyectos locales registrados."
+    },
+    "environmentCheckFinished": {
+      "label": "Comprobación del entorno finalizada",
+      "detail": "{{available}} de {{total}} herramientas de desarrollo disponibles."
+    },
+    "environmentCheckFailed": {
+      "label": "Error en la comprobación del entorno"
+    },
+    "environmentInstallFinished": {
+      "label": "Instalación con un clic terminada",
+      "detail": "Se instalaron {{installed}} herramientas de desarrollo."
+    },
+    "environmentInstallPartial": {
+      "label": "Instalación con un clic parcialmente terminada",
+      "detail": "Se instalaron {{installed}} herramientas y {{failed}} fallaron."
+    },
+    "environmentInstallFailed": {
+      "label": "Falló la instalación con un clic",
+      "detail": "{{failed}} herramientas no pudieron instalarse."
+    },
+    "projectAdded": {
+      "label": "Proyecto local añadido"
+    },
+    "projectAlreadyRegistered": {
+      "label": "El proyecto ya está registrado"
+    },
+    "projectRemoved": {
+      "label": "Proyecto quitado de NEXUS",
+      "detail": "La carpeta y sus archivos se dejaron sin cambios."
+    },
+    "projectAddFailed": {
+      "label": "No se pudo añadir el proyecto"
+    },
+    "scanComplete": {
+      "label": "Escaneo de solo lectura completado",
+      "detail": "{{name}}: {{stack}}; {{count}} entradas comprobadas."
+    },
+    "scanFailed": {
+      "label": "Error en el escaneo del proyecto"
+    },
+    "agentTaskQueued": {
+      "label": "Tarea local del agente en cola",
+      "detail": "{{project}}: {{label}}"
+    },
+    "agentTaskFailed": {
+      "label": "Error en la tarea local del agente"
+    },
+    "agentTaskStartError": {
+      "label": "La tarea local del agente no pudo iniciarse"
+    },
+    "agentCancellationRequested": {
+      "label": "Cancelación de la tarea local del agente solicitada"
+    },
+    "agentRetryQueued": {
+      "label": "Reintento de la tarea local del agente en cola"
+    },
+    "agentTaskCompleted": {
+      "label": "Tarea del agente completada",
+      "detail": "{{project}}: {{label}}"
+    },
+    "autoStartEnabled": {
+      "label": "Iniciar con Windows activado",
+      "detail": "Este ajuste solo cambia tras tu confirmación."
+    },
+    "autoStartDisabled": {
+      "label": "Iniciar con Windows desactivado",
+      "detail": "Este ajuste solo cambia tras tu confirmación."
+    },
+    "agentApprovalResolved": {
+      "label": "Aprobación del agente decidida",
+      "detail": "{{tool}} fue {{decision}}."
+    },
+    "agentRolledBack": {
+      "label": "Espacio de trabajo del agente restaurado",
+      "detail": "Modo de aislamiento: {{mode}}. No se cambiaron archivos del proyecto."
+    },
+    "agentApplied": {
+      "label": "Cambios del agente aplicados",
+      "detail": "{{count}} cambio(s) de archivo escritos en el proyecto."
+    },
+    "agentApplyFailed": {
+      "label": "Fallo al aplicar los cambios del agente"
+    },
+    "updateAvailable": {
+      "label": "Nueva versión disponible",
+      "detail": "La aplicación puede actualizarse a v{{version}}."
+    },
+    "agentDesktopLaunched": {
+      "label": "Aplicación de escritorio iniciada"
+    },
+    "agentWorkspaceRevealed": {
+      "label": "Espacio de trabajo abierto en el explorador"
+    }
+  },
+  "toast": {
+    "languageChanged": "Idioma actualizado",
+    "themeChanged": "Tema actualizado",
+    "settingsSaved": "Configuración guardada",
+    "projectAdded": "Proyecto añadido",
+    "scanQueued": "Escaneo en cola",
+    "agentRolledBack": "El espacio de trabajo volvió a su estado original.",
+    "agentApplied": "Los cambios del agente se aplicaron a tu proyecto.",
+    "providerSaved": "Proveedor guardado.",
+    "updateAvailable": "Hay una nueva versión v{{version}} disponible: actualice desde la tarjeta de actualización."
+  }
+}

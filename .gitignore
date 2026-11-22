@@ -1,0 +1,40 @@
+# Reproducible dependencies, bundles and installer output.
+/node_modules/
+/dist/
+/release*/
+
+# Local application data; only migration definitions belong in Git.
+/data/*
+!/data/.gitkeep
+!/data/migrations/
+/logs/
+
+# Credentials and local environment settings.
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.key
+*.pem
+
+# Local agent workspace data (work logs, session state). Not a temp cache,
+# but internal-only and must not be published to a public repository.
+/.workbuddy/
+
+# Generated reports and caches. Curated historical evidence stays tracked.
+/playwright-report/
+/test-results/
+/coverage/
+/.cache/
+/.vite/
+/NVIDIA Corporation/
+*.log
+!/docs/evidence/**/*.log
+*.bak
+*.tmp
+*.temp
+*.tsbuildinfo
+Thumbs.db
+Desktop.ini
+.DS_Store

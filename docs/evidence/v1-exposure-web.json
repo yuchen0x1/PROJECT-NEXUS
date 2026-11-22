@@ -1,0 +1,13 @@
+{
+  "target": "dist",
+  "profile": "auto",
+  "score": 100,
+  "grade": "A",
+  "grade_note": "低成本手段基本无效",
+  "counts": {
+    "files": 129,
+    "binaries": 0,
+    "web": 127
+  },
+  "findings": []
+}

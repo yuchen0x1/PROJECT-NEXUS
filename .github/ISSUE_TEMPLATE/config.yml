@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability privately
+    url: https://github.com/yuchen0x1/PROJECT-NEXUS/security/advisories/new
+    about: Do not disclose sensitive vulnerability details in a public issue.

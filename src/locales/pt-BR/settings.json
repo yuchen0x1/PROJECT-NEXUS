@@ -1,0 +1,128 @@
+{
+  "page": {
+    "title": "Configurações",
+    "subtitle": "Aparência, idioma e comportamento da estação de trabalho."
+  },
+  "sections": {
+    "appearance": "Aparência e idioma",
+    "agent": "Agente de IA",
+    "startup": "Inicialização",
+    "about": "Sobre"
+  },
+  "appearance": {
+    "languageLabel": "Idioma da interface",
+    "languageHint": "Aplica-se imediatamente a todo o aplicativo. Sua escolha é lembrada entre reinicializações.",
+    "languageChanged": "Idioma alterado para {{language}}",
+    "coverageNote": "Todos os idiomas incluídos estão totalmente revisados para esta versão.",
+    "themeLabel": "Tema",
+    "themeHint": "Seguir o Windows acompanha a configuração clara ou escura do sistema em tempo real.",
+    "motionLabel": "Reduzir movimento",
+    "motionHint": "Minimiza animações e transições em toda a estação de trabalho.",
+    "agentReplyLabel": "Idioma de resposta do agente",
+    "agentReplyHint": "Afeta apenas o texto explicativo que o agente escreve. Código, comandos e caminhos de arquivos nunca são alterados.",
+    "agentReplyUi": "Seguir o idioma da interface",
+    "agentReplyInput": "Seguir o idioma da minha solicitação",
+    "agentReplyFixed": "Usar sempre:"
+  },
+  "startup": {
+    "autoStartLabel": "Iniciar com o Windows",
+    "autoStartDetail": "Inicia o NEXUS depois do seu login. Esta configuração só é alterada após a sua confirmação."
+  },
+  "about": {
+    "version": "Versão",
+    "platform": "Plataforma",
+    "dataPath": "Dados do usuário",
+    "logsPath": "Logs",
+    "cachePath": "Cache",
+    "settingsFile": "Arquivo de configurações",
+    "systemLocale": "Idioma do sistema",
+    "openLogs": "Abrir pasta de logs"
+  },
+  "appUpdate": {
+    "title": "Atualização do NEXUS",
+    "check": "Buscar atualizações",
+    "updateNow": "Atualizar agora",
+    "working": "Aguarde…",
+    "later": "Mais tarde",
+    "progress": "Progresso do download",
+    "restartHint": "A atualização salva o estado e interrompe as tarefas atuais. O aplicativo será reaberto após a instalação.",
+    "states": {
+      "disabled": "As atualizações estão disponíveis no aplicativo Windows instalado.",
+      "idle": "Verifica ao iniciar e a cada 4 horas.",
+      "checking": "Buscando atualizações…",
+      "up-to-date": "Você está na versão mais recente.",
+      "available": "A versão {{version}} está disponível.",
+      "downloading": "Baixando {{version}} · {{percent}}%",
+      "downloaded": "Atualização baixada. Pronta para instalar.",
+      "installing": "Salvando e instalando. O NEXUS será reaberto automaticamente.",
+      "error": "A atualização falhou. Você pode tentar novamente."
+    },
+    "errors": {
+      "check": "Não foi possível buscar atualizações. Verifique a rede e tente novamente.",
+      "download": "Falha no download ou na verificação. A atualização não foi instalada. Tente novamente quando estiver conectado.",
+      "install": "Falha na instalação. Seus dados foram preservados; tente novamente ou reinicie o NEXUS.",
+      "bridge": "Não foi possível acessar o atualizador. Reabra o NEXUS e tente novamente."
+    },
+    "history": {
+      "title": "Notas da versão",
+      "hint": "Veja as alterações da mais recente para a mais antiga.",
+      "current": "Versão instalada",
+      "available": "Disponível",
+      "missingNotes": "O responsável ainda não forneceu notas para esta versão.",
+      "releases": {
+        "v0_8_9": {
+          "title": "Diff de três vias da linha de base ZIP e adaptadores de agente",
+          "summary": "O perfil de procedência ganha uma linha de base ZIP: após capturá-la, cada caminho é classificado entre linha de base, seu repositório e o upstream mais recente — conflitos, mudanças portáveis do upstream e suas próprias edições — sem baixar conteúdo. As ferramentas locais de IA passam a se integrar por um registro unificado de adaptadores, e um novo canal de assistência de desktop detecta o aplicativo Codex instalado, pode iniciá-lo e abrir espaços de trabalho no Explorador."
+        },
+        "v0_8_8": {
+          "title": "Ponte Codex local e perfis de procedência",
+          "summary": "Tarefas podem ser delegadas ao Codex local pela interface oficial de app-server: sessões independentes escrevem apenas em um espaço de trabalho isolado, transmitem eventos em tempo real e passam por aceite independente. Os repositórios ganham um perfil de procedência com forks verificados pelo GitHub, históricos compartilhados comprovados e declarações explícitas de ZIP ou terceiros. Novas descobertas de atualização exibem toast e entrada na central de notificações."
+        },
+        "v0_8_3": {
+          "title": "Painel de atualização e histórico",
+          "summary": "Corrige a sobreposição com títulos de página. Separa versão, estado e ações e inclui notas expansíveis com histórico offline e detalhes de novas versões."
+        },
+        "v0_8_2": {
+          "title": "Atualizações automáticas",
+          "summary": "Verifica ao iniciar e a cada quatro horas. Exibe progresso, permite tentar novamente, salva o estado, instala e reabre. Corrige tempos limite de comandos no Windows."
+        },
+        "v0_8_0": {
+          "title": "Novo ícone e manutenção colaborativa",
+          "summary": "Unifica o N azul e adiciona seis funções, testes isolados, recuperação por pontos de controle, memória do projeto e métricas de recursos."
+        },
+        "v0_7_0": {
+          "title": "Visão de projetos e gestão em lote",
+          "summary": "Adiciona grafo interativo, configuração de vários repositórios, guia, listas de modelos e estados de execução e entrega mais claros."
+        },
+        "v0_3_0": {
+          "title": "Motor de desenvolvimento autônomo",
+          "summary": "Planos em várias etapas, 34 ferramentas, testes reais, reparos limitados e revisão independente, com reversão e aplicação confirmada em espaços isolados."
+        },
+        "v0_2_1": {
+          "title": "Experiência desktop e dez idiomas",
+          "summary": "Renova navegação, configurações, notificações e paleta. Adiciona dez idiomas e temas claro/escuro; corrige alertas de tarefas pausadas e navegação das notificações."
+        },
+        "v0_1_0": {
+          "title": "Desktop Windows e Agent local",
+          "summary": "Primeira prévia desktop com propostas locais de IA, espaços isolados, aplicação confirmada e registros de tarefas."
+        },
+        "v0_8_4": {
+          "title": "Filtro e estado de repositórios arquivados",
+          "summary": "Oculta os arquivados por padrão e mostra o estado em cada linha. Eles não podem ser selecionados; a seleção geral e o contador incluem apenas os disponíveis. A sincronização desmarca os recém-arquivados."
+        },
+        "v0_8_5": {
+          "title": "Sincronização e atualização de repositórios",
+          "summary": "Corrige contagens após excluir repositórios. Aguarda a conclusão, sincroniza a cada 60 s em primeiro plano e pausa ao ocultar. Compartilha solicitações e respeita limites, mantendo histórico e espaços."
+        },
+        "v0_8_6": {
+          "title": "Tutorial automático no primeiro uso",
+          "summary": "A primeira inicialização abre a configuração guiada automaticamente. Você pode continuar depois e conhecer onde aparecem as tarefas e os resultados. Após concluir, o guia continua disponível pelo botão sem abrir automaticamente."
+        },
+        "v0_8_7": {
+          "title": "Instalação de ferramentas com um clique",
+          "summary": "A página de ambiente ganha download com um clique: as ferramentas de desenvolvimento ausentes são instaladas silenciosamente via winget e, depois, o PATH é atualizado e o ambiente é reescaneado sem reiniciar o aplicativo."
+        }
+      }
+    }
+  }
+}

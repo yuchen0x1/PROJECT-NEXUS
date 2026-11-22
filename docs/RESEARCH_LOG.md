@@ -1,0 +1,13 @@
+# 研究记录
+
+## 2026-11-21 · 持久执行与桌面发布
+
+本轮从 GitHub 读取三个上游的发行元数据及指定提交的源码、许可证、Issue、PR；未运行或复制上游代码。
+
+| 项目（审查基线） | 许可证 | 源码与近期活动 | 与 NEXUS 的差距及决策 |
+| --- | --- | --- | --- |
+| [Temporal Server v1.32.2](https://github.com/temporalio/temporal/releases/tag/v1.32.2)，2026-11-02 | [MIT](https://github.com/temporalio/temporal/blob/6d085822273f4336796e6959c73ab1d14a23eb77/LICENSE) | [状态重建](https://github.com/temporalio/temporal/blob/6d085822273f4336796e6959c73ab1d14a23eb77/service/history/workflow/mutable_state_rebuilder.go#L72-L155)重放事件并生成计时器；[重试调度](https://github.com/temporalio/temporal/blob/6d085822273f4336796e6959c73ab1d14a23eb77/service/history/timer_queue_active_task_executor.go#L549-L584)拒绝过期尝试。[#8376](https://github.com/temporalio/temporal/issues/8376)未规划；[PR #8600](https://github.com/temporalio/temporal/pull/8600)于 11-21 合并，未纳入受查标签。 | NEXUS 已写入远端写操作意图，但重启对部分活动任务只能人工接管。先修复主机租约的启动顺序，再对明确可重放的阶段引入 attempt 与 fencing；不宣称外部写入 exactly-once。不引入 Temporal。 |
+| [Windmill v1.881.1](https://github.com/windmill-labs/windmill/releases/tag/v1.881.1)，2026-11-21 | [混合许可](https://github.com/windmill-labs/windmill/blob/443f41283ebcb6b80caa86051c5464d20d94e906/LICENSE)：默认后端 AGPLv3，部分客户端/规范 Apache-2.0，另有专有企业模块 | [Worker 真实 jail 探针](https://github.com/windmill-labs/windmill/blob/443f41283ebcb6b80caa86051c5464d20d94e906/backend/windmill-worker/src/worker.rs#L1100-L1169)与 [no_network 拒绝路径](https://github.com/windmill-labs/windmill/blob/443f41283ebcb6b80caa86051c5464d20d94e906/backend/windmill-worker/src/python_executor.rs#L770-L782)；[#10132](https://github.com/windmill-labs/windmill/issues/10132)已关闭，[PR #11865](https://github.com/windmill-labs/windmill/pull/11865)已合并并纳入标签。 | NEXUS 严格模式未就绪时已经 BLOCKED；还应对实际 runner 证明文件系统、网络、环境和子进程约束。只借鉴探测设计，不复制代码。 |
+| [Prefect 3.9.4](https://github.com/PrefectHQ/prefect/releases/tag/3.9.4)，2026-11-19 | [Apache-2.0](https://github.com/PrefectHQ/prefect/blob/ed96dafb35df5b7e09ef38c5a037d6f280fb5517/LICENSE) | [状态转换重试](https://github.com/PrefectHQ/prefect/blob/ed96dafb35df5b7e09ef38c5a037d6f280fb5517/src/prefect/server/orchestration/core_policy.py#L1068-L1204)与[转换 ID 查重](https://github.com/PrefectHQ/prefect/blob/ed96dafb35df5b7e09ef38c5a037d6f280fb5517/src/prefect/server/orchestration/core_policy.py#L2080-L2122)；响应丢失后重放的 [#23975](https://github.com/PrefectHQ/prefect/issues/23975)和 [PR #23977](https://github.com/PrefectHQ/prefect/pull/23977)当日均开放，未独立复现。[PyPI 工作流](https://github.com/PrefectHQ/prefect/blob/ed96dafb35df5b7e09ef38c5a037d6f280fb5517/.github/workflows/python-package.yaml#L53-L97)分离构建与发布。 | 采用只读构建 → 交接本次工件 → 独立特权发布。已接入桌面候选流水线；旧版安装升级和回滚仍需实测。 |
+
+源码和公开活动证明设计与维护状态，不证明上游发布通过、产物来源或本机 Windows 严格隔离有效。决策见 [TECHNOLOGY_DECISIONS.md](TECHNOLOGY_DECISIONS.md)。

@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "version": "0.6.0",
+  "realRepositoryCount": 26,
+  "allSelectedCount": 26,
+  "deselectionSurvivedPolling": true,
+  "selectionOnly": true,
+  "isolatedMetadataCopyWithoutCredentials": true,
+  "originalStateUnchanged": true,
+  "at": "2026-11-13T06:39:13.391Z"
+}

@@ -1,0 +1,29 @@
+{
+  "eyebrow": "GitHub Actions",
+  "title": "建置中心",
+  "subtitle": "在單一專案感知介面上檢視工作流程、派送建置並追蹤執行。",
+  "picker": {
+    "kicker": "目標儲存庫",
+    "title": "選擇一個專案",
+    "emptyTitle": "沒有目標儲存庫",
+    "emptyDetail": "請先同步儲存庫，再開啟建置脈絡。"
+  },
+  "workflows": {
+    "kicker": "工作流程目錄",
+    "selectRepository": "選擇一個儲存庫",
+    "runAction": "執行工作流程",
+    "dispatched": "建置派送已排入佇列",
+    "dispatchFailed": "建置派送失敗",
+    "loadFailed": "無法載入工作流程",
+    "emptyTitle": "未發現工作流程",
+    "emptyDetail": "GitHub 未傳回此儲存庫的 Actions 工作流程。",
+    "waitingTitle": "建置脈絡等待中",
+    "waitingDetail": "選擇一個儲存庫以載入其真實的 GitHub Actions 工作流程。"
+  },
+  "runs": {
+    "kicker": "執行歷史記錄",
+    "title": "最近的執行",
+    "emptyTitle": "尚未載入執行歷史記錄",
+    "emptyDetail": "選擇一個具有 Actions 存取權限的儲存庫，以檢視最近的執行。"
+  }
+}

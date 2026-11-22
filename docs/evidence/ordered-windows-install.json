@@ -1,0 +1,42 @@
+{
+  "version": "0.4.0",
+  "installedExe": "C:\\Users\\lenmo\\AppData\\Local\\Programs\\PROJECT NEXUS\\PROJECT NEXUS.exe",
+  "installer": "C:\\Users\\lenmo\\Desktop\\PROJECT NEXUS\\release-ordered-upgrade\\PROJECT-NEXUS-0.4.0-win-x64-setup.exe",
+  "bytes": 122091243,
+  "sha256": "2B7D7703E7AD4ACE4A8D8C884B1FD46FFF337038731FCC6381B6D67EF1048565",
+  "authenticode": "NotSigned",
+  "installerExitCode": 0,
+  "backup": "C:\\Users\\lenmo\\AppData\\Local\\PROJECT NEXUS Backups\\20261113-125828-0.4.0",
+  "profileJsonUnchanged": true,
+  "profileFileHashes": [
+    {
+      "name": "ai-providers.json",
+      "sha256": "454A9D9983A91E357CDFF46B42EBDC43B9F23F1D71F69FFB807E72F75F1EDC3B"
+    },
+    {
+      "name": "desktop-settings.json",
+      "sha256": "13E6B49FFBA81629B817396332CE8B1F514E4143438A5D9E3F86813EAC975878"
+    },
+    {
+      "name": "github-credentials.json",
+      "sha256": "5C6B760528EA044137ADD4F448EAB338B750483E5BA79C3A4561EBA3F32E64F6"
+    },
+    {
+      "name": "local-agent-tasks.json",
+      "sha256": "5BE1918DF60764B9630B287D844F7BF6B3350D552049DBFFE9E153FB33247D79"
+    },
+    {
+      "name": "provider-keys.json",
+      "sha256": "2D39CC4AD63C103BDF62EE77066C1B3C0518EDF599BB32170B18E3090619A7FA"
+    },
+    {
+      "name": "state.json",
+      "sha256": "38674BCF692A7E71061B4BCE3DDC691164CC0E62AB0E36FB1B17D0D09445999C"
+    },
+    {
+      "name": "window-state.json",
+      "sha256": "F0846E2772371CE8A0B187AAA120C11997407DD756F4DB3917E8E84541197DE1"
+    }
+  ],
+  "at": "2026-11-13T05:02:30.8649812Z"
+}

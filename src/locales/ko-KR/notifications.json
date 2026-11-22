@@ -1,0 +1,112 @@
+{
+  "activity": {
+    "workstationReady": {
+      "label": "워크스테이션 준비 완료",
+      "detail_one": "로컬 프로젝트 {{count}}개가 등록되었습니다.",
+      "detail_other": "로컬 프로젝트 {{count}}개가 등록되었습니다."
+    },
+    "environmentCheckFinished": {
+      "label": "환경 확인 완료",
+      "detail": "개발 도구 {{total}}개 중 {{available}}개를 사용할 수 있습니다."
+    },
+    "environmentCheckFailed": {
+      "label": "환경 확인 실패"
+    },
+    "environmentInstallFinished": {
+      "label": "원클릭 설치 완료",
+      "detail": "개발 도구 {{installed}}개를 설치했습니다."
+    },
+    "environmentInstallPartial": {
+      "label": "원클릭 설치 부분 완료",
+      "detail": "{{installed}}개의 도구를 설치했고 {{failed}}개가 실패했습니다."
+    },
+    "environmentInstallFailed": {
+      "label": "원클릭 설치 실패",
+      "detail": "{{failed}}개의 도구를 설치하지 못했습니다."
+    },
+    "projectAdded": {
+      "label": "로컬 프로젝트 추가됨"
+    },
+    "projectAlreadyRegistered": {
+      "label": "이미 등록된 프로젝트입니다"
+    },
+    "projectRemoved": {
+      "label": "NEXUS에서 프로젝트가 제거되었습니다",
+      "detail": "폴더와 그 파일은 변경되지 않았습니다."
+    },
+    "projectAddFailed": {
+      "label": "프로젝트를 추가할 수 없습니다"
+    },
+    "scanComplete": {
+      "label": "읽기 전용 스캔 완료",
+      "detail": "{{name}}: {{stack}}, {{count}}개 항목 확인했습니다."
+    },
+    "scanFailed": {
+      "label": "프로젝트 스캔 실패"
+    },
+    "agentTaskQueued": {
+      "label": "로컬 에이전트 작업이 대기열에 추가되었습니다",
+      "detail": "{{project}}: {{label}}"
+    },
+    "agentTaskFailed": {
+      "label": "로컬 에이전트 작업 실패"
+    },
+    "agentTaskStartError": {
+      "label": "로컬 에이전트 작업을 시작할 수 없습니다"
+    },
+    "agentCancellationRequested": {
+      "label": "로컬 에이전트 취소가 요청되었습니다"
+    },
+    "agentRetryQueued": {
+      "label": "로컬 에이전트 재시도가 대기열에 추가되었습니다"
+    },
+    "agentTaskCompleted": {
+      "label": "에이전트 작업 완료",
+      "detail": "{{project}}: {{label}}"
+    },
+    "autoStartEnabled": {
+      "label": "Windows 시작 시 실행이 활성화되었습니다",
+      "detail": "이 설정은 확인 후에만 변경됩니다."
+    },
+    "autoStartDisabled": {
+      "label": "Windows 시작 시 실행이 비활성화되었습니다",
+      "detail": "이 설정은 확인 후에만 변경됩니다."
+    },
+    "agentApprovalResolved": {
+      "label": "에이전트 승인 결정됨",
+      "detail": "{{tool}}이(가) {{decision}}되었습니다."
+    },
+    "agentRolledBack": {
+      "label": "에이전트 작업 공간 복원됨",
+      "detail": "격리 모드: {{mode}}. 프로젝트 파일은 변경되지 않았습니다."
+    },
+    "agentApplied": {
+      "label": "에이전트 변경 사항 적용됨",
+      "detail": "{{count}}개 파일 변경이 프로젝트에 기록되었습니다."
+    },
+    "agentApplyFailed": {
+      "label": "에이전트 변경 적용 실패"
+    },
+    "updateAvailable": {
+      "label": "새 버전 발견",
+      "detail": "앱을 v{{version}}(으)로 업데이트할 수 있습니다."
+    },
+    "agentDesktopLaunched": {
+      "label": "데스크톱 앱이 실행되었습니다"
+    },
+    "agentWorkspaceRevealed": {
+      "label": "탐색기에서 작업 공간을 열었습니다"
+    }
+  },
+  "toast": {
+    "languageChanged": "언어가 업데이트되었습니다",
+    "themeChanged": "테마가 업데이트되었습니다",
+    "settingsSaved": "설정이 저장되었습니다",
+    "projectAdded": "프로젝트가 추가되었습니다",
+    "scanQueued": "스캔이 대기열에 추가되었습니다",
+    "agentRolledBack": "작업 공간이 원래 상태로 복원되었습니다.",
+    "agentApplied": "에이전트 변경 사항이 프로젝트에 적용되었습니다.",
+    "providerSaved": "공급자가 저장되었습니다.",
+    "updateAvailable": "새 버전 v{{version}}이(가) 발견되었습니다. 업데이트 카드에서 바로 업데이트할 수 있습니다."
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "repository": "yuchen0x1/PROJECT-NEXUS",
+  "tag": "v0.8.0",
+  "sourceCommit": "a4e10c968617fa4635c4ca888bd55b325dafb28e",
+  "releaseId": 444232359,
+  "state": "Published",
+  "publishedAt": "2026-11-13T13:03:35Z",
+  "url": "https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.8.0",
+  "installerSignature": "NotSigned",
+  "assets": [
+    {
+      "id": 743669557,
+      "name": "PROJECT-NEXUS-0.8.0-win-x64-setup.exe",
+      "size": 122639878,
+      "digest": "sha256:412d4f0aab1d31dabba5d076f6e8161d0591198fa5a6592d5adcb9e6f87a82aa"
+    },
+    {
+      "id": 743669560,
+      "name": "PROJECT-NEXUS-0.8.0-win-x64-setup.exe.blockmap",
+      "size": 130230,
+      "digest": "sha256:48f4c49b18f3eac229f47af9dbcba4a208e3cae863512cc29f79614f743178ba"
+    },
+    {
+      "id": 743669566,
+      "name": "SHA256SUMS.txt",
+      "size": 219,
+      "digest": "sha256:132835e637df95cc3cf8a841290c59f67ba4767f21c326e03a66240deb61d0cc"
+    }
+  ],
+  "tests": {
+    "passed": 286,
+    "files": 55,
+    "fixtures": "Local model fixtures; native packaged Electron; real Node tests; main-process kill and recovery"
+  },
+  "dependencyAudit": {
+    "npmVulnerabilities": 0,
+    "minimatchRemoteVerification": {
+      "affectedEntries": 0,
+      "fixedVersion": "11.0.8",
+      "alertWasFor": "9.0.9"
+    },
+    "oldDependabotAlertDismissed": false
+  },
+  "soak": {
+    "statusAtPublicationReceipt": "Running",
+    "id": "2026-11-13T13-03-20-082Z",
+    "startedAt": "2026-11-13T13:03:22.071Z",
+    "requestedHours": 24,
+    "observedAt": "2026-11-13T13:08:23.9Z",
+    "sourceSha256": "58a48ba4bd653de17cf533d506387b816d54810e58cb1284264f361f40ed9025",
+    "completedAcceptance": false
+  },
+  "installedIntoExistingUserDirectory": false
+}

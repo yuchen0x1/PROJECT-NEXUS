@@ -1,0 +1,29 @@
+{
+  "eyebrow": "GitHub Actions",
+  "title": "Centre de build",
+  "subtitle": "Examinez les flux de travail, lancez des builds et suivez les exécutions depuis une surface unique consciente des projets.",
+  "picker": {
+    "kicker": "Dépôt cible",
+    "title": "Choisir un projet",
+    "emptyTitle": "Aucun dépôt cible",
+    "emptyDetail": "Synchronisez les dépôts avant d'ouvrir un contexte de build."
+  },
+  "workflows": {
+    "kicker": "Catalogue des flux de travail",
+    "selectRepository": "Sélectionner un dépôt",
+    "runAction": "Exécuter le flux de travail",
+    "dispatched": "Lancement de build mis en file d'attente",
+    "dispatchFailed": "Échec du lancement de build",
+    "loadFailed": "Impossible de charger les flux de travail",
+    "emptyTitle": "Aucun flux de travail découvert",
+    "emptyDetail": "GitHub n'a renvoyé aucun flux de travail Actions pour ce dépôt.",
+    "waitingTitle": "Le contexte de build est en attente",
+    "waitingDetail": "Sélectionnez un dépôt pour charger ses véritables flux de travail GitHub Actions."
+  },
+  "runs": {
+    "kicker": "Historique d'exécution",
+    "title": "Exécutions récentes",
+    "emptyTitle": "Aucun historique d'exécution chargé",
+    "emptyDetail": "Choisissez un dépôt avec accès Actions pour afficher les exécutions récentes."
+  }
+}

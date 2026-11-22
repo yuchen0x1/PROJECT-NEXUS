@@ -1,0 +1,112 @@
+{
+  "activity": {
+    "workstationReady": {
+      "label": "Station de travail prête",
+      "detail_one": "{{count}} projet local enregistré.",
+      "detail_other": "{{count}} projets locaux enregistrés."
+    },
+    "environmentCheckFinished": {
+      "label": "Vérification de l'environnement terminée",
+      "detail": "{{available}} outils de développement disponibles sur {{total}}."
+    },
+    "environmentCheckFailed": {
+      "label": "Échec de la vérification de l'environnement"
+    },
+    "environmentInstallFinished": {
+      "label": "Installation en un clic terminée",
+      "detail": "{{installed}} outils de développement installés."
+    },
+    "environmentInstallPartial": {
+      "label": "Installation en un clic partiellement terminée",
+      "detail": "{{installed}} outils installés, {{failed}} en échec."
+    },
+    "environmentInstallFailed": {
+      "label": "Échec de l'installation en un clic",
+      "detail": "{{failed}} outils n'ont pas pu être installés."
+    },
+    "projectAdded": {
+      "label": "Projet local ajouté"
+    },
+    "projectAlreadyRegistered": {
+      "label": "Projet déjà enregistré"
+    },
+    "projectRemoved": {
+      "label": "Projet retiré de NEXUS",
+      "detail": "Le dossier et ses fichiers sont restés inchangés."
+    },
+    "projectAddFailed": {
+      "label": "Le projet n'a pas pu être ajouté"
+    },
+    "scanComplete": {
+      "label": "Analyse en lecture seule terminée",
+      "detail": "{{name}} : {{stack}} ; {{count}} entrées vérifiées."
+    },
+    "scanFailed": {
+      "label": "Échec de l'analyse du projet"
+    },
+    "agentTaskQueued": {
+      "label": "Tâche locale de l'agent mise en file d'attente",
+      "detail": "{{project}} : {{label}}"
+    },
+    "agentTaskFailed": {
+      "label": "Échec de la tâche locale de l'agent"
+    },
+    "agentTaskStartError": {
+      "label": "La tâche locale de l'agent n'a pas pu démarrer"
+    },
+    "agentCancellationRequested": {
+      "label": "Annulation de l'agent local demandée"
+    },
+    "agentRetryQueued": {
+      "label": "Relance locale de l'agent mise en file d'attente"
+    },
+    "agentTaskCompleted": {
+      "label": "Tâche de l'agent terminée",
+      "detail": "{{project}} : {{label}}"
+    },
+    "autoStartEnabled": {
+      "label": "Démarrer avec Windows activé",
+      "detail": "Ce réglage ne change qu'après votre confirmation."
+    },
+    "autoStartDisabled": {
+      "label": "Démarrer avec Windows désactivé",
+      "detail": "Ce réglage ne change qu'après votre confirmation."
+    },
+    "agentApprovalResolved": {
+      "label": "Approbation d’agent décidée",
+      "detail": "{{tool}} a été {{decision}}."
+    },
+    "agentRolledBack": {
+      "label": "Espace de travail de l’agent restauré",
+      "detail": "Mode d’isolation : {{mode}}. Aucun fichier de projet modifié."
+    },
+    "agentApplied": {
+      "label": "Modifications de l’agent appliquées",
+      "detail": "{{count}} modification(s) de fichier écrite(s) dans le projet."
+    },
+    "agentApplyFailed": {
+      "label": "Échec de l’application des modifications de l’agent"
+    },
+    "updateAvailable": {
+      "label": "Nouvelle version disponible",
+      "detail": "L'application peut passer en v{{version}}."
+    },
+    "agentDesktopLaunched": {
+      "label": "Application de bureau lancée"
+    },
+    "agentWorkspaceRevealed": {
+      "label": "Espace de travail ouvert dans l’Explorateur"
+    }
+  },
+  "toast": {
+    "languageChanged": "Langue mise à jour",
+    "themeChanged": "Thème mis à jour",
+    "settingsSaved": "Paramètres enregistrés",
+    "projectAdded": "Projet ajouté",
+    "scanQueued": "Analyse mise en file d'attente",
+    "agentRolledBack": "L’espace de travail a été restauré à son état d’origine.",
+    "agentApplied": "Les modifications de l’agent ont été appliquées à votre projet.",
+    "providerSaved": "Fournisseur enregistré.",
+    "updateAvailable": "Une nouvelle version v{{version}} est disponible — mettez à jour depuis la carte de mise à jour."
+  }
+}

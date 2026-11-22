@@ -1,0 +1,43 @@
+{
+  "backup": "C:\\Users\\lenmo\\AppData\\Local\\PROJECT NEXUS Backups\\20261113-171223-project-overview",
+  "installedVersion": "0.6.0",
+  "profileFiles": [
+    {
+      "name": "ai-providers.json",
+      "sha256": "EA73202A20A2AFB7EE1390E2464F23BCD68E9845030BBCF2FA0FF553784DC006"
+    },
+    {
+      "name": "desktop-settings.json",
+      "sha256": "13E6B49FFBA81629B817396332CE8B1F514E4143438A5D9E3F86813EAC975878"
+    },
+    {
+      "name": "github-credentials.json",
+      "sha256": "491E6AEAE4B2CA6AD7DE0B4F226C9ACFF0872F720384AA3A94BBEE20605FEF2D"
+    },
+    {
+      "name": "local-agent-tasks.json",
+      "sha256": "5BE1918DF60764B9630B287D844F7BF6B3350D552049DBFFE9E153FB33247D79"
+    },
+    {
+      "name": "provider-keys.json",
+      "sha256": "9F479330C029D750D73EF89152BD980F980670CF5A7361EC9CB078D9A2C555F2"
+    },
+    {
+      "name": "state.json",
+      "sha256": "A65EED298DEC88A0A39CBD232E6F2CF0C6DE3221363AEB944F4981D0528E78B5"
+    },
+    {
+      "name": "state.json.bak",
+      "sha256": "A65EED298DEC88A0A39CBD232E6F2CF0C6DE3221363AEB944F4981D0528E78B5"
+    },
+    {
+      "name": "state.json.pre-v4.bak",
+      "sha256": "2CC3D241741C31839FAD30884D416FC7921284E60200C34D2874B28FBAC21F45"
+    },
+    {
+      "name": "window-state.json",
+      "sha256": "83B2899D7CED347B441894589B84B7775149C6D868E175C322F13CACC6867B35"
+    }
+  ],
+  "at": "2026-11-13T09:12:29.7141567Z"
+}

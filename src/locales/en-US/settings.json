@@ -1,0 +1,128 @@
+{
+  "page": {
+    "title": "Settings",
+    "subtitle": "Appearance, language and workstation behavior."
+  },
+  "sections": {
+    "appearance": "Appearance & Language",
+    "agent": "AI Agent",
+    "startup": "Startup",
+    "about": "About"
+  },
+  "appearance": {
+    "languageLabel": "Interface language",
+    "languageHint": "Applies immediately to the entire application. Your choice is remembered across restarts.",
+    "languageChanged": "Language changed to {{language}}",
+    "coverageNote": "All shipped languages are fully reviewed for this release.",
+    "themeLabel": "Theme",
+    "themeHint": "Match Windows follows the system light or dark setting in real time.",
+    "motionLabel": "Reduce motion",
+    "motionHint": "Minimizes animations and transitions across the workstation.",
+    "agentReplyLabel": "Agent reply language",
+    "agentReplyHint": "Only affects explanatory text the Agent writes. Code, commands and file paths are never changed.",
+    "agentReplyUi": "Follow interface language",
+    "agentReplyInput": "Follow the language of my request",
+    "agentReplyFixed": "Always use:"
+  },
+  "startup": {
+    "autoStartLabel": "Start with Windows",
+    "autoStartDetail": "Launch NEXUS after you sign in. This setting changes only after your confirmation."
+  },
+  "about": {
+    "version": "Version",
+    "platform": "Platform",
+    "dataPath": "User data",
+    "logsPath": "Logs",
+    "cachePath": "Cache",
+    "settingsFile": "Settings file",
+    "systemLocale": "System language",
+    "openLogs": "Open logs folder"
+  },
+  "appUpdate": {
+    "title": "NEXUS app update",
+    "check": "Check for updates",
+    "updateNow": "Update now",
+    "working": "Please wait…",
+    "later": "Later",
+    "progress": "Download progress",
+    "restartHint": "Updating saves state and stops current tasks. The app will install the update and reopen automatically.",
+    "states": {
+      "disabled": "Updates are available in the installed Windows app.",
+      "idle": "Checks automatically at startup and every 4 hours.",
+      "checking": "Checking for updates…",
+      "up-to-date": "You are up to date.",
+      "available": "Version {{version}} is available.",
+      "downloading": "Downloading {{version}} · {{percent}}%",
+      "downloaded": "Update downloaded. Ready to install.",
+      "installing": "Saving state and installing. NEXUS will reopen automatically.",
+      "error": "Update failed. You can retry."
+    },
+    "errors": {
+      "check": "Could not check for updates. Check your network and try again.",
+      "download": "Download or verification failed. The update was not installed. Retry when connected.",
+      "install": "Installation failed. Your data is preserved; retry or restart NEXUS.",
+      "bridge": "Could not reach the desktop updater. Reopen NEXUS and try again."
+    },
+    "history": {
+      "title": "Release notes",
+      "hint": "View changes from newest to oldest.",
+      "current": "Installed",
+      "available": "Available",
+      "missingNotes": "The publisher has not provided notes for this version.",
+      "releases": {
+        "v0_8_9": {
+          "title": "ZIP baseline three-way diff and agent adapters",
+          "summary": "The upstream profile gains a ZIP baseline: capture the upstream file manifest once, then classify every path across baseline, your repository and the upstream latest state — conflicts, portable upstream changes and your own edits — without downloading file contents. Local AI coding tools now integrate through a unified adapter registry, and a new desktop assist channel detects the installed Codex desktop app, can start it and reveal task workspaces in Explorer."
+        },
+        "v0_8_8": {
+          "title": "Local Codex bridge and repository origin profiles",
+          "summary": "Tasks can be delegated to the local Codex through the official app-server interface: independent sessions write only inside an isolated workspace, stream live events and are independently accepted. Repositories also gain an origin profile with GitHub-verified forks, proven shared histories and explicit ZIP or third-party declarations. New update discoveries now raise a toast and a notification entry."
+        },
+        "v0_8_3": {
+          "title": "Update layout and release history",
+          "summary": "Fix overlapping update status and page headings. Separate version, status and actions, and add expandable release notes with offline history and new-version details."
+        },
+        "v0_8_2": {
+          "title": "Automatic app updates",
+          "summary": "Check at startup and every four hours. Show download progress, retry failures, save state, install and reopen. Fix Windows command startup timeouts."
+        },
+        "v0_8_0": {
+          "title": "New icon and collaborative maintenance",
+          "summary": "Unify the blue N icon. Add six-role collaboration, separate test workspaces, checkpoint recovery, project memory and resource metrics."
+        },
+        "v0_7_0": {
+          "title": "Project overview and batch hosting",
+          "summary": "Add an interactive project graph, batch repository settings, guided setup, model lists and clearer execution and delivery states."
+        },
+        "v0_3_0": {
+          "title": "Autonomous development engine",
+          "summary": "Introduce multi-turn plans, 34 tools, real tests, bounded repairs and independent review, with rollback and confirmed application in isolated workspaces."
+        },
+        "v0_2_1": {
+          "title": "Desktop experience and ten languages",
+          "summary": "Refresh navigation, settings, notifications and the command palette. Add ten languages and light/dark themes; fix paused-task notifications and notification navigation."
+        },
+        "v0_1_0": {
+          "title": "Windows desktop and local Agent",
+          "summary": "First Windows desktop preview with local AI proposals, isolated workspaces, confirmed application and task logs."
+        },
+        "v0_8_4": {
+          "title": "Archived repository filtering and status",
+          "summary": "Hide archived repositories by default and label each row Active or Archived. Archived rows cannot be selected; select-all and counts include eligible repositories only, and sync removes newly archived selections."
+        },
+        "v0_8_5": {
+          "title": "Repository reconciliation and scheduled refresh",
+          "summary": "Fix stale counts after repository deletion. Wait for sync completion, sync about every 60 seconds while visible, pause when hidden, share requests and respect rate-limit retries. Keep history and workspaces."
+        },
+        "v0_8_6": {
+          "title": "Automatic first-use tutorial",
+          "summary": "The first launch opens guided setup automatically. Continue later if needed, then learn where tasks and results appear. Once completed, the tutorial stays available from the guide button without opening automatically."
+        },
+        "v0_8_7": {
+          "title": "One-click dev tool install",
+          "summary": "The environment page gains one-click download: missing development tools are installed silently through winget, then PATH is refreshed and the environment re-scanned without an app restart."
+        }
+      }
+    }
+  }
+}

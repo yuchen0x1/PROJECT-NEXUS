@@ -1,0 +1,28 @@
+{
+  "status": "PARTIAL",
+  "version": "0.7.0",
+  "scope": "project-overview-local-install-and-acceptance",
+  "featureAcceptance": "PASS",
+  "installation": "PASS",
+  "installedUILocales": [
+    "zh-CN",
+    "en-US"
+  ],
+  "currentFocusedTestsPassed": 17,
+  "previousFullRegressionTestsPassed": 254,
+  "realRepositoryCount": 26,
+  "realProfileDisplay": "PASS",
+  "credentialRestoration": "BLOCKED",
+  "credentialDecryption": {
+    "encryptionAvailable": true,
+    "githubReadable": false,
+    "providerEntries": 2,
+    "readableProviderEntries": 0
+  },
+  "originalProfileFilesPreserved": 9,
+  "realRepositoryTasksStartedByAcceptance": false,
+  "committed": false,
+  "pushed": false,
+  "published": false,
+  "at": "2026-11-13T09:19:57.250Z"
+}

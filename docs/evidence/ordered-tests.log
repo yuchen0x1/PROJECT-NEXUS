@@ -1,0 +1,119 @@
+
+> project-nexus@0.4.0 test
+> vitest run --reporter=default
+
+
+ RUN  v5.1.0 C:/Users/lenmo/Desktop/PROJECT NEXUS
+
+ ✓ tests/unit/i18n-keys.test.mjs (2 tests) 40ms
+ ✓ tests/unit/local-projects.test.mjs (4 tests) 143ms
+ ✓ tests/unit/security-scan.test.mjs (6 tests) 90ms
+ ✓ tests/unit/state-store.test.mjs (6 tests) 113ms
+ ✓ tests/unit/release-plan.test.mjs (2 tests) 38ms
+ ✓ tests/unit/remote-ci.test.mjs (3 tests) 26ms
+ ✓ tests/unit/github-pagination.test.mjs (6 tests) 12ms
+ ✓ tests/unit/hosting.test.mjs (10 tests) 17ms
+ ✓ tests/unit/issue-classifier.test.mjs (9 tests) 308ms
+ ✓ tests/unit/security-audit-failure.test.mjs (1 test) 17ms
+ ✓ tests/unit/repository-scanner.test.mjs (4 tests) 24ms
+ ✓ tests/unit/provider-store.test.mjs (5 tests) 359ms
+ ✓ tests/unit/competitor-research.test.mjs (7 tests) 12ms
+ ✓ tests/unit/ai-provider.test.mjs (13 tests) 501ms
+   ✓ AI provider registry and execution (3)
+     ✓ routes a task to a configured local provider without exposing its key 353ms
+ ✓ tests/unit/local-environment.test.mjs (3 tests) 10ms
+ ✓ tests/unit/github-issues.test.mjs (8 tests) 11ms
+ ✓ tests/unit/hosted-queue.test.mjs (4 tests) 9ms
+ ✓ tests/unit/agent-runner.test.mjs (2 tests) 8ms
+ ✓ tests/unit/delivery-stage.test.mjs (14 tests) 11ms
+ ✓ tests/unit/project-index.test.mjs (7 tests) 618ms
+ ✓ tests/unit/durable-effects.test.mjs (4 tests) 40ms
+ ✓ tests/unit/setup-readiness.test.mjs (1 test) 8ms
+ ✓ tests/unit/adapter-assessment.test.mjs (4 tests) 10ms
+ ✓ tests/unit/i18n-resources.test.mjs (5 tests) 765ms
+ ✓ tests/unit/hosting-gates.test.mjs (3 tests) 7ms
+ ✓ tests/unit/language-detection.test.mjs (3 tests) 4ms
+ ✓ tests/unit/delivery-safety.test.mjs (3 tests) 8ms
+stdout | tests/unit/i18n-format.test.mjs > formatting service
+🌐 i18next is made possible by our own product, Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙
+
+ ✓ tests/unit/issue-activity.test.mjs (1 test) 5ms
+ ✓ tests/unit/issue-fix-pipeline.test.mjs (7 tests) 6ms
+ ✓ tests/unit/i18n-format.test.mjs (8 tests) 43ms
+ ✓ tests/unit/agent-api-v2.test.mjs (2 tests) 1212ms
+   ✓ PHASE 6 agent API surface (2)
+     ✓ manages providers over the API without ever exposing keys, and syncs keys from the host process 794ms
+     ✓ resolves agent approvals through the API and exposes them on the task detail 416ms
+ ✓ tests/unit/local-agent-api.test.mjs (1 test) 1239ms
+   ✓ authenticated local Agent API (1)
+     ✓ generates a multi-file proposal in a registered project copy, preserves the source, persists it, and recovers interrupted work 1237ms
+ ✓ tests/unit/local-agent-workspace.test.mjs (9 tests) 1308ms
+   ✓ local Agent isolated workspaces (9)
+     ✓ rejects traversal, Windows device names, deletes, and symlink escapes 306ms
+ ✓ tests/unit/service-health.test.mjs (3 tests) 1446ms
+   ✓ host lifecycle and repository trust (3)
+     ✓ cleans a running child when the host crashes 1440ms
+ ✓ tests/unit/server-api.test.mjs (3 tests) 1687ms
+   ✓ isolated Phase 3 API and schema migration (3)
+     ✓ migrates a 24-repository v2 fixture additively and exposes real integration routes 725ms
+     ✓ uses an installation token for project-scoped GitHub operations when no legacy token is configured 530ms
+     ✓ requires and consumes a one-time GitHub App installation state token 430ms
+ ✓ tests/unit/local-agent-tasks.test.mjs (5 tests) 1857ms
+   ✓ local Agent task JSON persistence (5)
+     ✓ keeps task and event counts bounded without discarding recent task records 1601ms
+ ✓ tests/unit/agent-executor.test.mjs (9 tests) 8559ms
+   ✓ agent command executor (9)
+     ✓ runs an allowlisted command and captures output and exit code 1391ms
+     ✓ enforces timeouts by killing the process tree 2380ms
+     ✓ supports cancellation through an abort signal 871ms
+     ✓ truncates oversized output at the byte limit 1755ms
+     ✓ strips credential-bearing environment variables from the child environment 1118ms
+     ✓ reports non-zero exit codes as failures with stderr 889ms
+ ✓ tests/unit/repo-workspace.test.mjs (8 tests) 9937ms
+   ✓ ensureRepoCache (2)
+     ✓ clones once, reuses the cache, and fast-forwards to new commits 3457ms
+   ✓ commitAndPushBranch (2)
+     ✓ commits worktree changes and pushes the branch to origin 2730ms
+   ✓ workspace lifecycle (1)
+     ✓ removes a managed workspace and sweeps stale ones 1127ms
+   ✓ disposeRepoWorktree (1)
+     ✓ removes task worktrees and branches from the cache clone 880ms
+ ✓ tests/unit/agent-workspace.test.mjs (6 tests) 36140ms
+   ✓ worktree workspace adapter (3)
+     ✓ creates an isolated worktree, tracks modifications, diffs, restores and disposes 19730ms
+     ✓ reads files from the worktree with secret-like paths excluded 7697ms
+     ✓ rejects a second worktree for the same task id and invalid task ids 6517ms
+   ✓ copy workspace adapter with delete and restore (3)
+     ✓ applies operations, deletes files, and restores from the baseline 1213ms
+     ✓ falls back to copy mode with a recorded reason when the project has no git 940ms
+ ✓ tests/unit/agent-task-executor.test.mjs (5 tests) 60132ms
+   ✓ agent task executor pipeline (5)
+     ✓ runs the full pipeline and persists a complete, verifiable task record 14920ms
+     ✓ rolls a completed task back to a clean workspace state 17384ms
+     ✓ applies finished task changes to the original project only with confirmation and a clean tree 24590ms
+     ✓ reports provider-not-configured as a blocked task 3232ms
+ ✓ tests/unit/agent-tools.test.mjs (10 tests) 78727ms
+   ✓ agent tool registry (10)
+     ✓ reads, lists, searches files and code with bounds 9577ms
+     ✓ creates, edits, writes, moves and deletes files with validation 7778ms
+     ✓ runs inspect tools against the real index 7676ms
+     ✓ executes git tools against the worktree and restores files 14483ms
+     ✓ runs project tests and build via manifest scripts 12611ms
+     ✓ edits files with CRLF line endings without corrupting them 9804ms
+     ✓ runs allowlisted commands and marks unlisted programs for approval 9187ms
+     ✓ reports progress, checkpoints and validates helper tools 7597ms
+ ✓ tests/unit/agent-runtime.test.mjs (9 tests) 84730ms
+   ✓ agent runtime end-to-end loop (7)
+     ✓ does not mark an edited task successful without reviewer approval: "malformed reviewer output" 16552ms
+     ✓ does not mark an edited task successful without reviewer approval: {"findings":[],"verdict":"request_changes"} 14530ms
+     ✓ plans, edits files, fails verification, repairs itself, re-verifies, and reviews the diff 16571ms
+     ✓ stops after repeated unparseable model output with a clear error 9299ms
+     ✓ honors cancellation immediately 8431ms
+     ✓ records autonomous allowlist approvals without blocking and preserves history 10112ms
+     ✓ records denials when the user rejects a high-risk approval 9215ms
+
+ Test Files  42 passed (42)
+      Tests  225 passed (225)
+   Start at  12:55:28
+   Duration  85.25s (tests 98%, import 1%, transform 1%)
+

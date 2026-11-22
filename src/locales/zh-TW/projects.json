@@ -1,0 +1,48 @@
+{
+  "page": {
+    "title": "專案",
+    "subtitle": "已登記的資料夾"
+  },
+  "registered": {
+    "title": "已登記的資料夾",
+    "detail": "資料夾參照儲存在這個 Windows 使用者設定檔中，與 GitHub 專案記錄相互獨立。",
+    "count": "{{count}} 個專案"
+  },
+  "table": {
+    "project": "專案",
+    "scanStatus": "掃描狀態",
+    "actions": "操作",
+    "technologies": "偵測到的技術"
+  },
+  "row": {
+    "missing": "資料夾遺失",
+    "pathChanged": "路徑已變更",
+    "scanned": "已掃描",
+    "awaitingScan": "等待掃描",
+    "notScanned": "未掃描",
+    "scanLimit": "已達掃描上限",
+    "lastScan": "上次掃描 {{time}}",
+    "scanAction": "掃描",
+    "scanAria": "掃描 {{name}}",
+    "removeAria": "從 NEXUS 移除 {{name}}"
+  },
+  "empty": {
+    "title": "尚未新增本機專案",
+    "detail": "請選擇一個專案資料夾。NEXUS 不會搜尋這台電腦上的其他資料夾。"
+  },
+  "dialogs": {
+    "addFolder": "新增本機專案資料夾",
+    "removeTitle": "從 NEXUS 移除專案",
+    "removeMessage": "要從本機專案清單中移除 {{name}} 嗎？",
+    "removeDetail": "這只會移除 NEXUS 中的參照，不會刪除或修改任何專案檔案。",
+    "removeConfirm": "從 NEXUS 移除",
+    "removeCancel": "保留專案"
+  },
+  "selected": {
+    "label": "選取的專案",
+    "lastScan": "上次掃描 {{time}}"
+  },
+  "tech": {
+    "none": "未發現已知的技術堆疊標記"
+  }
+}

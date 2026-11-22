@@ -1,0 +1,48 @@
+{
+  "page": {
+    "title": "Proyectos",
+    "subtitle": "Carpetas registradas"
+  },
+  "registered": {
+    "title": "Carpetas registradas",
+    "detail": "Las referencias a carpetas se guardan en este perfil de usuario de Windows, separadas de los registros de proyectos de GitHub.",
+    "count": "{{count}} PROYECTOS"
+  },
+  "table": {
+    "project": "Proyecto",
+    "scanStatus": "Estado del escaneo",
+    "actions": "Acciones",
+    "technologies": "Tecnologías detectadas"
+  },
+  "row": {
+    "missing": "Carpeta no encontrada",
+    "pathChanged": "Ruta modificada",
+    "scanned": "Escaneado",
+    "awaitingScan": "Pendiente de escanear",
+    "notScanned": "Sin escanear",
+    "scanLimit": "Límite de escaneo alcanzado",
+    "lastScan": "Último escaneo {{time}}",
+    "scanAction": "Escanear",
+    "scanAria": "Escanear {{name}}",
+    "removeAria": "Quitar {{name}} de NEXUS"
+  },
+  "empty": {
+    "title": "No se han añadido proyectos locales",
+    "detail": "Elige una carpeta de proyecto. NEXUS no buscará en otras carpetas de este equipo."
+  },
+  "dialogs": {
+    "addFolder": "Añadir una carpeta de proyecto local",
+    "removeTitle": "Quitar proyecto de NEXUS",
+    "removeMessage": "¿Quitar {{name}} de la lista de proyectos locales?",
+    "removeDetail": "Esto elimina solo la referencia de NEXUS. No se eliminará ni modificará ningún archivo del proyecto.",
+    "removeConfirm": "Quitar de NEXUS",
+    "removeCancel": "Conservar proyecto"
+  },
+  "selected": {
+    "label": "Proyecto seleccionado",
+    "lastScan": "Último escaneo {{time}}"
+  },
+  "tech": {
+    "none": "Sin marcadores de stack conocidos"
+  }
+}

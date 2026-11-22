@@ -1,0 +1,48 @@
+{
+  "page": {
+    "title": "Projects",
+    "subtitle": "Registered folders"
+  },
+  "registered": {
+    "title": "Registered folders",
+    "detail": "Folder references are stored in this Windows user profile, separate from GitHub project records.",
+    "count": "{{count}} PROJECTS"
+  },
+  "table": {
+    "project": "Project",
+    "scanStatus": "Scan status",
+    "actions": "Actions",
+    "technologies": "Detected technologies"
+  },
+  "row": {
+    "missing": "Folder missing",
+    "pathChanged": "Path changed",
+    "scanned": "Scanned",
+    "awaitingScan": "Awaiting scan",
+    "notScanned": "Not scanned",
+    "scanLimit": "Scan limit reached",
+    "lastScan": "Last scan {{time}}",
+    "scanAction": "Scan",
+    "scanAria": "Scan {{name}}",
+    "removeAria": "Remove {{name}} from NEXUS"
+  },
+  "empty": {
+    "title": "No local projects have been added",
+    "detail": "Choose a project folder. NEXUS will not search other folders on this computer."
+  },
+  "dialogs": {
+    "addFolder": "Add a local project folder",
+    "removeTitle": "Remove project from NEXUS",
+    "removeMessage": "Remove {{name}} from the local project list?",
+    "removeDetail": "This removes only the NEXUS reference. No project files will be deleted or changed.",
+    "removeConfirm": "Remove from NEXUS",
+    "removeCancel": "Keep project"
+  },
+  "selected": {
+    "label": "Selected project",
+    "lastScan": "Last scan {{time}}"
+  },
+  "tech": {
+    "none": "No known stack markers"
+  }
+}

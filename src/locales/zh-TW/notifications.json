@@ -1,0 +1,112 @@
+{
+  "activity": {
+    "workstationReady": {
+      "label": "工作站已就緒",
+      "detail_one": "已登記 {{count}} 個本機專案。",
+      "detail_other": "已登記 {{count}} 個本機專案。"
+    },
+    "environmentCheckFinished": {
+      "label": "環境偵測完成",
+      "detail": "{{total}} 個開發工具中 {{available}} 個可用。"
+    },
+    "environmentCheckFailed": {
+      "label": "環境偵測失敗"
+    },
+    "environmentInstallFinished": {
+      "label": "一鍵下載安裝完成",
+      "detail": "已安裝 {{installed}} 個開發工具。"
+    },
+    "environmentInstallPartial": {
+      "label": "一鍵下載安裝部分完成",
+      "detail": "已安裝 {{installed}} 個工具，{{failed}} 個失敗。"
+    },
+    "environmentInstallFailed": {
+      "label": "一鍵下載安裝失敗",
+      "detail": "{{failed}} 個工具未能安裝。"
+    },
+    "projectAdded": {
+      "label": "已新增本機專案"
+    },
+    "projectAlreadyRegistered": {
+      "label": "專案已登記"
+    },
+    "projectRemoved": {
+      "label": "已從 NEXUS 移除專案",
+      "detail": "資料夾及其檔案保持不變。"
+    },
+    "projectAddFailed": {
+      "label": "無法新增專案"
+    },
+    "scanComplete": {
+      "label": "唯讀掃描完成",
+      "detail": "{{name}}：{{stack}}；已檢查 {{count}} 個條目。"
+    },
+    "scanFailed": {
+      "label": "專案掃描失敗"
+    },
+    "agentTaskQueued": {
+      "label": "本機代理任務已排入佇列",
+      "detail": "{{project}}：{{label}}"
+    },
+    "agentTaskFailed": {
+      "label": "本機代理任務失敗"
+    },
+    "agentTaskStartError": {
+      "label": "本機代理任務無法啟動"
+    },
+    "agentCancellationRequested": {
+      "label": "已請求取消本機代理任務"
+    },
+    "agentRetryQueued": {
+      "label": "本機代理重試已排入佇列"
+    },
+    "agentTaskCompleted": {
+      "label": "代理任務已完成",
+      "detail": "{{project}}：{{label}}"
+    },
+    "autoStartEnabled": {
+      "label": "已啟用隨 Windows 啟動",
+      "detail": "此設定只有在您確認後才會變更。"
+    },
+    "autoStartDisabled": {
+      "label": "已停用隨 Windows 啟動",
+      "detail": "此設定只有在您確認後才會變更。"
+    },
+    "agentApprovalResolved": {
+      "label": "Agent 核准已決定",
+      "detail": "{{tool}} 已被{{decision}}。"
+    },
+    "agentRolledBack": {
+      "label": "Agent 工作區已回復",
+      "detail": "隔離模式：{{mode}}。專案檔案未被修改。"
+    },
+    "agentApplied": {
+      "label": "Agent 修改已套用",
+      "detail": "{{count}} 個檔案修改已寫入專案。"
+    },
+    "agentApplyFailed": {
+      "label": "套用 Agent 修改失敗"
+    },
+    "updateAvailable": {
+      "label": "發現新版本",
+      "detail": "應用可更新到 v{{version}}。"
+    },
+    "agentDesktopLaunched": {
+      "label": "桌面應用程式已啟動"
+    },
+    "agentWorkspaceRevealed": {
+      "label": "已在檔案總管中開啟工作區"
+    }
+  },
+  "toast": {
+    "languageChanged": "語言已更新",
+    "themeChanged": "主題已更新",
+    "settingsSaved": "設定已儲存",
+    "projectAdded": "專案已新增",
+    "scanQueued": "掃描已排入佇列",
+    "agentRolledBack": "工作區已回復到原始狀態。",
+    "agentApplied": "Agent 修改已套用到您的專案。",
+    "providerSaved": "Provider 已儲存。",
+    "updateAvailable": "發現新版本 v{{version}}，可在更新卡中立即更新。"
+  }
+}

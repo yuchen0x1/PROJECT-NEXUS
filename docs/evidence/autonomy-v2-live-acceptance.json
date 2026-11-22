@@ -1,0 +1,230 @@
+{
+  "ranAt": "2026-11-14T21:39:29.592Z",
+  "credentialPresent": true,
+  "repository": "yuchen0x1/PROJECT-NEXUS",
+  "mode": "read-only-live",
+  "checks": [
+    {
+      "name": "GitHub monitoring endpoints reachable",
+      "pass": true,
+      "detail": [
+        "rate_limit:200",
+        "repository:200",
+        "issues:200",
+        "pull_requests:200",
+        "commits:200",
+        "actions_runs:200",
+        "releases:200"
+      ]
+    },
+    {
+      "name": "First scan establishes baseline over all resources",
+      "pass": true,
+      "detail": {
+        "verdict": "PASS",
+        "resources": 6,
+        "eventCount": 0,
+        "errors": 0
+      }
+    },
+    {
+      "name": "Second scan short-circuits with HTTP 304",
+      "pass": true,
+      "detail": {
+        "notModified": 6,
+        "eventCount": 0
+      }
+    },
+    {
+      "name": "ETag cursors persisted durably",
+      "pass": true,
+      "detail": {
+        "etags": 6,
+        "cursors": 6
+      }
+    },
+    {
+      "name": "No duplicate events across two scans",
+      "pass": true,
+      "detail": {
+        "events": 0,
+        "first": 0,
+        "second": 0
+      }
+    },
+    {
+      "name": "Task package contains all required sections",
+      "pass": true,
+      "detail": [
+        "Repository and workspace",
+        "Problems",
+        "Strictly forbidden",
+        "Required tests",
+        "Acceptance criteria"
+      ]
+    },
+    {
+      "name": "Task package leaks no credential",
+      "pass": true
+    },
+    {
+      "name": "UI Automation assembly loads",
+      "pass": true,
+      "detail": {
+        "reason": "UIA_LOADED"
+      }
+    },
+    {
+      "name": "Desktop client windows identified by name/process (not coordinates)",
+      "pass": true,
+      "detail": [
+        "chatgpt-desktop:1",
+        "workbuddy-desktop:1"
+      ]
+    }
+  ],
+  "githubProbe": [
+    {
+      "name": "rate_limit",
+      "status": 200,
+      "hasEtag": false,
+      "rateRemaining": "4600",
+      "sample": {
+        "core": {
+          "limit": 5000,
+          "used": 400,
+          "remaining": 4600,
+          "reset": 1794694875
+        }
+      }
+    },
+    {
+      "name": "repository",
+      "status": 200,
+      "hasEtag": true,
+      "rateRemaining": "4599",
+      "sample": {
+        "default_branch": "main",
+        "pushed_at": "2026-11-14T17:04:31Z"
+      }
+    },
+    {
+      "name": "issues",
+      "status": 200,
+      "hasEtag": true,
+      "rateRemaining": "4598",
+      "sample": {
+        "count": 0
+      }
+    },
+    {
+      "name": "pull_requests",
+      "status": 200,
+      "hasEtag": true,
+      "rateRemaining": "4597",
+      "sample": {
+        "count": 0
+      }
+    },
+    {
+      "name": "commits",
+      "status": 200,
+      "hasEtag": true,
+      "rateRemaining": "4596",
+      "sample": {
+        "count": 3
+      }
+    },
+    {
+      "name": "actions_runs",
+      "status": 200,
+      "hasEtag": true,
+      "rateRemaining": "4595",
+      "sample": {
+        "total_count": 15
+      }
+    },
+    {
+      "name": "releases",
+      "status": 200,
+      "hasEtag": true,
+      "rateRemaining": "4594",
+      "sample": {
+        "count": 3
+      }
+    }
+  ],
+  "incrementalSync": {
+    "backend": "sqlite",
+    "schemaVersion": 2,
+    "first": {
+      "verdict": "PASS",
+      "resources": 6,
+      "eventCount": 0,
+      "errors": 0
+    },
+    "second": {
+      "notModified": 6,
+      "eventCount": 0
+    },
+    "cursors": 6,
+    "etagsPersisted": 6,
+    "events": 0,
+    "findings": 0,
+    "monitorRuns": 2
+  },
+  "taskPackage": {
+    "sections": [
+      "Repository and workspace",
+      "Problems",
+      "Strictly forbidden",
+      "Required tests",
+      "Acceptance criteria"
+    ],
+    "containsCredential": false,
+    "hash": "7bc9731c96b5ecc8783c343c7c009b97"
+  },
+  "uiAutomation": {
+    "available": true,
+    "reason": "UIA_LOADED",
+    "diagnostics": {
+      "interactive": true,
+      "sessionId": 1,
+      "rootName": "",
+      "rootChildren": 16,
+      "apartment": "STA"
+    },
+    "targets": [
+      {
+        "id": "chatgpt-desktop",
+        "ok": true,
+        "code": null,
+        "count": 1,
+        "windows": [
+          {
+            "name": "ChatGPT",
+            "processName": "ChatGPT",
+            "processId": 35588,
+            "className": "Chrome_WidgetWin_1"
+          }
+        ]
+      },
+      {
+        "id": "workbuddy-desktop",
+        "ok": true,
+        "code": null,
+        "count": 1,
+        "windows": [
+          {
+            "name": "WorkBuddy",
+            "processName": "WorkBuddy",
+            "processId": 7316,
+            "className": "Chrome_WidgetWin_1"
+          }
+        ]
+      }
+    ]
+  },
+  "passed": 9,
+  "failed": 0
+}

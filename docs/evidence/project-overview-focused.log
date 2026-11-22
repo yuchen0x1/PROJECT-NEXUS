@@ -1,0 +1,10 @@
+npm warn Unknown env config "store-dir". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+ RUN  v5.1.0 C:/Users/lenmo/Desktop/PROJECT NEXUS
+
+
+ Test Files  4 passed (4)
+      Tests  17 passed (17)
+   Start at  15:06:20
+   Duration  944ms (tests 80%, import 11%, transform 6%, worker 3%)
+

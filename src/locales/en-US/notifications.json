@@ -1,0 +1,112 @@
+{
+  "activity": {
+    "workstationReady": {
+      "label": "Workstation ready",
+      "detail_one": "{{count}} local project registered.",
+      "detail_other": "{{count}} local projects registered."
+    },
+    "environmentCheckFinished": {
+      "label": "Environment check finished",
+      "detail": "{{available}} of {{total}} development tools available."
+    },
+    "environmentCheckFailed": {
+      "label": "Environment check failed"
+    },
+    "environmentInstallFinished": {
+      "label": "One-click install finished",
+      "detail": "{{installed}} development tools installed."
+    },
+    "environmentInstallPartial": {
+      "label": "One-click install partially finished",
+      "detail": "{{installed}} tools installed, {{failed}} failed."
+    },
+    "environmentInstallFailed": {
+      "label": "One-click install failed",
+      "detail": "{{failed}} tools could not be installed."
+    },
+    "projectAdded": {
+      "label": "Local project added"
+    },
+    "projectAlreadyRegistered": {
+      "label": "Project already registered"
+    },
+    "projectRemoved": {
+      "label": "Project removed from NEXUS",
+      "detail": "The folder and its files were left unchanged."
+    },
+    "projectAddFailed": {
+      "label": "Project could not be added"
+    },
+    "scanComplete": {
+      "label": "Read-only scan complete",
+      "detail": "{{name}}: {{stack}}; {{count}} entries checked."
+    },
+    "scanFailed": {
+      "label": "Project scan failed"
+    },
+    "agentTaskQueued": {
+      "label": "Local Agent task queued",
+      "detail": "{{project}}: {{label}}"
+    },
+    "agentTaskFailed": {
+      "label": "Local Agent task failed"
+    },
+    "agentTaskStartError": {
+      "label": "Local Agent task could not start"
+    },
+    "agentCancellationRequested": {
+      "label": "Local Agent cancellation requested"
+    },
+    "agentRetryQueued": {
+      "label": "Local Agent retry queued"
+    },
+    "agentTaskCompleted": {
+      "label": "Agent task completed",
+      "detail": "{{project}}: {{label}}"
+    },
+    "autoStartEnabled": {
+      "label": "Start with Windows enabled",
+      "detail": "This setting changes only after your confirmation."
+    },
+    "autoStartDisabled": {
+      "label": "Start with Windows disabled",
+      "detail": "This setting changes only after your confirmation."
+    },
+    "agentApprovalResolved": {
+      "label": "Agent approval decided",
+      "detail": "{{tool}} was {{decision}}."
+    },
+    "agentRolledBack": {
+      "label": "Agent workspace rolled back",
+      "detail": "Isolation mode: {{mode}}. No project files were changed."
+    },
+    "agentApplied": {
+      "label": "Agent changes applied",
+      "detail": "{{count}} file change(s) written to the project."
+    },
+    "agentApplyFailed": {
+      "label": "Applying agent changes failed"
+    },
+    "updateAvailable": {
+      "label": "New version available",
+      "detail": "The app can update to v{{version}}."
+    },
+    "agentDesktopLaunched": {
+      "label": "Desktop application launched"
+    },
+    "agentWorkspaceRevealed": {
+      "label": "Workspace opened in Explorer"
+    }
+  },
+  "toast": {
+    "languageChanged": "Language updated",
+    "themeChanged": "Theme updated",
+    "settingsSaved": "Settings saved",
+    "projectAdded": "Project added",
+    "scanQueued": "Scan queued",
+    "agentRolledBack": "The workspace was rolled back to its original state.",
+    "agentApplied": "The agent changes were applied to your project.",
+    "providerSaved": "Provider saved.",
+    "updateAvailable": "A new version v{{version}} is available — update now from the update card."
+  }
+}

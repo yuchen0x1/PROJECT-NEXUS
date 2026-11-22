@@ -1,0 +1,22 @@
+{
+  "version": 3,
+  "from": 2,
+  "description": "Add persisted update capability reports, integration jobs, and recurring scan schedules without dropping existing repository, task, activity, GitHub App, webhook, update configuration, audit, or settings data.",
+  "additiveFields": [
+    "integrationReports",
+    "integrationJobs",
+    "integrationSchedules"
+  ],
+  "preserve": [
+    "projects",
+    "tasks",
+    "activity",
+    "settings",
+    "githubInstallations",
+    "githubWebhookEvents",
+    "updateConfigs",
+    "auditLogs"
+  ],
+  "runtime": "server/services/state-store.mjs",
+  "behavior": "When a schema v1 or v2 state file is loaded, missing Phase 3 arrays receive empty defaults and the result is atomically written as schemaVersion 3. Invalid JSON is preserved and causes startup to fail closed."
+}

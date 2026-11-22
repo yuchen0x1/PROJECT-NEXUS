@@ -1,0 +1,48 @@
+{
+  "page": {
+    "title": "项目",
+    "subtitle": "已登记的文件夹"
+  },
+  "registered": {
+    "title": "已登记的文件夹",
+    "detail": "文件夹引用保存在当前 Windows 用户配置中，与 GitHub 项目记录相互独立。",
+    "count": "{{count}} 个项目"
+  },
+  "table": {
+    "project": "项目",
+    "scanStatus": "扫描状态",
+    "actions": "操作",
+    "technologies": "检测到的技术栈"
+  },
+  "row": {
+    "missing": "文件夹缺失",
+    "pathChanged": "路径已变更",
+    "scanned": "已扫描",
+    "awaitingScan": "等待扫描",
+    "notScanned": "未扫描",
+    "scanLimit": "已达扫描上限",
+    "lastScan": "上次扫描 {{time}}",
+    "scanAction": "扫描",
+    "scanAria": "扫描 {{name}}",
+    "removeAria": "从 NEXUS 移除 {{name}}"
+  },
+  "empty": {
+    "title": "尚未添加本地项目",
+    "detail": "请选择一个项目文件夹。NEXUS 不会搜索这台计算机上的其他文件夹。"
+  },
+  "dialogs": {
+    "addFolder": "添加本地项目文件夹",
+    "removeTitle": "从 NEXUS 移除项目",
+    "removeMessage": "确定从本地项目列表中移除 {{name}} 吗？",
+    "removeDetail": "这只会移除 NEXUS 中的引用，不会删除或修改任何项目文件。",
+    "removeConfirm": "从 NEXUS 移除",
+    "removeCancel": "保留项目"
+  },
+  "selected": {
+    "label": "当前项目",
+    "lastScan": "上次扫描 {{time}}"
+  },
+  "tech": {
+    "none": "未发现已知技术栈标记"
+  }
+}

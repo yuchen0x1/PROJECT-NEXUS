@@ -1,0 +1,400 @@
+{
+  "recordedAt": "2026-11-14T22:59:42.156Z",
+  "hostProbe": {
+    "probedAt": "2026-11-14T22:59:43.8252636Z",
+    "appx": [
+      {
+        "Name": "OpenAI.CodexPrimaryRuntime.v26-1112-611-0",
+        "Version": "26.1112.611.0",
+        "InstallLocation": "C:\\Program Files\\WindowsApps\\OpenAI.CodexPrimaryRuntime.v26-1112-611-0_26.1112.611.0_x64__3k8sg7r9htsxt",
+        "PackageFamilyName": "OpenAI.CodexPrimaryRuntime.v26-1112-611-0_3k8sg7r9htsxt"
+      },
+      {
+        "Name": "WorkBuddyShareTarget",
+        "Version": "5.11.3.0",
+        "InstallLocation": "C:\\Program Files\\WindowsApps\\WorkBuddyShareTarget_5.11.3.0_neutral__fv0hcek9q9tbw",
+        "PackageFamilyName": "WorkBuddyShareTarget_fv0hcek9q9tbw"
+      },
+      {
+        "Name": "OpenAI.Codex",
+        "Version": "26.1111.2228.0",
+        "InstallLocation": "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.1111.2228.0_x64__2p2nqsd0c76g0",
+        "PackageFamilyName": "OpenAI.Codex_2p2nqsd0c76g0"
+      },
+      {
+        "Name": "OpenAI.CodexPrimaryRuntime.v26-1112-737-0",
+        "Version": "26.1112.737.0",
+        "InstallLocation": "C:\\Program Files\\WindowsApps\\OpenAI.CodexPrimaryRuntime.v26-1112-737-0_26.1112.737.0_x64__3k8sg7r9htsxt",
+        "PackageFamilyName": "OpenAI.CodexPrimaryRuntime.v26-1112-737-0_3k8sg7r9htsxt"
+      }
+    ],
+    "processes": [
+      {
+        "ProcessName": "ChatGPT",
+        "Id": 2144,
+        "MainWindowTitle": "",
+        "Path": "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.1111.2228.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe"
+      },
+      {
+        "ProcessName": "ChatGPT",
+        "Id": 25748,
+        "MainWindowTitle": "",
+        "Path": "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.1111.2228.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe"
+      },
+      {
+        "ProcessName": "ChatGPT",
+        "Id": 28840,
+        "MainWindowTitle": "",
+        "Path": "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.1111.2228.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe"
+      },
+      {
+        "ProcessName": "ChatGPT",
+        "Id": 30040,
+        "MainWindowTitle": "",
+        "Path": "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.1111.2228.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe"
+      },
+      {
+        "ProcessName": "ChatGPT",
+        "Id": 34408,
+        "MainWindowTitle": "",
+        "Path": "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.1111.2228.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe"
+      },
+      {
+        "ProcessName": "ChatGPT",
+        "Id": 35588,
+        "MainWindowTitle": "ChatGPT",
+        "Path": "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.1111.2228.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe"
+      },
+      {
+        "ProcessName": "ChatGPT",
+        "Id": 36692,
+        "MainWindowTitle": "",
+        "Path": "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.1111.2228.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe"
+      },
+      {
+        "ProcessName": "ChatGPT",
+        "Id": 37472,
+        "MainWindowTitle": "",
+        "Path": "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.1111.2228.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe"
+      },
+      {
+        "ProcessName": "ChatGPT",
+        "Id": 43904,
+        "MainWindowTitle": "",
+        "Path": "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.1111.2228.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe"
+      },
+      {
+        "ProcessName": "ChatGPT",
+        "Id": 46000,
+        "MainWindowTitle": "",
+        "Path": "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.1111.2228.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe"
+      },
+      {
+        "ProcessName": "ChatGPT",
+        "Id": 47800,
+        "MainWindowTitle": "",
+        "Path": "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.1111.2228.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe"
+      },
+      {
+        "ProcessName": "codex",
+        "Id": 46880,
+        "MainWindowTitle": "",
+        "Path": "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.1111.2228.0_x64__2p2nqsd0c76g0\\app\\resources\\codex.exe"
+      },
+      {
+        "ProcessName": "codex-code-mode-host",
+        "Id": 3964,
+        "MainWindowTitle": "",
+        "Path": "E:\\WindowsApps\\OpenAI.Codex_26.1111.2228.0_x64__2p2nqsd0c76g0\\app\\resources\\codex-code-mode-host.exe"
+      },
+      {
+        "ProcessName": "codex-computer-use-swift",
+        "Id": 16124,
+        "MainWindowTitle": "",
+        "Path": "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.1111.2228.0_x64__2p2nqsd0c76g0\\app\\resources\\cua_node\\bin\\node_modules\\@oai\\sky\\bin\\windows\\swift\\x64\\codex-computer-use-swift.exe"
+      },
+      {
+        "ProcessName": "codex-plus-plus",
+        "Id": 31264,
+        "MainWindowTitle": "",
+        "Path": "C:\\Users\\lenmo\\AppData\\Local\\Programs\\Codex++\\codex-plus-plus.exe"
+      },
+      {
+        "ProcessName": "codex-plus-plus",
+        "Id": 37492,
+        "MainWindowTitle": "Codex++",
+        "Path": "C:\\Users\\lenmo\\AppData\\Local\\Programs\\Codex++\\codex-plus-plus.exe"
+      },
+      {
+        "ProcessName": "codex-windows-sandbox-service",
+        "Id": 8124,
+        "MainWindowTitle": "",
+        "Path": null
+      },
+      {
+        "ProcessName": "WorkBuddy",
+        "Id": 7316,
+        "MainWindowTitle": "WorkBuddy",
+        "Path": "E:\\AppStoreSoftstore\\Install\\WorkBuddy\\WorkBuddy.exe"
+      },
+      {
+        "ProcessName": "WorkBuddy",
+        "Id": 8692,
+        "MainWindowTitle": "",
+        "Path": "E:\\AppStoreSoftstore\\Install\\WorkBuddy\\WorkBuddy.exe"
+      },
+      {
+        "ProcessName": "WorkBuddy",
+        "Id": 14360,
+        "MainWindowTitle": "",
+        "Path": "E:\\AppStoreSoftstore\\Install\\WorkBuddy\\WorkBuddy.exe"
+      },
+      {
+        "ProcessName": "WorkBuddy",
+        "Id": 18176,
+        "MainWindowTitle": "",
+        "Path": "E:\\AppStoreSoftstore\\Install\\WorkBuddy\\WorkBuddy.exe"
+      },
+      {
+        "ProcessName": "WorkBuddy",
+        "Id": 19312,
+        "MainWindowTitle": "",
+        "Path": "E:\\AppStoreSoftstore\\Install\\WorkBuddy\\WorkBuddy.exe"
+      },
+      {
+        "ProcessName": "WorkBuddy",
+        "Id": 27880,
+        "MainWindowTitle": "",
+        "Path": "E:\\AppStoreSoftstore\\Install\\WorkBuddy\\WorkBuddy.exe"
+      },
+      {
+        "ProcessName": "WorkBuddy",
+        "Id": 29272,
+        "MainWindowTitle": "",
+        "Path": "E:\\AppStoreSoftstore\\Install\\WorkBuddy\\WorkBuddy.exe"
+      },
+      {
+        "ProcessName": "WorkBuddy",
+        "Id": 31420,
+        "MainWindowTitle": "",
+        "Path": "E:\\AppStoreSoftstore\\Install\\WorkBuddy\\WorkBuddy.exe"
+      },
+      {
+        "ProcessName": "WorkBuddy",
+        "Id": 33968,
+        "MainWindowTitle": "",
+        "Path": "E:\\AppStoreSoftstore\\Install\\WorkBuddy\\WorkBuddy.exe"
+      },
+      {
+        "ProcessName": "WorkBuddy",
+        "Id": 42804,
+        "MainWindowTitle": "",
+        "Path": "E:\\AppStoreSoftstore\\Install\\WorkBuddy\\WorkBuddy.exe"
+      },
+      {
+        "ProcessName": "WorkBuddy",
+        "Id": 45992,
+        "MainWindowTitle": "",
+        "Path": "E:\\AppStoreSoftstore\\Install\\WorkBuddy\\WorkBuddy.exe"
+      },
+      {
+        "ProcessName": "workbuddy-cu",
+        "Id": 30152,
+        "MainWindowTitle": "",
+        "Path": "C:\\Users\\lenmo\\.workbuddy\\plugins\\cache\\workbuddy-computer-use\\computer-use\\1.1.310.9effaf24\\bin\\workbuddy-cu.exe"
+      },
+      {
+        "ProcessName": "workbuddy-cua",
+        "Id": 46044,
+        "MainWindowTitle": "",
+        "Path": "C:\\Users\\lenmo\\.workbuddy\\plugins\\cache\\workbuddy-computer-use\\computer-use\\1.1.310.9effaf24\\bin\\workbuddy-cua.exe"
+      }
+    ],
+    "uninstall": [
+      {
+        "DisplayName": "WorkBuddy 5.11.3",
+        "DisplayVersion": "5.11.3",
+        "InstallLocation": null,
+        "DisplayIcon": "E:\\AppStoreSoftstore\\Install\\WorkBuddy\\WorkBuddy.exe,0"
+      },
+      {
+        "DisplayName": "Codex++",
+        "DisplayVersion": "2.6.10",
+        "InstallLocation": "C:\\Users\\lenmo\\AppData\\Local\\Programs\\Codex++",
+        "DisplayIcon": "C:\\Users\\lenmo\\AppData\\Local\\Programs\\Codex++\\codex-plus-plus.exe"
+      }
+    ]
+  },
+  "uia": {
+    "available": true,
+    "reason": "UIA_LOADED",
+    "message": "UIAutomationClient loaded from GAC",
+    "diagnostics": {
+      "interactive": true,
+      "sessionId": 1,
+      "rootName": "",
+      "rootChildren": 15,
+      "apartment": "STA"
+    },
+    "platform": "Microsoft Windows NT 10.0.26300.0",
+    "checkedAt": "2026-11-14T22:59:45.105Z"
+  },
+  "adapters": [
+    {
+      "id": "chatgpt-desktop",
+      "name": "ChatGPT Desktop",
+      "installed": true,
+      "running": true,
+      "version": "26.1112.611.0",
+      "launcher": "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.1111.2228.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe",
+      "loginState": "SIGNED_IN",
+      "projectRefs": [
+        "PROJECT NEXUS"
+      ],
+      "capabilities": {
+        "detect": {
+          "level": "verified",
+          "evidence": "read-only process / package / uninstall inventory",
+          "verifiedAt": "2026-11-14T22:59:51.246Z"
+        },
+        "isRunning": {
+          "level": "verified",
+          "evidence": "process list",
+          "verifiedAt": "2026-11-14T22:59:51.246Z"
+        },
+        "launch": {
+          "level": "partial",
+          "evidence": "launcher resolved from package or uninstall entry; not launched during detection",
+          "verifiedAt": null
+        },
+        "loginState": {
+          "level": "verified",
+          "evidence": "profile/project/composer controls were visible in the ChatGPT accessibility tree",
+          "verifiedAt": "2026-11-14T22:59:51.246Z"
+        },
+        "listProjects": {
+          "level": "verified",
+          "evidence": "project control 'PROJECT NEXUS' is exposed by UI Automation",
+          "verifiedAt": "2026-11-14T22:59:51.246Z"
+        },
+        "selectProject": {
+          "level": "partial",
+          "evidence": "project control is identifiable; selection is only verified when a task send is executed",
+          "verifiedAt": null
+        },
+        "sendTask": {
+          "level": "partial",
+          "evidence": "composer is exposed but the client currently exposes no enabled send control (possibly busy)",
+          "verifiedAt": null
+        },
+        "readExecutionState": {
+          "level": "partial",
+          "evidence": "heuristic over real UI text plus independent git/test evidence",
+          "verifiedAt": null
+        },
+        "captureFailure": {
+          "level": "partial",
+          "evidence": "window-bounded screenshot available",
+          "verifiedAt": null
+        },
+        "closeSession": {
+          "level": "unsupported",
+          "evidence": "closing a logged-in user session is left to the human operator",
+          "verifiedAt": null
+        }
+      },
+      "uiEvidence": {
+        "controlCount": 1827,
+        "visibleControlCount": 194,
+        "loginMarkers": [
+          "打开个人资料菜单"
+        ],
+        "hasComposer": true,
+        "hasSendControl": false,
+        "projectControl": {
+          "name": "PROJECT NEXUS",
+          "automationId": "",
+          "className": "group relative cursor-interaction text-sm hover:bg-secondary-ghost-hover h-[var(--height-token-row)] sidebar-item focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring has-[[aria-haspopup=menu][aria-expanded=true]]:bg-secondary-ghost-hover sidebar-row-focus group/folder-row flex items-center justify-between overflow-hidden text-default [contain-intrinsic-block-size:auto_var(--height-token-row)] [content-visibility:auto]"
+        },
+        "inputControl": {
+          "name": "和 Codex 一起工作",
+          "automationId": "",
+          "className": "ProseMirror ProseMirror-focused"
+        },
+        "sendControl": null
+      }
+    },
+    {
+      "id": "workbuddy-desktop",
+      "name": "WorkBuddy",
+      "installed": true,
+      "running": true,
+      "version": "5.11.3",
+      "launcher": "E:\\AppStoreSoftstore\\Install\\WorkBuddy\\WorkBuddy.exe",
+      "loginState": "UNKNOWN",
+      "projectRefs": [],
+      "capabilities": {
+        "detect": {
+          "level": "verified",
+          "evidence": "read-only process / package / uninstall inventory",
+          "verifiedAt": "2026-11-14T22:59:55.557Z"
+        },
+        "isRunning": {
+          "level": "verified",
+          "evidence": "process list",
+          "verifiedAt": "2026-11-14T22:59:55.557Z"
+        },
+        "launch": {
+          "level": "partial",
+          "evidence": "launcher resolved from package or uninstall entry; not launched during detection",
+          "verifiedAt": null
+        },
+        "loginState": {
+          "level": "unsupported",
+          "evidence": "WorkBuddy exposes only legacy child panes; no authenticated account marker is accessible",
+          "verifiedAt": null
+        },
+        "listProjects": {
+          "level": "unsupported",
+          "evidence": "WorkBuddy project controls are not exposed through the current UIA tree",
+          "verifiedAt": null
+        },
+        "selectProject": {
+          "level": "unsupported",
+          "evidence": "WorkBuddy project controls are not exposed through the current UIA tree",
+          "verifiedAt": null
+        },
+        "sendTask": {
+          "level": "unsupported",
+          "evidence": "WorkBuddy composer/send controls are not exposed through the current UIA tree",
+          "verifiedAt": null
+        },
+        "readExecutionState": {
+          "level": "partial",
+          "evidence": "process liveness only; execution text is not exposed through UIA",
+          "verifiedAt": null
+        },
+        "captureFailure": {
+          "level": "partial",
+          "evidence": "window-bounded screenshot available",
+          "verifiedAt": null
+        },
+        "closeSession": {
+          "level": "unsupported",
+          "evidence": "closing a logged-in user session is left to the human operator",
+          "verifiedAt": null
+        }
+      },
+      "uiEvidence": {
+        "controlCount": 1,
+        "visibleControlCount": 0,
+        "loginMarkers": [],
+        "hasComposer": false,
+        "hasSendControl": false,
+        "projectControl": null,
+        "inputControl": null,
+        "sendControl": null
+      }
+    }
+  ]
+}

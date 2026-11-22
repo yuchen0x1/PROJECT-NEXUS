@@ -1,0 +1,114 @@
+{
+  "activity": {
+    "workstationReady": {
+      "label": "Рабочая станция готова",
+      "detail_one": "Зарегистрирован {{count}} локальный проект.",
+      "detail_few": "Зарегистрировано {{count}} локальных проекта.",
+      "detail_many": "Зарегистрировано {{count}} локальных проектов.",
+      "detail_other": "Зарегистрировано {{count}} локальных проекта."
+    },
+    "environmentCheckFinished": {
+      "label": "Проверка среды завершена",
+      "detail": "Доступно инструментов: {{available}} из {{total}}."
+    },
+    "environmentCheckFailed": {
+      "label": "Сбой проверки среды"
+    },
+    "environmentInstallFinished": {
+      "label": "Установка одним щелчком завершена",
+      "detail": "Установлено инструментов разработки: {{installed}}."
+    },
+    "environmentInstallPartial": {
+      "label": "Установка одним щелчком частично завершена",
+      "detail": "Установлено: {{installed}}, не удалось: {{failed}}."
+    },
+    "environmentInstallFailed": {
+      "label": "Не удалось установить одним щелчком",
+      "detail": "Не удалось установить инструменты: {{failed}}."
+    },
+    "projectAdded": {
+      "label": "Локальный проект добавлен"
+    },
+    "projectAlreadyRegistered": {
+      "label": "Проект уже зарегистрирован"
+    },
+    "projectRemoved": {
+      "label": "Проект удалён из NEXUS",
+      "detail": "Папка и её файлы остались без изменений."
+    },
+    "projectAddFailed": {
+      "label": "Не удалось добавить проект"
+    },
+    "scanComplete": {
+      "label": "Сканирование только для чтения завершено",
+      "detail": "{{name}}: {{stack}}; проверено записей: {{count}}."
+    },
+    "scanFailed": {
+      "label": "Сбой сканирования проекта"
+    },
+    "agentTaskQueued": {
+      "label": "Локальная задача агента поставлена в очередь",
+      "detail": "{{project}}: {{label}}"
+    },
+    "agentTaskFailed": {
+      "label": "Сбой локальной задачи агента"
+    },
+    "agentTaskStartError": {
+      "label": "Не удалось запустить локальную задачу агента"
+    },
+    "agentCancellationRequested": {
+      "label": "Запрошена отмена локальной задачи агента"
+    },
+    "agentRetryQueued": {
+      "label": "Повтор локальной задачи агента поставлен в очередь"
+    },
+    "agentTaskCompleted": {
+      "label": "Задача агента завершена",
+      "detail": "{{project}}: {{label}}"
+    },
+    "autoStartEnabled": {
+      "label": "Запуск с Windows включён",
+      "detail": "Эта настройка меняется только после вашего подтверждения."
+    },
+    "autoStartDisabled": {
+      "label": "Запуск с Windows отключён",
+      "detail": "Эта настройка меняется только после вашего подтверждения."
+    },
+    "agentApprovalResolved": {
+      "label": "Одобрение агента решено",
+      "detail": "{{tool}} было {{decision}}."
+    },
+    "agentRolledBack": {
+      "label": "Рабочая область агента отменена",
+      "detail": "Режим изоляции: {{mode}}. Файлы проекта не изменялись."
+    },
+    "agentApplied": {
+      "label": "Изменения агента применены",
+      "detail": "{{count}} изменение(й) файлов записано в проект."
+    },
+    "agentApplyFailed": {
+      "label": "Не удалось применить изменения агента"
+    },
+    "updateAvailable": {
+      "label": "Доступна новая версия",
+      "detail": "Приложение можно обновить до v{{version}}."
+    },
+    "agentDesktopLaunched": {
+      "label": "Настольное приложение запущено"
+    },
+    "agentWorkspaceRevealed": {
+      "label": "Рабочая область открыта в Проводнике"
+    }
+  },
+  "toast": {
+    "languageChanged": "Язык обновлён",
+    "themeChanged": "Тема обновлена",
+    "settingsSaved": "Настройки сохранены",
+    "projectAdded": "Проект добавлен",
+    "scanQueued": "Сканирование поставлено в очередь",
+    "agentRolledBack": "Рабочая область возвращена в исходное состояние.",
+    "agentApplied": "Изменения агента применены к вашему проекту.",
+    "providerSaved": "Провайдер сохранён.",
+    "updateAvailable": "Доступна новая версия v{{version}} — обновите через карточку обновления."
+  }
+}

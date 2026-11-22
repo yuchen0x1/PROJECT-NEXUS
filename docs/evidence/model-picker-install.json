@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "version": "0.5.1",
+  "installer": "C:\\Users\\lenmo\\Desktop\\PROJECT NEXUS\\release-model-picker\\PROJECT-NEXUS-0.5.1-win-x64-setup.exe",
+  "bytes": 122113775,
+  "sha256": "187A25C79B447FB0145352187AFA75BBB292E1CBB0D0DA125CEBD7C176F12D13",
+  "signature": "NotSigned",
+  "installerExitCode": 0,
+  "backup": "C:\\Users\\lenmo\\AppData\\Local\\PROJECT NEXUS Backups\\20261113-141326-model-picker",
+  "profileFilesChecked": 7,
+  "profileFilesChanged": [],
+  "installedAsarMatchesPackage": true,
+  "at": "2026-11-13T06:19:00.1751164Z"
+}

@@ -1,0 +1,23 @@
+npm warn Unknown env config "store-dir". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> project-nexus@0.5.1 test
+> vitest run
+
+
+ RUN  v5.1.0 C:/Users/lenmo/Desktop/PROJECT NEXUS
+
+warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src.txt', LF will be replaced by CRLF the next time Git touches it
+To C:\Users\lenmo\AppData\Local\Temp\nexus-repo-bare-5DXl9f
+ * [new branch]      main -> main
+warning: in the working copy of 'src.txt', LF will be replaced by CRLF the next time Git touches it
+To C:\Users\lenmo\AppData\Local\Temp\nexus-repo-bare-5DXl9f
+   c786567..c8be613  main -> main
+Preparing worktree (new branch 'nexus-fix/task-1')
+Preparing worktree (new branch 'nexus-fix/task-2')
+
+ Test Files  43 passed (43)
+      Tests  239 passed (239)
+   Start at  14:09:59
+   Duration  86.56s (tests 97%, import 1%, transform 1%)
+

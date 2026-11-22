@@ -1,0 +1,110 @@
+{
+  "ranAt": "2026-11-14T21:20:04.735Z",
+  "steps": [
+    {
+      "name": "add-repository",
+      "status": 201,
+      "summary": {
+        "id": "repo_008b8e29-47e0-4f9a-8ec4-021a96bf6265",
+        "fullName": "yuchen0x1/PROJECT-NEXUS",
+        "localBound": true
+      }
+    },
+    {
+      "name": "probe-adapters",
+      "status": 200,
+      "summary": [
+        {
+          "id": "chatgpt-desktop",
+          "installed": true,
+          "running": true,
+          "launcher": "present",
+          "uia": false,
+          "error": null
+        },
+        {
+          "id": "workbuddy-desktop",
+          "installed": true,
+          "running": true,
+          "launcher": "present",
+          "uia": false,
+          "error": null
+        },
+        {
+          "id": "codex-cli",
+          "installed": true,
+          "running": true,
+          "launcher": "present",
+          "uia": false,
+          "error": null
+        }
+      ]
+    },
+    {
+      "name": "scan-now",
+      "status": 200,
+      "summary": {
+        "mode": "poll",
+        "verdict": "PASS",
+        "events": 0,
+        "resources": 9,
+        "errors": 0
+      }
+    },
+    {
+      "name": "cursors",
+      "status": 200,
+      "summary": {
+        "count": 9,
+        "etags": 9
+      }
+    },
+    {
+      "name": "events",
+      "status": 200,
+      "summary": {
+        "total": 0
+      }
+    },
+    {
+      "name": "tasks",
+      "status": 200,
+      "summary": {
+        "total": 0
+      }
+    },
+    {
+      "name": "readiness",
+      "status": 200,
+      "summary": {
+        "overall": "BLOCKED",
+        "blockingCodes": [
+          "DESKTOP_CLIENT_NOT_CONNECTED",
+          "NO_TASK_GENERATED",
+          "TASK_NOT_EXECUTABLE"
+        ]
+      }
+    },
+    {
+      "name": "overview",
+      "status": 200,
+      "summary": {
+        "repos": 1,
+        "healthy": 1,
+        "clients": 3
+      }
+    },
+    {
+      "name": "audit",
+      "status": 200,
+      "summary": {
+        "total": 3,
+        "last": [
+          "sync",
+          "added",
+          "recover"
+        ]
+      }
+    }
+  ]
+}

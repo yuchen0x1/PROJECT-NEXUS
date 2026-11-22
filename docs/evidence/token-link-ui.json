@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "linkText": "获取 GitHub 访问令牌",
+  "url": "https://github.com/settings/tokens/new",
+  "keyboardActivation": true,
+  "mainProcessShellCallCaptured": true,
+  "browserLaunchStubbedForTest": true,
+  "setupPagePreserved": true,
+  "at": "2026-11-13T05:09:35.043Z"
+}

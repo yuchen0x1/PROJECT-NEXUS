@@ -1,0 +1,29 @@
+{
+  "eyebrow": "GitHub Actions",
+  "title": "Build-Center",
+  "subtitle": "Workflows einsehen, Builds starten und Läufe von einer projektbewussten Oberfläche aus verfolgen.",
+  "picker": {
+    "kicker": "Ziel-Repository",
+    "title": "Projekt auswählen",
+    "emptyTitle": "Keine Ziel-Repositories",
+    "emptyDetail": "Synchronisieren Sie Repositories, bevor Sie einen Build-Kontext öffnen."
+  },
+  "workflows": {
+    "kicker": "Workflow-Katalog",
+    "selectRepository": "Repository auswählen",
+    "runAction": "Workflow ausführen",
+    "dispatched": "Build-Start in Warteschlange gestellt",
+    "dispatchFailed": "Build-Start fehlgeschlagen",
+    "loadFailed": "Workflows konnten nicht geladen werden",
+    "emptyTitle": "Keine Workflows entdeckt",
+    "emptyDetail": "GitHub hat für dieses Repository keine Actions-Workflows zurückgegeben.",
+    "waitingTitle": "Build-Kontext wartet",
+    "waitingDetail": "Wählen Sie ein Repository, um seine echten GitHub-Actions-Workflows zu laden."
+  },
+  "runs": {
+    "kicker": "Ausführungsverlauf",
+    "title": "Aktuelle Läufe",
+    "emptyTitle": "Kein Ausführungsverlauf geladen",
+    "emptyDetail": "Wählen Sie ein Repository mit Actions-Zugriff, um aktuelle Läufe anzuzeigen."
+  }
+}

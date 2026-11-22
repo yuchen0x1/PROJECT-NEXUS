@@ -1,0 +1,53 @@
+{
+  "page": {
+    "title": "Entwicklungsumgebung",
+    "subtitle": "Erkannte ausführbare Pfade und Versionen dieses Windows-Benutzerkontos."
+  },
+  "summary": {
+    "detected": "{{available}} von {{total}} Tools erkannt",
+    "running": "Umgebungserkennung läuft",
+    "detail": "Ausführbare Dateien erhalten begrenzte Versionsprüfungen, wo dies sicher möglich ist. Befehls-Shims und Windows Terminal werden über den Pfad erkannt, ohne aufgerufen zu werden; mehrere PATH-Einträge werden als Konflikte markiert."
+  },
+  "install": {
+    "button": "Download mit einem Klick",
+    "buttonHint": "Lädt fehlende Entwicklungswerkzeuge automatisch über winget herunter und installiert sie. Windows zeigt dabei möglicherweise mehrere UAC-Aufforderungen.",
+    "confirmTitle": "Fehlende Entwicklungswerkzeuge herunterladen",
+    "confirmMessage": "{{total}} fehlende Werkzeuge über winget herunterladen und installieren ({{tools}})?",
+    "confirmDetail": "Die Installationsprogramme laufen über winget im stillen Modus. Windows zeigt dabei möglicherweise mehrere UAC-Aufforderungen; danach wird PATH aktualisiert und die Umgebung neu geprüft.",
+    "confirmAction": "Herunterladen und installieren",
+    "installing": "Installation {{current}}/{{total}}: {{label}}",
+    "phase": {
+      "preparing": "Installation wird vorbereitet…",
+      "refreshing": "PATH wird aktualisiert…",
+      "finalizing": "Umgebung wird neu geprüft…"
+    },
+    "allPresent": "Die Entwicklungsumgebung ist vollständig — kein Download nötig.",
+    "inProgressToast": "Es läuft bereits eine Installationsaufgabe.",
+    "wingetMissing": "winget (Windows-Paketmanager) wurde nicht gefunden; die Ein-Klick-Installation kann nicht ausgeführt werden.",
+    "finishedOk": "{{installed}} Werkzeuge installiert; die Umgebungsprüfung war erfolgreich.",
+    "finishedPartial": "{{installed}} Werkzeuge installiert, {{failed}} fehlgeschlagen. Details finden Sie in den Protokollen.",
+    "finishedFailed": "Die Installation schlug für {{failed}} Werkzeuge fehl. Details finden Sie in den Protokollen."
+  },
+  "table": {
+    "title": "Installierte Entwicklungstools",
+    "scannedAt": "Geprüft {{time}}",
+    "checking": "PRÜFUNG LÄUFT",
+    "stillRunning": "Die erste Umgebungsprüfung läuft noch.",
+    "columns": {
+      "tool": "Tool",
+      "paths": "Erkannte Pfade",
+      "version": "Version"
+    },
+    "noPath": "Nicht im PATH gefunden",
+    "pathConflict": "Mehrere PATH-Einträge"
+  },
+  "status": {
+    "AVAILABLE": "Verfügbar",
+    "SHIM_FOUND": "Shim gefunden · Version nicht abgefragt",
+    "PATH_FOUND": "Pfad gefunden · Version nicht abgefragt",
+    "MISSING": "Nicht gefunden",
+    "TIMEOUT": "Versionsprüfung hat Zeitlimit überschritten",
+    "VERSION_ERROR": "Version konnte nicht gelesen werden"
+  },
+  "note": "Die Erkennung führt Versionsbefehle nur für im PATH gefundene Binärdateien aus. Sie ändert den PATH nicht, installiert keine Pakete und erhöht keine Berechtigungen."
+}

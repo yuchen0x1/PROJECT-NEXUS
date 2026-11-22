@@ -1,0 +1,169 @@
+/* ============================================================
+   PROJECT NEXUS — Design tokens
+   Premium dark developer workstation. Every surface color, text
+   color, radius, shadow and duration is defined here once and
+   consumed by both the workstation shell and the remote console.
+   Themes: [data-theme="dark"] (default) and [data-theme="light"].
+   ============================================================ */
+
+:root {
+  /* Typography */
+  --nx-font-ui: 'Segoe UI Variable Text', 'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, 'Microsoft YaHei UI', 'Microsoft YaHei', 'Yu Gothic UI', 'Meiryo UI', 'Malgun Gothic', '맑은 고딕', sans-serif;
+  --nx-font-mono: 'Cascadia Mono', 'Cascadia Code', Consolas, 'Sarasa Mono SC', 'Courier New', monospace;
+
+  /* Type scale */
+  --nx-fs-2xs: 9px;
+  --nx-fs-xs: 10px;
+  --nx-fs-sm: 11px;
+  --nx-fs-md: 12px;
+  --nx-fs-base: 13px;
+  --nx-fs-lg: 15px;
+  --nx-fs-xl: 18px;
+  --nx-fs-2xl: 22px;
+
+  /* Icon + control metrics */
+  --nx-icon-sm: 14px;
+  --nx-icon-md: 16px;
+  --nx-icon-lg: 18px;
+  --nx-control-h: 30px;
+  --nx-control-h-lg: 34px;
+
+  /* Spacing scale */
+  --nx-sp-1: 4px;
+  --nx-sp-2: 8px;
+  --nx-sp-3: 12px;
+  --nx-sp-4: 16px;
+  --nx-sp-5: 20px;
+  --nx-sp-6: 24px;
+  --nx-sp-8: 32px;
+
+  /* Radii: restrained, desktop-native */
+  --nx-r-sm: 3px;
+  --nx-r-md: 5px;
+  --nx-r-lg: 7px;
+  --nx-r-full: 999px;
+
+  /* Motion */
+  --nx-t-fast: 120ms ease;
+  --nx-t-base: 180ms ease;
+  --nx-t-slow: 260ms cubic-bezier(.2, .7, .3, 1);
+
+  color-scheme: dark;
+}
+
+/* ---------- Dark theme (default) ---------- */
+:root, [data-theme='dark'] {
+  --nx-bg: #0f1216;
+  --nx-bg-rail: #12161b;
+  --nx-bg-panel: #151a20;
+  --nx-bg-raised: #1a2028;
+  --nx-bg-inset: #0c0f13;
+  --nx-bg-hover: #1c232c;
+  --nx-bg-active: #222b36;
+  --nx-bg-titlebar: #10141a;
+
+  --nx-line: #272e38;
+  --nx-line-soft: #1d232b;
+  --nx-line-strong: #354050;
+
+  --nx-text: #e4e8ee;
+  --nx-text-2: #b9c1cc;
+  --nx-text-muted: #8b95a2;
+  --nx-text-faint: #626d7c;
+
+  --nx-accent: #4c8ddf;
+  --nx-accent-hover: #619eea;
+  --nx-accent-down: #3f7cc7;
+  --nx-accent-text: #0d141d;
+  --nx-accent-soft: rgba(76, 141, 223, .13);
+  --nx-accent-line: rgba(76, 141, 223, .42);
+
+  --nx-success: #4cc38a;
+  --nx-success-soft: rgba(76, 195, 138, .12);
+  --nx-warning: #d9a954;
+  --nx-warning-soft: rgba(217, 169, 84, .13);
+  --nx-danger: #e2685c;
+  --nx-danger-soft: rgba(226, 104, 92, .12);
+  --nx-info: #5aa9e6;
+  --nx-info-soft: rgba(90, 169, 230, .12);
+
+  --nx-shadow-popover: 0 10px 32px rgba(0, 0, 0, .45), 0 2px 8px rgba(0, 0, 0, .3);
+  --nx-shadow-modal: 0 18px 60px rgba(0, 0, 0, .55);
+  --nx-scroll-thumb: #2c3542;
+  --nx-scrim: rgba(5, 8, 12, .62);
+  --nx-selection: rgba(76, 141, 223, .32);
+}
+
+/* ---------- Light theme ---------- */
+[data-theme='light'] {
+  --nx-bg: #f2f3f6;
+  --nx-bg-rail: #eceef2;
+  --nx-bg-panel: #ffffff;
+  --nx-bg-raised: #ffffff;
+  --nx-bg-inset: #f4f6f8;
+  --nx-bg-hover: #eef1f5;
+  --nx-bg-active: #e4e9f0;
+  --nx-bg-titlebar: #e9ebef;
+
+  --nx-line: #d9dde3;
+  --nx-line-soft: #e6e9ee;
+  --nx-line-strong: #c2c9d2;
+
+  --nx-text: #1d2430;
+  --nx-text-2: #3b4450;
+  --nx-text-muted: #68727f;
+  --nx-text-faint: #8d97a4;
+
+  --nx-accent: #2174c4;
+  --nx-accent-hover: #1c65ab;
+  --nx-accent-down: #1a5896;
+  --nx-accent-text: #ffffff;
+  --nx-accent-soft: rgba(33, 116, 196, .1);
+  --nx-accent-line: rgba(33, 116, 196, .4);
+
+  --nx-success: #1c8a58;
+  --nx-success-soft: rgba(28, 138, 88, .1);
+  --nx-warning: #9a6b16;
+  --nx-warning-soft: rgba(154, 107, 22, .1);
+  --nx-danger: #c04335;
+  --nx-danger-soft: rgba(192, 67, 53, .09);
+  --nx-info: #2174c4;
+  --nx-info-soft: rgba(33, 116, 196, .09);
+
+  --nx-shadow-popover: 0 10px 32px rgba(23, 32, 48, .16), 0 2px 8px rgba(23, 32, 48, .1);
+  --nx-shadow-modal: 0 18px 60px rgba(23, 32, 48, .24);
+  --nx-scroll-thumb: #c0c7d1;
+  --nx-scrim: rgba(24, 32, 46, .38);
+  --nx-selection: rgba(33, 116, 196, .25);
+}
+
+/* ---------- Global application ---------- */
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--nx-bg);
+  color: var(--nx-text);
+  font-family: var(--nx-font-ui);
+  font-size: var(--nx-fs-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+::selection { background: var(--nx-selection); }
+* { box-sizing: border-box; }
+:focus-visible { outline: 2px solid var(--nx-accent); outline-offset: 1px; }
+
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: var(--nx-scroll-thumb); border-radius: 5px; border: 2px solid transparent; background-clip: content-box; }
+*::-webkit-scrollbar-thumb:hover { background-color: var(--nx-text-faint); background-clip: content-box; }
+*::-webkit-scrollbar-track { background: transparent; }
+* { scrollbar-width: thin; scrollbar-color: var(--nx-scroll-thumb) transparent; }
+
+/* Reduced motion: user preference wins over the media query. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+[data-motion='reduced'] *, [data-motion='reduced'] *::before, [data-motion='reduced'] *::after {
+  animation-duration: .001ms !important;
+  transition-duration: .001ms !important;
+}

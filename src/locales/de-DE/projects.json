@@ -1,0 +1,48 @@
+{
+  "page": {
+    "title": "Projekte",
+    "subtitle": "Registrierte Ordner"
+  },
+  "registered": {
+    "title": "Registrierte Ordner",
+    "detail": "Ordnerverweise werden im Windows-Benutzerprofil gespeichert, getrennt von den GitHub-Projekteinträgen.",
+    "count": "{{count}} PROJEKTE"
+  },
+  "table": {
+    "project": "Projekt",
+    "scanStatus": "Scan-Status",
+    "actions": "Aktionen",
+    "technologies": "Erkannte Technologien"
+  },
+  "row": {
+    "missing": "Ordner fehlt",
+    "pathChanged": "Pfad geändert",
+    "scanned": "Gescannt",
+    "awaitingScan": "Wartet auf Scan",
+    "notScanned": "Nicht gescannt",
+    "scanLimit": "Scan-Limit erreicht",
+    "lastScan": "Letzter Scan {{time}}",
+    "scanAction": "Scannen",
+    "scanAria": "{{name}} scannen",
+    "removeAria": "{{name}} aus NEXUS entfernen"
+  },
+  "empty": {
+    "title": "Es wurden keine lokalen Projekte hinzugefügt",
+    "detail": "Wählen Sie einen Projektordner. NEXUS durchsucht keine anderen Ordner dieses Computers."
+  },
+  "dialogs": {
+    "addFolder": "Lokalen Projektordner hinzufügen",
+    "removeTitle": "Projekt aus NEXUS entfernen",
+    "removeMessage": "{{name}} aus der lokalen Projektliste entfernen?",
+    "removeDetail": "Dies entfernt nur den NEXUS-Verweis. Es werden keine Projektdateien gelöscht oder geändert.",
+    "removeConfirm": "Aus NEXUS entfernen",
+    "removeCancel": "Projekt behalten"
+  },
+  "selected": {
+    "label": "Ausgewähltes Projekt",
+    "lastScan": "Letzter Scan {{time}}"
+  },
+  "tech": {
+    "none": "Keine bekannten Stack-Marker"
+  }
+}

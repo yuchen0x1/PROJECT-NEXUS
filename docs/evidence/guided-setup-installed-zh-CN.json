@@ -1,0 +1,26 @@
+{
+  "status": "PASS",
+  "locale": "zh-CN",
+  "fixtureServices": true,
+  "installedPackage": true,
+  "checks": [
+    "flat-navigation",
+    "next-saves-and-navigates",
+    "draft-model-discovery",
+    "model-failure-retry",
+    "model-selection-and-manual-entry",
+    "model-list-invalidation",
+    "saved-key-model-discovery",
+    "provider-failure-retry",
+    "repository-failure-retry",
+    "script-and-write-consent",
+    "selected-repository",
+    "actual-enable",
+    "feature-tour",
+    "saved-credential-reuse",
+    "provider-metadata-preserved",
+    "explicit-scheduler-resume",
+    "720p-layout"
+  ],
+  "at": "2026-11-13T06:19:58.451Z"
+}
