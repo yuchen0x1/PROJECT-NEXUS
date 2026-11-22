@@ -61,7 +61,29 @@ The role is configured at process level; it is not an authenticated per-user ide
 
 Scan output is bounded and static. `truncated` reports tree limits. A configured signing key, manifest, digest or HTTPS URL is evidence only; signatures, package installation and old-client update success remain unverified.
 
-## Autonomy phase-two routes
+## Autonomy production routing boundary
+
+`server/index.mjs` registers autonomy **before** the terminal API 404 and SPA/static fallbacks. The registered HTTP surface is an explicit read-only allowlist: only the following GET routes (and Express's corresponding HEAD requests) are available under `/api/autonomy`, with the existing local-session, origin and rate-limit middleware plus a minimum configured `Viewer` role:
+
+- `/health`, `/overview`, `/control/status`
+- `/repositories`, `/adapters`, `/tasks`, `/findings`, `/sessions`
+- `/peers`, `/proposals`, `/audit`, `/readiness`
+
+This includes all ten requests in `AutonomyCenter.load` (initial load and refresh), not just overview. Reads return existing stored data/readiness diagnostics; they do not probe or launch desktop clients, schedule work or contact GitHub. `/overview` reports `apiAccess: "read-only"`; the UI shows that state, preserves Refresh, and hides actions that are not available.
+
+Desktop hosts and non-loopback listeners require `NEXUS_LOCAL_API_TOKEN`. Only standalone listeners configured for loopback and reached over a loopback socket allow reads without that token. Do not publish a token-free loopback listener through a reverse proxy. The role remains process-level; it does not identify individual users.
+
+**Blocked in production, including for Administrator:** all autonomy POST/PATCH/PUT/DELETE and other non-read requests return `403 AUTONOMY_READ_ONLY`. This covers control/settings and immediate actions; repository add/update/remove/sync/issue assessment; security scans/task generation; task creation and lifecycle actions; desktop probing/window discovery/launch; session resolution; research; and all delivery operations (commit/push, PR including verified-task PR, merge, release and notification). This fix restores viewing, not authorization to execute those actions. Explicit confirmation fields, a role header or a persisted remote-write flag cannot bypass the boundary. Re-enabling any action requires separately integrated role **and** action-specific intent/consent controls.
+
+`POST /api/autonomy/webhook` is also blocked; it has no HMAC verification and must not be exposed. Only the existing raw-body `POST /api/github/webhook` HMAC path remains available, subject to its unchanged local-session/origin requirements, signature validation and delivery deduplication. It is not newly connected to the autonomy monitor.
+
+Other autonomy GETs remain unavailable (`404 API_NOT_FOUND`), including `/security/tools` (executes external programs), `/delivery/:repoId/status` (may contact GitHub), task detail/package reads and other endpoints outside the allowlist. The existing background ticker/recovery behavior is unchanged; this HTTP boundary is not a shutdown switch for previously configured work.
+
+Regression: `npm test -- tests/unit/autonomy-routing.test.mjs --maxWorkers 1` starts the real production entrypoint with temporary synthetic state, exercises the frontend's entire read batch, session/origin/role rejection, blocked mutations for all three configured roles, and raw-body HMAC verification/deduplication. With Playwright Chromium installed, run `npm run build && node tests/autonomy-browser.mjs` to verify real navigation, persisted fixture records, a completed refresh, and hidden controls. Browser screenshots are saved under `test-results/autonomy-browser/`. No live services or remote writes are used.
+
+## Autonomy phase-two handler inventory (not enabled in production)
+
+The following describes module-level implementations, **not** additional production endpoints. The read-only allowlist above takes precedence over the handler-level gates below.
 
 | Method | Route | Purpose and gate |
 |---|---|---|

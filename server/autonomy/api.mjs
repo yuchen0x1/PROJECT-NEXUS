@@ -38,10 +38,19 @@ export function createAutonomyRuntime({ dataDir, token = process.env.GITHUB_TOKE
   }
 }
 
+// The production overview surface is deliberately an allowlist, not every GET:
+// security/tools executes programs and delivery/status may contact GitHub.
+// Keep the entire AutonomyCenter.load batch together so Promise.all can succeed.
+const OVERVIEW_READ_ROUTES = new Set([
+  '/health', '/overview', '/control/status', '/repositories', '/adapters',
+  '/tasks', '/findings', '/sessions', '/peers', '/proposals', '/audit', '/readiness'
+])
+
 export function registerAutonomyApi(app, { engine, store, delivery, dataDir }) {
   const routes = []
 
   const add = (method, route, handler) => {
+    if (method !== 'get' || !OVERVIEW_READ_ROUTES.has(route)) return
     app[method](`/api/autonomy${route}`, asyncHandler(handler))
     routes.push(`${method.toUpperCase()} /api/autonomy${route}`)
   }
@@ -52,7 +61,7 @@ export function registerAutonomyApi(app, { engine, store, delivery, dataDir }) {
     migrations: AUTONOMY_MIGRATIONS, status: engine.status(), time: new Date().toISOString()
   }))
 
-  add('get', '/overview', (_req, res) => res.json(engine.overview()))
+  add('get', '/overview', (_req, res) => res.json({ ...engine.overview(), apiAccess: 'read-only' }))
 
   add('get', '/control/status', (_req, res) => res.json(engine.status()))
 
