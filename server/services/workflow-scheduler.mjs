@@ -28,6 +28,10 @@ export class WorkflowScheduler {
     }
   }
   status() { return { active: this.active.size, queued: this.pending.size, stopped: this.stopped, lastError: this.lastError } }
-  async recover() { await this.engine.recover(); for (const record of await this.engine.store.list({ map: ({ id, status }) => ({ id, status }) })) if (record.status === 'Queued') this.enqueue(record.id) }
+  async recover() {
+    await this.engine.recover()
+    const records = await this.engine.store.list({ map: ({ id, status }) => ({ id, status }) })
+    return records.filter((record) => record.status === 'Queued').map((record) => record.id)
+  }
   async stop() { this.stopped = true; clearTimeout(this.timer); this.pending.clear(); for (const controller of this.engine.controllers.values()) controller.abort(Object.assign(new Error('Host shutdown.'), { code: 'HOST_SHUTDOWN' })); await Promise.allSettled(this.active.values()) }
 }

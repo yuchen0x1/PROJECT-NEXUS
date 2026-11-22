@@ -35,9 +35,9 @@ async function stopChild(child) {
   await exited
 }
 
-export async function startNexusServer({ dataDir, stateFile, providerUrl, token, extraEnv = {}, ipc = false }) {
-  const port = await freePort()
-  let stderrText = ''
+export async function spawnNexusServer({ dataDir, stateFile, providerUrl, token, extraEnv = {}, ipc = false, port = null }) {
+  port ??= await freePort()
+  let stderrText = '', stdoutText = ''
   const child = spawn(process.execPath, ['server/index.mjs'], {
     cwd: root,
     env: {
@@ -63,21 +63,26 @@ export async function startNexusServer({ dataDir, stateFile, providerUrl, token,
       GITHUB_TOKEN: '',
       ...extraEnv
     },
-    stdio: ipc ? ['ignore', 'ignore', 'pipe', 'ipc'] : ['ignore', 'ignore', 'pipe'],
+    stdio: ipc ? ['ignore', 'pipe', 'pipe', 'ipc'] : ['ignore', 'pipe', 'pipe'],
     windowsHide: true
   })
   child.stderr.setEncoding('utf8').on('data', (chunk) => { stderrText += chunk })
+  child.stdout.setEncoding('utf8').on('data', (chunk) => { stdoutText += chunk })
   children.push(child)
-  const base = `http://127.0.0.1:${port}`
+  return { child, base: `http://127.0.0.1:${port}`, stderr: () => stderrText, stdout: () => stdoutText }
+}
+
+export async function startNexusServer(options) {
+  const { child, base, stderr } = await spawnNexusServer(options)
   for (let attempt = 0; attempt < 100; attempt += 1) {
-    if (child.exitCode !== null) throw new Error(`NEXUS server exited early: ${stderrText}`)
+    if (child.exitCode !== null) throw new Error(`NEXUS server exited early: ${stderr()}`)
     try {
-      const response = await fetch(`${base}/api/health`, { headers: { Authorization: `Bearer ${token}` } })
+      const response = await fetch(`${base}/api/health`, { headers: { Authorization: `Bearer ${options.token}` } })
       if (response.ok) return { child, base }
     } catch {}
     await new Promise((resolve) => setTimeout(resolve, 50))
   }
-  throw new Error(`NEXUS server did not become healthy: ${stderrText}`)
+  throw new Error(`NEXUS server did not become healthy: ${stderr()}`)
 }
 
 export function trackChild(child) {

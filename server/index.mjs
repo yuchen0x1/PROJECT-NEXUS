@@ -4,6 +4,7 @@ import express from 'express'
 import cors from 'cors'
 import path from 'node:path'
 import crypto from 'node:crypto'
+import { createServer } from 'node:http'
 import { fileURLToPath } from 'node:url'
 import { loadStateFile, saveStateFile, emptyState } from './services/state-store.mjs'
 import { adapters } from './integrations/registry.mjs'
@@ -44,7 +45,7 @@ import fs from 'node:fs/promises'
 import { buildUpgradeProposals, reviewUpgradeProposal } from './services/upgrade-proposals.mjs'
 import { withExecutionPolicy, assertTrustedRepository } from './services/execution-policy.mjs'
 import { durableEffect, reconcileEffect } from './services/durable-effects.mjs'
-import { acquireFileLease } from './services/file-lease.mjs'
+import { acquireFileLease, acquireHostLease } from './services/file-lease.mjs'
 import { readinessFingerprint, validateReadiness } from './services/setup-readiness.mjs'
 import { detectDevelopmentEnvironment } from './services/local-environment.mjs'
 import { assertHostingWrite, hostingOperation, hostedResult, automaticFixDecision } from './services/hosting-gates.mjs'
@@ -63,6 +64,43 @@ const dataDir = path.resolve(process.env.NEXUS_DATA_DIR || path.join(root, 'data
 const stateFile = path.resolve(process.env.NEXUS_STATE_FILE || path.join(dataDir, 'state.json'))
 const port = Number(process.env.PORT || 4317)
 const host = process.env.NEXUS_HOST || '127.0.0.1'
+const desktopMode = process.env.NEXUS_DESKTOP_MODE === 'true'
+const desktopOwnerPid = Number(process.env.NEXUS_DESKTOP_OWNER_PID)
+const hasOwnerIpc = typeof process.send === 'function'
+const startupStopped = new Error('Host shutdown requested during startup.')
+let shuttingDown = false
+let ready = false
+let stopRunningHost = null
+
+function requestHostStop() {
+  if (shuttingDown) return
+  shuttingDown = true
+  ready = false
+  // Forced exit never unlocks state owned by an unfinished writer.
+  setTimeout(() => process.exit(1), 9000)
+  if (stopRunningHost) void stopRunningHost()
+}
+
+// Record shutdown intent even before there is a listener or a lease to close.
+if (hasOwnerIpc) {
+  process.on('disconnect', requestHostStop)
+  process.on('message', (message) => { if (message?.type === 'nexus-shutdown') requestHostStop() })
+}
+process.on('SIGTERM', requestHostStop)
+process.on('SIGINT', requestHostStop)
+
+function checkOwner() {
+  if (hasOwnerIpc && !process.connected) requestHostStop()
+  if (desktopMode && Number.isInteger(desktopOwnerPid) && desktopOwnerPid > 0 && desktopOwnerPid !== process.pid) {
+    // Liveness supplements IPC. It is not an OS security boundary.
+    try { process.kill(desktopOwnerPid, 0) } catch { requestHostStop() }
+  }
+}
+
+function checkStartup() {
+  checkOwner()
+  if (shuttingDown) throw startupStopped
+}
 const githubApiUrl = process.env.GITHUB_API_URL || 'https://api.github.com'
 const githubUploadsUrl = process.env.GITHUB_UPLOADS_URL || 'https://uploads.github.com'
 const appConfig = {
@@ -84,7 +122,6 @@ const integrationControllers = new Map()
 const agentWorkspacePaths = new Map()
 const localAgentControllers = new Map()
 const hostedControllers = new Map()
-let shuttingDown = false
 const localAgentQueue = []
 const pendingGitHubAppInstallStates = new Map()
 const installationTokens = new Map()
@@ -100,7 +137,7 @@ const repositoryScopeRequests = new Map()
 const GITHUB_APP_INSTALL_STATE_TTL_MS = 10 * 60 * 1000
 
 async function loadState() {
-  state = await loadStateFile(stateFile)
+  state = await loadStateFile(stateFile, { beforeWrite: checkStartup })
   repositorySyncGate = createSyncGate({ initial: state.repositorySync || {} })
   // Migrate old plaintext installation-token records into process memory.
   for (const installation of state.githubInstallations) {
@@ -1077,7 +1114,6 @@ async function recoverHostedFixTasks() {
     hostedPending.push({ repoKey: repoKeyFor(project.fullName), project, issueNumber: job.issueNumber, job, req: { get: () => undefined } })
   }
   await saveState()
-  scheduleHostedPump()
 }
 
 // PART 18: workspace garbage collection. Finished task worktrees older than
@@ -1444,7 +1480,6 @@ async function executeAgentJob(jobId, req) {
 
 const app = express()
 const localApiToken = String(process.env.NEXUS_LOCAL_API_TOKEN || '')
-const desktopMode = process.env.NEXUS_DESKTOP_MODE === 'true'
 const apiRateLimiter = createRateLimiter({ max: Number(process.env.NEXUS_API_RATE_LIMIT || 600) })
 let desktopOrigin = null
 app.use((req, res, next) => {
@@ -1452,6 +1487,7 @@ app.use((req, res, next) => {
   req.nexusRequestId = requestId
   res.setHeader('X-Request-Id', requestId)
   applySecurityHeaders(res, { api: req.path.startsWith('/api/') })
+  if (!ready) return res.status(503).json({ code: 'HOST_NOT_READY', requestId })
   if (req.path.startsWith('/api/')) return apiRateLimiter(req, res, next)
   return next()
 })
@@ -3378,101 +3414,121 @@ async function recoverIntegrationWork() {
     } else if (job.type === 'scan') pendingScans.push(job.id)
   }
   if (changed) await saveState()
-  if (pendingScans.length) {
-    const syntheticRequest = { get: () => undefined }
-    setTimeout(() => void runScanQueue(pendingScans, syntheticRequest).catch((error) => console.error('Recovered integration scan failed:', safeError(error))), 0)
-  }
+  return pendingScans
 }
 
-// --- Autonomy Runtime v2 ---------------------------------------------------
-// Registered after every legacy route so nothing is shadowed. The worker lives
-// in this Node service process: hiding the Electron window to the tray does
-// not stop it. Initialization is isolated so a storage backend problem can
-// never take down the existing workstation.
 let autonomyRuntime = null
 let autonomyTicker = null
-try {
-  autonomyRuntime = createAutonomyRuntime({
-    dataDir,
-    token: process.env.GITHUB_TOKEN || '',
-    // Reuse the user's in-app GitHub credentials (PAT or GitHub App install).
-    tokenResolver: async (autonomyRepo) => {
-      const project = (state.projects || []).find((item) => item.fullName === autonomyRepo.fullName)
-      return githubTokenForProject(project)
-    }
-  })
-  registerAutonomyApi(app, {
-    engine: autonomyRuntime.engine,
-    store: autonomyRuntime.store,
-    delivery: autonomyRuntime.delivery,
-    dataDir
-  })
-  autonomyTicker = startAutonomyTicker(autonomyRuntime.engine, { intervalMs: 60_000, immediate: false })
-  console.log(`NEXUS_AUTONOMY_READY:${autonomyRuntime.store.backend}`)
-} catch (error) {
-  console.error('[autonomy] initialization failed; legacy workstation continues:', safeError(error))
+
+function initializeAutonomy() {
+  try {
+    autonomyRuntime = createAutonomyRuntime({
+      dataDir,
+      token: process.env.GITHUB_TOKEN || '',
+      tokenResolver: async (autonomyRepo) => {
+        const project = (state.projects || []).find((item) => item.fullName === autonomyRepo.fullName)
+        return githubTokenForProject(project)
+      }
+    })
+    registerAutonomyApi(app, { engine: autonomyRuntime.engine, store: autonomyRuntime.store, delivery: autonomyRuntime.delivery, dataDir })
+  } catch (error) {
+    autonomyRuntime?.store.close()
+    autonomyRuntime = null
+    console.error('[autonomy] initialization failed; legacy workstation continues:', safeError(error))
+  }
 }
 
-const hostLease = await acquireFileLease(`${stateFile}.host.lock`)
-await loadState()
-await recoverIntegrationWork()
-await recoverLocalAgentTasks()
-await recoverHostedFixTasks()
-await evolution.recover()
-setTimeout(() => void sweepExpiredWorkspaces().catch((error) => console.error('Workspace sweep failed:', safeError(error))), 30_000).unref?.()
-setInterval(() => void sweepExpiredWorkspaces().catch((error) => console.error('Workspace sweep failed:', safeError(error))), 6 * 60 * 60_000).unref?.()
-const server = app.listen(port, host, () => {
-  const address = server.address()
-  // Browsers send Origin even for same-origin module scripts. Allow the
-  // actual loopback listener without trusting arbitrary Host headers.
-  if (address && typeof address === 'object' && host === '127.0.0.1') {
-    corsOrigins.add(`http://127.0.0.1:${address.port}`)
-    corsOrigins.add(`http://localhost:${address.port}`)
-  }
-  if (desktopMode && address && typeof address === 'object') {
-    desktopOrigin = `http://127.0.0.1:${address.port}`
-    console.log(`NEXUS_DESKTOP_READY:${address.port}`)
-  } else {
-    console.log(`PROJECT NEXUS API listening on http://localhost:${address && typeof address === 'object' ? address.port : port}`)
-  }
-  const timer = setInterval(() => { void runScheduledIntegrationScan(); void runScheduledHostingTick() }, 60_000)
-  timer.unref?.()
-  void runScheduledIntegrationScan()
-  setTimeout(() => void runScheduledHostingTick(), 5_000).unref?.()
-  // The autonomy ticker is driven here, in the service process. No renderer
-  // page is required for monitoring, scheduling or recovery to keep running.
-  if (autonomyTicker) setTimeout(() => void autonomyTicker.tickNow(), 4_000).unref?.()
-})
-server.requestTimeout = 120_000
-server.headersTimeout = 15_000
-server.keepAliveTimeout = 5_000
-
-async function stopHost() {
-  if (shuttingDown) return
-  shuttingDown = true
-  const forced = setTimeout(() => process.exit(1), 9000)
-  forced.unref?.()
+async function stopHost(server) {
   server.close(); server.closeAllConnections?.()
+  autonomyTicker?.stop()
   for (const collection of [localAgentControllers, integrationControllers, hostedControllers]) for (const controller of collection.values()) controller.abort(Object.assign(new Error('Host shutdown.'), { code: 'HOST_SHUTDOWN' }))
   try {
     await evolution.stop()
     const deadline = Date.now() + 6000
     while ((localAgentControllers.size || integrationControllers.size || hostedControllers.size) && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 25))
     await saveState(); await stateWriteQueue
-    autonomyTicker?.stop()
-    try { autonomyRuntime?.store.close() } catch { /* already closed */ }
-    await hostLease.release()
+    // Socket close and worker cancellation are not proof that all writers have
+    // stopped. Keep the leases until process exit; the next host reclaims them.
     process.exit(0)
-  } catch { process.exit(1) }
+  } catch (error) {
+    console.error('Host shutdown failed:', safeError(error))
+    process.exit(1)
+  }
 }
-process.on('message', (message) => { if (message?.type === 'nexus-shutdown' && process.send) void stopHost() })
-if (process.send) process.on('disconnect', () => void stopHost())
-// Owner liveness supplements IPC on desktop deployments. This monitors process
-// lifecycle; it is not an OS security boundary.
-const desktopOwnerPid = Number(process.env.NEXUS_DESKTOP_OWNER_PID)
-if (desktopMode && Number.isInteger(desktopOwnerPid) && desktopOwnerPid > 0 && desktopOwnerPid !== process.pid) {
-  const ownerTimer = setInterval(() => { try { process.kill(desktopOwnerPid, 0) } catch { void stopHost() } }, 1000)
-  ownerTimer.unref?.()
+
+async function startHost() {
+  let hostLease, server, pendingScans, queuedWorkflows
+  try {
+    checkStartup()
+    hostLease = await acquireHostLease({ dataDir, stateFile })
+    checkStartup()
+    // Confirm the address is usable before opening or recovering durable state.
+    // Until recovery completes, the readiness middleware rejects all requests.
+    server = createServer({ requestTimeout: 120_000, headersTimeout: 15_000, keepAliveTimeout: 5_000 }, app)
+    await new Promise((resolve, reject) => {
+      server.once('error', reject)
+      server.listen(port, host, () => { server.off('error', reject); resolve() })
+    })
+    checkStartup()
+    await loadState()
+    checkStartup()
+    initializeAutonomy()
+    pendingScans = await recoverIntegrationWork()
+    checkStartup()
+    await recoverLocalAgentTasks()
+    checkStartup()
+    await recoverHostedFixTasks()
+    checkStartup()
+    queuedWorkflows = await evolution.recover()
+    checkStartup()
+  } catch (error) {
+    // No jobs have been admitted; do not save unrecovered/default state.
+    if (server?.listening) {
+      const closed = new Promise((resolve, reject) => server.close((cause) => cause ? reject(cause) : resolve()))
+      server.closeAllConnections?.()
+      await closed
+    }
+    await stateWriteQueue
+    autonomyRuntime?.store.close()
+    await hostLease?.release()
+    if (error === startupStopped) process.exit(0)
+    throw error
+  }
+
+  const { port: listeningPort } = server.address()
+  // Allow the actual loopback listener without trusting arbitrary Host headers.
+  if (host === '127.0.0.1') {
+    corsOrigins.add(`http://127.0.0.1:${listeningPort}`)
+    corsOrigins.add(`http://localhost:${listeningPort}`)
+  }
+  if (desktopMode) desktopOrigin = `http://127.0.0.1:${listeningPort}`
+  stopRunningHost = () => stopHost(server)
+  ready = true
+  if (autonomyRuntime) console.log(`NEXUS_AUTONOMY_READY:${autonomyRuntime.store.backend}`)
+  console.log(desktopMode ? `NEXUS_DESKTOP_READY:${listeningPort}` : `PROJECT NEXUS API listening on http://localhost:${listeningPort}`)
+
+  evolution.start(queuedWorkflows)
+  scheduleHostedPump()
+  if (pendingScans.length) {
+    setTimeout(() => {
+      if (ready) void runScanQueue(pendingScans, { get: () => undefined }).catch((error) => console.error('Recovered integration scan failed:', safeError(error)))
+    }, 0).unref?.()
+  }
+  const sweep = () => {
+    if (ready) void sweepExpiredWorkspaces().catch((error) => console.error('Workspace sweep failed:', safeError(error)))
+  }
+  setTimeout(sweep, 30_000).unref?.()
+  setInterval(sweep, 6 * 60 * 60_000).unref?.()
+  setInterval(() => { void runScheduledIntegrationScan(); void runScheduledHostingTick() }, 60_000).unref?.()
+  void runScheduledIntegrationScan()
+  setTimeout(() => void runScheduledHostingTick(), 5_000).unref?.()
+  if (autonomyRuntime) {
+    autonomyTicker = startAutonomyTicker(autonomyRuntime.engine, { immediate: false })
+    setTimeout(() => { if (ready) void autonomyTicker.tickNow() }, 4_000).unref?.()
+  }
+  if (desktopMode && Number.isInteger(desktopOwnerPid) && desktopOwnerPid > 0 && desktopOwnerPid !== process.pid) {
+    setInterval(checkOwner, 1000).unref?.()
+  }
 }
-process.on('SIGTERM', () => void stopHost())
-process.on('SIGINT', () => void stopHost())
+
+await startHost()

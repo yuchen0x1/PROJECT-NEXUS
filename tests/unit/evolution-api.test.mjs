@@ -2,21 +2,153 @@ import { afterEach, expect, it } from 'vitest'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import crypto from 'node:crypto'
+import { once } from 'node:events'
 import { registerLocalProject } from '../../server/services/local-projects.mjs'
-import { startHttpServer, startNexusServer, tempDataDir, cleanupTestEnvironment, getJson } from './helpers/server-harness.mjs'
+import { defaultAutonomyDbFile, openAutonomyStore } from '../../server/autonomy/db.mjs'
+import { acquireFileLease } from '../../server/services/file-lease.mjs'
+import { spawnNexusServer, startHttpServer, startNexusServer, tempDataDir, cleanupTestEnvironment, getJson } from './helpers/server-harness.mjs'
 afterEach(cleanupTestEnvironment)
-it('stops the API host after its owning desktop IPC disconnects and releases the data-directory lease', async () => {
-  const dataDir = await tempDataDir('nexus-owner-disconnect-'), token = 'fixture-owner-disconnect'
-  const providerUrl = await startHttpServer((_req, res) => res.end('{}'))
-  const settings = { dataDir, stateFile: path.join(dataDir, 'state.json'), providerUrl, token }
-  const first = await startNexusServer({ ...settings, ipc: true })
-  const exited = new Promise((resolve) => first.child.once('exit', resolve))
-  first.child.disconnect()
-  await Promise.race([exited, new Promise((_, reject) => setTimeout(() => reject(new Error('API host survived its owner IPC disconnect.')), 12000))])
-  expect(first.child.exitCode).toBe(0)
-  expect(await fs.stat(`${settings.stateFile}.host.lock`).catch(() => null)).toBeNull()
+
+it.each(['state.json', 'alternate.json'])('rejects a duplicate host using %s before changing Autonomy state', async (stateName) => {
+  const dataDir = await tempDataDir('nexus-duplicate-host-')
+  const stateFile = path.join(dataDir, stateName)
+  const lockFile = path.join(dataDir, 'state.json.host.lock')
+  // Stand in for the live host without starting a second server or doing any agent work.
+  const owner = await acquireFileLease(lockFile)
+  const dbFile = defaultAutonomyDbFile(dataDir)
+  const inspect = (store) => ({
+    task: store.get('tasks', 'fixture-task'),
+    session: store.get('agent_sessions', 'fixture-session'),
+    events: store.list('task_events'),
+    audit: store.list('audit_log')
+  })
+  try {
+    const store = openAutonomyStore({ file: dbFile })
+    store.put('tasks', 'fixture-task', { status: 'IN_PROGRESS', sessionId: 'fixture-session' })
+    store.put('agent_sessions', 'fixture-session', { taskId: 'fixture-task', state: 'RUNNING', handoff: false })
+    const before = inspect(store)
+    store.close()
+
+    // Check the durable records even if the contender unexpectedly becomes healthy.
+    const startup = await startNexusServer({ dataDir, stateFile, providerUrl: 'http://127.0.0.1:1', token: 'fixture-ownership', extraEnv: { GITHUB_APP_ID: '', GITHUB_APP_PRIVATE_KEY: '' } }).catch((cause) => cause)
+    const reopened = openAutonomyStore({ file: dbFile })
+    try { expect(inspect(reopened)).toEqual(before) } finally { reopened.close() }
+    expect(startup).toBeInstanceOf(Error)
+    expect(startup.message).toContain('LEASE_HELD')
+    expect(JSON.parse(await fs.readFile(lockFile, 'utf8')).token).toBe(owner.token)
+    expect(await fs.stat(stateFile).catch((cause) => { if (cause.code !== 'ENOENT') throw cause; return null })).toBeNull()
+  } finally { await owner.release() }
+})
+it.each(['in-use', 'invalid'])('does not recover state when the listener port is %s', async (mode) => {
+  const dataDir = await tempDataDir('nexus-bind-failure-')
+  const stateFile = path.join(dataDir, 'state.json')
+  const legacyState = '{"schemaVersion":3}'
+  await fs.writeFile(stateFile, legacyState)
+  const port = mode === 'invalid' ? -1 : Number(new URL(await startHttpServer((_req, res) => res.end())).port)
+  const { child, stderr, stdout } = await spawnNexusServer({ dataDir, stateFile, port, token: 'fixture-binding' })
+  expect(await once(child, 'close', { signal: AbortSignal.timeout(5000) })).toEqual([1, null])
+  expect(stderr()).toContain(mode === 'invalid' ? 'ERR_SOCKET_BAD_PORT' : 'EADDRINUSE')
+  expect(stdout()).not.toContain('_READY:')
+  expect(await fs.readFile(stateFile, 'utf8')).toBe(legacyState)
+  expect(await fs.readdir(dataDir)).toEqual(['state.json'])
+})
+
+// Test-only preload: pause exactly at the first state read without adding a production hook.
+const pauseStateRead = `--import=data:text/javascript,${encodeURIComponent(`
+  import fs from 'node:fs/promises'
+  const readFile = fs.readFile
+  fs.readFile = async (...args) => {
+    if (args[0] === process.env.NEXUS_STATE_FILE) {
+      fs.readFile = readFile
+      const paused = new Promise((resolve) => {
+        process.once('disconnect', resolve)
+        process.once('message', resolve)
+      })
+      process.send('state-read-paused')
+      await paused
+    }
+    return readFile(...args)
+  }
+`)}`
+
+it.each(['disconnect', 'continue'])('gates admission during state load and handles IPC %s before readiness', async (outcome) => {
+  const dataDir = await tempDataDir('nexus-startup-ipc-')
+  const stateFile = path.join(dataDir, 'state.json')
+  const token = 'fixture-startup'
+  const legacyState = '{"schemaVersion":3}'
+  await fs.writeFile(stateFile, legacyState)
+  const { child, base, stdout } = await spawnNexusServer({ dataDir, stateFile, token, ipc: true, extraEnv: { NODE_OPTIONS: pauseStateRead } })
+  const [message] = await once(child, 'message', { signal: AbortSignal.timeout(5000) })
+  expect(message).toBe('state-read-paused')
+  const gated = await getJson(base, token, '/api/health')
+  expect(gated.response.status).toBe(503)
+  expect(gated.body.code).toBe('HOST_NOT_READY')
+  expect(stdout()).not.toContain('_READY:')
+  expect(await fs.readFile(stateFile, 'utf8')).toBe(legacyState)
+
+  if (outcome === 'continue') {
+    child.send({ type: 'fixture-release' })
+    await expect.poll(async () => (await getJson(base, token, '/api/health')).response.status).toBe(200)
+    expect(JSON.parse(await fs.readFile(stateFile, 'utf8')).schemaVersion).toBe(4)
+  }
+  const closed = once(child, 'exit', { signal: AbortSignal.timeout(5000) })
+  child.disconnect()
+  expect(await closed).toEqual([0, null])
+  if (outcome === 'disconnect') {
+    expect(stdout()).not.toContain('_READY:')
+    expect(await fs.readFile(stateFile, 'utf8')).toBe(legacyState)
+    expect(await fs.readdir(dataDir)).toEqual(['state.json'])
+  }
+})
+
+it('keeps both host leases after listener shutdown and lets a replacement reclaim them after exit', async () => {
+  const dataDir = await tempDataDir('nexus-stopping-owner-')
+  const stateFile = path.join(dataDir, 'alternate.json')
+  const lockFiles = [path.join(dataDir, 'state.json.host.lock'), `${stateFile}.host.lock`]
+  const readLeases = () => Promise.all(lockFiles.map(async (file) => JSON.parse(await fs.readFile(file, 'utf8'))))
+  const settings = { dataDir, stateFile, token: 'fixture-stopping-owner', providerUrl: 'http://127.0.0.1:1' }
+  // Hold a known stop step after the listener closes. This tests the ownership
+  // fence, not completion of accepted background work or HTTP handlers.
+  const pauseShutdownSave = `--import=data:text/javascript,${encodeURIComponent(`
+    import fs from 'node:fs/promises'
+    import { once } from 'node:events'
+    process.on('message', (message) => {
+      if (message?.type !== 'nexus-shutdown') return
+      const rename = fs.rename
+      fs.rename = async (from, to) => {
+        if (to === process.env.NEXUS_STATE_FILE) {
+          fs.rename = rename
+          const released = once(process, 'message')
+          process.send('shutdown-save-paused')
+          await released
+        }
+        return rename(from, to)
+      }
+    })
+  `)}`
+  const first = await startNexusServer({ ...settings, ipc: true, extraEnv: { NODE_OPTIONS: pauseShutdownSave } })
+  const before = await readLeases()
+  for (const owner of before) expect(owner.pid).toBe(first.child.pid)
+  const paused = once(first.child, 'message', { signal: AbortSignal.timeout(5000) })
+  first.child.send({ type: 'nexus-shutdown' })
+  expect((await paused)[0]).toBe('shutdown-save-paused')
+  await expect(fetch(`${first.base}/api/health`, { signal: AbortSignal.timeout(2000) })).rejects.toThrow()
+  await expect(startNexusServer(settings)).rejects.toThrow('LEASE_HELD')
+  await expect(acquireFileLease(lockFiles[1])).rejects.toMatchObject({ code: 'LEASE_HELD' })
+  expect(await readLeases()).toEqual(before)
+
+  const exited = once(first.child, 'exit', { signal: AbortSignal.timeout(5000) })
+  first.child.send({ type: 'fixture-release' })
+  expect(await exited).toEqual([0, null])
+  expect(await readLeases()).toEqual(before)
+
   const second = await startNexusServer(settings)
-  expect((await getJson(second.base, token, '/api/evolution/status')).response.ok).toBe(true)
+  expect((await getJson(second.base, settings.token, '/api/evolution/status')).response.ok).toBe(true)
+  const after = await readLeases()
+  for (const [index, owner] of after.entries()) {
+    expect(owner.pid).toBe(second.child.pid)
+    expect(owner.token).not.toBe(before[index].token)
+  }
 }, 20000)
 it('recovers after a real API process kill and reuses the child workspace without repeating planning or writing', async () => {
   const dataDir = await tempDataDir('nexus-evolution-crash-'), projectDir = await tempDataDir('nexus-evolution-crash-target-')

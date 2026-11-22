@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { durableEffect, reconcileEffect } from '../../server/services/durable-effects.mjs'
-import { acquireFileLease } from '../../server/services/file-lease.mjs'
+import { acquireFileLease, acquireHostLease } from '../../server/services/file-lease.mjs'
 import { cleanupTestEnvironment, tempDataDir } from './helpers/server-harness.mjs'
 
 afterEach(cleanupTestEnvironment)
@@ -33,6 +33,27 @@ describe('durable effects and host ownership', () => {
     await fs.writeFile(file, JSON.stringify({ pid: 2147483647, token: 'dead' }))
     const recovered = await acquireFileLease(file)
     await recovered.release()
+  })
+  it.each(['', '{"pid":', '{}', '{"pid":2147483647}'])('does not reclaim incomplete lease metadata (%j)', async (contents) => {
+    const dir = await tempDataDir()
+    const file = path.join(dir, 'state.json.host.lock')
+    await fs.writeFile(file, contents)
+    await expect(acquireFileLease(file)).rejects.toMatchObject({ code: 'LEASE_HELD' })
+    expect(await fs.readFile(file, 'utf8')).toBe(contents)
+  })
+  it('preserves the custom state-file lease across data dirs and rolls back a partial acquisition', async () => {
+    const dataDir = await tempDataDir()
+    const otherDir = await tempDataDir()
+    const stateFile = path.join(dataDir, 'custom.json')
+    const stateLock = `${stateFile}.host.lock`
+    const owner = await acquireHostLease({ dataDir, stateFile })
+    try {
+      await expect(acquireFileLease(stateLock)).rejects.toMatchObject({ code: 'LEASE_HELD' })
+      await expect(acquireHostLease({ dataDir: otherDir, stateFile })).rejects.toMatchObject({ code: 'LEASE_HELD' })
+      await expect(fs.stat(path.join(otherDir, 'state.json.host.lock'))).rejects.toMatchObject({ code: 'ENOENT' })
+    } finally { await owner.release() }
+    await expect(fs.stat(stateLock)).rejects.toMatchObject({ code: 'ENOENT' })
+    await expect(fs.stat(path.join(dataDir, 'state.json.host.lock'))).rejects.toMatchObject({ code: 'ENOENT' })
   })
   it('requires an exact merged head and exact asset digest for reconciliation', async () => {
     expect(await reconcileEffect({ endpoint: '/repos/a/b/pulls/7/merge', body: '{"sha":"tested"}' }, async () => ({ merged: true, head: { sha: 'other' } }))).toBe(false)

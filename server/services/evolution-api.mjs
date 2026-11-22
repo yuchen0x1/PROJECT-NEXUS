@@ -90,6 +90,24 @@ export function registerEvolutionApi({ app, dataDir, version, guard, request, ge
     res.status(202).json({ candidate: await updates.store.get(candidate.id) })
   })
   route('post', '/api/evolution/updates/:id/prepare-install', async (req, res) => res.json({ preparation: await updates.prepareInstall(req.params.id, req.body || {}) }))
-  const maintenanceTimer = setInterval(() => void self.tick().catch(() => {}), 60000); maintenanceTimer.unref?.()
-  return { engine, memory, governor, scheduler, roles, route, project, self, updates, async recover() { await updates.recover(); for (const record of await self.assessments.list()) if (['Queued', 'Running'].includes(record.status)) await self.assessments.update(record.id, (current) => ({ ...current, status: 'Interrupted', errorCode: 'HOST_RESTARTED' })); await scheduler.recover() }, async stop() { clearInterval(maintenanceTimer); for (const controller of downloads.values()) controller.abort(); for (const controller of self.controllers.values()) controller.abort(); await scheduler.stop() } }
+  let maintenanceTimer
+  return {
+    engine, memory, governor, scheduler, roles, route, project, self, updates,
+    async recover() {
+      await updates.recover()
+      for (const record of await self.assessments.list()) if (['Queued', 'Running'].includes(record.status)) await self.assessments.update(record.id, (current) => ({ ...current, status: 'Interrupted', errorCode: 'HOST_RESTARTED' }))
+      return scheduler.recover()
+    },
+    start(queued) {
+      maintenanceTimer = setInterval(() => void self.tick().catch(() => {}), 60_000)
+      maintenanceTimer.unref?.()
+      for (const id of queued) scheduler.enqueue(id)
+    },
+    async stop() {
+      clearInterval(maintenanceTimer)
+      for (const controller of downloads.values()) controller.abort()
+      for (const controller of self.controllers.values()) controller.abort()
+      await scheduler.stop()
+    }
+  }
 }

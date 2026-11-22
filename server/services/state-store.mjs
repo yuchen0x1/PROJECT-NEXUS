@@ -56,12 +56,13 @@ export function migrateState(input) {
   return next
 }
 
-export async function loadStateFile(file) {
+export async function loadStateFile(file, { beforeWrite } = {}) {
   let content
   try {
     content = await fs.readFile(file, 'utf8')
   } catch (error) {
     if (error.code !== 'ENOENT') throw error
+    beforeWrite?.()
     const initial = migrateState(emptyState)
     await saveStateFile(file, initial)
     return initial
@@ -73,8 +74,11 @@ export async function loadStateFile(file) {
     throw Object.assign(new Error(`State file is not valid JSON; refusing to replace it: ${error.message}`), { code: 'STATE_INVALID', cause: error })
   }
   const migrated = migrateState(parsed)
-  if (Number(parsed?.schemaVersion || 1) < 4) await fs.writeFile(`${file}.pre-v4.bak`, JSON.stringify(persistedState(parsed), null, 2), { flag: 'wx', mode: 0o600 }).catch((error) => { if (error.code !== 'EEXIST') throw error })
-  if (Number(parsed?.schemaVersion || 1) < 4) await saveStateFile(file, migrated)
+  if (Number(parsed?.schemaVersion || 1) < 4) {
+    beforeWrite?.()
+    await fs.writeFile(`${file}.pre-v4.bak`, JSON.stringify(persistedState(parsed), null, 2), { flag: 'wx', mode: 0o600 }).catch((error) => { if (error.code !== 'EEXIST') throw error })
+    await saveStateFile(file, migrated)
+  }
   return migrated
 }
 

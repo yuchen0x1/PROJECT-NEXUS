@@ -27,10 +27,15 @@ function page(items, req, fallback = 100) {
 export function createAutonomyRuntime({ dataDir, token = process.env.GITHUB_TOKEN || '', tokenResolver = null, clock = () => Date.now(), fetchImpl = globalThis.fetch } = {}) {
   const dbFile = defaultAutonomyDbFile(dataDir)
   const store = openAutonomyStore({ file: dbFile })
-  const engine = new AutonomyEngine({ store, dataDir, token, tokenResolver, clock, fetchImpl })
-  const delivery = new GithubDelivery({ store, token, tokenResolver, fetchImpl, clock })
-  engine.recover()
-  return { store, engine, delivery, dbFile }
+  try {
+    const engine = new AutonomyEngine({ store, dataDir, token, tokenResolver, clock, fetchImpl })
+    const delivery = new GithubDelivery({ store, token, tokenResolver, fetchImpl, clock })
+    engine.recover()
+    return { store, engine, delivery, dbFile }
+  } catch (error) {
+    try { store.close() } catch { /* preserve the initialization error */ }
+    throw error
+  }
 }
 
 export function registerAutonomyApi(app, { engine, store, delivery, dataDir }) {
