@@ -541,7 +541,7 @@ export const api = {
   build: (id: string, workflowId: number, ref: string) => request<{ task: Task }>(`/api/projects/${id}/build`, { method: 'POST', body: JSON.stringify({ workflowId, ref }) }),
   releases: (projectId = '') => request<{ releases: { id: number; name: string; tag_name: string; draft: boolean; prerelease: boolean; published_at: string | null; html_url: string; projectName: string }[]; blocked?: boolean; message?: string }>(`/api/releases${projectId ? `?projectId=${projectId}` : ''}`),
   createRelease: (projectId: string, payload: { tagName: string; name?: string; body?: string; targetCommitish?: string; prerelease?: boolean }) => request<{ task: Task }>(`/api/projects/${projectId}/releases`, { method: 'POST', body: JSON.stringify(payload) }),
-  publishRelease: (projectId: string, releaseId: number) => request<{ task: Task }>(`/api/projects/${projectId}/releases/${releaseId}/publish`, { method: 'POST', body: JSON.stringify({ confirm: true }) }),
+  publishRelease: (projectId: string, releaseId: number, confirm: boolean) => request<{ task: Task }>(`/api/projects/${projectId}/releases/${releaseId}/publish`, { method: 'POST', body: JSON.stringify({ confirm }) }),
   autoUpdate: (projectId = '') => request<{ configs: UpdateConfig[]; total: number }>(`/api/auto-update${projectId ? `?projectId=${projectId}` : ''}`),
   updateCheck: (projectId: string) => request<{ task: Task }>(`/api/projects/${projectId}/update-check`, { method: 'POST', body: '{}' }),
   updateCheckAll: (projectIds: string[] = []) => request<{ task: Task }>('/api/tasks/update-check-all', { method: 'POST', body: JSON.stringify({ projectIds }) }),

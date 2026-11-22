@@ -9,6 +9,7 @@
     "draftQueued": "Brouillon de release mis en file d'attente",
     "draftFailed": "Échec du brouillon de release",
     "publishQueued": "Publication de release mise en file d'attente",
+    "confirmPublish": "Publier {{tag}} dans {{repository}} sur GitHub ? Le brouillon et ses artefacts deviendront publics. Les droits d’administrateur sont requis.",
     "loadFailed": "Impossible de charger les releases"
   },
   "form": {

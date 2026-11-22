@@ -11,6 +11,28 @@
 - Webhooks use HMAC verification and delivery ID deduplication. Intake, task execution and audit storage remain in-process/local JSON.
 - `data/state.json` is git-ignored and schema upgrades are additive and atomic.
 
+## Legacy workflow dispatch and release writes
+
+The legacy project APIs use the same opt-in and trusted-role policy as remote branch/PR creation. This applies to both PAT and GitHub App installation credentials; configuring credentials alone does not authorize a write.
+
+| Operation under `/api/projects/:projectId` | Minimum process role | Additional boundary |
+| --- | --- | --- |
+| `POST /build` (Actions dispatch) | Operator | Remote writes enabled; non-header role mode |
+| `POST /releases` | Operator | Creates a draft only, regardless of a supplied publication flag |
+| `PATCH /releases/:releaseId` | Operator | Draft metadata only; publication state is never forwarded |
+| `POST /releases/:releaseId/assets` | Operator | Uploads to drafts only |
+| `POST /releases/:releaseId/publish` | Administrator | Literal JSON `confirm: true`; the only legacy release API that publishes |
+
+All five routes require remote writes to be explicitly enabled and `NEXUS_ALLOW_ROLE_HEADER` to be off. The effective switch is the saved `settings.remoteWritesEnabled` boolean when present, otherwise `NEXUS_ENABLE_REMOTE_WRITES=true`. A saved `false` overrides an environment opt-in; a saved `true` remains enabled even if the environment fallback is false. Administrators can change the saved switch through the authenticated desktop setup/settings flow. Keep both the saved switch and environment fallback off unless remote work is intended.
+
+Requests denied at intake return `REMOTE_WRITES_DISABLED`, `UNTRUSTED_ROLE_MODE`, or `INSUFFICIENT_ROLE` before scheduling tasks or contacting GitHub. Only the listed role names grant permissions; an unknown or empty configured role grants none. Workflow/run/release reads remain available when writes are disabled.
+
+All five actions recheck the live switch immediately before starting the mutation request, after any GitHub App token refresh, release preflight read, or local state save. If the switch is off at that point, queued tasks fail with `REMOTE_WRITES_DISABLED` and synchronous edit/upload requests return HTTP 403 with the same code. Disabling writes does not cancel requests already handed to the HTTP client or undo workflows and releases already started on GitHub.
+
+Generic release editing rejects any supplied `draft` value other than literal `true` with `RELEASE_PUBLISH_REQUIRED`; accepted `draft: true` is a compatibility no-op, not a forwarded field. Metadata editing and asset upload reject a non-draft release with `RELEASE_NOT_DRAFT`. Uploads must target the requested repository and release on the configured `GITHUB_UPLOADS_URL` origin and base path. Legacy mutation requests do not follow redirects. Clients that previously edited published releases must use a separate, externally reviewed release-management process. The Release Center now asks for repository/tag confirmation before submitting publication, and the API client requires its caller to supply confirmation rather than manufacturing it.
+
+These are legacy endpoint guards, not a replacement for the separate hosting/autonomy delivery policies. Actions workflows execute with their own repository-configured permissions and may themselves perform writes; review which workflows Operators can dispatch. Draft-state preflight reads are not atomic with GitHub mutations, so concurrent external publication can race with an edit or upload. No live GitHub write is needed to validate these controls: the regression suite uses disposable state and loopback GitHub/upload stubs.
+
 ## Deployment boundary and known gap
 
 The application currently has **no per-user authentication**. `NEXUS_ROLE` is a process-wide identity setting shared by every caller, and source disclosure/repository/branch confirmations are request/UI intent rather than caller authentication. Integration report and job APIs contain source paths, patches, logs and test output. Do not expose the service to an untrusted network.
