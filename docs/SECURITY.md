@@ -11,6 +11,7 @@
 - Webhooks use HMAC verification and delivery ID deduplication. Intake, task execution and audit storage remain in-process/local JSON.
 - `data/state.json` is git-ignored and schema upgrades are additive and atomic.
 
+
 ## Legacy workflow dispatch and release writes
 
 The legacy project APIs use the same opt-in and trusted-role policy as remote branch/PR creation. This applies to both PAT and GitHub App installation credentials; configuring credentials alone does not authorize a write.
@@ -40,6 +41,12 @@ Desktop AI keys are encrypted with Electron `safeStorage` and stored separately 
 Existing v1 vault entries have no trusted destination binding. They are deliberately not auto-bound: their ciphertext is preserved on disk, but the affected key must be re-entered to use it. While a delete's vault write or atomic rename fails, deletion fails and the existing credential remains active; retry the delete after the disk issue is resolved. Once revocation is confirmed, new network attempts from already-resolved work are rejected, but a request already sent to a provider cannot be recalled.
 
 For compatibility, inference URL validation for environment-configured providers is unchanged in this patch. It still uses the inference URL validator, while model discovery rejects URL user information, queries, and fragments. Aligning those environment-path policies is deferred to a separately scoped compatibility change.
+
+
+## Windows publication trust boundary
+
+The GitHub Actions workflow separates read-only compilation from a publication job with `contents: write`. Publication uses default-branch dispatch, not code supplied by a newly pushed tag. Signing credentials belong in a branch-restricted environment, never at repository scope; pull requests receive neither those secrets nor a publication job. Public releases require a pinned Authenticode signer, the original tag commit and four matching remote artifact digests. The API checks do not replace protected tags or immutable releases, and neither a digest nor a signature proves data migration or rollback. See [release management](RELEASE_MANAGEMENT.md).
+
 
 ## Deployment boundary and known gap
 

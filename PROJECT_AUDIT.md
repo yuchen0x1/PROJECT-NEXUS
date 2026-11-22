@@ -1,5 +1,22 @@
 # PROJECT NEXUS 项目现状审计
 
+## 2026-11-21 · 当前能力与发布证据
+
+基线为 `origin/main` 的 `464f75b`（PR #15 已合并）；原始本地安全分支没有被改写。GitHub 主分支 CI 已成功，公开 `v0.9.4` 无资产；其 Release 工作流因同名公开 Release 已存在而在打包前失败。最近有完整四份资产的可核实版本为 `v0.9.3`。未发现 Open Issue；四个依赖 PR 未作为本轮变更合并。
+
+| 范围 | 状态 | 核对证据／限制 |
+| --- | --- | --- |
+| 前端 / Express / 数据 | 已运行 | 隔离的生产模式服务在 Windows loopback 启动，`/api/health` 返回 200，React 实际渲染工作台；状态 JSON、SQLite 和 JSON 降级有现有测试。 |
+| 工作台、监控与研究 | 已实现，部分验证 | 概览、导航、连接空状态可用；监控游标、事件指纹、在线研究预算有覆盖。`/api/autonomy/overview` 实测 404：API 终止 handler 抢先，指挥中心可见不代表后端可达。 |
+| 持久任务、恢复与取消 | 存在缺陷 | `server/index.mjs` 先创建 Autonomy runtime、执行遗留任务恢复，随后竞争主机租约；应先取得所有权。退出路径还需补调度停止与在途任务排空验证。 |
+| Worktree / Agent / Reviewer | 已实现，未完成实盘验收 | 本地 Worktree、Git 检查、状态、AI 输入边界、独立 Reviewer 和失败转人工有测试；GitHub Issue→真实桌面 AI→Review→发行整链未在本轮跑通。取消时共享路径和任务收尾需进一步验证。 |
+| GitHub App / Token / Webhook | 已实现，部分验证 | CLI 只读核对权限、Release、PR、CI；应用的 App 回调和签名测试不等于 Windows 端到端安装。旧接口权限检查尚不一致，保留远端写启用阻塞。 |
+| Provider 与客户端 | 已实现，部分验证 | OpenAI 兼容、其他 provider、Codex App Server 和桌面适配器有实现和 mock tests；没有以私有 AI Key 或已登录账号运行任务。密钥撤销与端点绑定为 P0，通用 MCP 接入未发现。 |
+| 发布 / 更新 / 回滚 | 有功能，尚未完成验收 | 本轮候选改造分离构建和发布并添加远端摘要签名门禁；不宣称已执行公网上传、签名升级或原生回滚。 |
+| 安全与性能 | 有部分证据 | 官方 npm advisory（含开发与仅运行时）为 0；不是完整安全认证。Docker daemon 不运行，CodeQL 等外部工具未验证；Windows OS 隔离及 24 小时稳定性不可宣称完成。 |
+
+本轮风险优先级见 [路线图](UPGRADE_ROADMAP.md)，证据和恢复路径见 [交付报告](UPGRADE_REPORT.md)。下文保留上轮历史基线，不代表 2026-11-21 的覆盖结论。
+
 - 审计日期：2026-11-16（Asia/Shanghai）
 - 仓库：`yuchen0x1/PROJECT-NEXUS`
 - 基线分支：`main`

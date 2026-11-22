@@ -85,7 +85,9 @@ React / Vite 前端（20 个既存页面 + 1 个指挥中心）
 
 ## 安装方式
 
-[下载 Windows x64 安装包](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/latest) · [版本说明与 SHA256 校验](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/latest)。0.8.2 及更高安装版可在设置中「检查更新」。
+[Windows 实测截图：设置、中文及浅色模式](docs/evidence/2026-11-21-windows-settings.png)（开发预览候选，不代表签名更新已验收）。
+
+[查看 Windows x64 发行记录](https://github.com/yuchen0x1/PROJECT-NEXUS/releases)；请选含安装包、blockmap、`latest.yml` 和 `SHA256SUMS.txt` 的版本。`v0.9.4` 是无 Windows 资产的源码 Release；若最新记录没有安装包，可回到 [v0.9.3 开发预览](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.3) 查看现有资产。`v0.9.3` 未签名，不代表已验证安全更新。发布与验收流程见 [发布管理](docs/RELEASE_MANAGEMENT.md)。
 
 1. 在 Windows 10/11 x64 运行安装程序。
 2. 首次启动自动进入教学；之后可从工作台或顶部「一键教学」重看。
