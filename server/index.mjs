@@ -1798,7 +1798,7 @@ app.post('/api/local-agent/providers/:providerId/test', async (req, res) => {
 app.post('/api/local-agent/provider-keys', async (req, res) => {
   if (!requireDesktopLocalAgent(res)) return
   try {
-    const result = setRuntimeProviderKeys(req.body?.keys)
+    const result = await setRuntimeProviderKeys(req.body?.keys, { dataDir })
     audit(req, 'provider_keys_synced', Object.keys(req.body?.keys || {}).join(','), 'success', 'high', { count: result.ids.length })
     res.json({ synced: result.ids })
   } catch (error) { res.status(400).json({ code: error.code || 'PROVIDER_KEYS_INVALID', message: safeError(error) }) }

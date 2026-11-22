@@ -250,7 +250,14 @@ export async function invokeAIProvider({ taskType = 'general', providerId = null
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), timeout)
     try {
-      const response = await fetch(request.url, { method: 'POST', signal: combineSignals(controller.signal, signal), headers: request.headers, body: JSON.stringify(request.body) })
+      // Resolved providers may outlive a vault sync (agent loops and retries).
+      // Check the credential lease immediately before each network attempt.
+      provider.assertCredentialActive?.()
+      const response = await fetch(request.url, { method: 'POST', redirect: 'manual', signal: combineSignals(controller.signal, signal), headers: request.headers, body: JSON.stringify(request.body) })
+      if (response.status >= 300 && response.status < 400) {
+        await response.body?.cancel().catch(() => {})
+        throw Object.assign(new Error('AI provider redirects are not allowed. Configure the final provider endpoint explicitly.'), { code: 'AI_REDIRECT_REJECTED', status: response.status })
+      }
       const body = await response.json().catch(() => ({}))
       if (!response.ok) {
         const error = Object.assign(new Error(body?.error?.message || body?.message || `AI provider returned ${response.status}`), { status: response.status, body })
@@ -265,7 +272,7 @@ export async function invokeAIProvider({ taskType = 'general', providerId = null
     } catch (error) {
       if (error?.name === 'AbortError' || signal?.aborted) throw Object.assign(new Error(signal?.aborted ? 'AI provider request was cancelled.' : 'AI provider request timed out.'), { code: signal?.aborted ? 'JOB_CANCELLED' : 'AI_TIMEOUT' })
       lastError = error
-      if (attempt >= retries || (error?.status && !retryableStatus(error.status))) throw error
+      if (error?.code === 'AI_CREDENTIAL_REVOKED' || attempt >= retries || (error?.status && !retryableStatus(error.status))) throw error
       await new Promise((resolve) => setTimeout(resolve, Math.min(5_000, 250 * (2 ** attempt))))
     } finally { clearTimeout(timer) }
   }

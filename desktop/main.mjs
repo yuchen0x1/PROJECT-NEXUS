@@ -1,5 +1,6 @@
 import { createRestartBudget } from './service-health.mjs'
 import { createAppUpdater } from './auto-update.mjs'
+import { createProviderKeyVault } from './provider-key-vault.mjs'
 import electronUpdater from 'electron-updater'
 import { spawn } from 'node:child_process'
 import crypto from 'node:crypto'
@@ -275,41 +276,12 @@ function sanitizeInstallDialogText(dialogText, planned) {
 // stored outside any project directory, never sent to the renderer (only
 // written/deleted), and forwarded in memory to the local service over the
 // authenticated loopback API.
-function providerKeyId(value) {
-  if (typeof value !== 'string' || !/^[a-z0-9][a-z0-9_-]{1,63}$/i.test(value)) throw new Error('Provider id is invalid.')
-  return value.toLowerCase()
-}
-
-async function readProviderKeyVault() {
-  try {
-    const parsed = JSON.parse(await fs.readFile(providerKeysPath, 'utf8'))
-    if (parsed && typeof parsed === 'object' && parsed.schemaVersion === 1 && parsed.keys && typeof parsed.keys === 'object') return parsed
-    throw new Error('Credential vault format is invalid; existing credentials were preserved.')
-  } catch (error) { if (error.code !== 'ENOENT') throw error }
-  return { schemaVersion: 1, keys: {} }
-}
-
-async function writeProviderKeyVault(vault) {
-  const temporary = `${providerKeysPath}.${process.pid}.${crypto.randomUUID()}.tmp`
-  await fs.mkdir(path.dirname(providerKeysPath), { recursive: true })
-  await fs.writeFile(temporary, JSON.stringify(vault, null, 2), { encoding: 'utf8', flag: 'wx' })
-  await fs.rename(temporary, providerKeysPath).catch(async (error) => {
-    await fs.rm(temporary, { force: true }).catch(() => {})
-    throw error
-  })
-}
-
-async function decryptVaultKeys(vault) {
-  const keys = {}
-  for (const [id, encrypted] of Object.entries(vault.keys || {})) {
-    if (typeof encrypted !== 'string' || !encrypted) continue
-    try {
-      const buffer = Buffer.from(encrypted, 'latin1')
-      keys[id] = safeStorage.decryptString(buffer)
-    } catch { /* skip undecryptable entries instead of failing startup */ }
-  }
-  return keys
-}
+const providerKeyVault = createProviderKeyVault({
+  file: providerKeysPath,
+  safeStorage,
+  listProviders: () => listProviderRecords({ dataDir: userDataPath }),
+  syncKeys: syncProviderKeysToService
+})
 
 async function syncProviderKeysToService(keys) {
   if (!apiOrigin) return { synced: false, reason: 'service-not-ready' }
@@ -332,13 +304,9 @@ async function syncProviderKeysToService(keys) {
 async function syncStoredProviderKeys() {
   await syncStoredGitHubCredential()
   try {
-    const vault = await readProviderKeyVault()
-    const keys = await decryptVaultKeys(vault)
-    if (Object.keys(keys).length) {
-      const result = await syncProviderKeysToService(keys)
-      await writeLog('info', 'provider-keys-synced', { count: Object.keys(keys).length, synced: Boolean(result.synced) })
-      return result
-    }
+    const result = await providerKeyVault.sync()
+    await writeLog('info', 'provider-keys-synced', { synced: Boolean(result.synced) })
+    return result
   } catch (error) {
     await writeLog('error', 'provider-keys-sync-failed', {})
   }
@@ -375,8 +343,7 @@ function registerLocalCapabilities() {
       records,
       getSavedKey: async (provider) => {
         if (provider.source === 'env') return (await resolveProviderForInvocation({ dataDir: userDataPath, providerId: provider.id }))?.apiKey || ''
-        const keys = await decryptVaultKeys(await readProviderKeyVault())
-        return keys[provider.id] || ''
+        return await providerKeyVault.getKey(provider)
       }
     })
   })
@@ -395,27 +362,16 @@ function registerLocalCapabilities() {
     return result
   })
   registerIpc('desktop:provider-keys:set', async (providerId, apiKey) => {
-    const id = providerKeyId(providerId)
-    if (typeof apiKey !== 'string' || !apiKey.trim() || apiKey.length > 4096) throw new Error('The API key must be a non-empty string.')
-    if (!safeStorage.isEncryptionAvailable()) throw new Error('The operating system refused secure credential encryption; the key was NOT saved.')
-    const vault = await readProviderKeyVault()
-    vault.keys[id] = safeStorage.encryptString(apiKey.trim()).toString('latin1')
-    await writeProviderKeyVault(vault)
-    await writeLog('info', 'provider-key-set', { providerId: id })
-    return { providerId: id, saved: true, sync: await syncProviderKeysToService(await decryptVaultKeys(vault)) }
+    const result = await providerKeyVault.set(providerId, apiKey)
+    await writeLog('info', 'provider-key-set', { providerId: result.providerId })
+    return result
   })
   registerIpc('desktop:provider-keys:delete', async (providerId) => {
-    const id = providerKeyId(providerId)
-    const vault = await readProviderKeyVault()
-    delete vault.keys[id]
-    await writeProviderKeyVault(vault)
-    await writeLog('info', 'provider-key-deleted', { providerId: id })
-    return { providerId: id, deleted: true, sync: await syncProviderKeysToService(await decryptVaultKeys(vault)) }
+    const result = await providerKeyVault.delete(providerId)
+    await writeLog('info', 'provider-key-deleted', { providerId: result.providerId })
+    return result
   })
-  registerIpc('desktop:provider-keys:status', async () => {
-    const vault = await readProviderKeyVault()
-    return { providerIds: Object.keys(vault.keys || {}), encryptionAvailable: safeStorage.isEncryptionAvailable() }
-  })
+  registerIpc('desktop:provider-keys:status', () => providerKeyVault.status())
 
   registerIpc('desktop:api:request', async (request) => {
     if (!request || typeof request.url !== 'string' || request.url.length > 4096) throw new Error('Invalid local API request.')

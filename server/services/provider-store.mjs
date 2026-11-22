@@ -66,6 +66,18 @@ function normalizeTrustedBaseUrl(value) {
   return normalized
 }
 
+// Metadata is plaintext. Keep inline URL secrets out of every registry write,
+// including legacy records carried forward by an otherwise unrelated edit.
+// Environment-only inference compatibility is intentionally unchanged.
+function normalizeStoredBaseUrl(value) {
+  const normalized = normalizeTrustedBaseUrl(value)
+  const url = new URL(value.trim())
+  if (url.username || url.password || url.search || url.hash) {
+    throw storeError('PROVIDER_BASE_URL_INVALID', 'Stored provider URLs must not include credentials, a query string, or a fragment. Use the separate API key field.')
+  }
+  return normalized
+}
+
 function normalizeModels(value, primaryModel) {
   const list = Array.isArray(value) ? value.map((item) => String(item || '').trim()).filter(Boolean) : []
   if (list.length > 100) throw storeError('PROVIDER_MODELS_INVALID', 'A provider may declare at most 100 models.')
@@ -109,7 +121,7 @@ function normalizeProvider(input, { requireNew = false } = {}) {
   if (!name || name.length > 120) throw storeError('PROVIDER_NAME_INVALID', 'Provider name must be 1-120 characters.')
   const kind = normalizeKind(input.kind)
   if (!kind) throw storeError('PROVIDER_KIND_INVALID', `Provider kind must be one of: ${PROVIDER_KINDS.join(', ')}.`)
-  const baseUrl = normalizeTrustedBaseUrl(input.baseUrl)
+  const baseUrl = normalizeStoredBaseUrl(input.baseUrl)
   const model = String(input.model || '').trim()
   if (!model || model.length > 200) throw storeError('PROVIDER_MODEL_INVALID', 'A default model id (1-200 characters) is required.')
   const contextWindow = Number(input.contextWindow)
@@ -151,6 +163,7 @@ async function assertRegularFileOrMissing(file) {
 }
 
 async function writeStoreFile(file, document) {
+  for (const provider of document.providers) normalizeStoredBaseUrl(provider.baseUrl)
   await fs.mkdir(path.dirname(file), { recursive: true })
   await assertRegularFileOrMissing(file)
   const temporary = `${file}.${process.pid}.${crypto.randomUUID()}.tmp`
@@ -201,14 +214,53 @@ async function withStoreQueue(file, operation) {
 
 const runtimeKeys = new Map()
 
-export function setRuntimeProviderKeys(keys) {
-  if (!isPlainObject(keys)) throw storeError('PROVIDER_KEYS_INVALID', 'Provider keys must be an object of providerId -> apiKey.')
-  for (const [id, key] of Object.entries(keys)) {
-    if (!/^[a-z0-9][a-z0-9_-]{1,63}$/i.test(id)) continue
-    if (key === null || key === '') runtimeKeys.delete(id.toLowerCase())
-    else if (typeof key === 'string' && key.length <= 4096) runtimeKeys.set(id.toLowerCase(), key)
-  }
-  return { ids: [...runtimeKeys.keys()] }
+function runtimeScope(dataDir) {
+  const file = resolveStoreFile(dataDir)
+  return process.platform === 'win32' ? file.toLowerCase() : file
+}
+
+// Hash a domain-separated, unambiguous canonical tuple: full normalized URL
+// (including any environment-only URL secrets), protocol, source and generation.
+// Only the opaque digest may be persisted, never the tuple. An edit/revert or
+// delete/recreate must not resurrect old ciphertext. This is destination identity,
+// not encryption or authentication; unbound legacy ciphertext requires re-entry.
+export function providerCredentialBinding(provider) {
+  const canonical = JSON.stringify(['nexus-provider-credential-binding-v1', provider.id, provider.source || 'stored', provider.credentialRevision || '', normalizeKind(provider.kind), normalizeTrustedBaseUrl(provider.baseUrl)])
+  return `sha256:v1:${crypto.createHash('sha256').update(canonical, 'utf8').digest('hex')}`
+}
+
+function runtimeKey(provider, dataDir) {
+  const entry = runtimeKeys.get(runtimeScope(dataDir))?.get(provider.id)
+  return entry?.binding === providerCredentialBinding(provider) ? entry : null
+}
+
+// Authoritative snapshot, including {} to revoke the final key. Validate and
+// bind everything before replacing the map so a malformed sync is atomic.
+export async function setRuntimeProviderKeys(keys, { dataDir } = {}) {
+  if (!isPlainObject(keys)) throw storeError('PROVIDER_KEYS_INVALID', 'Provider keys must be an object of providerId -> key.')
+  const file = resolveStoreFile(dataDir)
+  return withStoreQueue(file, async () => {
+    const records = mergedProviders(await loadStore(file))
+    const scope = runtimeScope(dataDir)
+    const previous = runtimeKeys.get(scope)
+    const next = new Map()
+    for (const [rawId, value] of Object.entries(keys)) {
+      const id = validateId(rawId.toLowerCase())
+      if (value === null || value === '') continue
+      const apiKey = isPlainObject(value) ? value.apiKey : value
+      if (typeof apiKey !== 'string' || !apiKey.trim() || apiKey.length > 4096 || /[\r\n]/.test(apiKey)) {
+        throw storeError('PROVIDER_KEYS_INVALID', 'Provider keys must be non-empty strings of at most 4096 characters without newlines.')
+      }
+      const provider = records.find((item) => item.id === id)
+      if (!provider) throw storeError('PROVIDER_KEYS_INVALID', 'Cannot bind a key to an unknown provider.')
+      const binding = providerCredentialBinding(provider)
+      if (isPlainObject(value) && value.binding !== binding) continue
+      const old = previous?.get(id)
+      next.set(id, old?.binding === binding && old.apiKey === apiKey ? old : { apiKey, binding })
+    }
+    runtimeKeys.set(scope, next)
+    return { ids: [...next.keys()] }
+  })
 }
 
 export function clearRuntimeProviderKeys() {
@@ -285,8 +337,8 @@ function mergedProviders(document) {
   return [...stored, ...env].sort((a, b) => (a.priority - b.priority) || a.id.localeCompare(b.id))
 }
 
-function hasApiKey(provider) {
-  if (runtimeKeys.has(provider.id)) return true
+function hasApiKey(provider, dataDir) {
+  if (runtimeKey(provider, dataDir)) return true
   if (provider.source === 'env') {
     if (provider.id === 'default') return Boolean(process.env.AI_API_KEY) || provider.kind === 'ollama'
     const raw = process.env.NEXUS_AI_PROVIDERS_JSON
@@ -302,8 +354,9 @@ function hasApiKey(provider) {
   return provider.kind === 'ollama'
 }
 
-function resolveProviderWithKey(provider) {
-  let apiKey = runtimeKeys.get(provider.id) || ''
+function resolveProviderWithKey(provider, dataDir) {
+  const entry = runtimeKey(provider, dataDir)
+  let apiKey = entry?.apiKey || ''
   if (!apiKey && provider.source === 'env') {
     if (provider.id === 'default') apiKey = process.env.AI_API_KEY || ''
     else {
@@ -320,10 +373,15 @@ function resolveProviderWithKey(provider) {
     }
   }
   const configured = Boolean(provider.baseUrl && provider.model && (apiKey || provider.kind === 'ollama'))
-  return { ...provider, apiKey, configured, enabled: provider.enabled !== false }
+  return {
+    ...provider, apiKey, configured, enabled: provider.enabled !== false,
+    ...(entry ? { assertCredentialActive: () => {
+      if (runtimeKey(provider, dataDir) !== entry) throw storeError('AI_CREDENTIAL_REVOKED', 'The provider credential was revoked or its configuration changed. Resolve the provider again.')
+    } } : {})
+  }
 }
 
-function publicProvider(provider) {
+function publicProvider(provider, dataDir) {
   return {
     id: provider.id,
     name: provider.name,
@@ -342,8 +400,8 @@ function publicProvider(provider) {
     routing: provider.routing || {},
     enabled: provider.enabled !== false,
     source: provider.source || 'stored',
-    configured: hasApiKey(provider),
-    hasApiKey: hasApiKey(provider)
+    configured: hasApiKey(provider, dataDir),
+    hasApiKey: hasApiKey(provider, dataDir)
   }
 }
 
@@ -361,7 +419,7 @@ export function listProviderRecords({ dataDir } = {}) {
 
 export async function listPublicProviders({ dataDir } = {}) {
   const records = await listProviderRecords({ dataDir })
-  return records.map(publicProvider)
+  return records.map((provider) => publicProvider(provider, dataDir))
 }
 
 export async function resolveProviderForInvocation({ dataDir, providerId, taskType = 'general' } = {}) {
@@ -371,12 +429,12 @@ export async function resolveProviderForInvocation({ dataDir, providerId, taskTy
   if (id) selected = records.find((provider) => provider.id === id) || null
   if (!selected && !providerId) {
     const routing = AGENT_TASK_TYPES.includes(taskType) ? taskType : null
-    if (routing) selected = records.find((provider) => provider.enabled !== false && provider.routing?.[routing] && hasApiKey(provider)) || null
-    selected = selected || records.find((provider) => provider.enabled !== false && hasApiKey(provider)) || null
+    if (routing) selected = records.find((provider) => provider.enabled !== false && provider.routing?.[routing] && hasApiKey(provider, dataDir)) || null
+    selected = selected || records.find((provider) => provider.enabled !== false && hasApiKey(provider, dataDir)) || null
   }
   if (selected) {
     if (selected.enabled === false) return null
-    const resolved = resolveProviderWithKey(selected)
+    const resolved = resolveProviderWithKey(selected, dataDir)
     return resolved.configured ? resolved : null
   }
   // Fall back to the legacy env-configured providers so runtime tasks work in
@@ -411,12 +469,12 @@ export async function createProviderRecord({ dataDir, provider } = {}) {
   const file = resolveStoreFile(dataDir)
   return await withStoreQueue(file, async () => {
     const document = await loadStore(file)
-    const normalized = normalizeProvider(provider, { requireNew: true })
+    const normalized = { ...normalizeProvider(provider, { requireNew: true }), credentialRevision: crypto.randomUUID() }
     if (document.providers.length >= MAX_PROVIDERS) throw storeError('PROVIDER_STORE_LIMIT', `The provider registry is limited to ${MAX_PROVIDERS} providers.`)
     if (document.providers.some((item) => item.id === normalized.id)) throw storeError('PROVIDER_DUPLICATE_ID', `Provider id already exists: ${normalized.id}`)
     document.providers.push(jsonClone(normalized, 'Provider'))
     await writeStoreFile(file, document)
-    return publicProvider({ ...normalized, source: 'stored' })
+    return publicProvider({ ...normalized, source: 'stored' }, dataDir)
   })
 }
 
@@ -426,10 +484,14 @@ export async function updateProviderRecord({ dataDir, providerId, patch } = {}) 
     const document = await loadStore(file)
     const index = document.providers.findIndex((item) => item.id === providerId)
     if (index < 0) return null
-    const merged = normalizeProvider({ ...document.providers[index], ...(isPlainObject(patch) ? patch : {}), id: providerId })
+    const previous = document.providers[index]
+    const merged = normalizeProvider({ ...previous, ...(isPlainObject(patch) ? patch : {}), id: providerId })
+    const changed = normalizeKind(previous.kind) !== merged.kind || normalizeTrustedBaseUrl(previous.baseUrl) !== merged.baseUrl
+    merged.credentialRevision = changed ? crypto.randomUUID() : previous.credentialRevision || ''
     document.providers[index] = jsonClone(merged, 'Provider')
     await writeStoreFile(file, document)
-    return publicProvider({ ...merged, source: 'stored' })
+    if (changed) runtimeKeys.get(runtimeScope(dataDir))?.delete(providerId)
+    return publicProvider({ ...merged, source: 'stored' }, dataDir)
   })
 }
 
@@ -440,8 +502,8 @@ export async function deleteProviderRecord({ dataDir, providerId } = {}) {
     const index = document.providers.findIndex((item) => item.id === providerId)
     if (index < 0) return { deleted: false }
     document.providers.splice(index, 1)
-    runtimeKeys.delete(String(providerId).toLowerCase())
     await writeStoreFile(file, document)
+    runtimeKeys.get(runtimeScope(dataDir))?.delete(String(providerId).toLowerCase())
     return { deleted: true }
   })
 }

@@ -1937,6 +1937,7 @@ function ProviderManagerPanel({ providers, keyStatus, onProvidersChanged, onKeyS
       </div>
     </div>
     {open && <div className="nx-agent-providers-body">
+      {formError && <div className="nx-agent-error" role="alert">{formError}</div>}
       {providers.length === 0 && <div className="nx-agent-inline-note">{t('agent:providers.empty')}</div>}
       <div className="nx-agent-provider-list">
         {providers.map((provider) => <div className="nx-agent-provider-row" key={provider.id}>
@@ -1961,11 +1962,18 @@ function ProviderManagerPanel({ providers, keyStatus, onProvidersChanged, onKeyS
               disabled={busy === `provider-key-${provider.id}`}
             />
             <button className="nx-row-action" disabled={!keyDraft[provider.id]?.trim()} onClick={async () => {
-              await onKeySet(provider.id, keyDraft[provider.id])
-              setKeyDraft((current) => ({ ...current, [provider.id]: '' }))
-              onProvidersChanged()
+              setFormError(null)
+              try {
+                await onKeySet(provider.id, keyDraft[provider.id])
+                setKeyDraft((current) => ({ ...current, [provider.id]: '' }))
+                onProvidersChanged()
+              } catch (cause) { setFormError(cause instanceof Error ? cause.message : t('errors:providerKeySave')) }
             }}>{t('agent:providers.saveKey')}</button>
-            {provider.hasApiKey && provider.source !== 'env' && <button className="nx-row-action" onClick={async () => { await onKeyDelete(provider.id); onProvidersChanged() }}>{t('agent:providers.deleteKey')}</button>}
+            {provider.hasApiKey && provider.source !== 'env' && <button className="nx-row-action" onClick={async () => {
+              setFormError(null)
+              try { await onKeyDelete(provider.id); onProvidersChanged() }
+              catch (cause) { setFormError(cause instanceof Error ? cause.message : t('errors:providerSave')) }
+            }}>{t('agent:providers.deleteKey')}</button>}
             <button className="nx-row-action" onClick={() => void runTest(provider.id)} disabled={busy === `provider-test-${provider.id}`}>{t('agent:providers.test')}</button>
             {provider.source !== 'env' && <button className="nx-row-action" onClick={() => { setEditing({ ...provider }); setOpen(true) }}>{t('common:actions.edit')}</button>}
             {provider.source !== 'env' && <button className="nx-delete-action" disabled={busy === `provider-delete-${provider.id}`} onClick={async () => { await onProviderDelete(provider.id); onProvidersChanged() }} aria-label={t('agent:providers.deleteAria', { name: provider.name })}><Trash2 size={14} /></button>}
@@ -2004,7 +2012,6 @@ function ProviderManagerPanel({ providers, keyStatus, onProvidersChanged, onKeyS
           <label className="nx-agent-field"><span>{t('agent:providers.form.inputPrice')}</span><input type="number" step="0.01" min="0" value={editing.pricing?.inputPer1M ?? ''} onChange={(event) => setEditing({ ...editing, pricing: { ...editing.pricing, inputPer1M: event.target.value === '' ? undefined : Number(event.target.value) } })} /></label>
           <label className="nx-agent-field"><span>{t('agent:providers.form.outputPrice')}</span><input type="number" step="0.01" min="0" value={editing.pricing?.outputPer1M ?? ''} onChange={(event) => setEditing({ ...editing, pricing: { ...editing.pricing, outputPer1M: event.target.value === '' ? undefined : Number(event.target.value) } })} /></label>
         </div>
-        {formError && <div className="nx-agent-error" role="alert">{formError}</div>}
         <div className="nx-agent-provider-form-actions">
           <button className="nx-primary" onClick={() => void save()}>{t('common:actions.save')}</button>
           <button className="nx-secondary" onClick={() => setEditing(null)}>{t('common:actions.cancel')}</button>

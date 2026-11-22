@@ -66,7 +66,7 @@ function scriptedProvider(responses) {
 async function providerRecord(server) {
   const { setRuntimeProviderKeys, createProviderRecord } = await import('../../server/services/provider-store.mjs')
   await createProviderRecord({ dataDir, provider: { id: 'scripted', name: 'Scripted', kind: 'openai-compatible', baseUrl: `http://127.0.0.1:${server.address().port}`, model: 'scripted-model' } })
-  setRuntimeProviderKeys({ scripted: 'scripted-key' })
+  await setRuntimeProviderKeys({ scripted: 'scripted-key' }, { dataDir })
 }
 
 const taskStore = {
