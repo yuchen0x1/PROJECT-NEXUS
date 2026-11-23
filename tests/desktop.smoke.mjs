@@ -115,7 +115,7 @@ try {
 
   const appUpdate = await page.evaluate(() => window.nexusDesktop.getAppUpdate())
   assert.equal(appUpdate.phase, 'disabled', 'Development and smoke sessions must not download updates.')
-  await page.getByRole('button', { name: 'Settings', exact: true }).first().click()
+  await page.locator('.nx-top-actions').getByRole('button', { name: 'Open settings', exact: true }).click()
   await page.getByRole('region', { name: 'NEXUS app update', exact: true }).waitFor()
   assert.equal(await page.getByRole('button', { name: 'Check for updates', exact: true }).isDisabled(), true)
   assert.equal(await page.getByText('Updates are available in the installed Windows app.', { exact: true }).isVisible(), true)
