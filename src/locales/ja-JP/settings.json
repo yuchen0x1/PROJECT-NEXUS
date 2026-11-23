@@ -7,7 +7,8 @@
     "appearance": "外観と言語",
     "agent": "AI エージェント",
     "startup": "スタートアップ",
-    "about": "情報"
+    "about": "情報",
+    "ai": "AI とタスク"
   },
   "appearance": {
     "languageLabel": "インターフェース言語",
@@ -124,5 +125,19 @@
         }
       }
     }
+  },
+  "ai": {
+    "title": "AI プロバイダーと実行",
+    "status": "プロバイダー状態",
+    "configured": "設定済み",
+    "notConfigured": "未設定",
+    "provider": "プロバイダー",
+    "model": "既定のモデル",
+    "endpoint": "API エンドポイント",
+    "hint": "プロバイダーの資格情報はこの PC 内にのみ保存されます。プロバイダーが設定されるまで、AI 自動化はブロックされたままです。"
+  },
+  "tasks": {
+    "concurrency": "同時実行タスク上限",
+    "notifications": "デスクトップ通知"
   }
 }

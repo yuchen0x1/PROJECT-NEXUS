@@ -1,6 +1,6 @@
 {
   "name": "project-nexus",
-  "version": "0.9.5",
+  "version": "2.0.0",
   "description": "Windows AI development and project operations workstation",
   "license": "MIT",
   "author": {
@@ -17,6 +17,7 @@
     "desktop:package:win": "npm run build && electron-builder --win nsis --x64 --publish never",
     "desktop:verify-update": "node scripts/verify-desktop-update.mjs",
     "test:desktop": "npm run build && node tests/desktop.smoke.mjs",
+    "test:desktop:centers": "npm run build && node tests/desktop-centers.mjs",
     "test:desktop:agent": "npm run build && node tests/local-agent-desktop-ui.mjs",
     "test:desktop:i18n": "npm run build && node tests/desktop-i18n.mjs",
     "test:desktop:quality": "npm run build && node tests/desktop-quality.mjs",
@@ -117,7 +118,7 @@
     "afterPack": "desktop/after-pack.cjs"
   },
   "allowScripts": {
-    "electron@45.3.1": true
+    "electron@45.3.4": true
   },
   "overrides": {
     "minimatch@>=7 <11.0.1": "11.0.8"

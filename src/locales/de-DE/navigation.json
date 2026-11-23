@@ -10,7 +10,8 @@
     "settings": "Einstellungen",
     "collapse": "Seitenleiste einklappen",
     "expand": "Seitenleiste ausklappen",
-    "localBadge": "LOKAL"
+    "localBadge": "LOKAL",
+    "appSettings": "App-Einstellungen"
   },
   "topbar": {
     "machine": "Lokaler Rechner",

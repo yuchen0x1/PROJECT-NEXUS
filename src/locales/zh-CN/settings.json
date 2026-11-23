@@ -7,7 +7,8 @@
     "appearance": "外观与语言",
     "agent": "AI 智能体",
     "startup": "启动",
-    "about": "关于"
+    "about": "关于",
+    "ai": "AI 与任务运行"
   },
   "appearance": {
     "languageLabel": "界面语言",
@@ -124,5 +125,19 @@
         }
       }
     }
+  },
+  "ai": {
+    "title": "AI 提供商与执行",
+    "status": "提供商状态",
+    "configured": "已配置",
+    "notConfigured": "未配置",
+    "provider": "提供商",
+    "model": "默认模型",
+    "endpoint": "API 端点",
+    "hint": "提供商凭据只保存在本机。未配置提供商前，AI 自动化保持阻断。"
+  },
+  "tasks": {
+    "concurrency": "并发任务上限",
+    "notifications": "桌面通知"
   }
 }

@@ -10,7 +10,8 @@
     "settings": "設定",
     "collapse": "サイドバーを折りたたむ",
     "expand": "サイドバーを展開する",
-    "localBadge": "ローカル"
+    "localBadge": "ローカル",
+    "appSettings": "アプリ設定"
   },
   "topbar": {
     "machine": "ローカルマシン",

@@ -10,7 +10,8 @@
     "settings": "Configurações",
     "collapse": "Recolher barra lateral",
     "expand": "Expandir barra lateral",
-    "localBadge": "LOCAL"
+    "localBadge": "LOCAL",
+    "appSettings": "Configurações do app"
   },
   "topbar": {
     "machine": "Máquina local",

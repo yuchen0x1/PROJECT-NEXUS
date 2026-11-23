@@ -7,7 +7,8 @@
     "appearance": "Appearance & Language",
     "agent": "AI Agent",
     "startup": "Startup",
-    "about": "About"
+    "about": "About",
+    "ai": "AI & task runtime"
   },
   "appearance": {
     "languageLabel": "Interface language",
@@ -124,5 +125,19 @@
         }
       }
     }
+  },
+  "ai": {
+    "title": "AI provider & execution",
+    "status": "Provider status",
+    "configured": "Configured",
+    "notConfigured": "Not configured",
+    "provider": "Provider",
+    "model": "Default model",
+    "endpoint": "API endpoint",
+    "hint": "Provider credentials stay on this machine. AI automation stays blocked until a provider is configured."
+  },
+  "tasks": {
+    "concurrency": "Concurrent task limit",
+    "notifications": "Desktop notifications"
   }
 }

@@ -8,6 +8,9 @@ const MAX_LOCAL_AGENT_REQUEST_BYTES = 160 * 1024
 const MAX_LOCAL_AGENT_OPERATION_COUNT = 20
 const MAX_LOCAL_AGENT_OPERATION_CONTENT_BYTES = 256 * 1024
 const MAX_LOCAL_AGENT_RATIONALE_BYTES = 8 * 1024
+const MAX_PROVIDER_REQUEST_BYTES = 512 * 1024
+const MAX_PROVIDER_RESPONSE_BYTES = 2 * 1024 * 1024
+const MAX_INTEGRATION_OPERATION_CONTENT_BYTES = 256 * 1024
 
 function numberFrom(value, fallback = null) {
   const number = Number(value)
@@ -233,6 +236,33 @@ function looksLikeResolvedProvider(value) {
     typeof value.model === 'string' && value.model && typeof value.kind === 'string' && value.kind)
 }
 
+async function readBoundedResponseText(response, limit = MAX_PROVIDER_RESPONSE_BYTES) {
+  if (!response.body?.getReader) {
+    const text = await response.text()
+    if (Buffer.byteLength(text, 'utf8') > limit) throw Object.assign(new Error(`AI provider response exceeds the ${limit}-byte limit.`), { code: 'AI_RESPONSE_TOO_LARGE' })
+    return text
+  }
+  const reader = response.body.getReader()
+  const chunks = []
+  let total = 0
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      const chunk = Buffer.from(value)
+      total += chunk.byteLength
+      if (total > limit) {
+        await reader.cancel().catch(() => {})
+        throw Object.assign(new Error(`AI provider response exceeds the ${limit}-byte limit.`), { code: 'AI_RESPONSE_TOO_LARGE' })
+      }
+      chunks.push(chunk)
+    }
+    return Buffer.concat(chunks, total).toString('utf8')
+  } finally {
+    reader.releaseLock?.()
+  }
+}
+
 export async function invokeAIProvider({ taskType = 'general', providerId = null, providerOverride = null, messages, signal, temperature = 0.1, responseFormat = null, maxTokens = null, timeoutMs = DEFAULT_TIMEOUT_MS, maxRetries = null } = {}) {
   let provider
   if (providerOverride) {
@@ -243,6 +273,10 @@ export async function invokeAIProvider({ taskType = 'general', providerId = null
   }
   if (!provider?.configured) throw Object.assign(new Error('AI provider requires a configured base URL, API key, and model.'), { code: 'AI_NOT_CONFIGURED' })
   const request = buildRequest(provider, messages, { temperature, responseFormat, maxTokens })
+  const requestBody = JSON.stringify(request.body)
+  if (Buffer.byteLength(requestBody, 'utf8') > MAX_PROVIDER_REQUEST_BYTES) {
+    throw Object.assign(new Error(`AI provider request exceeds the ${MAX_PROVIDER_REQUEST_BYTES}-byte limit.`), { code: 'AI_REQUEST_TOO_LARGE' })
+  }
   const retries = Math.min(MAX_RETRIES, Math.max(0, Math.floor(numberFrom(maxRetries, numberFrom(process.env.AI_MAX_RETRIES, 2)))))
   const timeout = Math.min(MAX_TIMEOUT_MS, Math.max(1_000, Math.floor(numberFrom(timeoutMs, numberFrom(process.env.AI_REQUEST_TIMEOUT_MS, DEFAULT_TIMEOUT_MS)))))
   let lastError
@@ -253,12 +287,14 @@ export async function invokeAIProvider({ taskType = 'general', providerId = null
       // Resolved providers may outlive a vault sync (agent loops and retries).
       // Check the credential lease immediately before each network attempt.
       provider.assertCredentialActive?.()
-      const response = await fetch(request.url, { method: 'POST', redirect: 'manual', signal: combineSignals(controller.signal, signal), headers: request.headers, body: JSON.stringify(request.body) })
+      const response = await fetch(request.url, { method: 'POST', redirect: 'manual', signal: combineSignals(controller.signal, signal), headers: request.headers, body: requestBody })
       if (response.status >= 300 && response.status < 400) {
         await response.body?.cancel().catch(() => {})
         throw Object.assign(new Error('AI provider redirects are not allowed. Configure the final provider endpoint explicitly.'), { code: 'AI_REDIRECT_REJECTED', status: response.status })
       }
-      const body = await response.json().catch(() => ({}))
+      const responseText = await readBoundedResponseText(response)
+      let body = {}
+      try { body = JSON.parse(responseText || '{}') } catch { /* handled as an empty provider body below */ }
       if (!response.ok) {
         const error = Object.assign(new Error(body?.error?.message || body?.message || `AI provider returned ${response.status}`), { status: response.status, body })
         if (retryableStatus(response.status) && attempt < retries) { lastError = error; await new Promise((resolve) => setTimeout(resolve, Math.min(5_000, 250 * (2 ** attempt)))); continue }
@@ -272,7 +308,7 @@ export async function invokeAIProvider({ taskType = 'general', providerId = null
     } catch (error) {
       if (error?.name === 'AbortError' || signal?.aborted) throw Object.assign(new Error(signal?.aborted ? 'AI provider request was cancelled.' : 'AI provider request timed out.'), { code: signal?.aborted ? 'JOB_CANCELLED' : 'AI_TIMEOUT' })
       lastError = error
-      if (error?.code === 'AI_CREDENTIAL_REVOKED' || attempt >= retries || (error?.status && !retryableStatus(error.status))) throw error
+      if (['AI_CREDENTIAL_REVOKED', 'AI_RESPONSE_TOO_LARGE', 'AI_REQUEST_TOO_LARGE'].includes(error?.code) || attempt >= retries || (error?.status && !retryableStatus(error.status))) throw error
       await new Promise((resolve) => setTimeout(resolve, Math.min(5_000, 250 * (2 ** attempt))))
     } finally { clearTimeout(timer) }
   }
@@ -304,13 +340,31 @@ export async function generateIntegrationOperations({ report, plan, sourceFiles,
     ]
   })
   let result
-  try { result = JSON.parse(generated.text) } catch { throw new Error('AI provider returned invalid JSON for the proposed change set.') }
-  if (!Array.isArray(result.operations) || result.operations.length > 30) throw new Error('AI provider result did not contain a valid operations array (maximum 30).')
-  for (const operation of result.operations) {
-    if (!operation || !['create', 'replace', 'delete'].includes(operation.action) || typeof operation.path !== 'string' || operation.path.length > 300) throw new Error('AI provider returned an invalid file operation.')
-    if (operation.action !== 'delete' && typeof operation.content !== 'string') throw new Error('AI provider returned file content with an invalid shape.')
+  try { result = JSON.parse(generated.text) } catch { throw Object.assign(new Error('AI provider returned invalid JSON for the proposed change set.'), { code: 'AI_INVALID_OPERATIONS' }) }
+  if (!result || typeof result !== 'object' || Array.isArray(result) || !Array.isArray(result.operations) || result.operations.length > 30) {
+    throw Object.assign(new Error('AI provider result did not contain a valid operations array (maximum 30).'), { code: 'AI_INVALID_OPERATIONS' })
   }
-  return { ...result, model: generated.model, providerId: generated.provider.id, providerKind: generated.provider.kind, providerHost: generated.provider.host, sentPaths: safeFiles.map((file) => file.path), usage: generated.usage, costUsd: generated.costUsd, attempts: generated.attempts }
+  const seenPaths = new Set()
+  let operationBytes = 0
+  const operations = result.operations.map((operation) => {
+    if (!operation || typeof operation !== 'object' || Array.isArray(operation) || Object.keys(operation).some((key) => !['action', 'path', 'content'].includes(key)) || !['create', 'replace', 'delete'].includes(operation.action) || typeof operation.path !== 'string') {
+      throw Object.assign(new Error('AI provider returned an invalid file operation.'), { code: 'AI_INVALID_OPERATIONS' })
+    }
+    const path = normalizeLocalAgentPath(operation.path)
+    if (isSensitiveAgentPath(path)) throw Object.assign(new Error('AI provider proposed changing a protected or secret-like path.'), { code: 'AI_INVALID_OPERATIONS' })
+    const key = path.toLocaleLowerCase('en-US')
+    if (seenPaths.has(key)) throw Object.assign(new Error('AI provider returned duplicate file paths.'), { code: 'AI_INVALID_OPERATIONS' })
+    seenPaths.add(key)
+    if (operation.action === 'delete') return { action: operation.action, path }
+    if (typeof operation.content !== 'string') throw Object.assign(new Error('AI provider returned file content with an invalid shape.'), { code: 'AI_INVALID_OPERATIONS' })
+    assertByteLimit(operation.content, MAX_INTEGRATION_OPERATION_CONTENT_BYTES, 'AI integration operation content', 'AI_INVALID_OPERATIONS')
+    operationBytes += Buffer.byteLength(operation.content, 'utf8')
+    if (operationBytes > MAX_PROVIDER_RESPONSE_BYTES || operation.content.includes('\u0000') || redactSecrets(operation.content) !== operation.content) {
+      throw Object.assign(new Error('AI provider proposed binary or secret-like file content.'), { code: 'AI_INVALID_OPERATIONS' })
+    }
+    return { action: operation.action, path, content: operation.content }
+  })
+  return { ...result, operations, model: generated.model, providerId: generated.provider.id, providerKind: generated.provider.kind, providerHost: generated.provider.host, sentPaths: safeFiles.map((file) => file.path), usage: generated.usage, costUsd: generated.costUsd, attempts: generated.attempts }
 }
 
 function normalizeLocalAgentPath(value, label = 'path', code = 'AI_INVALID_OPERATIONS') {

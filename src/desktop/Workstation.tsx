@@ -6,7 +6,8 @@ import {
   Moon, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, RefreshCw, ScanSearch, Search,
   Settings2, ShieldCheck, Sun, TerminalSquare, Trash2, Undo2, Upload, Wrench, X, Zap
 } from 'lucide-react'
-import App, { REMOTE_NAV_PAGES, type RemotePage } from '../App'
+import App, { NAV_CENTERS, REMOTE_NAV_PAGES, type RemotePage } from '../App'
+import type { CenterId, NavCenter } from '../nav/centers'
 import SetupCenter from './SetupCenter'
 import ProductTour from './ProductTour'
 import ProjectOverview from './ProjectOverview'
@@ -75,6 +76,7 @@ export default function Workstation() {
   }
   const navigateRemote = (next: RemotePage) => { setRemotePage(next); setPage('remote') }
   const remoteLabels = Object.fromEntries(REMOTE_NAV_PAGES.map(({ page: target, key }) => [target, target === 'Projects' ? t('git:guide.repoNav') : target === 'Overview' ? t('git:guide.overviewNav') : target === 'Settings' ? t('git:guide.connectionsNav') : t(`git:shell.nav.${key}`)])) as Record<RemotePage, string>
+  const remoteCenterLabels = Object.fromEntries(NAV_CENTERS.map(({ id, key }) => [id, t(`git:shell.centers.${key}`)])) as Record<CenterId, string>
   const [info, setInfo] = useState<WorkstationInfo | null>(null)
   const [projects, setProjects] = useState<LocalProject[]>([])
   const [environment, setEnvironment] = useState<EnvironmentReport | null>(null)
@@ -736,11 +738,18 @@ export default function Workstation() {
     pushPage('agent', t('navigation:rail.agent'), <Bot size={15} />)
     pushPage('overview', t('workstation:overview.title'), <Network size={15} />)
     pushPage('evolution', t('workstation:evolution.title'), <Bot size={15} />)
-    for (const entry of REMOTE_NAV_PAGES) {
-      items.push({ id: `page:remote:${entry.page}`, group: 'pages', label: remoteLabels[entry.page], icon: <entry.icon size={15} />, run: () => { navigateRemote(entry.page); setPaletteOpen(false) } })
+    for (const center of NAV_CENTERS) {
+      const CenterIcon = center.icon
+      items.push({ id: `page:center:${center.id}`, group: 'pages', label: remoteCenterLabels[center.id], icon: <CenterIcon size={15} />, run: () => { navigateRemote(center.defaultLeaf); setPaletteOpen(false) } })
+      for (const leaf of center.leaves) {
+        const leafEntry = REMOTE_NAV_PAGES.find((entry) => entry.page === leaf)
+        if (!leafEntry) continue
+        const LeafIcon = leafEntry.icon
+        items.push({ id: `page:remote:${leaf}`, group: 'pages', label: `${remoteCenterLabels[center.id]} / ${remoteLabels[leaf]}`, icon: <LeafIcon size={15} />, run: () => { navigateRemote(leaf); setPaletteOpen(false) } })
+      }
     }
     items.push({ id: 'action:guide', group: 'actions', label: t('git:guide.entry'), icon: <BookOpen size={15} />, run: () => { setPaletteOpen(false); openGuide() } })
-    pushPage('settings', t('navigation:rail.settings'), <Settings2 size={15} />)
+    pushPage('settings', t('navigation:rail.appSettings'), <Settings2 size={15} />)
     items.push({ id: 'action:addProject', group: 'actions', label: t('navigation:commandPalette.actions.addProject'), icon: <FolderPlus size={15} />, run: () => { setPaletteOpen(false); void handleAddProject() } })
     items.push({ id: 'action:recheckEnvironment', group: 'actions', label: t('navigation:commandPalette.actions.recheckEnvironment'), icon: <Wrench size={15} />, run: () => { setPaletteOpen(false); void refreshEnvironment() } })
     items.push({ id: 'action:installEnvironment', group: 'actions', label: t('navigation:commandPalette.actions.installEnvironment'), icon: <Download size={15} />, run: () => { setPaletteOpen(false); void installEnvironment() } })
@@ -777,6 +786,7 @@ export default function Workstation() {
       remotePage={remotePage}
       onRemoteNavigate={navigateRemote}
       remoteLabels={remoteLabels}
+      remoteCenterLabels={remoteCenterLabels}
       collapsed={railCollapsed}
       onToggleCollapse={() => setRailCollapsed((value) => !value)}
       projectCount={projects.length}
@@ -1030,18 +1040,20 @@ function ActivityRow({ entry, compact = false }: { entry: ActivityEntry; compact
   </div>
 }
 
-function ActivityBar({ page, onNavigate, remotePage, onRemoteNavigate, remoteLabels, collapsed, onToggleCollapse, projectCount, agentActive }: {
+function ActivityBar({ page, onNavigate, remotePage, onRemoteNavigate, remoteLabels, remoteCenterLabels, collapsed, onToggleCollapse, projectCount, agentActive }: {
   page: Page
   onNavigate: (page: Page) => void
   remotePage: RemotePage
   onRemoteNavigate: (page: RemotePage) => void
   remoteLabels: Record<RemotePage, string>
+  remoteCenterLabels: Record<CenterId, string>
   collapsed: boolean
   onToggleCollapse: () => void
   projectCount: number
   agentActive: boolean
 }) {
   const { t } = useTranslation()
+  const activeRemoteCenter = NAV_CENTERS.find((center) => center.leaves.includes(remotePage)) || NAV_CENTERS[0]
   const item = (target: Page, label: string, icon: ReactNode, options?: { count?: number; badge?: boolean; arrow?: boolean }) => (
     <button
       className={`nx-nav-item ${page === target ? 'active' : ''}`}
@@ -1056,6 +1068,20 @@ function ActivityBar({ page, onNavigate, remotePage, onRemoteNavigate, remoteLab
       {!collapsed && options?.arrow && <ChevronRight size={13} className="nx-nav-arrow" />}
     </button>
   )
+  const centerItem = (center: NavCenter) => {
+    const CenterIcon = center.icon
+    const active = page === 'remote' && activeRemoteCenter.id === center.id
+    return <div className={`nx-remote-center ${active ? 'active' : ''}`} key={center.id}>
+      <button className={`nx-nav-item nx-center-nav-item ${active ? 'active' : ''}`} data-management-center={center.id} aria-expanded={active} onClick={() => onRemoteNavigate(center.defaultLeaf)} title={collapsed ? remoteCenterLabels[center.id] : undefined}>
+        <CenterIcon size={16} />
+        {!collapsed && <span className="nx-nav-label">{remoteCenterLabels[center.id]}</span>}
+        {!collapsed && active && <ChevronDown size={13} className="nx-nav-arrow" />}
+      </button>
+      {!collapsed && active && <div className="nx-remote-leaves" aria-label={remoteCenterLabels[center.id]}>
+        {center.leaves.map((target) => <button key={target} data-management-page={target} className={`nx-nav-leaf ${remotePage === target ? 'active' : ''}`} aria-current={remotePage === target ? 'page' : undefined} onClick={() => onRemoteNavigate(target)} title={remoteLabels[target]}><span className="nx-nav-leaf-dot" /><span>{remoteLabels[target]}</span></button>)}
+      </div>}
+    </div>
+  }
   return <nav className={`nx-rail ${collapsed ? 'collapsed' : ''}`} aria-label={t('common:aria.mainNavigation')}>
     <div className="nx-brand">
       <img className="nx-brand-mark" src={appIcon} srcSet={`${appIcon} 1x, ${appIconRetina} 2x`} width={30} height={30} alt="" aria-hidden="true" draggable={false} />
@@ -1072,11 +1098,10 @@ function ActivityBar({ page, onNavigate, remotePage, onRemoteNavigate, remoteLab
     </div>
     {!collapsed && <div className="nx-rail-label nx-rail-lower">{t('navigation:rail.management')}</div>}
     <div className="nx-rail-scroll"><div className="nx-rail-group">
-      {REMOTE_NAV_PAGES.map(({ page: target, icon: Icon }) => <button key={target} data-management-page={target} className={`nx-nav-item ${page === 'remote' && remotePage === target ? 'active' : ''}`} aria-current={page === 'remote' && remotePage === target ? 'page' : undefined} onClick={() => onRemoteNavigate(target)} title={remoteLabels[target]}><Icon size={16} />{!collapsed && <span className="nx-nav-label">{remoteLabels[target]}</span>}</button>)}
-    </div>
-    </div>
+      {NAV_CENTERS.map(centerItem)}
+    </div></div>
     <div className="nx-rail-group nx-rail-settings">
-      {item('settings', t('navigation:rail.settings'), <Settings2 size={16} />)}
+      {item('settings', t('navigation:rail.appSettings'), <Settings2 size={16} />)}
     </div>
     <button className="nx-rail-collapse" onClick={onToggleCollapse} aria-label={collapsed ? t('navigation:rail.expand') : t('navigation:rail.collapse')}>
       {collapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}

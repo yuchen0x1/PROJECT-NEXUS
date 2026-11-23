@@ -1292,16 +1292,40 @@ async function executeIntegrationScan(jobId, req) {
   }
 }
 
+const scanQueuePending = new Map()
+const scanQueueActive = new Set()
+let scanQueuePump = null
+
 async function runScanQueue(jobIds, req) {
-  let index = 0
-  const setting = Number(state.settings.concurrency) || 3
-  const workers = Array.from({ length: Math.min(Math.max(1, setting), 4, jobIds.length) }, async () => {
-    while (index < jobIds.length) {
-      const jobId = jobIds[index++]
-      await executeIntegrationScan(jobId, req)
+  for (const jobId of [...new Set(jobIds || [])]) {
+    if (!scanQueueActive.has(jobId) && !scanQueuePending.has(jobId)) scanQueuePending.set(jobId, req)
+  }
+  if (scanQueuePump) return scanQueuePump
+  if (!scanQueuePending.size) return
+
+  scanQueuePump = (async () => {
+    try {
+      while (scanQueuePending.size) {
+        const batch = [...scanQueuePending.entries()]
+        scanQueuePending.clear()
+        let index = 0
+        const setting = Number(state.settings.concurrency) || 3
+        const workers = Array.from({ length: Math.min(Math.max(1, setting), 4, batch.length) }, async () => {
+          while (index < batch.length) {
+            const [jobId, jobRequest] = batch[index++]
+            if (scanQueueActive.has(jobId)) continue
+            scanQueueActive.add(jobId)
+            try { await executeIntegrationScan(jobId, jobRequest) }
+            finally { scanQueueActive.delete(jobId) }
+          }
+        })
+        await Promise.all(workers)
+      }
+    } finally {
+      scanQueuePump = null
     }
-  })
-  await Promise.all(workers)
+  })()
+  return scanQueuePump
 }
 
 let scheduleTickRunning = false
@@ -1336,6 +1360,31 @@ async function runScheduledIntegrationScan() {
 // in parallel up to NEXUS_HOSTING_CONCURRENCY (default 2); each repository is
 // processed by exactly one worker at a time (PART 10).
 let hostingTickRunning = false
+const hostingInspectionActive = new Map()
+
+function hostingInspectionKey(project) {
+  return String(project?.fullName || project?.id || '').trim().toLocaleLowerCase('en-US')
+}
+
+async function withHostingInspectionAdmission(project, fn) {
+  const key = hostingInspectionKey(project)
+  const active = hostingInspectionActive.get(key)
+  if (active) {
+    throw Object.assign(new Error(`A hosting inspection is already running for ${project.fullName}.`), {
+      code: 'HOSTING_INSPECTION_IN_PROGRESS',
+      inspectionToken: active.token
+    })
+  }
+  const token = crypto.randomUUID()
+  const promise = Promise.resolve().then(fn)
+  hostingInspectionActive.set(key, { token, promise })
+  try {
+    return await promise
+  } finally {
+    if (hostingInspectionActive.get(key)?.token === token) hostingInspectionActive.delete(key)
+  }
+}
+
 async function runScheduledHostingTick() {
   if (shuttingDown) return
   if (hostingTickRunning) return
@@ -1350,7 +1399,7 @@ async function runScheduledHostingTick() {
       while (index < due.length) {
         const { project } = due[index++]
         try {
-          const run = await runHostingInspection(project, { depth: 'light' })
+          const run = await withHostingInspectionAdmission(project, () => runHostingInspection(project, { depth: 'light' }))
           if (run.status === 'Success' && true) {
             await syncProjectIssues(project, { request: (endpoint, options) => githubFetchForProject(project, endpoint, options) })
           }
@@ -1957,6 +2006,7 @@ async function runHostingInspection(project, { depth = 'light', req = null, sign
       const queued = await enqueueIntegrationScan(project, req || { get: () => undefined })
       run.integrationJobId = queued.job.id
       run.findings.push(hostingFinding('update_scan_queued', 'P4', `Update-capability scan queued (${queued.job.id})`))
+      void runScanQueue([queued.job.id], req || { get: () => undefined }).catch((error) => console.error('Hosting integration scan failed:', safeError(error)))
       // PHASE 4: genuine security pass over the managed cache clone.
       try {
         const token = await githubTokenForProject(project)
@@ -2375,8 +2425,15 @@ app.post('/api/projects/:projectId/hosting/inspect', async (req, res) => {
   if (!requireRole(req, res, 'Operator')) return
   if (!projectGithubConfigured(project)) return notConfigured(res)
   const depth = HOSTING_INSPECTION_DEPTHS.includes(req.body?.depth) ? req.body.depth : 'light'
-  const run = await runHostingInspection(project, { depth, req })
-  res.status(run.status === 'Success' ? 200 : 424).json({ run, project: hostingPublicProject(project) })
+  try {
+    const run = await withHostingInspectionAdmission(project, () => runHostingInspection(project, { depth, req }))
+    res.status(run.status === 'Success' ? 200 : 424).json({ run, project: hostingPublicProject(project) })
+  } catch (error) {
+    if (error.code === 'HOSTING_INSPECTION_IN_PROGRESS') {
+      return res.status(409).json({ code: error.code, message: error.message, inspectionToken: error.inspectionToken })
+    }
+    throw error
+  }
 })
 
 app.post('/api/projects/:projectId/hosting/workspace/prepare', async (req, res) => {
@@ -3563,8 +3620,10 @@ async function startHost() {
   void runScheduledIntegrationScan()
   setTimeout(() => void runScheduledHostingTick(), 5_000).unref?.()
   if (autonomyRuntime) {
-    autonomyTicker = startAutonomyTicker(autonomyRuntime.engine, { immediate: false })
-    setTimeout(() => { if (ready) void autonomyTicker.tickNow() }, 4_000).unref?.()
+    // The ticker owns both the interval and the single startup tick. Keeping
+    // startup dispatch in one owner prevents future run-now wiring from
+    // accidentally creating a second autonomous loop.
+    autonomyTicker = startAutonomyTicker(autonomyRuntime.engine, { immediate: true })
   }
   if (desktopMode && Number.isInteger(desktopOwnerPid) && desktopOwnerPid > 0 && desktopOwnerPid !== process.pid) {
     setInterval(checkOwner, 1000).unref?.()

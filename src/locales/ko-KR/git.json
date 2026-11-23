@@ -43,7 +43,18 @@
       "syncQueued": "리포지토리 동기화가 대기열에 추가되었습니다",
       "syncFailed": "동기화 실패"
     },
-    "embeddedRemote": "원격 콘솔"
+    "embeddedRemote": "원격 콘솔",
+    "centers": {
+      "dashboard": "대시보드",
+      "repositories": "저장소 센터",
+      "autopilot": "AI 자동 운영",
+      "development": "개발 및 워크플로",
+      "security": "보안 센터",
+      "research": "연구 센터",
+      "release": "릴리스 센터",
+      "task": "작업 센터",
+      "settings": "설정"
+    }
   },
   "overview": {
     "eyebrow": "운영 개요",
@@ -106,7 +117,8 @@
     "startSync": "동기화 시작",
     "scanStack": "스택 스캔",
     "scanToast": "{{repository}}의 스캔이 대기열에 추가되었습니다",
-    "noDescription": "제공된 리포지토리 설명이 없습니다."
+    "noDescription": "제공된 리포지토리 설명이 없습니다.",
+    "filterAria": "그룹별로 프로젝트 필터링"
   },
   "monitoring": {
     "eyebrow": "상태 신호",

@@ -43,7 +43,18 @@
       "syncQueued": "Repository-Synchronisierung in Warteschlange gestellt",
       "syncFailed": "Synchronisierung fehlgeschlagen"
     },
-    "embeddedRemote": "Remote-Konsole"
+    "embeddedRemote": "Remote-Konsole",
+    "centers": {
+      "dashboard": "Dashboard",
+      "repositories": "Repository-Zentrale",
+      "autopilot": "KI-Autopilot",
+      "development": "Entwicklung & Workflows",
+      "security": "Sicherheitszentrale",
+      "research": "Forschungszentrale",
+      "release": "Release-Zentrale",
+      "task": "Aufgaben-Zentrale",
+      "settings": "Einstellungen"
+    }
   },
   "overview": {
     "eyebrow": "Betriebsübersicht",
@@ -106,7 +117,8 @@
     "startSync": "Synchronisierung starten",
     "scanStack": "Stack scannen",
     "scanToast": "Scan für {{repository}} in Warteschlange gestellt",
-    "noDescription": "Keine Repository-Beschreibung vorhanden."
+    "noDescription": "Keine Repository-Beschreibung vorhanden.",
+    "filterAria": "Projekte nach Gruppe filtern"
   },
   "monitoring": {
     "eyebrow": "Statussignale",

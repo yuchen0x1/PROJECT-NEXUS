@@ -7,7 +7,8 @@
     "appearance": "모양 및 언어",
     "agent": "AI 에이전트",
     "startup": "시작",
-    "about": "정보"
+    "about": "정보",
+    "ai": "AI 및 작업"
   },
   "appearance": {
     "languageLabel": "인터페이스 언어",
@@ -124,5 +125,19 @@
         }
       }
     }
+  },
+  "ai": {
+    "title": "AI 공급자 및 실행",
+    "status": "공급자 상태",
+    "configured": "구성됨",
+    "notConfigured": "구성되지 않음",
+    "provider": "공급자",
+    "model": "기본 모델",
+    "endpoint": "API 엔드포인트",
+    "hint": "공급자 자격 증명은 이 컴퓨터에만 저장됩니다. 공급자가 구성되기 전까지 AI 자동화는 차단된 상태로 유지됩니다."
+  },
+  "tasks": {
+    "concurrency": "동시 작업 한도",
+    "notifications": "데스크톱 알림"
   }
 }

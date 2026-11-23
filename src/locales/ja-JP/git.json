@@ -43,7 +43,18 @@
       "syncQueued": "リポジトリ同期をキューに追加しました",
       "syncFailed": "同期に失敗しました"
     },
-    "embeddedRemote": "リモートコンソール"
+    "embeddedRemote": "リモートコンソール",
+    "centers": {
+      "dashboard": "ダッシュボード",
+      "repositories": "リポジトリセンター",
+      "autopilot": "AI自律運用",
+      "development": "開発・ワークフロー",
+      "security": "セキュリティセンター",
+      "research": "リサーチセンター",
+      "release": "リリースセンター",
+      "task": "タスクセンター",
+      "settings": "設定"
+    }
   },
   "overview": {
     "eyebrow": "運用オーバービュー",
@@ -106,7 +117,8 @@
     "startSync": "同期を開始",
     "scanStack": "スタックをスキャン",
     "scanToast": "{{repository}} のスキャンをキューに追加しました",
-    "noDescription": "リポジトリの説明が提供されていません。"
+    "noDescription": "リポジトリの説明が提供されていません。",
+    "filterAria": "グループでプロジェクトを絞り込む"
   },
   "monitoring": {
     "eyebrow": "ヘルスシグナル",

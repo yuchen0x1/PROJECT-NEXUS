@@ -1,5 +1,11 @@
 # Architecture
 
+## NEXUS 2.0 information architecture
+
+The 21 legacy remote pages are grouped by a single registry, `src/nav/centers.ts`, into nine centers: Dashboard, Repository Center, AI Autopilot, Development Center, Security Center, Research Center, Release Center, Task Center and Settings. Centers and leaves are declared once; the web sidebar, the Electron ActivityBar and the command palette all consume the same `NAV_CENTERS` array, so the three surfaces cannot drift apart.
+
+Leaf identifiers (`Overview`, `Build Center`, `Task Center`, …) are the durable contract. Notifications, setup/tour flows and deep links keep dispatching the same `RemotePage` values, and every leaf still renders its original component with its original API bindings. The registry is covered by `tests/unit/navigation-registry.test.ts` (9 centers / 21 unique leaves / default-leaf membership) and by `tests/desktop-centers.mjs`, which drives a real Electron window.
+
 ## Runtime shape
 
 PROJECT NEXUS is a modular monolith. The browser calls the Express API; the server owns GitHub and AI credentials, repository reads, persisted task state, and guarded remote-write workflows.
@@ -14,6 +20,16 @@ Express API ── GitHub REST API
       ├── AI provider ── isolated repository workspaces ── Docker checks
       └── atomic JSON state store (schema v3)
 ```
+
+## Admission and concurrency controls (2.0)
+
+Three duplicate-execution paths were closed without changing feature scope:
+
+- **Hosting inspection admission.** Scheduled and manual inspections now share a per-repository admission map keyed by repository identity. A second concurrent inspection for the same repository is rejected with `HOSTING_INSPECTION_IN_PROGRESS` (HTTP 409 plus the active `inspectionToken`) instead of starting a second GitHub walk. The guard is process-local, matching the existing queue/lock model.
+- **Scan queue pump.** Manual, scheduled and resume paths enqueue into one process-level pump that de-duplicates job ids and merges concurrent batches, so overlapping requests cannot multiply worker concurrency.
+- **Autonomy ticker ownership.** Startup no longer schedules a detached one-off `tickNow()` beside the interval ticker; a single `startAutonomyTicker(..., { immediate: true })` owns the first tick.
+
+These are admission controls only. They do not raise any automation permission, and every existing approval gate and read-only default remains in force.
 
 ## Main modules
 

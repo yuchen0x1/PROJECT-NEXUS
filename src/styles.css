@@ -49,6 +49,15 @@ nav { display: grid; gap: 3px; }
 .nav-item { border: 0; background: transparent; width: 100%; display: flex; align-items: center; gap: 11px; text-align: left; color: var(--nx-text-muted); border-radius: 8px; padding: 11px 10px; cursor: pointer; transition: background .18s, color .18s; }
 .nav-item:hover { background: var(--nx-accent-soft); color: var(--text); }
 .nav-item.active { color: var(--text); background: linear-gradient(90deg, var(--nx-accent-soft), var(--nx-accent-soft)); box-shadow: inset 2px 0 0 var(--cyan); }
+.center-nav { gap: 5px; overflow-y: auto; min-height: 0; padding-right: 2px; }
+.center-group { display: grid; gap: 2px; }
+.center-nav-item { font-weight: 600; }
+.center-leaves { display: grid; gap: 1px; padding: 1px 0 5px 38px; border-left: 1px solid var(--nx-accent-line); margin-left: 18px; }
+.leaf-nav-item { border: 0; background: transparent; color: var(--nx-text-muted); text-align: left; border-radius: 6px; padding: 7px 8px; cursor: pointer; font-size: 11px; display: flex; align-items: center; gap: 8px; transition: background .18s, color .18s; }
+.leaf-nav-item:hover, .leaf-nav-item.active { color: var(--text); background: var(--nx-bg-active); }
+.leaf-nav-item.active { box-shadow: inset 2px 0 0 var(--cyan); }
+.leaf-nav-dot { width: 4px; height: 4px; flex: 0 0 auto; border-radius: 50%; background: var(--nx-text-faint); }
+.leaf-nav-item.active .leaf-nav-dot { background: var(--cyan); box-shadow: 0 0 0 3px var(--nx-accent-soft); }
 .nav-count { margin-left: auto; background: var(--nx-danger-soft); color: var(--danger); padding: 2px 6px; border-radius: 99px; font-size: 10px; }
 .sidebar-bottom { margin-top: auto; }
 .connection-card { margin: 16px 5px 14px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--nx-bg-raised); display: flex; gap: 9px; align-items: flex-start; }

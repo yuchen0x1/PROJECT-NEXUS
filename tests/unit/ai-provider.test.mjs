@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import http from 'node:http'
-import { assertTrustedProviderUrl, generateLocalAgentOperations, invokeAIProvider, listAIProviders, normalizeUsage, redactSecrets, selectAIProvider } from '../../server/services/ai-provider.mjs'
+import { assertTrustedProviderUrl, generateIntegrationOperations, generateLocalAgentOperations, invokeAIProvider, listAIProviders, normalizeUsage, redactSecrets, selectAIProvider } from '../../server/services/ai-provider.mjs'
 
 const originalEnv = { ...process.env }
 const servers = []
@@ -106,6 +106,31 @@ describe('AI provider registry and execution', () => {
     expect(selectAIProvider('analysis')).toMatchObject({ id: 'ollama', configured: true })
     expect(listAIProviders().find((provider) => provider.id === 'ollama')).toMatchObject({ configured: true, default: true })
   })
+
+  it('rejects provider responses above the bounded transport limit before JSON parsing', async () => {
+    const server = http.createServer((_request, response) => {
+      response.writeHead(200, { 'content-type': 'application/json' })
+      response.end(`{"choices":[{"message":{"content":"${'x'.repeat(2 * 1024 * 1024)}"}}]}`)
+    })
+    servers.push(server)
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
+    await expect(invokeAIProvider({
+      providerOverride: { id: 'fixture', kind: 'openai-compatible', baseUrl: `http://127.0.0.1:${server.address().port}`, model: 'fixture', apiKey: 'fixture-key' },
+      messages: [{ role: 'user', content: 'bounded response' }], maxRetries: 0
+    })).rejects.toMatchObject({ code: 'AI_RESPONSE_TOO_LARGE' })
+  })
+
+  it('rejects oversized provider requests before opening a network connection', async () => {
+    let requests = 0
+    const server = http.createServer((_request, response) => { requests++; response.end('{}') })
+    servers.push(server)
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
+    await expect(invokeAIProvider({
+      providerOverride: { id: 'fixture', kind: 'openai-compatible', baseUrl: `http://127.0.0.1:${server.address().port}`, model: 'fixture', apiKey: 'fixture-key' },
+      messages: [{ role: 'user', content: 'x'.repeat(600 * 1024) }], maxRetries: 0
+    })).rejects.toMatchObject({ code: 'AI_REQUEST_TOO_LARGE' })
+    expect(requests).toBe(0)
+  })
 })
 
 describe('bounded local Agent provider operations', () => {
@@ -171,6 +196,18 @@ describe('bounded local Agent provider operations', () => {
       costUsd: 0.00006, attempts: 1
     })
     expect(result.operations[0].content).toContain('count = 1')
+  })
+
+  it('rejects secret-like integration file content before it can reach a workspace', async () => {
+    await useProvider(JSON.stringify({
+      operations: [{ action: 'replace', path: 'src/config.js', content: 'export const token = "ghp_1234567890abcdef1234567890abcdef123456"\n' }],
+      rationale: 'change configuration'
+    }))
+    await expect(generateIntegrationOperations({
+      report: { repository: 'fixture/repo', assessment: { status: 'READY' } },
+      plan: { changes: ['configuration'] },
+      sourceFiles: [{ path: 'src/config.js', content: 'export const ready = true\n' }]
+    })).rejects.toMatchObject({ code: 'AI_INVALID_OPERATIONS' })
   })
 
   it('rejects prompts, source lists, and serialized requests over their byte limits before making a request', async () => {

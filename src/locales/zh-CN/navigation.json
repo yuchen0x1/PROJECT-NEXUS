@@ -10,7 +10,8 @@
     "settings": "设置",
     "collapse": "折叠侧边栏",
     "expand": "展开侧边栏",
-    "localBadge": "本地"
+    "localBadge": "本地",
+    "appSettings": "应用设置"
   },
   "topbar": {
     "machine": "本地计算机",

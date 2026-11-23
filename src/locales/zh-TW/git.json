@@ -43,7 +43,18 @@
       "syncQueued": "儲存庫同步已排入佇列",
       "syncFailed": "同步失敗"
     },
-    "embeddedRemote": "遠端主控台"
+    "embeddedRemote": "遠端主控台",
+    "centers": {
+      "dashboard": "總覽控制台",
+      "repositories": "儲存庫中心",
+      "autopilot": "AI 自主維運",
+      "development": "開發與工作流",
+      "security": "安全與品質",
+      "research": "智能研究",
+      "release": "發布與交付",
+      "task": "任務與日誌",
+      "settings": "系統設定"
+    }
   },
   "overview": {
     "eyebrow": "營運概覽",
@@ -106,7 +117,8 @@
     "startSync": "開始同步",
     "scanStack": "掃描技術堆疊",
     "scanToast": "已將 {{repository}} 的掃描排入佇列",
-    "noDescription": "未提供儲存庫描述。"
+    "noDescription": "未提供儲存庫描述。",
+    "filterAria": "按分組篩選專案"
   },
   "monitoring": {
     "eyebrow": "健康訊號",

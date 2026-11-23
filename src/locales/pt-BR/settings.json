@@ -7,7 +7,8 @@
     "appearance": "Aparência e idioma",
     "agent": "Agente de IA",
     "startup": "Inicialização",
-    "about": "Sobre"
+    "about": "Sobre",
+    "ai": "IA e tarefas"
   },
   "appearance": {
     "languageLabel": "Idioma da interface",
@@ -124,5 +125,19 @@
         }
       }
     }
+  },
+  "ai": {
+    "title": "Provedor de IA e execução",
+    "status": "Status do provedor",
+    "configured": "Configurado",
+    "notConfigured": "Não configurado",
+    "provider": "Provedor",
+    "model": "Modelo padrão",
+    "endpoint": "Endpoint da API",
+    "hint": "As credenciais do provedor ficam apenas neste computador. Sem um provedor configurado, a automação de IA permanece bloqueada."
+  },
+  "tasks": {
+    "concurrency": "Limite de tarefas simultâneas",
+    "notifications": "Notificações da área de trabalho"
   }
 }

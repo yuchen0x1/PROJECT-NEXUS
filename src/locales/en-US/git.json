@@ -43,7 +43,18 @@
       "syncQueued": "Repository sync queued",
       "syncFailed": "Sync failed"
     },
-    "embeddedRemote": "Remote console"
+    "embeddedRemote": "Remote console",
+    "centers": {
+      "dashboard": "Dashboard",
+      "repositories": "Repository Center",
+      "autopilot": "AI Autopilot",
+      "development": "Development Center",
+      "security": "Security Center",
+      "research": "Research Center",
+      "release": "Release Center",
+      "task": "Task Center",
+      "settings": "Settings"
+    }
   },
   "overview": {
     "eyebrow": "Operational overview",
@@ -106,7 +117,8 @@
     "startSync": "Start sync",
     "scanStack": "Scan stack",
     "scanToast": "Scan queued for {{repository}}",
-    "noDescription": "No repository description provided."
+    "noDescription": "No repository description provided.",
+    "filterAria": "Filter projects by group"
   },
   "monitoring": {
     "eyebrow": "Health signals",

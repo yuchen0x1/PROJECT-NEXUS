@@ -7,7 +7,8 @@
     "appearance": "外觀與語言",
     "agent": "AI 代理",
     "startup": "啟動",
-    "about": "關於"
+    "about": "關於",
+    "ai": "AI 與任務執行"
   },
   "appearance": {
     "languageLabel": "介面語言",
@@ -124,5 +125,19 @@
         }
       }
     }
+  },
+  "ai": {
+    "title": "AI 提供商與執行",
+    "status": "提供商狀態",
+    "configured": "已設定",
+    "notConfigured": "未設定",
+    "provider": "提供商",
+    "model": "預設模型",
+    "endpoint": "API 端點",
+    "hint": "提供商憑證只儲存在本機。未設定提供商前，AI 自動化保持封鎖。"
+  },
+  "tasks": {
+    "concurrency": "並行任務上限",
+    "notifications": "桌面通知"
   }
 }

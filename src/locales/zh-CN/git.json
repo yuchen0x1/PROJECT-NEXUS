@@ -43,7 +43,18 @@
       "syncQueued": "仓库同步已加入队列",
       "syncFailed": "同步失败"
     },
-    "embeddedRemote": "远程控制台"
+    "embeddedRemote": "远程控制台",
+    "centers": {
+      "dashboard": "总览控制台",
+      "repositories": "仓库中心",
+      "autopilot": "AI 自主运维",
+      "development": "开发与工作流",
+      "security": "安全与质量",
+      "research": "智能研究",
+      "release": "发布与交付",
+      "task": "任务与日志",
+      "settings": "系统设置"
+    }
   },
   "overview": {
     "eyebrow": "运营概览",
@@ -106,7 +117,8 @@
     "startSync": "开始同步",
     "scanStack": "扫描技术栈",
     "scanToast": "已将 {{repository}} 的扫描加入队列",
-    "noDescription": "未提供仓库描述。"
+    "noDescription": "未提供仓库描述。",
+    "filterAria": "按分组筛选项目"
   },
   "monitoring": {
     "eyebrow": "健康信号",

@@ -1,5 +1,12 @@
 # Security model
 
+## 2.0 hardening changes
+
+- **Bounded AI transport.** `server/services/ai-provider.mjs` caps provider request bodies at 512 KiB and response bodies at 2 MiB. Oversized payloads fail with `AI_REQUEST_TOO_LARGE` / `AI_RESPONSE_TOO_LARGE` before the body is parsed or buffered in full; both codes are non-retryable.
+- **Validated integration operations.** Before any model-proposed file operation reaches a workspace, the provider response must be a plain object with at most 30 operations, each limited to `action`/`path`/`content`, unique paths, normalized and non-sensitive, UTF-8 text without NUL bytes, at most 256 KiB per file, and no secret-like content (`redactSecrets(content) !== content`). Invalid output fails with `AI_INVALID_OPERATIONS`; nothing is silently cleaned up or applied.
+- **Single-flight hosting inspection.** Concurrent inspections of the same repository return HTTP 409 with the active token instead of issuing duplicate GitHub reads. The guard is in-process, like all other queue/lock state.
+- **No permission widening.** The 9-center navigation refactor changes presentation only. Autonomy modes, approvals, remote-write switches, role checks and worktree isolation are unchanged.
+
 ## Current controls
 
 - GitHub and AI credentials remain server-side; task errors redact configured credential strings.

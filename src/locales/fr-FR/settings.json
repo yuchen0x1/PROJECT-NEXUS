@@ -7,7 +7,8 @@
     "appearance": "Apparence et langue",
     "agent": "Agent IA",
     "startup": "Démarrage",
-    "about": "À propos"
+    "about": "À propos",
+    "ai": "IA et tâches"
   },
   "appearance": {
     "languageLabel": "Langue de l'interface",
@@ -124,5 +125,19 @@
         }
       }
     }
+  },
+  "ai": {
+    "title": "Fournisseur d’IA et exécution",
+    "status": "État du fournisseur",
+    "configured": "Configuré",
+    "notConfigured": "Non configuré",
+    "provider": "Fournisseur",
+    "model": "Modèle par défaut",
+    "endpoint": "Point d’accès API",
+    "hint": "Les identifiants du fournisseur restent sur cette machine. Tant qu’aucun fournisseur n’est configuré, l’automatisation IA reste bloquée."
+  },
+  "tasks": {
+    "concurrency": "Limite de tâches simultanées",
+    "notifications": "Notifications bureau"
   }
 }

@@ -43,7 +43,18 @@
       "syncQueued": "Sincronización de repositorios en cola",
       "syncFailed": "Error de sincronización"
     },
-    "embeddedRemote": "Consola remota"
+    "embeddedRemote": "Consola remota",
+    "centers": {
+      "dashboard": "Panel",
+      "repositories": "Centro de repositorios",
+      "autopilot": "Piloto automático de IA",
+      "development": "Desarrollo y flujos",
+      "security": "Centro de seguridad",
+      "research": "Centro de investigación",
+      "release": "Centro de versiones",
+      "task": "Centro de tareas",
+      "settings": "Configuración"
+    }
   },
   "overview": {
     "eyebrow": "Resumen operativo",
@@ -106,7 +117,8 @@
     "startSync": "Iniciar sincronización",
     "scanStack": "Escanear stack",
     "scanToast": "Escaneo en cola para {{repository}}",
-    "noDescription": "No se ha proporcionado descripción del repositorio."
+    "noDescription": "No se ha proporcionado descripción del repositorio.",
+    "filterAria": "Filtrar proyectos por grupo"
   },
   "monitoring": {
     "eyebrow": "Señales de estado",
