@@ -1,6 +1,6 @@
 # 发布记录
 
-按版本号从新到旧排列，日期统一使用 Asia/Shanghai（UTC+8）。所有安装版均为 0.x 开发预览；GitHub 的“非预发布”分发标记不代表 v1.0 稳定性承诺。
+按版本号从新到旧排列，日期统一使用 Asia/Shanghai（UTC+8）。v0.x 安装版均为开发预览；v2.0.0 是九中心架构的正式版本。未配置 Authenticode 证书时，发布资产会明确标注为未签名构建。
 
 ## v0.9.4 (2026-11-20)
 
@@ -10,6 +10,7 @@
 
 | 版本 | 日期 | 更新主题 | 详细说明 |
 | --- | --- | --- | --- |
+| [v2.0.0](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v2.0.0) | 2026-11-23 | 九中心 AI 仓库研发与运维工作站 | [更新、下载与校验](v2.0.0.md) |
 | [v0.9.3](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.3) | 2026-11-16 | 项目自主演进与 API 稳定性升级 | [更新、下载与校验](v0.9.3.md) |
 | [v0.9.2](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.2) | 2026-11-16 | 验证后草稿 PR 交付与桌面体验修复 | [更新、下载与校验](v0.9.2.md) |
 | [v0.9.1](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.1) | 2026-11-15 | 第二阶段闭环能力与真实诊断 | [更新、下载与校验](v0.9.1.md) |
