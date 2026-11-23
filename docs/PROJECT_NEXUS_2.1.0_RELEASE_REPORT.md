@@ -2,7 +2,7 @@
 
 ## Current status
 
-**Not released.** Work is on `codex/2.1.0-upgrade` at commit `a5779b9`; draft [PR #24](https://github.com/yuchen0x1/PROJECT-NEXUS/pull/24) is open. No `v2.1.0` tag, GitHub Release or public installer was created in this cycle.
+**Not released.** Work is on `codex/2.1.0-upgrade` (implementation `a5779b9`, evidence follow-up `ff55608`); draft [PR #24](https://github.com/yuchen0x1/PROJECT-NEXUS/pull/24) is open. No `v2.1.0` tag, GitHub Release or public installer was created in this cycle.
 
 ## Baseline checked
 
