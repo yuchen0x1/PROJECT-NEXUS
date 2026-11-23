@@ -9,11 +9,12 @@
 - Public `v2.0.0` Release exists with installer, blockmap, `latest.yml` and `SHA256SUMS.txt`.
 - `main` protection requires the `Windows checks` workflow and blocks force-push/delete; tag ruleset protects `v*` tags.
 - Existing v2.0.0 asset digests were read from GitHub API; this report does not treat them as v2.1.0 evidence.
+- PR #24 required checks passed: [Windows checks run 45102298279](https://github.com/yuchen0x1/PROJECT-NEXUS/actions/runs/45102298279) and [package run 45102298299](https://github.com/yuchen0x1/PROJECT-NEXUS/actions/runs/45102298299). The package run verified an unsigned PR candidate, update metadata and packaged desktop smoke; its publication job was skipped.
 
 ## Release gates still required
 
 1. **Done:** Commit the verified implementation and open draft PR #24 from the independent branch.
-2. Wait for required Windows CI and review the real diff.
+2. **CI done:** Required Windows CI and PR packaging passed; review the real diff before merge.
 3. Run a dedicated test-repository AI loop with temporary least-privilege credentials, or record the user-approved BLOCKED decision.
 4. Run Windows x64 install/upgrade/rollback evidence in a disposable VM.
 5. Configure and verify Authenticode signing, or explicitly publish an unsigned candidate rather than calling it signed.
