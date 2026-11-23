@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-14T21:39:29.592Z",
+  "ranAt": "2026-11-23T01:32:44.098Z",
   "credentialPresent": true,
   "repository": "yuchen0x1/PROJECT-NEXUS",
   "mode": "read-only-live",
@@ -78,8 +78,7 @@
       "name": "Desktop client windows identified by name/process (not coordinates)",
       "pass": true,
       "detail": [
-        "chatgpt-desktop:1",
-        "workbuddy-desktop:1"
+        "chatgpt-desktop:1"
       ]
     }
   ],
@@ -88,13 +87,13 @@
       "name": "rate_limit",
       "status": 200,
       "hasEtag": false,
-      "rateRemaining": "4600",
+      "rateRemaining": "3609",
       "sample": {
         "core": {
           "limit": 5000,
-          "used": 400,
-          "remaining": 4600,
-          "reset": 1794694875
+          "used": 1391,
+          "remaining": 3609,
+          "reset": 1795399513
         }
       }
     },
@@ -102,35 +101,35 @@
       "name": "repository",
       "status": 200,
       "hasEtag": true,
-      "rateRemaining": "4599",
+      "rateRemaining": "3606",
       "sample": {
         "default_branch": "main",
-        "pushed_at": "2026-11-14T17:04:31Z"
+        "pushed_at": "2026-11-23T00:52:37Z"
       }
     },
     {
       "name": "issues",
       "status": 200,
       "hasEtag": true,
-      "rateRemaining": "4598",
+      "rateRemaining": "3604",
       "sample": {
-        "count": 0
+        "count": 3
       }
     },
     {
       "name": "pull_requests",
       "status": 200,
       "hasEtag": true,
-      "rateRemaining": "4597",
+      "rateRemaining": "3602",
       "sample": {
-        "count": 0
+        "count": 3
       }
     },
     {
       "name": "commits",
       "status": 200,
       "hasEtag": true,
-      "rateRemaining": "4596",
+      "rateRemaining": "3600",
       "sample": {
         "count": 3
       }
@@ -139,16 +138,16 @@
       "name": "actions_runs",
       "status": 200,
       "hasEtag": true,
-      "rateRemaining": "4595",
+      "rateRemaining": "3599",
       "sample": {
-        "total_count": 15
+        "total_count": 104
       }
     },
     {
       "name": "releases",
       "status": 200,
       "hasEtag": true,
-      "rateRemaining": "4594",
+      "rateRemaining": "3598",
       "sample": {
         "count": 3
       }
@@ -182,7 +181,7 @@
       "Acceptance criteria"
     ],
     "containsCredential": false,
-    "hash": "7bc9731c96b5ecc8783c343c7c009b97"
+    "hash": "de44e522454a5f5b28af516a429ccd90"
   },
   "uiAutomation": {
     "available": true,
@@ -191,7 +190,7 @@
       "interactive": true,
       "sessionId": 1,
       "rootName": "",
-      "rootChildren": 16,
+      "rootChildren": 14,
       "apartment": "STA"
     },
     "targets": [
@@ -204,7 +203,7 @@
           {
             "name": "ChatGPT",
             "processName": "ChatGPT",
-            "processId": 35588,
+            "processId": 37464,
             "className": "Chrome_WidgetWin_1"
           }
         ]
@@ -213,15 +212,8 @@
         "id": "workbuddy-desktop",
         "ok": true,
         "code": null,
-        "count": 1,
-        "windows": [
-          {
-            "name": "WorkBuddy",
-            "processName": "WorkBuddy",
-            "processId": 7316,
-            "className": "Chrome_WidgetWin_1"
-          }
-        ]
+        "count": 0,
+        "windows": []
       }
     ]
   },
