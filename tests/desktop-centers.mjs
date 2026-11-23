@@ -189,6 +189,24 @@ try {
   await fs.mkdir(path.join(appRoot, 'test-results'), { recursive: true })
   await page.screenshot({ path: path.join(appRoot, 'test-results/desktop-centers-settings.png') })
 
+  // 8. The Autonomy center exposes every tab, including the v2.1.1 Safety &
+  //    recovery surface that presents real intent grants and backups.
+  await page.locator('[data-management-center="autopilot"]').click()
+  await page.locator('[data-management-page="Autonomy"]').click()
+  const autonomyTabs = page.locator('nav.ax-tabs button')
+  await autonomyTabs.first().waitFor({ timeout: 20_000 })
+  const tabLabels = (await autonomyTabs.allInnerTexts()).map((label) => label.trim())
+  assert.deepEqual(tabLabels, ['Overview', 'Monitoring', 'Desktop clients', 'Tasks & runs', 'Intelligence', 'Safety & recovery', 'Audit log'],
+    'Autonomy must expose all seven tabs in order.')
+  await autonomyTabs.filter({ hasText: 'Safety & recovery' }).click()
+  await page.getByRole('heading', { name: 'Write grants', exact: true }).waitFor({ timeout: 10_000 })
+  await page.getByRole('heading', { name: 'Local backups', exact: true }).waitFor({ timeout: 10_000 })
+  // In the read-only contract the panel still lists real (empty) state, and a
+  // missing grant must never invent one.
+  const safetyText = await page.locator('.ax-panel').filter({ has: page.getByRole('heading', { name: 'Write grants', exact: true }) }).innerText()
+  assert.match(safetyText, /No active grants\./)
+  await page.screenshot({ path: path.join(appRoot, 'test-results/autonomy-safety-recovery.png') })
+
   console.log('PASS: The Electron ActivityBar renders exactly the nine 2.0 centers in registry order.')
   console.log('PASS: Every center expands to its complete legacy leaf set and opens on its default leaf.')
   console.log('PASS: All 21 legacy page identifiers are reachable through their correct center/leaf controls.')
@@ -196,6 +214,7 @@ try {
   console.log('PASS: Ctrl+K searches for and navigates directly to a legacy leaf.')
   console.log('PASS: Desktop settings language and dark/light theme controls update the document.')
   console.log('PASS: Settings center loads real AI/task runtime status from the local API.')
+  console.log('PASS: Autonomy exposes all seven tabs and the Safety & recovery panel renders real grant/backup state.')
 } catch (error) {
   failed = true
   const trace = output.split(/\r?\n/).filter((line) => line.includes('NEXUS_DESKTOP_TRACE:')).join('\n')

@@ -3563,6 +3563,11 @@ function initializeAutonomy() {
       }
       if (req.method !== 'GET' && req.method !== 'HEAD') {
         const action = autonomyIntentAction(req)
+        // A few mutating verbs are read-only semantics (for example the POST
+        // backup verification route). They are role- and session-gated above
+        // but do not need a writable intent grant, because they can never
+        // change a resource.
+        if (action === INTENT_ACTIONS.READ) return next()
         try {
           const scope = autonomyScope(req)
           if (scope.scopeMismatch) throw Object.assign(new Error('The request repository does not match the mounted route resource.'), { code: 'INTENT_SCOPE_MISMATCH', status: 403 })

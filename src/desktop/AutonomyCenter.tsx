@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next'
 import {
   Activity, AlertTriangle, Bot, CheckCircle2, ChevronRight, CircleDot, Cpu,
   Database, ExternalLink, FileText, FolderGit2, GitBranch, GitPullRequest,
-  Layers, Loader2, Pause, Play, Radio, RefreshCw, Search, ShieldAlert,
-  ShieldCheck, Square, Terminal, Users, Zap
+  KeyRound, Layers, Loader2, Pause, Play, Radio, RefreshCw, Search, ShieldAlert,
+  ShieldCheck, Square, Terminal, Trash2, Users, Zap
 } from 'lucide-react'
 import { request } from '../api'
 import './autonomy.css'
@@ -64,8 +64,17 @@ type Proposal = { id: string; featureName: string; sourceProject: string; source
 type AuditEntry = { id: string; at: string; actor: string; action: string; target: string }
 type Readiness = { overall: string; mode: string; blockingCodes: string[]; conditions: string[]; checks: { id: string; state: string; detail: string }[] }
 type WindowProbe = { count: number; windows: { name: string; processId: number }[]; error?: string; ok?: boolean }
+type IntentGrant = {
+  id: string; action: string; risk: string; status: string; reason: string
+  scope: Record<string, unknown>; expiresAt: string; approvedBy: string
+}
+type BackupRecord = {
+  id: string; createdAt: string; label: string; directory: string
+  files?: { kind: string; path: string; bytes: number; sha256: string }[]
+  sqliteIntegrity?: { ok: boolean; messages: string[] } | null
+}
 
-type Tab = 'overview' | 'repositories' | 'clients' | 'tasks' | 'research' | 'audit'
+type Tab = 'overview' | 'repositories' | 'clients' | 'tasks' | 'research' | 'safety' | 'audit'
 
 const LABELS = {
   zh: {
@@ -76,7 +85,7 @@ const LABELS = {
     start: '启动自动运维', pause: '暂停', resume: '恢复', stop: '停止当前任务',
     scan: '立即扫描', research: '立即研究', run: '执行待处理任务',
     metrics: ['管理仓库', '正常运行', '新问题', '待修复任务', 'AI 执行中', '已修复', '待验收', '安全风险', '同类项目', '最近版本', '执行记录', '客户端状态'],
-    tabs: { overview: '总览', repositories: '仓库监控', clients: '桌面客户端', tasks: '任务与执行', research: '智能研究', audit: '审计日志' },
+    tabs: { overview: '总览', repositories: '仓库监控', clients: '桌面客户端', tasks: '任务与执行', research: '智能研究', safety: '安全与恢复', audit: '审计日志' },
     controlTitle: '自动运维状态', backend: '存储后端', mode: '自动化等级', concurrency: '并发上限',
     monitors: '监控', lastTick: '最近调度', refresh: '刷新', loading: '正在读取真实运行数据…',
     empty: '暂无记录。',
@@ -99,6 +108,13 @@ const LABELS = {
     auditTitle: '执行与审计日志', actor: '主体', action: '操作', target: '对象', time: '时间',
     sessions: 'AI 执行会话', handoff: '等待人工接管', automated: '自动执行',
      humanNote: 'UIA 不可用时，NEXUS 生成完整任务包并等待人工粘贴；结果仍由 Git diff 与测试独立验收。',
+     safetyNote: '写操作授权和备份在此本机界面管理。每次授权都必须精确到仓库，并可立即撤销；恢复只作用于本机数据。',
+     grants: '写操作授权', revoke: '撤销', noGrants: '暂无有效授权。',
+     backups: '本机备份', createBackup: '创建备份', verifyBackup: '校验备份', restoreBackup: '恢复状态',
+     noBackups: '暂无备份。', verifiedBackup: '备份校验通过。', restoredBackup: '状态已恢复；请刷新页面。',
+     backupConfirm: '确认从所选备份恢复 state.json？当前状态将被替换，autonomy.db 不会在此界面恢复。',
+     grantAction: '操作', grantScope: '范围', grantExpires: '到期', grantApprovedBy: '批准者',
+     grantsKicker: '写操作授权', backupsKicker: '持久数据',
      modeObserve: '观察', modeRepair: '自动修复', modeAutonomous: '高度自动化',
      readinessKicker: '就绪状态', liveActivityKicker: '实时活动', configureKicker: '配置',
      chatgptDesktop: 'ChatGPT Desktop', workbuddyDesktop: 'WorkBuddy', monitoringKicker: '监控',
@@ -114,7 +130,7 @@ const LABELS = {
     start: 'Start autonomy', pause: 'Pause', resume: 'Resume', stop: 'Stop current task',
     scan: 'Scan now', research: 'Research now', run: 'Run pending tasks',
     metrics: ['Repositories', 'Healthy', 'New problems', 'Pending fixes', 'AI running', 'Fixed', 'Awaiting verify', 'Security risks', 'Peer projects', 'Last release', 'Recent runs', 'Client status'],
-    tabs: { overview: 'Overview', repositories: 'Monitoring', clients: 'Desktop clients', tasks: 'Tasks & runs', research: 'Intelligence', audit: 'Audit log' },
+    tabs: { overview: 'Overview', repositories: 'Monitoring', clients: 'Desktop clients', tasks: 'Tasks & runs', research: 'Intelligence', safety: 'Safety & recovery', audit: 'Audit log' },
     controlTitle: 'Autonomy status', backend: 'Store backend', mode: 'Automation level', concurrency: 'Concurrency',
     monitors: 'Monitor', lastTick: 'Last tick', refresh: 'Refresh', loading: 'Reading real runtime data…',
     empty: 'No records yet.',
@@ -137,6 +153,13 @@ const LABELS = {
     auditTitle: 'Execution and audit log', actor: 'Actor', action: 'Action', target: 'Target', time: 'Time',
     sessions: 'AI execution sessions', handoff: 'Awaiting human handoff', automated: 'Automated',
      humanNote: 'When UIA is unavailable, NEXUS prepares a complete task package for manual paste; results are still verified independently via git diff and tests.',
+     safetyNote: 'Write grants and backups are managed here on this local workstation. Every grant is scoped to an exact repository, can be revoked immediately, and restore only touches local data.',
+     grants: 'Write grants', revoke: 'Revoke', noGrants: 'No active grants.',
+     backups: 'Local backups', createBackup: 'Create backup', verifyBackup: 'Verify backup', restoreBackup: 'Restore state',
+     noBackups: 'No backups yet.', verifiedBackup: 'Backup verified.', restoredBackup: 'State restored; refresh the page.',
+     backupConfirm: 'Restore state.json from the selected backup? The current state will be replaced; autonomy.db is not restored from this screen.',
+     grantAction: 'Action', grantScope: 'Scope', grantExpires: 'Expires', grantApprovedBy: 'Approved by',
+     grantsKicker: 'ACTION INTENT', backupsKicker: 'DURABLE DATA',
      modeObserve: 'Observe', modeRepair: 'Auto repair', modeAutonomous: 'Highly autonomous',
      readinessKicker: 'READINESS', liveActivityKicker: 'LIVE ACTIVITY', configureKicker: 'CONFIGURE',
      chatgptDesktop: 'ChatGPT Desktop', workbuddyDesktop: 'WorkBuddy', monitoringKicker: 'MONITORING',
@@ -174,6 +197,7 @@ function useText() {
       clients: tr('tabs.clients', fallback.tabs.clients),
       tasks: tr('tabs.tasks', fallback.tabs.tasks),
       research: tr('tabs.research', fallback.tabs.research),
+      safety: tr('tabs.safety', fallback.tabs.safety),
       audit: tr('tabs.audit', fallback.tabs.audit)
     },
     controlTitle: tr('controlTitle', fallback.controlTitle),
@@ -258,6 +282,24 @@ function useText() {
     handoff: tr('handoff', fallback.handoff),
     automated: tr('automated', fallback.automated),
     humanNote: tr('humanNote', fallback.humanNote),
+    safetyNote: tr('safetyNote', fallback.safetyNote),
+    grants: tr('grants', fallback.grants),
+    revoke: tr('revoke', fallback.revoke),
+    noGrants: tr('noGrants', fallback.noGrants),
+    backups: tr('backups', fallback.backups),
+    createBackup: tr('createBackup', fallback.createBackup),
+    verifyBackup: tr('verifyBackup', fallback.verifyBackup),
+    restoreBackup: tr('restoreBackup', fallback.restoreBackup),
+    noBackups: tr('noBackups', fallback.noBackups),
+    verifiedBackup: tr('verifiedBackup', fallback.verifiedBackup),
+    restoredBackup: tr('restoredBackup', fallback.restoredBackup),
+    backupConfirm: tr('backupConfirm', fallback.backupConfirm),
+    grantAction: tr('grantAction', fallback.grantAction),
+    grantScope: tr('grantScope', fallback.grantScope),
+    grantExpires: tr('grantExpires', fallback.grantExpires),
+    grantApprovedBy: tr('grantApprovedBy', fallback.grantApprovedBy),
+    grantsKicker: tr('grantsKicker', fallback.grantsKicker),
+    backupsKicker: tr('backupsKicker', fallback.backupsKicker),
      modeObserve: tr('modeObserve', fallback.modeObserve),
      modeRepair: tr('modeRepair', fallback.modeRepair),
      modeAutonomous: tr('modeAutonomous', fallback.modeAutonomous),
@@ -295,6 +337,8 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
   const [proposals, setProposals] = useState<Proposal[]>([])
   const [audit, setAudit] = useState<AuditEntry[]>([])
   const [readiness, setReadiness] = useState<Readiness | null>(null)
+  const [grants, setGrants] = useState<IntentGrant[]>([])
+  const [backups, setBackups] = useState<BackupRecord[]>([])
   const [windows, setWindows] = useState<Record<string, WindowProbe>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -306,7 +350,7 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
   const load = useCallback(async () => {
     try {
       setError('')
-      const [ov, rp, ad, tk, fd, ss, pr, pp, au, rd] = await Promise.all([
+      const [ov, rp, ad, tk, fd, ss, pr, pp, au, rd, it, bk] = await Promise.all([
         request<Overview>('/api/autonomy/overview'),
         request<{ repositories: Repo[] }>('/api/autonomy/repositories'),
         request<{ adapters: Adapter[] }>('/api/autonomy/adapters'),
@@ -316,11 +360,14 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
         request<{ peers: Peer[] }>('/api/autonomy/peers'),
         request<{ items: Proposal[] }>('/api/autonomy/proposals?limit=40'),
         request<{ items: AuditEntry[] }>('/api/autonomy/audit?limit=60'),
-        request<Readiness>('/api/autonomy/readiness?mode=desktop')
+        request<Readiness>('/api/autonomy/readiness?mode=desktop'),
+        request<{ grants: IntentGrant[] }>('/api/autonomy/intents'),
+        request<{ backups: BackupRecord[] }>('/api/autonomy/backups')
       ])
       setOverview(ov); setRepos(rp.repositories || []); setAdapters(ad.adapters || [])
       setTasks(tk.items || []); setFindings(fd.items || []); setSessions(ss.items || [])
       setPeers(pr.peers || []); setProposals(pp.items || []); setAudit(au.items || []); setReadiness(rd)
+      setGrants(it.grants || []); setBackups(bk.backups || [])
       return true
     } catch (cause) {
       setError(String((cause as Error).message || cause))
@@ -486,6 +533,54 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
     const completed = await load()
     notify(completed ? text.refreshed : text.refreshFailed)
   }, [load, notify, text.refreshing, text.refreshed, text.refreshFailed])
+
+  const revokeGrant = useCallback(async (grant: IntentGrant) => {
+    setBusy(`grant:${grant.id}`)
+    notify(`${text.revoke} ${grant.action}：…`)
+    try {
+      await request(`/api/autonomy/intents/${encodeURIComponent(grant.id)}/revoke`, { method: 'POST', body: JSON.stringify({ reason: 'Revoked from the workstation UI' }) })
+      await load()
+      notify(`${text.revoke} ${grant.action}：${text.refreshed}`)
+    } catch (cause) {
+      notify(`${text.revoke} ${grant.action}：${String((cause as Error).message || cause)}`)
+    } finally { setBusy('') }
+  }, [load, notify, text.refreshed, text.revoke])
+
+  const createBackup = useCallback(async () => {
+    setBusy('backup:create')
+    notify(`${text.createBackup}：…`)
+    try {
+      await request('/api/autonomy/backups', { method: 'POST', body: JSON.stringify({ label: 'manual' }) })
+      await load()
+      notify(`${text.createBackup}：${text.refreshed}`)
+    } catch (cause) {
+      notify(`${text.createBackup}：${String((cause as Error).message || cause)}`)
+    } finally { setBusy('') }
+  }, [load, notify, text.createBackup, text.refreshed])
+
+  const verifyBackup = useCallback(async (backup: BackupRecord) => {
+    setBusy(`backup:verify:${backup.id}`)
+    notify(`${text.verifyBackup}：…`)
+    try {
+      const result = await request<{ valid?: boolean }>('/api/autonomy/backups/verify', { method: 'POST', body: JSON.stringify({ backupId: backup.id }) })
+      notify(`${text.verifyBackup}：${result.valid === true ? text.verifiedBackup : 'FAILED'}`)
+    } catch (cause) {
+      notify(`${text.verifyBackup}：${String((cause as Error).message || cause)}`)
+    } finally { setBusy('') }
+  }, [notify, text.verifyBackup, text.verifiedBackup])
+
+  const restoreBackup = useCallback(async (backup: BackupRecord) => {
+    if (!window.confirm(text.backupConfirm)) return
+    setBusy(`backup:restore:${backup.id}`)
+    notify(`${text.restoreBackup}：…`)
+    try {
+      await request('/api/autonomy/backups/restore', { method: 'POST', body: JSON.stringify({ backupId: backup.id }) })
+      await load()
+      notify(`${text.restoreBackup}：${text.restoredBackup}`)
+    } catch (cause) {
+      notify(`${text.restoreBackup}：${String((cause as Error).message || cause)}`)
+    } finally { setBusy('') }
+  }, [load, notify, text.backupConfirm, text.restoreBackup, text.restoredBackup])
 
   const metricValues = useMemo(() => {
     if (!overview) return []
@@ -714,6 +809,34 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
             <div className="ax-row-main"><strong>{proposal.featureName}</strong><Pill tone={proposal.recommended ? 'green' : 'amber'}>{proposal.recommended ? text.recommended : text.notRecommended}</Pill></div>
             <p>{proposal.sourceProject} · {text.license}: {proposal.sourceLicence || '—'} · {proposal.licenceCompatible ? text.compatible : text.review} · {proposal.priority} / {proposal.risk}</p>
           </div>) : <div className="ax-empty">{text.empty}</div>}
+        </section>
+      </div>}
+
+      {tab === 'safety' && <div className="ax-grid-2">
+        <section className="ax-panel">
+          <div className="ax-panel-head"><div><span className="ax-kicker">{text.grantsKicker}</span><h2>{text.grants}</h2></div><KeyRound size={16} /></div>
+          <div className="ax-note"><ShieldCheck size={14} />{text.safetyNote}</div>
+          {grants.length ? <div className="ax-table ax-table-intent"><div className="ax-tr ax-th"><span>{text.grantAction}</span><span>{text.grantScope}</span><span>{text.grantExpires}</span><span>{text.actionsColumn}</span></div>
+            {grants.map((grant) => <div className="ax-tr" key={grant.id}>
+              <span><Pill tone={grant.risk === 'critical' ? 'red' : grant.risk === 'high' ? 'amber' : 'blue'}>{grant.action}</Pill></span>
+              <span className="ax-mono">{Object.entries(grant.scope || {}).filter(([, value]) => value).map(([key, value]) => `${key}=${String(value)}`).join(' ') || '—'}</span>
+              <span><Stamp value={grant.expiresAt} /></span>
+              <span><button className="ax-ghost ax-small" disabled={Boolean(busy)} onClick={() => void revokeGrant(grant)}><Trash2 size={13} />{text.revoke}</button></span>
+            </div>)}
+          </div> : <div className="ax-empty">{text.noGrants}</div>}
+        </section>
+        <section className="ax-panel">
+          <div className="ax-panel-head"><div><span className="ax-kicker">{text.backupsKicker}</span><h2>{text.backups}</h2></div>
+            <button className="ax-ghost ax-small" disabled={Boolean(busy)} onClick={() => void createBackup()}><Database size={13} />{text.createBackup}</button>
+          </div>
+          {backups.length ? backups.slice(0, 12).map((backup) => <div className="ax-row" key={backup.id}>
+            <div className="ax-row-main"><strong>{backup.label}</strong><Pill tone={backup.sqliteIntegrity?.ok === false ? 'red' : 'green'}>{backup.files?.length || 0} files</Pill></div>
+            <p><Stamp value={backup.createdAt} /></p>
+            <div className="ax-row-actions">
+              <button className="ax-ghost ax-small" disabled={Boolean(busy)} onClick={() => void verifyBackup(backup)}><ShieldCheck size={13} />{text.verifyBackup}</button>
+              <button className="ax-ghost ax-small" disabled={Boolean(busy)} onClick={() => void restoreBackup(backup)}><RefreshCw size={13} />{text.restoreBackup}</button>
+            </div>
+          </div>) : <div className="ax-empty">{text.noBackups}</div>}
         </section>
       </div>}
 
