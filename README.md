@@ -16,7 +16,7 @@
 
 **在线宣传页：[project-nexus.edgeone.dev](https://project-nexus.edgeone.dev/)**（源码在 `website/`）
 
-> **v2.1.0（开发分支）**：在 v2.0 的只读安全边界之上增加了可审计的 Action Intent 授权、统一敏感文件/密钥检测、SQLite/state 备份校验与恢复原语、任务检查点以及完整 i18n/CSS 质量门禁。当前分支已通过本地质量门禁；真实 AI Provider、专用测试仓库、Windows VM 和 Authenticode 仍按报告标记为 BLOCKED/NOT TESTED。公开 v2.0.0 安装包与验收见 [发布管理](docs/RELEASE_MANAGEMENT.md) 和 [v2.0.0 验收](docs/POST_RELEASE_ACCEPTANCE_V2.0.0.md)。
+> **v2.1.1（当前 main）**：在 v2.0 的只读安全边界之上增加了可审计的 Action Intent 授权、统一敏感文件/密钥检测、SQLite/state 备份校验与恢复原语、任务检查点以及完整 i18n/CSS 质量门禁。2.1.1 把这些能力接入真实界面——自动运维中心新增**「安全与恢复」页签**，可直接查看/撤销授权并执行备份创建、校验与状态恢复——同时修复了备份校验路由被误判为写操作而永远 403 的缺陷，并让本地测试与 CI 契约一致。真实 AI Provider、专用测试仓库、Windows VM 和 Authenticode 仍按报告标记为 BLOCKED/NOT TESTED。公开 v2.0.0 安装包与验收见 [发布管理](docs/RELEASE_MANAGEMENT.md) 和 [v2.0.0 验收](docs/POST_RELEASE_ACCEPTANCE_V2.0.0.md)。
 
 ## 最新更新
 
@@ -191,6 +191,8 @@ curl -X POST http://127.0.0.1:4317/api/autonomy/intents/grant \
 ```
 
 每次授权、使用、完成和失败都会进入 append-only `intent_uses`/`audit_log`；高风险 PR、合并、Release 使用独立 action，不会继承低风险授权。
+
+指挥中心的**「安全与恢复」页签**是这套授权与备份能力的图形入口：列出仍有效的授权及其范围与到期时间、一键撤销，并可创建、校验备份或恢复 `state.json`。界面不绕过任何服务端门禁——没有精确授权时与 API 一样返回只读。
 
 ### v2.1 数据恢复
 

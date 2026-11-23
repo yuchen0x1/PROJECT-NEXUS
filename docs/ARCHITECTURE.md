@@ -35,6 +35,14 @@ adds a second, action-specific boundary before any mutating handler runs:
 3. A failed check returns the legacy `AUTONOMY_READ_ONLY` code with a precise
    `intentCode`, and no engine, GitHub or adapter side effect is started.
 
+Read-only verbs that the REST surface exposes through `POST` (currently backup
+verification) are role- and session-gated but do not require a writable grant;
+they cannot mutate a resource. The Autonomy center's **Safety & recovery** tab
+is the graphical client for this layer: it lists active grants with their scope
+and expiry, revokes them, and drives backup create/verify/state-restore. The
+panel holds no privilege of its own — every action it issues is authorised by
+the same middleware described above.
+
 The shared sensitive-file policy is consumed at all disclosure boundaries:
 source selection and model redaction, AI operation validation, local Agent
 workspace traversal and Diff review. It combines path and content signals but

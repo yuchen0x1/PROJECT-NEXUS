@@ -65,7 +65,7 @@ describe('production autonomy routing (real server/index.mjs, local fixtures onl
     const frontend = await fs.readFile(new URL('../../src/desktop/AutonomyCenter.tsx', import.meta.url), 'utf8')
     const load = frontend.slice(frontend.indexOf('const load ='), frontend.indexOf('setOverview(ov)'))
     const endpoints = [...load.matchAll(/'(\/api\/autonomy\/[^']+)'/g)].map((match) => match[1])
-    expect(endpoints).toHaveLength(10)
+    expect(endpoints).toHaveLength(12)
     for (let refresh = 0; refresh < 2; refresh++) {
       const results = await Promise.all(endpoints.map((endpoint) => request(endpoint, { headers: { Origin: base } })))
       for (const { response, body } of results) {
@@ -74,7 +74,7 @@ describe('production autonomy routing (real server/index.mjs, local fixtures onl
         expect(response.headers.get('x-request-id')).toBeTruthy()
         expect(body.code).toBeUndefined()
       }
-      const [overview, repos, adapters, tasks, findings, sessions, peers, proposals, audit, readiness] = results.map((result) => result.body)
+      const [overview, repos, adapters, tasks, findings, sessions, peers, proposals, audit, readiness, intents, backups] = results.map((result) => result.body)
       expect(overview).toMatchObject({ apiAccess: 'read-only', repositoriesManaged: 1, problemsFixed: 1, securityRisks: 1, peerUpdates: 1, control: { enabled: false, paused: true } })
       expect(repos.repositories[0].id).toBe('repo_fixture')
       expect(Array.isArray(adapters.adapters)).toBe(true)
@@ -85,6 +85,11 @@ describe('production autonomy routing (real server/index.mjs, local fixtures onl
       expect(proposals.items[0].id).toBe('proposal_fixture')
       expect(audit.items.some((item) => item.action === 'seed')).toBe(true)
       expect(readiness).toMatchObject({ mode: 'desktop', checks: expect.any(Array), blockingCodes: expect.any(Array) })
+      // The Safety & recovery tab renders these two responses directly, so the
+      // initial batch must include them and they must be safely empty.
+      expect(intents.grants).toEqual([])
+      expect(intents.uses).toEqual([])
+      expect(backups.backups).toEqual([])
     }
     for (const endpoint of ['/api/autonomy/health', '/api/autonomy/control/status', '/api/health']) {
       expect((await request(endpoint)).response.status).toBe(200)
@@ -221,6 +226,66 @@ describe('production autonomy routing (real server/index.mjs, local fixtures onl
     })
     expect(updated.response.status).toBe(200)
     expect(updated.body.fullName).toBe('fixture/local-only')
+    expect(externalRequests).toEqual([])
+  })
+
+  it('drives the Safety & recovery tab end to end: revoke a grant, then back up and restore state', async () => {
+    const { request, externalRequests } = await setup('Administrator')
+
+    // 1. A grant is visible to the tab and can be revoked through the UI route.
+    const granted = await request('/api/autonomy/intents/grant', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'local_file_write', scope: { repository: '__global__' }, reason: 'Safety tab fixture', duration: 'session', confirm: true })
+    })
+    expect(granted.response.status).toBe(201)
+    const grantId = granted.body.grant.id
+    expect((await request('/api/autonomy/intents')).body.grants.map((grant) => grant.id)).toContain(grantId)
+
+    const revoked = await request(`/api/autonomy/intents/${grantId}/revoke`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ reason: 'Revoked from the workstation UI' })
+    })
+    expect(revoked.response.status).toBe(200)
+    expect(revoked.body.grant).toMatchObject({ id: grantId, status: 'REVOKED' })
+    expect((await request('/api/autonomy/intents')).body.grants.map((grant) => grant.id)).not.toContain(grantId)
+    // The revoked grant cannot be replayed for a write.
+    const blockedAfterRevoke = await request('/api/autonomy/backups', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ label: 'manual', confirm: true }) })
+    expect(blockedAfterRevoke.response.status).toBe(403)
+    expect(blockedAfterRevoke.body.intentCode).toBe('INTENT_NOT_GRANTED')
+
+    // 2. Backup creation itself is a local write and needs its own grant.
+    const writeGrant = await request('/api/autonomy/intents/grant', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'local_file_write', scope: { repository: '__global__' }, reason: 'Safety tab backup fixture', duration: 'session', confirm: true })
+    })
+    expect(writeGrant.response.status).toBe(201)
+    const created = await request('/api/autonomy/backups', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ label: 'manual', confirm: true }) })
+    expect(created.response.status).toBe(201)
+    expect(created.body.manifest.files.map((file) => file.path)).toContain('state.json')
+    const backupId = created.body.id
+    expect((await request('/api/autonomy/backups')).body.backups.map((entry) => entry.id)).toContain(backupId)
+
+    // 3. Verification is read-only and must report the real asset digests.
+    const verified = await request('/api/autonomy/backups/verify', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ backupId }) })
+    expect(verified.response.status).toBe(200)
+    expect(verified.body.valid).toBe(true)
+    expect(verified.body.manifest.files[0].sha256).toMatch(/^[a-f0-9]{64}$/)
+
+    // 4. State restore is a write, succeeds through the granted intent, and
+    //    never claims to restore the live SQLite file from this route.
+    const restored = await request('/api/autonomy/backups/restore', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ backupId, confirm: true }) })
+    expect(restored.response.status).toBe(200)
+    expect(restored.body).toMatchObject({ restored: true, backupId })
+    const restartGated = await request('/api/autonomy/backups/restore', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ backupId, restoreAutonomyDb: true, confirm: true }) })
+    expect(restartGated.response.status).toBe(409)
+    expect(restartGated.body.code).toBe('RESTORE_REQUIRES_RESTART')
+
+    // 5. Every step is auditable and nothing left the machine.
+    const audit = (await request('/api/autonomy/audit?limit=200')).body.items
+    for (const action of ['intent-granted', 'intent-revoked', 'intent-use:local_file_write']) {
+      expect(audit.map((entry) => entry.action)).toContain(action)
+    }
+    expect(audit.some((entry) => entry.actor === 'backup' && entry.action === 'created')).toBe(true)
+    expect(audit.some((entry) => entry.actor === 'backup' && entry.action === 'state-restored')).toBe(true)
     expect(externalRequests).toEqual([])
   })
 })
