@@ -22,9 +22,9 @@
 
 <!-- github-release:start -->
 
-**[v0.9.4](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.4)** · 2026-11-19
+**[v2.0.0](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v2.0.0)** · 2026-11-23
 
-修复本机 Web 控制台在默认回环地址启动时，页面资源被来源检查拒绝而显示空白的问题。
+PROJECT NEXUS 2.0 reorganizes the 21 existing remote-console pages into nine functional centers without deleting or weakening the underlying capabilities, API contracts, approval gates, persisted data, or isolated worktrees.
 
 [全部发行记录](https://github.com/yuchen0x1/PROJECT-NEXUS/releases)
 
