@@ -24,6 +24,10 @@ on:
         description: Use the protected signing environment during a verify-only run
         default: false
         type: boolean
+      publish_unsigned:
+        description: Publish an explicitly unsigned preview build (owner waiver of the Authenticode gate)
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -33,10 +37,12 @@ jobs:
     if: github.event_name != 'workflow_dispatch' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: windows-2022
     timeout-minutes: 30
-    environment: ${{ github.event_name == 'workflow_dispatch' && (!inputs.verify_only || inputs.verify_signature) && 'windows-release-signing' || 'windows-release-verification' }}
+    environment: ${{ github.event_name == 'workflow_dispatch' && (!inputs.verify_only || inputs.verify_signature) && !inputs.publish_unsigned && 'windows-release-signing' || 'windows-release-verification' }}
     env:
       RELEASE_TAG: ${{ inputs.release_tag }}
-      SIGN_RELEASE: ${{ github.event_name == 'workflow_dispatch' && (!inputs.verify_only || inputs.verify_signature) }}
+      SIGN_RELEASE: ${{ github.event_name == 'workflow_dispatch' && (!inputs.verify_only || inputs.verify_signature) && !inputs.publish_unsigned }}
+      PUBLISH_UNSIGNED: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_unsigned }}
+      VERIFY_SIGNATURE: ${{ github.event_name == 'workflow_dispatch' && inputs.verify_signature }}
     outputs:
       sha: ${{ steps.source.outputs.sha }}
       tag: ${{ steps.source.outputs.tag }}
@@ -126,6 +132,22 @@ jobs:
             $fingerprint = $signature.SignerCertificate.GetCertHashString([System.Security.Cryptography.HashAlgorithmName]::SHA256)
             if ($fingerprint -ne $env:EXPECTED_SIGNER) { throw "Unexpected Windows signer: $file" }
           }
+      - name: Refuse a silent unsigned publication
+        if: env.SIGN_RELEASE != 'true' && github.event_name != 'pull_request'
+        shell: pwsh
+        run: |
+          # A publication without an Authenticode certificate is only allowed
+          # through the explicit publish_unsigned waiver. Anything else must
+          # fail instead of quietly shipping an unverified installer.
+          if ($env:PUBLISH_UNSIGNED -ne 'true') { throw 'Publication requires a valid Authenticode signature, or an explicit publish_unsigned=true waiver.' }
+          $version = node -p "require('./package.json').version"
+          $signature = Get-AuthenticodeSignature -LiteralPath "release/PROJECT-NEXUS-$version-win-x64-setup.exe"
+          if ($signature.Status -ne 'NotSigned') { throw "Unsigned publication was requested but the installer reports: $($signature.Status)" }
+          # The waiver must be visible in the tagged notes that ship with the release.
+          $notes = Get-Content -LiteralPath "docs/releases/$env:RELEASE_TAG.md" -Raw
+          if ($notes -notmatch '(?i)unsigned') { throw 'The tagged release notes must state that this build is unsigned.' }
+          "UNSIGNED_WAIVER_APPROVED=true" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          'Unsigned publication explicitly approved; the release notes must state that the build is unsigned.' | Write-Host
       - name: Stage only the verified release assets
         shell: pwsh
         run: |
@@ -156,6 +178,7 @@ jobs:
     env:
       RELEASE_SHA: ${{ needs.package.outputs.sha }}
       RELEASE_TAG: ${{ needs.package.outputs.tag }}
+      PUBLISH_UNSIGNED: ${{ inputs.publish_unsigned }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -176,6 +199,13 @@ jobs:
           GH_PROMPT_DISABLED: '1'
         run: |
           set -euo pipefail
+          if [ "${PUBLISH_UNSIGNED}" = "true" ]; then
+            # The unsigned waiver is an owner decision, never an accident: the
+            # release notes for this tag must say so explicitly.
+            git -c protocol.version=2 fetch --no-tags origin "refs/tags/$RELEASE_TAG"
+            git show "$RELEASE_SHA:docs/releases/$RELEASE_TAG.md" | grep -qi unsigned \
+              || { echo "Refusing unsigned publication without 'unsigned' in the tagged notes." >&2; exit 1; }
+          fi
           # Read release notes from the verified tag, not from current main or an artifact.
           git -c protocol.version=2 fetch --no-tags origin "refs/tags/$RELEASE_TAG"
           test "$(git rev-parse 'FETCH_HEAD^{commit}')" = "$RELEASE_SHA"

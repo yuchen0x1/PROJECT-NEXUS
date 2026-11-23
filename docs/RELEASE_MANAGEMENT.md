@@ -18,6 +18,29 @@ The repository's [Release Windows desktop workflow](../.github/workflows/release
 4. Configure `WINDOWS_CSC_LINK`, `WINDOWS_CSC_KEY_PASSWORD` and `WINDOWS_SIGNER_SHA256` (SHA-256 fingerprint of the intended Authenticode certificate) in `windows-release-signing`. The installer and the unpacked executable must both be validly signed by that certificate.
 5. The publish job consumes the package job's artifact, checks the tag and version order, and verifies the size and SHA-256 of the installer, matching blockmap, `latest.yml`, and `SHA256SUMS.txt` against GitHub before it publishes the draft. Its final read-back validates all four assets and the tag SHA. Ensure GitHub's release page shows the verified release.
 
+### Publishing without an Authenticode certificate
+
+If the repository has no signing certificate, the default publication path fails
+**by design**. Do not remove or relax that gate to get a release out. Instead the
+owner may publish an explicitly unsigned preview with the `publish_unsigned`
+waiver:
+
+1. The tagged `docs/releases/vX.Y.Z.md` must contain the word *unsigned* and must
+   state that the publisher identity is unverified. Both the package job and the
+   publish job refuse to continue when it is missing.
+2. Dispatch with `verify_only=false`, `publish_unsigned=true`. The package job
+   requires `Get-AuthenticodeSignature` to report exactly `NotSigned`; a valid
+   signature would be rejected as an inconsistent request.
+3. The waived run uses `windows-release-verification`, never the signing
+   environment, and records `UNSIGNED_WAIVER_APPROVED=true` in the run.
+4. The four verified assets and their digests are unchanged; the release body is
+   the tagged notes, which carry the unsigned warning.
+
+An unsigned build is weaker evidence than a signed one: it proves asset
+integrity (SHA-256/SHA-512) but **not** publisher identity. SmartScreen warnings
+and manual hash verification are expected. Record this limitation in the
+release notes and the post-release acceptance report.
+
 ### Recovery
 
 If packaging completed and publication failed, inspect the Release first, then rerun the **failed publish job** so it receives the original installer bytes. The same workflow-owned draft and identical uploaded assets can be reused. Changed tags, mismatched notes or bytes, and non-uploaded assets block promotion; the workflow never deletes or overwrites an asset.
