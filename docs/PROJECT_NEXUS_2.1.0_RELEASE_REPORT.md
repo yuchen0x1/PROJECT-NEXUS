@@ -2,7 +2,7 @@
 
 ## Current status
 
-**Not released.** Work is on `codex/2.1.0-upgrade`; no `v2.1.0` tag, GitHub Release or public installer was created in this cycle.
+**Not released.** Work is on `codex/2.1.0-upgrade` at commit `a5779b9`; draft [PR #24](https://github.com/yuchen0x1/PROJECT-NEXUS/pull/24) is open. No `v2.1.0` tag, GitHub Release or public installer was created in this cycle.
 
 ## Baseline checked
 
@@ -12,7 +12,7 @@
 
 ## Release gates still required
 
-1. Commit the verified implementation and open a PR from the independent branch.
+1. **Done:** Commit the verified implementation and open draft PR #24 from the independent branch.
 2. Wait for required Windows CI and review the real diff.
 3. Run a dedicated test-repository AI loop with temporary least-privilege credentials, or record the user-approved BLOCKED decision.
 4. Run Windows x64 install/upgrade/rollback evidence in a disposable VM.
