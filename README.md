@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/yuchen0x1/PROJECT-NEXUS/releases/latest"><img src="https://img.shields.io/github/v/release/yuchen0x1/PROJECT-NEXUS?label=%E6%9C%80%E6%96%B0%E7%89%88" alt="最新版本"></a>
-  <img src="https://img.shields.io/badge/%E7%8A%B6%E6%80%81-2.0%20%E6%AD%A3%E5%BC%8F%E7%89%88-brightgreen" alt="2.0 正式版">
+  <img src="https://img.shields.io/badge/%E7%8A%B6%E6%80%81-2.1.1%20%E5%B7%B2%E5%8F%91%E5%B8%83-brightgreen" alt="2.1.1 已发布">
   <img src="https://img.shields.io/badge/%E5%B9%B3%E5%8F%B0-Windows%20x64-0078d6" alt="Windows x64">
   <a href="LICENSE"><img src="https://img.shields.io/badge/%E8%AE%B8%E5%8F%AF-MIT-blue" alt="MIT License"></a>
   <a href="https://project-nexus.edgeone.dev/"><img src="https://img.shields.io/badge/%E5%AE%98%E7%BD%91-project--nexus.edgeone.dev-teal" alt="官网"></a>
@@ -16,15 +16,15 @@
 
 **在线宣传页：[project-nexus.edgeone.dev](https://project-nexus.edgeone.dev/)**（源码在 `website/`）
 
-> **v2.1.1（当前 main）**：在 v2.0 的只读安全边界之上增加了可审计的 Action Intent 授权、统一敏感文件/密钥检测、SQLite/state 备份校验与恢复原语、任务检查点以及完整 i18n/CSS 质量门禁。2.1.1 把这些能力接入真实界面——自动运维中心新增**「安全与恢复」页签**，可直接查看/撤销授权并执行备份创建、校验与状态恢复——同时修复了备份校验路由被误判为写操作而永远 403 的缺陷，并让本地测试与 CI 契约一致。真实 AI Provider、专用测试仓库、Windows VM 和 Authenticode 仍按报告标记为 BLOCKED/NOT TESTED。公开 v2.0.0 安装包与验收见 [发布管理](docs/RELEASE_MANAGEMENT.md) 和 [v2.0.0 验收](docs/POST_RELEASE_ACCEPTANCE_V2.0.0.md)。
+> **v2.1.1（当前 main）**：在 v2.0 的只读安全边界之上增加了可审计的 Action Intent 授权、统一敏感文件/密钥检测、SQLite/state 备份校验与恢复原语、任务检查点以及完整 i18n/CSS 质量门禁。2.1.1 把这些能力接入真实界面——自动运维中心新增**「安全与恢复」页签**，可直接查看/撤销授权并执行备份创建、校验与状态恢复——同时修复了备份校验路由被误判为写操作而永远 403 的缺陷，并让本地测试与 CI 契约一致。真实 AI Provider、专用测试仓库、Windows VM 和 Authenticode 仍按报告标记为 BLOCKED/NOT TESTED。**v2.1.1 已作为未签名构建公开发布**（Windows x64 安装包、blockmap、`latest.yml`、`SHA256SUMS.txt`；安装包 SHA-256 `128604c1…76c2376`），未削弱 Authenticode 门禁，而是经 PR #28 的 `publish_unsigned` 显式豁免通道发布；发布者身份未验证，SmartScreen 可能告警。发布状态见 [2.1.1 发布报告](docs/PROJECT_NEXUS_2.1.1_RELEASE_REPORT.md)，v2.0.0 验收见 [v2.0.0 验收](docs/POST_RELEASE_ACCEPTANCE_V2.0.0.md)。
 
 ## 最新更新
 
 <!-- github-release:start -->
 
-**[v2.0.0](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v2.0.0)** · 2026-11-23
+**[v2.1.1](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v2.1.1)** · 2026-11-23
 
-PROJECT NEXUS 2.0 reorganizes the 21 existing remote-console pages into nine functional centers without deleting or weakening the underlying capabilities, API contracts, approval gates, persisted data, or isolated worktrees.
+PROJECT NEXUS 2.1.1 makes the v2.1.0 authorization and backup engine usable from the application, fixes a read-only route that could never succeed, and makes the local regression suite deterministic on developer machines.
 
 [全部发行记录](https://github.com/yuchen0x1/PROJECT-NEXUS/releases)
 
