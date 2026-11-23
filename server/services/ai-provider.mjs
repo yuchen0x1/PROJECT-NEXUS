@@ -1,3 +1,5 @@
+import { classifySensitivePath, redactSecretsInText } from './sensitive-files.mjs'
+
 const DEFAULT_TIMEOUT_MS = 90_000
 const MAX_TIMEOUT_MS = 300_000
 const MAX_RETRIES = 5
@@ -62,7 +64,7 @@ function redactSecrets(content, knownSecrets = []) {
   for (const secret of [...new Set(knownSecrets)].filter((value) => typeof value === 'string' && value).sort((a, b) => b.length - a.length)) {
     safe = safe.split(secret).join('[REDACTED]')
   }
-  return safe
+  safe = safe
     .replace(/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g, '[REDACTED PRIVATE KEY]')
     .replace(/(["']?\b(?:authorization|proxy-authorization)\b["']?\s*[:=]\s*["']?)(?:(Bearer|Basic)\s+)?[^\s"',;}]+/gi, (_match, prefix, scheme) => `${prefix}${scheme ? `${scheme} ` : ''}[REDACTED]`)
     .replace(/(["']?\b(?:api[_-]?key|access[_-]?token|github[_-]?token|token|client[_-]?secret|password|private[_-]?key|x-github-stateless-s2s-token)\b["']?\s*[:=]\s*["']?)([^\s"',;}]+)/gi, (_match, prefix, value) => {
@@ -72,6 +74,7 @@ function redactSecrets(content, knownSecrets = []) {
     .replace(/\b(?:gh[pousr]_|github_pat_)[A-Za-z0-9_.-]+/g, '[REDACTED TOKEN]')
     .replace(/\b(?:sk-[A-Za-z0-9_-]{24,}|AKIA[A-Z0-9]{16})\b/g, '[REDACTED TOKEN]')
     .replace(/(https?:\/\/)[^\s/@:]+:[^\s/@]+@/gi, '$1[REDACTED]@')
+  return redactSecretsInText(safe).replaceAll('[REDACTED_BY_NEXUS]', '[REDACTED]')
 }
 
 function baseProvider() {
@@ -329,7 +332,7 @@ export async function diagnoseWithAI({ prompt, context = null, signal, taskType 
 }
 
 export async function generateIntegrationOperations({ report, plan, sourceFiles, signal }) {
-  const safeFiles = sourceFiles.filter((file) => !/(^|\/)(\.env[^/]*|.*\.pem|.*\.key|.*secret.*|.*credential.*)$/i.test(file.path)).slice(0, 20).map((file) => ({ path: file.path, content: redactSecrets(file.content).slice(0, 20_000) }))
+  const safeFiles = sourceFiles.filter((file) => !isSensitiveAgentPath(file.path)).slice(0, 20).map((file) => ({ path: file.path, content: redactSecrets(file.content).slice(0, 20_000) }))
   const totalBytes = safeFiles.reduce((sum, file) => sum + Buffer.byteLength(file.content), 0)
   if (totalBytes > 160_000) throw new Error('Selected repository source exceeds the AI disclosure size limit.')
   const generated = await invokeAIProvider({
@@ -381,6 +384,7 @@ function normalizeLocalAgentPath(value, label = 'path', code = 'AI_INVALID_OPERA
 }
 
 function isSensitiveAgentPath(value) {
+  if (classifySensitivePath(value).sensitive) return true
   return value.split('/').some((segment) => {
     const lower = segment.toLowerCase()
     return lower === '.git' || /^\.env(?:$|[._-])/.test(lower) || /(?:secret|credential|password)/.test(lower) || /\.(?:pem|key|p12|pfx)$/i.test(lower)

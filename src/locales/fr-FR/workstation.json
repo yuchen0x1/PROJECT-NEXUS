@@ -201,6 +201,7 @@
     "saveInference": "Enregistrer comme déduction",
     "noMemory": "Aucune mémoire. Actualisez l’index pour commencer.",
     "resourceDetail": "La charge mesurée limite les nouveaux travaux sans supprimer les tâches actives.",
+    "cpu": "CPU",
     "freeMemory": "Mémoire physique libre",
     "diskFree": "Espace disque libre",
     "nodeMemory": "Mémoire du service Node",

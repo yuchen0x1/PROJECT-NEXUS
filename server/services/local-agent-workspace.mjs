@@ -1,6 +1,7 @@
 import crypto from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { classifySensitivePath } from './sensitive-files.mjs'
 
 export const LOCAL_AGENT_WORKSPACE_LIMITS = Object.freeze({
   maxEntries: 20_000,
@@ -102,10 +103,12 @@ function normalizeLimits(overrides = {}) {
 }
 
 function segmentIsSecretLike(segment) {
-  const lower = segment.toLowerCase()
-  const extension = path.posix.extname(lower)
-  return lower === '.ssh' || lower === '.aws' || lower === '.azure' ||
-    secretFiles.has(lower) || secretName.test(segment) || secretExtensions.has(extension)
+  return classifySensitivePath(segment).sensitive || (() => {
+    const lower = segment.toLowerCase()
+    const extension = path.posix.extname(lower)
+    return lower === '.ssh' || lower === '.aws' || lower === '.azure' ||
+      secretFiles.has(lower) || secretName.test(segment) || secretExtensions.has(extension)
+  })()
 }
 
 function isExcludedPath(segments) {

@@ -16,7 +16,7 @@
 
 **在线宣传页：[project-nexus.edgeone.dev](https://project-nexus.edgeone.dev/)**（源码在 `website/`）
 
-> **v2.0.0（正式版）**：9 中心导航重构、重复调度收口与 AI 输出边界。代码已合并到 `main`，Windows 安装包与 SHA256 按 [发布管理](docs/RELEASE_MANAGEMENT.md) 流程生成；当前发布包未配置 Authenticode 证书时会明确标注为未签名。架构与验收见 [PROJECT_NEXUS_2.0_REFACTOR_REPORT.md](PROJECT_NEXUS_2.0_REFACTOR_REPORT.md)。
+> **v2.1.0（开发分支）**：在 v2.0 的只读安全边界之上增加了可审计的 Action Intent 授权、统一敏感文件/密钥检测、SQLite/state 备份校验与恢复原语、任务检查点以及完整 i18n/CSS 质量门禁。当前分支已通过本地质量门禁；真实 AI Provider、专用测试仓库、Windows VM 和 Authenticode 仍按报告标记为 BLOCKED/NOT TESTED。公开 v2.0.0 安装包与验收见 [发布管理](docs/RELEASE_MANAGEMENT.md) 和 [v2.0.0 验收](docs/POST_RELEASE_ACCEPTANCE_V2.0.0.md)。
 
 ## 最新更新
 
@@ -178,6 +178,23 @@ curl http://127.0.0.1:4317/api/autonomy/overview
 | `autonomous` | 额外允许符合规则的低风险修复、PR、合并与发布 |
 
 始终需人工确认：删除远程仓库、强推、覆盖未提交修改、删除用户数据、修改凭据、高危安全事件、仓库权限变更、发布有严重问题的版本。自动合并与自动发布是**两个独立开关**。详见 [权限与安全策略](docs/AUTONOMY_V2_PERMISSIONS.md)。
+
+### v2.1 Action Intent
+
+Autonomy 的任何写操作现在都需要一个短期、精确范围的 intent grant；角色本身不会自动授予写权限。默认仍是只读，管理员可在本机 loopback API 中显式授权并随后撤销：
+
+```bash
+curl http://127.0.0.1:4317/api/autonomy/intents
+curl -X POST http://127.0.0.1:4317/api/autonomy/intents/grant \
+  -H "content-type: application/json" \
+  -d '{"action":"local_file_write","scope":{"repository":"__global__"},"duration":"once","confirm":true}'
+```
+
+每次授权、使用、完成和失败都会进入 append-only `intent_uses`/`audit_log`；高风险 PR、合并、Release 使用独立 action，不会继承低风险授权。
+
+### v2.1 数据恢复
+
+`POST /api/autonomy/backups` 会在 SQLite `integrity_check` 与 WAL checkpoint 后生成带 manifest/SHA-256 的备份。恢复前先调用 `/backups/verify`；运行中的服务只允许安全恢复 `state.json`，`autonomy.db` 恢复必须停服务并执行经过验证的恢复流程。
 
 ## 常见问题
 

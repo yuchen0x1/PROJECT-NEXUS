@@ -949,6 +949,6 @@
 }
 .nx-agent-bridge-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: var(--nx-fs-xs); color: var(--nx-text-2); }
 .nx-agent-bridge-line strong { font-size: var(--nx-fs-xs); color: var(--nx-text); }
-.nx-agent-bridge-line .ready { color: var(--nx-ok, #34d399); }
-.nx-agent-bridge-line .blocked { color: var(--nx-danger, #f87171); }
+.nx-agent-bridge-line .ready { color: var(--nx-ok); }
+.nx-agent-bridge-line .blocked { color: var(--nx-danger); }
 .nx-agent-bridge-line.warning span { color: var(--nx-warning); }

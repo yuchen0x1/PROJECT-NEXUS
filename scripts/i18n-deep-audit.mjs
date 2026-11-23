@@ -138,7 +138,10 @@ function scanCss(file) {
   const unique = [...new Set([...hexes, ...rgbas])].filter((c) => !c.startsWith('var('))
   if (unique.length) cssColors.push(`${rel}: ${unique.join(', ')}`)
 }
-for (const file of walk(srcDir)) if (file.endsWith('.css')) scanCss(file)
+// theme.css is the single source of truth for design tokens. Literal values
+// are intentionally declared there; every other stylesheet must consume
+// variables so theme parity remains auditable.
+for (const file of walk(srcDir)) if (file.endsWith('.css') && path.basename(file) !== 'theme.css') scanCss(file)
 
 // ---- report ----
 const lines = [

@@ -201,6 +201,7 @@
     "saveInference": "儲存為推測",
     "noMemory": "尚無記憶，更新專案索引後開始累積。",
     "resourceDetail": "依實際資源壓力限制新任務，不會無聲丟棄執行中的任務。",
+    "cpu": "CPU",
     "freeMemory": "可用實體記憶體",
     "diskFree": "可用磁碟空間",
     "nodeMemory": "Node 服務記憶體",

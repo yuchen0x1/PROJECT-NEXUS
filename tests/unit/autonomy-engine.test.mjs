@@ -142,6 +142,19 @@ describe('durable autonomy scheduler', () => {
     expect(store.get('tasks', task.id).packageFile).toBe('/tmp/task.md')
   })
 
+  it('returns a failed verification to the durable queue for a bounded repair attempt', async () => {
+    const { engine, repo, store } = await setup()
+    const task = engine.createTask({ repoId: repo.id, findings: [finding('f1')] }).task
+    await engine.tick({ doMonitor: false })
+    const result = await engine.finalize(store.get('tasks', task.id))
+    expect(result.status).toBe('QUEUED')
+    expect(result.attempts).toBe(1)
+    expect(result.nextAttemptAt).toBeTruthy()
+    expect(result.checkpoint).toMatchObject({ version: 1, phase: 'QUEUED', status: 'QUEUED' })
+    expect(result.checkpoint.eventId).toBeTruthy()
+    expect(store.list('task_events').some((event) => /scheduling repair attempt/.test(event.detail))).toBe(true)
+  })
+
   it('builds homepage metrics from persisted records only', async () => {
     const { engine, repo } = await setup()
     const task = engine.createTask({ repoId: repo.id, findings: [finding('f1')] }).task

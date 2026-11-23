@@ -281,6 +281,11 @@
     "humanNote": "UIA 不可用时，NEXUS 生成完整任务包供人工粘贴；结果仍由 Git diff 与测试独立验收。",
     "modeObserve": "观察",
     "modeRepair": "自动修复",
-    "modeAutonomous": "高度自动化"
+    "modeAutonomous": "高度自动化",
+    "readinessKicker": "就緒狀態", "liveActivityKicker": "即時活動", "configureKicker": "設定",
+    "chatgptDesktop": "ChatGPT Desktop", "workbuddyDesktop": "WorkBuddy", "monitoringKicker": "監控",
+    "findingsKicker": "問題記錄", "repositoryColumn": "儲存庫", "titleColumn": "標題",
+    "desktopAgentAdaptersKicker": "桌面 Agent 配接器", "schedulerKicker": "排程器", "actionsColumn": "操作",
+    "agentSessionsKicker": "Agent 工作階段", "peerIntelligenceKicker": "同類專案情報", "portingAnalysisKicker": "移植分析", "cpuLabel": "CPU"
   }
 }

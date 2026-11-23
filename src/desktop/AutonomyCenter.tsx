@@ -98,8 +98,13 @@ const LABELS = {
     readiness: '执行就绪诊断', overall: '总体状态', blocking: '硬阻断', conditions: '非阻断条件',
     auditTitle: '执行与审计日志', actor: '主体', action: '操作', target: '对象', time: '时间',
     sessions: 'AI 执行会话', handoff: '等待人工接管', automated: '自动执行',
-    humanNote: 'UIA 不可用时，NEXUS 生成完整任务包并等待人工粘贴；结果仍由 Git diff 与测试独立验收。',
-    modeObserve: '观察', modeRepair: '自动修复', modeAutonomous: '高度自动化'
+     humanNote: 'UIA 不可用时，NEXUS 生成完整任务包并等待人工粘贴；结果仍由 Git diff 与测试独立验收。',
+     modeObserve: '观察', modeRepair: '自动修复', modeAutonomous: '高度自动化',
+     readinessKicker: '就绪状态', liveActivityKicker: '实时活动', configureKicker: '配置',
+     chatgptDesktop: 'ChatGPT Desktop', workbuddyDesktop: 'WorkBuddy', monitoringKicker: '监控',
+     findingsKicker: '问题记录', repositoryColumn: '仓库', titleColumn: '标题',
+     desktopAgentAdaptersKicker: '桌面 Agent 适配器', schedulerKicker: '调度器', actionsColumn: '操作',
+     agentSessionsKicker: 'Agent 会话', peerIntelligenceKicker: '同类项目情报', portingAnalysisKicker: '移植分析', cpuLabel: 'CPU'
   },
   en: {
     eyebrow: 'AUTONOMY RUNTIME V2', title: 'Autonomous Operations Command Center',
@@ -131,8 +136,13 @@ const LABELS = {
     readiness: 'Execution readiness', overall: 'Overall', blocking: 'Hard blockers', conditions: 'Non-blocking conditions',
     auditTitle: 'Execution and audit log', actor: 'Actor', action: 'Action', target: 'Target', time: 'Time',
     sessions: 'AI execution sessions', handoff: 'Awaiting human handoff', automated: 'Automated',
-    humanNote: 'When UIA is unavailable, NEXUS prepares a complete task package for manual paste; results are still verified independently via git diff and tests.',
-    modeObserve: 'Observe', modeRepair: 'Auto repair', modeAutonomous: 'Highly autonomous'
+     humanNote: 'When UIA is unavailable, NEXUS prepares a complete task package for manual paste; results are still verified independently via git diff and tests.',
+     modeObserve: 'Observe', modeRepair: 'Auto repair', modeAutonomous: 'Highly autonomous',
+     readinessKicker: 'READINESS', liveActivityKicker: 'LIVE ACTIVITY', configureKicker: 'CONFIGURE',
+     chatgptDesktop: 'ChatGPT Desktop', workbuddyDesktop: 'WorkBuddy', monitoringKicker: 'MONITORING',
+     findingsKicker: 'FINDINGS', repositoryColumn: 'Repository', titleColumn: 'Title',
+     desktopAgentAdaptersKicker: 'DESKTOP AGENT ADAPTERS', schedulerKicker: 'SCHEDULER', actionsColumn: 'Actions',
+     agentSessionsKicker: 'AGENT SESSIONS', peerIntelligenceKicker: 'PEER INTELLIGENCE', portingAnalysisKicker: 'PORTING ANALYSIS', cpuLabel: 'CPU'
   }
 }
 
@@ -248,9 +258,17 @@ function useText() {
     handoff: tr('handoff', fallback.handoff),
     automated: tr('automated', fallback.automated),
     humanNote: tr('humanNote', fallback.humanNote),
-    modeObserve: tr('modeObserve', fallback.modeObserve),
-    modeRepair: tr('modeRepair', fallback.modeRepair),
-    modeAutonomous: tr('modeAutonomous', fallback.modeAutonomous)
+     modeObserve: tr('modeObserve', fallback.modeObserve),
+     modeRepair: tr('modeRepair', fallback.modeRepair),
+     modeAutonomous: tr('modeAutonomous', fallback.modeAutonomous),
+     readinessKicker: tr('readinessKicker', fallback.readinessKicker), liveActivityKicker: tr('liveActivityKicker', fallback.liveActivityKicker),
+     configureKicker: tr('configureKicker', fallback.configureKicker), chatgptDesktop: tr('chatgptDesktop', fallback.chatgptDesktop),
+     workbuddyDesktop: tr('workbuddyDesktop', fallback.workbuddyDesktop), monitoringKicker: tr('monitoringKicker', fallback.monitoringKicker),
+     findingsKicker: tr('findingsKicker', fallback.findingsKicker), repositoryColumn: tr('repositoryColumn', fallback.repositoryColumn),
+     titleColumn: tr('titleColumn', fallback.titleColumn), desktopAgentAdaptersKicker: tr('desktopAgentAdaptersKicker', fallback.desktopAgentAdaptersKicker),
+     schedulerKicker: tr('schedulerKicker', fallback.schedulerKicker), actionsColumn: tr('actionsColumn', fallback.actionsColumn),
+     agentSessionsKicker: tr('agentSessionsKicker', fallback.agentSessionsKicker), peerIntelligenceKicker: tr('peerIntelligenceKicker', fallback.peerIntelligenceKicker),
+     portingAnalysisKicker: tr('portingAnalysisKicker', fallback.portingAnalysisKicker), cpuLabel: tr('cpuLabel', fallback.cpuLabel)
   }
 }
 
@@ -559,13 +577,13 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
 
       {tab === 'overview' && <div className="ax-grid-2">
         <section className="ax-panel">
-          <div className="ax-panel-head"><div><span className="ax-kicker">READINESS</span><h2>{text.readiness}</h2></div><Pill tone={readiness?.overall === 'READY' ? 'green' : readiness?.overall === 'BLOCKED' ? 'red' : 'amber'}>{readiness?.overall || '—'}</Pill></div>
+           <div className="ax-panel-head"><div><span className="ax-kicker">{text.readinessKicker}</span><h2>{text.readiness}</h2></div><Pill tone={readiness?.overall === 'READY' ? 'green' : readiness?.overall === 'BLOCKED' ? 'red' : 'amber'}>{readiness?.overall || '—'}</Pill></div>
           {readiness?.checks?.map((item) => <div className="ax-row" key={item.id}><div className="ax-row-main"><strong>{item.id}</strong><Pill tone={item.state.includes('ready') || item.state === 'complete' || item.state === 'present' || item.state === 'not_required' ? 'green' : 'amber'}>{item.state}</Pill></div><p>{item.detail}</p></div>)}
           {readiness?.blockingCodes?.length ? <div className="ax-note ax-note-red">{text.blocking}: {readiness.blockingCodes.join(', ')}</div> : null}
           {readiness?.conditions?.length ? <div className="ax-note">{text.conditions}: {readiness.conditions.join(', ')}</div> : null}
         </section>
         <section className="ax-panel">
-          <div className="ax-panel-head"><div><span className="ax-kicker">LIVE ACTIVITY</span><h2>{text.metrics[10]}</h2></div><Activity size={16} /></div>
+           <div className="ax-panel-head"><div><span className="ax-kicker">{text.liveActivityKicker}</span><h2>{text.metrics[10]}</h2></div><Activity size={16} /></div>
           {overview.recentActivity.length ? overview.recentActivity.slice(0, 8).map((run) => <div className="ax-row" key={run.id}>
             <div className="ax-row-main"><strong>{run.repository}</strong><Pill tone={run.verdict === 'PASS' ? 'green' : 'amber'}>{run.verdict}</Pill></div>
             <p>{run.mode} · {run.events} events · <Stamp value={run.at} /></p>
@@ -576,14 +594,14 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
 
       {tab === 'repositories' && <div className="ax-grid-2">
         {!readOnly && <section className="ax-panel">
-          <div className="ax-panel-head"><div><span className="ax-kicker">CONFIGURE</span><h2>{text.addRepo}</h2></div><FolderGit2 size={16} /></div>
+           <div className="ax-panel-head"><div><span className="ax-kicker">{text.configureKicker}</span><h2>{text.addRepo}</h2></div><FolderGit2 size={16} /></div>
           <div className="ax-form">
             <input value={newRepo.fullName} onChange={(event) => setNewRepo({ ...newRepo, fullName: event.target.value })} placeholder={text.repoPlaceholder} aria-label={text.repoPlaceholder} />
             <div className="ax-input-action"><input value={newRepo.localPath} onChange={(event) => setNewRepo({ ...newRepo, localPath: event.target.value })} placeholder={text.localPath} aria-label={text.localPath} /><button type="button" className="ax-ghost" onClick={() => void chooseLocalFolder()} disabled={!window.nexusDesktop?.addProject}>{text.chooseFolder}</button></div>
             <input value={newRepo.agentProjectRef} onChange={(event) => setNewRepo({ ...newRepo, agentProjectRef: event.target.value })} placeholder={text.projectRef} aria-label={text.projectRef} />
             <select value={newRepo.agentAdapterId} onChange={(event) => setNewRepo({ ...newRepo, agentAdapterId: event.target.value })} aria-label={text.adapter}>
               {adapters.map((adapter) => <option value={adapter.id} key={adapter.id}>{adapter.name}</option>)}
-              {!adapters.length && <><option value="chatgpt-desktop">ChatGPT Desktop</option><option value="workbuddy-desktop">WorkBuddy</option></>}
+               {!adapters.length && <><option value="chatgpt-desktop">{text.chatgptDesktop}</option><option value="workbuddy-desktop">{text.workbuddyDesktop}</option></>}
             </select>
             <select value={newRepo.pollIntervalMs} onChange={(event) => setNewRepo({ ...newRepo, pollIntervalMs: Number(event.target.value) })} aria-label={text.interval}>
               <option value={300000}>5 min</option><option value={900000}>15 min</option><option value={1800000}>30 min</option><option value={3600000}>1 hour</option>
@@ -600,7 +618,7 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
           <div className="ax-note"><ShieldCheck size={14} />{text.oneTask}</div>
         </section>}
         <section className={`ax-panel${readOnly ? ' ax-span-2' : ''}`}>
-          <div className="ax-panel-head"><div><span className="ax-kicker">MONITORING</span><h2>{text.monitors}</h2></div><span className="ax-count">{repos.length}</span></div>
+           <div className="ax-panel-head"><div><span className="ax-kicker">{text.monitoringKicker}</span><h2>{text.monitors}</h2></div><span className="ax-count">{repos.length}</span></div>
           {repos.length ? repos.map((repo) => <div className="ax-row" key={repo.id}>
             <div className="ax-row-main"><strong>{repo.fullName}</strong><Pill tone={repo.enabled ? 'green' : 'amber'}>{repo.automationMode}</Pill></div>
             <p><GitBranch size={12} />{repo.defaultBranch} · {repo.monitorItems?.length || 0} resources · {Math.round(repo.pollIntervalMs / 60000)} min</p>
@@ -613,8 +631,8 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
           </div>) : <div className="ax-empty">{text.empty}</div>}
         </section>
         <section className="ax-panel ax-span-2">
-          <div className="ax-panel-head"><div><span className="ax-kicker">FINDINGS</span><h2>{text.findings}</h2></div><span className="ax-count">{findings.length}</span></div>
-          {findings.length ? <div className="ax-table"><div className="ax-tr ax-th"><span>{text.priority}</span><span>{text.status}</span><span>Repository</span><span>Title</span></div>
+           <div className="ax-panel-head"><div><span className="ax-kicker">{text.findingsKicker}</span><h2>{text.findings}</h2></div><span className="ax-count">{findings.length}</span></div>
+           {findings.length ? <div className="ax-table"><div className="ax-tr ax-th"><span>{text.priority}</span><span>{text.status}</span><span>{text.repositoryColumn}</span><span>{text.titleColumn}</span></div>
             {findings.slice(0, 25).map((finding) => <div className="ax-tr" key={finding.id}><span><Pill tone={finding.priority === 'P0' ? 'red' : 'amber'}>{finding.priority}</Pill></span><span>{finding.status}</span><span className="ax-mono">{finding.repository}</span><span>{finding.title}</span></div>)}
           </div> : <div className="ax-empty">{text.empty}</div>}
         </section>
@@ -622,7 +640,7 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
 
       {tab === 'clients' && <div className="ax-grid-2">
         <section className="ax-panel ax-span-2">
-          <div className="ax-panel-head"><div><span className="ax-kicker">DESKTOP AGENT ADAPTERS</span><h2>{text.capability}</h2></div>
+           <div className="ax-panel-head"><div><span className="ax-kicker">{text.desktopAgentAdaptersKicker}</span><h2>{text.capability}</h2></div>
             {!readOnly && <button className="ax-ghost" onClick={() => void probeAdapters()} disabled={actionsDisabled}><RefreshCw size={14} />{text.probe}</button>}</div>
           {adapters.length ? adapters.map((adapter) => <div className="ax-client" key={adapter.id}>
             <div className="ax-client-head">
@@ -657,8 +675,8 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
 
       {tab === 'tasks' && <div className="ax-grid-2">
         <section className="ax-panel ax-span-2">
-          <div className="ax-panel-head"><div><span className="ax-kicker">SCHEDULER</span><h2>{text.tasksTitle}</h2></div><span className="ax-count">{tasks.length}</span></div>
-          {tasks.length ? <div className="ax-table ax-table-wide"><div className="ax-tr ax-th"><span>ID</span><span>Repository</span><span>{text.priority}</span><span>{text.status}</span><span>{text.attempts}</span><span>Actions</span></div>
+           <div className="ax-panel-head"><div><span className="ax-kicker">{text.schedulerKicker}</span><h2>{text.tasksTitle}</h2></div><span className="ax-count">{tasks.length}</span></div>
+           {tasks.length ? <div className="ax-table ax-table-wide"><div className="ax-tr ax-th"><span>ID</span><span>{text.repositoryColumn}</span><span>{text.priority}</span><span>{text.status}</span><span>{text.attempts}</span><span>{text.actionsColumn}</span></div>
             {tasks.map((task) => <div className="ax-tr" key={task.id}>
               <span className="ax-mono">{task.id.slice(0, 14)}</span><span>{task.repository}</span>
               <span><Pill tone={task.priority === 'P0' ? 'red' : task.priority === 'P1' ? 'amber' : 'blue'}>{task.priority}</Pill></span>
@@ -676,7 +694,7 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
           </div> : <div className="ax-empty">{text.noTasks}</div>}
         </section>
         <section className="ax-panel ax-span-2">
-          <div className="ax-panel-head"><div><span className="ax-kicker">AGENT SESSIONS</span><h2>{text.sessions}</h2></div><span className="ax-count">{sessions.length}</span></div>
+           <div className="ax-panel-head"><div><span className="ax-kicker">{text.agentSessionsKicker}</span><h2>{text.sessions}</h2></div><span className="ax-count">{sessions.length}</span></div>
           {sessions.length ? sessions.map((session) => <div className="ax-row" key={session.id}>
             <div className="ax-row-main"><strong className="ax-mono">{session.id.slice(0, 20)}</strong><Pill tone={session.handoff ? 'amber' : 'blue'}>{session.handoff ? text.handoff : session.state}</Pill></div>
             <p>{session.adapterId} · {session.repository} · <Stamp value={session.sentAt} /></p>
@@ -687,11 +705,11 @@ export default function AutonomyCenter({ onToast }: { onToast?: (message: string
 
       {tab === 'research' && <div className="ax-grid-2">
         <section className="ax-panel">
-          <div className="ax-panel-head"><div><span className="ax-kicker">PEER INTELLIGENCE</span><h2>{text.peers}</h2></div><span className="ax-count">{peers.length}</span></div>
+           <div className="ax-panel-head"><div><span className="ax-kicker">{text.peerIntelligenceKicker}</span><h2>{text.peers}</h2></div><span className="ax-count">{peers.length}</span></div>
           {peers.length ? peers.slice(0, 20).map((peer) => <div className="ax-row" key={peer.id}><div className="ax-row-main"><strong>{peer.fullName}</strong><Pill tone={peer.license ? 'blue' : 'amber'}>{peer.license || 'unknown'}</Pill></div><p>{peer.stack || '—'} · ★ {peer.stars} · <Stamp value={peer.pushedAt} /></p></div>) : <div className="ax-empty">{text.empty}</div>}
         </section>
         <section className="ax-panel">
-          <div className="ax-panel-head"><div><span className="ax-kicker">PORTING ANALYSIS</span><h2>{text.proposals}</h2></div><span className="ax-count">{proposals.length}</span></div>
+           <div className="ax-panel-head"><div><span className="ax-kicker">{text.portingAnalysisKicker}</span><h2>{text.proposals}</h2></div><span className="ax-count">{proposals.length}</span></div>
           {proposals.length ? proposals.slice(0, 20).map((proposal) => <div className="ax-row" key={proposal.id}>
             <div className="ax-row-main"><strong>{proposal.featureName}</strong><Pill tone={proposal.recommended ? 'green' : 'amber'}>{proposal.recommended ? text.recommended : text.notRecommended}</Pill></div>
             <p>{proposal.sourceProject} · {text.license}: {proposal.sourceLicence || '—'} · {proposal.licenceCompatible ? text.compatible : text.review} · {proposal.priority} / {proposal.risk}</p>

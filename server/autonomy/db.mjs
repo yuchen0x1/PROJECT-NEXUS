@@ -60,7 +60,8 @@ const COLLECTIONS = Object.freeze([
   'repositories', 'sync_cursors', 'events', 'issues', 'tasks', 'task_events',
   'adapters', 'agent_sessions', 'peer_projects', 'porting_proposals',
   'verification_reports', 'releases', 'audit_log', 'settings', 'findings',
-  'monitor_runs', 'adapter_probe_runs', 'security_scans', 'soak_runs', 'delivery_runs', 'notifications'
+  'monitor_runs', 'adapter_probe_runs', 'security_scans', 'soak_runs', 'delivery_runs', 'notifications',
+  'intent_grants', 'intent_uses', 'backup_runs'
 ])
 
 const APPEND_ONLY = new Set(['audit_log', 'task_events'])
@@ -197,6 +198,18 @@ class SqliteStore {
     return result
   }
 
+  integrityCheck() {
+    const rows = this.db.prepare('PRAGMA integrity_check').all()
+    const messages = rows.map((row) => Object.values(row)[0]).filter((value) => value !== undefined)
+    return { ok: messages.length === 1 && messages[0] === 'ok', messages }
+  }
+
+  checkpoint() {
+    return this.db.exec('PRAGMA wal_checkpoint(TRUNCATE);')
+  }
+
+  databaseHandle() { return this.db }
+
   close() { this.db.close() }
 }
 
@@ -312,6 +325,14 @@ class JsonStore {
     for (const collection of COLLECTIONS) result.collections[collection] = this.count(collection)
     return result
   }
+
+  integrityCheck() {
+    return { ok: true, messages: ['json document parsed'] }
+  }
+
+  checkpoint() { return null }
+
+  databaseHandle() { return null }
 
   close() { this._flush() }
 }

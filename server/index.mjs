@@ -53,7 +53,8 @@ import { queueHostedJob, nextHostedJobIndex, recoverHostedJobs } from './service
 import { buildProjectOverview } from './services/project-overview.mjs'
 import { registerEvolutionApi } from './services/evolution-api.mjs'
 import { proposalLifecycle, startProposalImplementation } from './services/proposal-implementation.mjs'
-import { createAutonomyRuntime, registerAutonomyApi, startAutonomyTicker } from './autonomy/api.mjs'
+import { createAutonomyRuntime, registerAutonomyApi, startAutonomyTicker, startAutonomyBackupScheduler } from './autonomy/api.mjs'
+import { INTENT_ACTIONS } from './services/intent-authorization.mjs'
 import { apiNotFound, applySecurityHeaders, createRateLimiter, requestIdFor, safeHttpError } from './services/http-hardening.mjs'
 
 const activeOverviewResearch = new Map()
@@ -3472,6 +3473,7 @@ async function recoverIntegrationWork() {
 // from the legacy workstation.
 let autonomyRuntime = null
 let autonomyTicker = null
+let autonomyBackupScheduler = null
 
 function initializeAutonomy() {
   try {
@@ -3483,9 +3485,69 @@ function initializeAutonomy() {
         return githubTokenForProject(project)
       }
     })
-    // Restore only the overview's local read surface. Mutating handlers (including
-    // the unsigned autonomy webhook) must stay unavailable until role AND intent
-    // controls are integrated; an Administrator role alone is not user consent.
+    app.locals.nexusIntentAuthorizer = autonomyRuntime.authorizer
+
+    function autonomyIntentAction(req) {
+      const method = req.method.toUpperCase()
+      const route = req.path.replace(/^\/api\/autonomy/, '')
+      if (method === 'GET' || method === 'HEAD') return INTENT_ACTIONS.READ
+      if (route === '/backups/verify') return INTENT_ACTIONS.READ
+      if (/\/delivery\/[^/]+\/tasks\/[^/]+\/pull-request$|\/delivery\/[^/]+\/pull-request$/.test(route)) return INTENT_ACTIONS.PULL_REQUEST_CREATE
+      if (/\/delivery\/[^/]+\/commit-push$/.test(route)) return INTENT_ACTIONS.GIT_COMMIT
+      if (/\/delivery\/[^/]+\/merge$/.test(route)) return INTENT_ACTIONS.PULL_REQUEST_MERGE
+      if (/\/delivery\/[^/]+\/release$/.test(route)) return INTENT_ACTIONS.RELEASE_PUBLISH
+      if (/\/delivery\/[^/]+\/notify$|\/issues\//.test(route)) return INTENT_ACTIONS.GITHUB_ISSUE
+      if (/\/repositories\/[^/]+$/.test(route) && method === 'DELETE') return INTENT_ACTIONS.REPOSITORY_DESTRUCTIVE
+      return INTENT_ACTIONS.LOCAL_FILE_WRITE
+    }
+
+    function autonomyScope(req) {
+      const body = req.body && typeof req.body === 'object' ? req.body : {}
+      const route = req.path.replace(/^\/api\/autonomy/, '')
+      const segments = route.split('/').filter(Boolean).map((segment) => {
+        try { return decodeURIComponent(segment) } catch { return segment }
+      })
+      const bodyRepository = body.repository && typeof body.repository === 'object'
+        ? body.repository.full_name || body.repository.fullName
+        : body.repository
+      const declaredRepository = typeof bodyRepository === 'string' ? bodyRepository : typeof body.fullName === 'string' ? body.fullName : null
+      let repository = declaredRepository
+      const routeRepoId = segments[0] === 'repositories' || segments[0] === 'delivery'
+        ? segments[1]
+        : null
+      const repoId = routeRepoId || body.repoId || body.repositoryId
+      const routeRepository = routeRepoId ? autonomyRuntime.store.get('repositories', String(routeRepoId))?.fullName || null : null
+      if (routeRepository) repository = routeRepository
+      if (!repository && repoId) repository = autonomyRuntime.store.get('repositories', String(repoId))?.fullName || null
+      let taskId = segments[0] === 'tasks' ? segments[1] : segments[0] === 'delivery' && segments[2] === 'tasks' ? segments[3] : null
+      if (!taskId && segments[0] === 'packages') taskId = segments[1]
+      if (!taskId && segments[0] === 'sessions') taskId = autonomyRuntime.store.get('agent_sessions', segments[1])?.taskId || null
+      if (!taskId && req.params?.taskId) taskId = req.params.taskId
+      if (!repository && taskId) {
+        const task = autonomyRuntime.store.get('tasks', String(taskId))
+        repository = task?.repository || autonomyRuntime.store.get('repositories', task?.repoId)?.fullName || null
+      }
+      if (!repository && segments[0] === 'security' && segments[1] === 'scans' && segments[2]) {
+        const scan = autonomyRuntime.store.get('security_scans', segments[2])
+        repository = autonomyRuntime.store.get('repositories', scan?.repoId)?.fullName || null
+      }
+      if (!repository && segments[0] === 'repositories' && segments[1] && body.repository) repository = bodyRepository
+      if (!repository) repository = '__global__'
+      return {
+        repository,
+        scopeMismatch: Boolean(routeRepository && declaredRepository && routeRepository !== declaredRepository),
+        workspace: body.workspacePath || body.workspace || null,
+        branch: body.confirmBranch || body.branch || null,
+        pullRequest: Number(body.pullRequest || body.pullRequestNumber) || null,
+        tag: body.tag || body.tagName || null,
+        path: body.path || null,
+        issue: Number(body.issueNumber || body.issue) || null
+      }
+    }
+
+    // Mutating Autonomy handlers are now registered, but every one is guarded
+    // by an expiring, exact-scope intent. The grant endpoints themselves are
+    // administrator-only and require a literal confirmation.
     app.use('/api/autonomy', (req, res, next) => {
       // Standalone loopback use can work without a desktop session. Do not expose
       // stored workstation data without a token on a listener bound to the LAN.
@@ -3495,8 +3557,26 @@ function initializeAutonomy() {
         return res.status(401).json({ code: 'LOCAL_SESSION_REQUIRED', message: 'A valid local workstation session is required.' })
       }
       if (!requireRole(req, res, 'Viewer')) return
+      if (req.path === '/intents/grant' || /^\/intents\/[^/]+\/revoke$/.test(req.path)) {
+        if (!requireRole(req, res, 'Administrator')) return
+        return next()
+      }
       if (req.method !== 'GET' && req.method !== 'HEAD') {
-        return res.status(403).json({ code: 'AUTONOMY_READ_ONLY', message: 'Only autonomy overview reads are available; actions require separately integrated role and intent controls.' })
+        const action = autonomyIntentAction(req)
+        try {
+          const scope = autonomyScope(req)
+          if (scope.scopeMismatch) throw Object.assign(new Error('The request repository does not match the mounted route resource.'), { code: 'INTENT_SCOPE_MISMATCH', status: 403 })
+          const authorization = autonomyRuntime.authorizer.authorize({ action, scope, confirm: req.body?.confirm === true })
+          req.nexusIntent = authorization.record
+          res.once('finish', () => { autonomyRuntime.authorizer.complete(authorization.record.id, { outcome: res.statusCode >= 400 ? 'FAILED' : 'SUCCEEDED', detail: { status: res.statusCode, method: req.method, path: req.path } }) })
+        } catch (error) {
+          // Preserve the v2 read-only contract for existing clients while
+          // exposing the precise intent reason for audit/debug tooling.
+          return res.status(error.status || 403).json({
+            code: 'AUTONOMY_READ_ONLY', intentCode: error.code || 'INTENT_DENIED',
+            message: error.message, action
+          })
+        }
       }
       return next()
     })
@@ -3532,6 +3612,7 @@ function registerTerminalMiddleware() {
 async function stopHost(server) {
   server.close(); server.closeAllConnections?.()
   autonomyTicker?.stop()
+  autonomyBackupScheduler?.stop()
   for (const collection of [localAgentControllers, integrationControllers, hostedControllers]) for (const controller of collection.values()) controller.abort(Object.assign(new Error('Host shutdown.'), { code: 'HOST_SHUTDOWN' }))
   try {
     await evolution.stop()
@@ -3624,6 +3705,12 @@ async function startHost() {
     // startup dispatch in one owner prevents future run-now wiring from
     // accidentally creating a second autonomous loop.
     autonomyTicker = startAutonomyTicker(autonomyRuntime.engine, { immediate: true })
+    autonomyBackupScheduler = startAutonomyBackupScheduler({
+      dataDir,
+      store: autonomyRuntime.store,
+      intervalMs: Number(process.env.NEXUS_BACKUP_INTERVAL_MS) || 6 * 60 * 60_000,
+      keep: Number(process.env.NEXUS_BACKUP_KEEP) || 30
+    })
   }
   if (desktopMode && Number.isInteger(desktopOwnerPid) && desktopOwnerPid > 0 && desktopOwnerPid !== process.pid) {
     setInterval(checkOwner, 1000).unref?.()

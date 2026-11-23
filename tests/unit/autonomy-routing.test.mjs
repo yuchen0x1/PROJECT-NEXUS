@@ -181,4 +181,46 @@ describe('production autonomy routing (real server/index.mjs, local fixtures onl
     expect(await snapshot(request)).toEqual(before)
     expect(externalRequests).toEqual([])
   })
+
+  it('requires and records an explicit scoped intent before a local autonomy action', async () => {
+    const { request, externalRequests } = await setup('Administrator')
+    const denied = await request('/api/autonomy/control/start', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ confirm: true }) })
+    expect(denied.response.status).toBe(403)
+    expect(denied.body).toMatchObject({ code: 'AUTONOMY_READ_ONLY', intentCode: 'INTENT_NOT_GRANTED' })
+
+    const granted = await request('/api/autonomy/intents/grant', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'local_file_write', scope: { repository: '__global__' }, reason: 'Enable the local scheduler for this session', duration: 'once', confirm: true })
+    })
+    expect(granted.response.status).toBe(201)
+    expect(granted.body.grant).toMatchObject({ action: 'local_file_write', status: 'ACTIVE', scope: { repository: '__global__' } })
+
+    const started = await request('/api/autonomy/control/start', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ confirm: true }) })
+    expect(started.response.status).toBe(200)
+    expect(started.body.settings.enabled).toBe(true)
+    const intents = await request('/api/autonomy/intents')
+    expect(intents.response.status).toBe(200)
+    expect(intents.body.uses.some((use) => use.action === 'local_file_write' && use.status === 'SUCCEEDED')).toBe(true)
+    expect(externalRequests).toEqual([])
+  })
+
+  it('resolves repository scope from a mounted route before authorizing the handler', async () => {
+    const { request, externalRequests } = await setup('Administrator')
+    const granted = await request('/api/autonomy/intents/grant', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'local_file_write', scope: { repository: 'fixture/local-only' }, reason: 'Update local repository metadata', duration: 'once', confirm: true })
+    })
+    expect(granted.response.status).toBe(201)
+    const mismatched = await request('/api/autonomy/repositories/repo_fixture', {
+      method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ fullName: 'other/repo', confirm: true })
+    })
+    expect(mismatched.response.status).toBe(403)
+    expect(mismatched.body).toMatchObject({ code: 'AUTONOMY_READ_ONLY', intentCode: 'INTENT_SCOPE_MISMATCH' })
+    const updated = await request('/api/autonomy/repositories/repo_fixture', {
+      method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ enabled: true, confirm: true })
+    })
+    expect(updated.response.status).toBe(200)
+    expect(updated.body.fullName).toBe('fixture/local-only')
+    expect(externalRequests).toEqual([])
+  })
 })

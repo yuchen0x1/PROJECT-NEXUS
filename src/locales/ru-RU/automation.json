@@ -287,6 +287,11 @@
     "humanNote": "When UIA is unavailable, NEXUS prepares a complete task package for manual paste; results are still verified independently via git diff and tests.",
     "modeObserve": "Observe",
     "modeRepair": "Auto repair",
-    "modeAutonomous": "Highly autonomous"
+    "modeAutonomous": "Highly autonomous",
+    "readinessKicker": "ГОТОВНОСТЬ", "liveActivityKicker": "АКТИВНОСТЬ В РЕАЛЬНОМ ВРЕМЕНИ", "configureKicker": "НАСТРОЙКА",
+    "chatgptDesktop": "ChatGPT Desktop", "workbuddyDesktop": "WorkBuddy", "monitoringKicker": "МОНИТОРИНГ",
+    "findingsKicker": "НАХОДКИ", "repositoryColumn": "Репозиторий", "titleColumn": "Заголовок",
+    "desktopAgentAdaptersKicker": "АДАПТЕРЫ АГЕНТА РАБОЧЕГО СТОЛА", "schedulerKicker": "ПЛАНИРОВЩИК", "actionsColumn": "Действия",
+    "agentSessionsKicker": "СЕАНСЫ АГЕНТА", "peerIntelligenceKicker": "АНАЛИТИКА ПОХОЖИХ ПРОЕКТОВ", "portingAnalysisKicker": "АНАЛИЗ ПЕРЕНОСА", "cpuLabel": "CPU"
   }
 }

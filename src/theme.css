@@ -86,6 +86,10 @@
   --nx-danger-soft: rgba(226, 104, 92, .12);
   --nx-info: #5aa9e6;
   --nx-info-soft: rgba(90, 169, 230, .12);
+  --nx-violet: #a394ea;
+  --nx-orange: #e08d63;
+  --nx-map-ai: #9174cb;
+  --nx-ok: #34d399;
 
   --nx-shadow-popover: 0 10px 32px rgba(0, 0, 0, .45), 0 2px 8px rgba(0, 0, 0, .3);
   --nx-shadow-modal: 0 18px 60px rgba(0, 0, 0, .55);
@@ -129,6 +133,10 @@
   --nx-danger-soft: rgba(192, 67, 53, .09);
   --nx-info: #2174c4;
   --nx-info-soft: rgba(33, 116, 196, .09);
+  --nx-violet: #7a63cf;
+  --nx-orange: #c06a3e;
+  --nx-map-ai: #6b55aa;
+  --nx-ok: #1c8a58;
 
   --nx-shadow-popover: 0 10px 32px rgba(23, 32, 48, .16), 0 2px 8px rgba(23, 32, 48, .1);
   --nx-shadow-modal: 0 18px 60px rgba(23, 32, 48, .24);
