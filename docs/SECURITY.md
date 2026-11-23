@@ -1,5 +1,43 @@
 # Security model
 
+## 2.1 verified controls
+
+The v2.1.0 branch adds controls that are implemented and covered by local
+regression tests. They do not turn the process-wide local role into a
+multi-user authentication system, and they do not claim that blocked external
+AI, Windows, signing or long-running evidence has passed.
+
+- **Action Intent authorization.** `server/services/intent-authorization.mjs`
+  separates principal metadata from a writable action grant. Mutating
+  Autonomy routes require a literal `confirm: true`, the minimum role, an
+  exact repository scope (with optional exact workspace/branch/path/issue/PR/
+  tag dimensions), and an unexpired grant. `once` grants are consumed by the
+  first authorization. Grant, use, completion, failure and revocation records
+  are stored in `intent_grants`, `intent_uses` and append-only `audit_log`.
+  Reads and `/backups/verify` remain read operations; the compatibility
+  `AUTONOMY_READ_ONLY` response is preserved when a write has no grant.
+- **Sensitive-file policy.** `server/services/sensitive-files.mjs` is the
+  shared path/content classifier used by Autonomy model redaction, AI provider
+  disclosure/output validation, Diff review and local Agent workspace checks.
+  It covers environment files, credential directories, key/certificate
+  formats, user state databases, renamed credential-like files and common
+  GitHub/OpenAI/AWS/Slack/connection-string/bearer-token patterns. Detection is
+  heuristic and is not a substitute for a secret scanner.
+- **Backup and restore.** `server/services/data-backup.mjs` writes versioned
+  manifests and SHA-256 file records, runs SQLite `integrity_check`, performs a
+  WAL checkpoint before copying, applies retention, verifies every manifest
+  path/checksum, stages restore files, and rolls live files back if a later
+  copy/checksum fails. The HTTP API permits state-only restore while the
+  service is running; restoring `autonomy.db` returns
+  `RESTORE_REQUIRES_RESTART` until the host is stopped and the verified restore
+  command is run. A six-hour, overlap-suppressed scheduler is enabled by
+  default; `NEXUS_BACKUP_INTERVAL_MS` and `NEXUS_BACKUP_KEEP` tune its cadence
+  and retention, while the manual route uses the same implementation.
+- **Task checkpoints.** Every Autonomy task status transition persists a
+  bounded checkpoint containing phase, status, event id, retry timing and
+  non-secret isolated workspace metadata. Checkpoints are recovery evidence,
+  not permission to resume an external write automatically.
+
 ## 2.0 hardening changes
 
 - **Bounded AI transport.** `server/services/ai-provider.mjs` caps provider request bodies at 512 KiB and response bodies at 2 MiB. Oversized payloads fail with `AI_REQUEST_TOO_LARGE` / `AI_RESPONSE_TOO_LARGE` before the body is parsed or buffered in full; both codes are non-retryable.

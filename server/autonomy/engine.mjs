@@ -170,7 +170,8 @@ export class AutonomyEngine {
       references, plan, attempts: 0, maxAttempts: DEFAULT_MAX_ATTEMPTS,
       timeoutMs: DEFAULT_TASK_TIMEOUT_MS, nextAttemptAt: null,
       createdAt: nowIso(this.clock), updatedAt: nowIso(this.clock),
-      events: [], workspace: null, verification: null, release: null, error: null
+      events: [], workspace: null, verification: null, release: null, error: null,
+      checkpoint: { version: 1, phase: 'QUEUED', status: 'QUEUED', attempts: 0, at: nowIso(this.clock) }
     })
     this.appendTaskEvent(task, 'QUEUED', `Task created from ${source} with ${findings.length} finding(s).`)
     this.store.audit('task', 'created', task.id, { repo: repo.fullName, priority, kind })
@@ -179,13 +180,28 @@ export class AutonomyEngine {
 
   updateTask(task, status, { detail = '', patch = {} } = {}) {
     assertTaskTransition(task.status, status)
-    const updated = this.store.put('tasks', task.id, { ...task, ...patch, status, updatedAt: nowIso(this.clock) })
-    this.appendTaskEvent(updated, status, detail)
-    return updated
+    const updatedAt = nowIso(this.clock)
+    const updated = this.store.put('tasks', task.id, { ...task, ...patch, status, updatedAt })
+    const event = this.appendTaskEvent(updated, status, detail)
+    // A checkpoint is the last safe durable boundary for scheduler recovery.
+    // It records no secrets or model output; the task package and worktree
+    // remain the source of truth for any later independent verification.
+    return this.store.put('tasks', task.id, {
+      ...updated,
+      checkpoint: {
+        version: 1, phase: status, status, at: updatedAt,
+        eventId: event?.id || null, attempts: Number(updated.attempts || 0),
+        nextAttemptAt: updated.nextAttemptAt || null,
+        workspace: updated.workspace ? {
+          path: updated.workspace.path || null, branch: updated.workspace.branch || null,
+          baseSha: updated.workspace.baseSha || null, isolated: updated.workspace.isolated === true
+        } : null
+      }
+    })
   }
 
   appendTaskEvent(task, phase, detail, level = 'info') {
-    this.store.append('task_events', {
+    return this.store.append('task_events', {
       taskId: task.id, at: nowIso(this.clock), phase, detail: String(detail).slice(0, 1000), level
     })
   }
@@ -347,7 +363,7 @@ export class AutonomyEngine {
     const attempts = (task.attempts || 0) + 1
     if (attempts < (task.maxAttempts || DEFAULT_MAX_ATTEMPTS) && !force) {
       const delay = backoffMs(attempts, null, null, this.clock())
-      return this.updateTask(task, 'QUEUDED', {
+      return this.updateTask(task, 'QUEUED', {
         detail: `Verification failed (${report.failures.length} issue(s)); scheduling repair attempt ${attempts + 1}.`,
         patch: { attempts, nextAttemptAt: new Date(this.clock() + delay).toISOString(),
           verification: { id: report.id, verdict: 'FAIL', failures: report.failures } }

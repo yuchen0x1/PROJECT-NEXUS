@@ -21,6 +21,41 @@ Express API ── GitHub REST API
       └── atomic JSON state store (schema v3)
 ```
 
+## 2.1 authorization, durability and disclosure boundaries
+
+The v2.1.0 Autonomy surface keeps the existing loopback/session/role gates and
+adds a second, action-specific boundary before any mutating handler runs:
+
+1. `server/index.mjs` classifies the mounted route and resolves its repository
+   or task scope from the URL/body before Express route parameters are
+   available.
+2. `IntentAuthorizer` checks the process principal, required role, literal
+   confirmation, exact declared scope and expiry/one-time consumption. It
+   persists grant/use/outcome records; a role by itself never widens a grant.
+3. A failed check returns the legacy `AUTONOMY_READ_ONLY` code with a precise
+   `intentCode`, and no engine, GitHub or adapter side effect is started.
+
+The shared sensitive-file policy is consumed at all disclosure boundaries:
+source selection and model redaction, AI operation validation, local Agent
+workspace traversal and Diff review. It combines path and content signals but
+is intentionally heuristic; deployment still needs a dedicated secret scanner.
+
+`data-backup.mjs` treats `state.json` and the Autonomy SQLite file as separate
+durable inputs. A backup records a schema version, per-file byte count and
+SHA-256, validates SQLite and checkpoints its WAL before copy, and prunes old
+backup directories. Restore verifies the manifest, stages and validates all
+applicable files, and restores earlier live bytes if a later write fails. The
+running service only exposes state restore; SQLite replacement is restart-gated
+because its handle remains open. `startAutonomyBackupScheduler` repeats this
+path every six hours by default, with environment-configurable cadence and
+retention; the manual endpoint does not use a separate implementation.
+
+Task status transitions append an event and persist a bounded checkpoint in the
+same store. The checkpoint carries phase, retry timing and isolated workspace
+identity only; prompts, model output and credentials are not copied into it.
+The scheduler remains process-local, so multi-process lease coordination and
+real crash/soak recovery are still open work.
+
 ## Admission and concurrency controls (2.0)
 
 Three duplicate-execution paths were closed without changing feature scope:

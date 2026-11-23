@@ -10,6 +10,8 @@ import { assessReadiness } from './intelligence.mjs'
 import { TASK_STATUSES, AGENT_STATES, ISSUE_LIFECYCLES, PRIORITIES, AUTOMATION_MODES } from './model.mjs'
 import { detectSecurityTools, runSecurityScan } from '../services/security-scan.mjs'
 import { GithubDelivery } from './github-delivery.mjs'
+import { IntentAuthorizer, defaultPrincipal } from '../services/intent-authorization.mjs'
+import { createDataBackup, listDataBackups, verifyDataBackup, restoreDataBackup } from '../services/data-backup.mjs'
 
 function asyncHandler(handler) {
   return (req, res, next) => Promise.resolve(handler(req, res, next)).catch((error) => {
@@ -24,14 +26,31 @@ function page(items, req, fallback = 100) {
   return { items: items.slice(offset, offset + limit), total: items.length, offset, limit }
 }
 
+function backupDirectory(dataDir, requested) {
+  const root = path.resolve(path.join(dataDir, 'backups'))
+  const candidate = path.resolve(String(requested || ''))
+  if (candidate === root || candidate.startsWith(`${root}${path.sep}`)) return candidate
+  const byId = path.resolve(path.join(root, path.basename(String(requested || ''))))
+  if (byId === root || !byId.startsWith(`${root}${path.sep}`)) throw Object.assign(new Error('Backup path is outside the NEXUS backup directory.'), { code: 'BACKUP_PATH_INVALID' })
+  return byId
+}
+
 export function createAutonomyRuntime({ dataDir, token = process.env.GITHUB_TOKEN || '', tokenResolver = null, clock = () => Date.now(), fetchImpl = globalThis.fetch } = {}) {
   const dbFile = defaultAutonomyDbFile(dataDir)
   const store = openAutonomyStore({ file: dbFile })
   try {
     const engine = new AutonomyEngine({ store, dataDir, token, tokenResolver, clock, fetchImpl })
     const delivery = new GithubDelivery({ store, token, tokenResolver, fetchImpl, clock })
+    const authorizer = new IntentAuthorizer({
+      store, clock,
+      actor: defaultPrincipal({
+        id: process.env.NEXUS_PRINCIPAL_ID || 'local-owner',
+        role: process.env.NEXUS_ROLE || 'Administrator',
+        source: process.env.NEXUS_PRINCIPAL_SOURCE || 'desktop-local'
+      })
+    })
     engine.recover()
-    return { store, engine, delivery, dbFile }
+    return { store, engine, delivery, authorizer, dbFile }
   } catch (error) {
     try { store.close() } catch { /* preserve the initialization error */ }
     throw error
@@ -43,14 +62,14 @@ export function createAutonomyRuntime({ dataDir, token = process.env.GITHUB_TOKE
 // Keep the entire AutonomyCenter.load batch together so Promise.all can succeed.
 const OVERVIEW_READ_ROUTES = new Set([
   '/health', '/overview', '/control/status', '/repositories', '/adapters',
-  '/tasks', '/findings', '/sessions', '/peers', '/proposals', '/audit', '/readiness'
+  '/tasks', '/findings', '/sessions', '/peers', '/proposals', '/audit', '/readiness', '/backups'
 ])
 
 export function registerAutonomyApi(app, { engine, store, delivery, dataDir }) {
   const routes = []
 
   const add = (method, route, handler) => {
-    if (method !== 'get' || !OVERVIEW_READ_ROUTES.has(route)) return
+    if (method === 'get' && !OVERVIEW_READ_ROUTES.has(route) && route !== '/intents') return
     app[method](`/api/autonomy${route}`, asyncHandler(handler))
     routes.push(`${method.toUpperCase()} /api/autonomy${route}`)
   }
@@ -64,6 +83,60 @@ export function registerAutonomyApi(app, { engine, store, delivery, dataDir }) {
   add('get', '/overview', (_req, res) => res.json({ ...engine.overview(), apiAccess: 'read-only' }))
 
   add('get', '/control/status', (_req, res) => res.json(engine.status()))
+
+  add('get', '/intents', (req, res) => res.json({
+    principal: req.app.locals.nexusIntentAuthorizer?.principal?.() || null,
+    policy: req.app.locals.nexusIntentAuthorizer?.policy || null,
+    grants: req.app.locals.nexusIntentAuthorizer?.grants?.({ repository: req.query.repository || null }) || [],
+    uses: store.list('intent_uses', { order: 'desc', limit: 100 })
+  }))
+
+  add('get', '/backups', async (_req, res) => res.json({ backups: await listDataBackups(path.join(dataDir, 'backups')) }))
+
+  add('post', '/backups', async (req, res) => {
+    const result = await createDataBackup({
+      dataDir, stateFile: path.join(dataDir, 'state.json'), autonomyDbFile: path.join(dataDir, 'autonomy.db'),
+      backupRoot: path.join(dataDir, 'backups'), label: req.body?.label || 'manual',
+      db: store.databaseHandle?.() || null, keep: req.body?.keep
+    })
+    store.put('backup_runs', result.id, { ...result.manifest, directory: result.directory, manifestSha256: result.manifestSha256 })
+    store.audit('backup', 'created', result.id, { files: result.manifest.files.map((file) => file.path), label: result.manifest.label })
+    return res.status(201).json(result)
+  })
+
+  add('post', '/backups/verify', async (req, res) => {
+    const directory = backupDirectory(dataDir, req.body?.directory || req.body?.backupId)
+    return res.json(await verifyDataBackup(directory))
+  })
+
+  add('post', '/backups/restore', async (req, res) => {
+    // The service keeps its SQLite handle open for the lifetime of the host;
+    // restoring that file while it is open would be unsafe. State restore is
+    // supported immediately; a full DB restore is explicitly restart-gated.
+    if (req.body?.restoreAutonomyDb === true) return res.status(409).json({ code: 'RESTORE_REQUIRES_RESTART', message: 'Stop NEXUS before restoring autonomy.db, then run the verified restore command.' })
+    const directory = backupDirectory(dataDir, req.body?.directory || req.body?.backupId)
+    const result = await restoreDataBackup({ directory, dataDir, stateFile: path.join(dataDir, 'state.json'), autonomyDbFile: null })
+    store.audit('backup', 'state-restored', result.backupId, { restoredAt: result.restoredAt })
+    return res.json(result)
+  })
+
+  add('post', '/intents/grant', (req, res) => {
+    const authorizer = req.app.locals.nexusIntentAuthorizer
+    if (!authorizer || authorizer.principal().role !== 'Administrator') return res.status(403).json({ code: 'INSUFFICIENT_ROLE', required: 'Administrator' })
+    if (req.body?.confirm !== true) return res.status(400).json({ code: 'CONFIRMATION_REQUIRED', message: 'Granting a writable intent requires confirm=true.' })
+    try {
+      const grant = authorizer.grant({ action: req.body?.action, scope: req.body?.scope, reason: req.body?.reason, duration: req.body?.duration, approvedBy: authorizer.principal().id })
+      return res.status(201).json({ grant })
+    } catch (error) { return res.status(400).json({ code: error.code || 'INTENT_GRANT_FAILED', error: error.message }) }
+  })
+
+  add('post', '/intents/:id/revoke', (req, res) => {
+    const authorizer = req.app.locals.nexusIntentAuthorizer
+    if (!authorizer || authorizer.principal().role !== 'Administrator') return res.status(403).json({ code: 'INSUFFICIENT_ROLE', required: 'Administrator' })
+    const grant = authorizer.revoke(req.params.id, req.body?.reason || 'Revoked by owner')
+    if (!grant) return res.status(404).json({ code: 'INTENT_NOT_FOUND' })
+    return res.json({ grant })
+  })
 
   const controlActions = {
     start: () => ({ settings: engine.start(), message: 'Autonomous operations started.' }),
@@ -441,4 +514,34 @@ export function startAutonomyTicker(engine, { intervalMs = 60_000, immediate = t
     tickNow: tick,
     intervalMs
   }
+}
+
+export function startAutonomyBackupScheduler({ dataDir, store, intervalMs = 6 * 60 * 60_000, keep = 30, logger = console } = {}) {
+  if (!dataDir || !store) return { stop() {}, runNow: async () => null, intervalMs: 0 }
+  const effectiveInterval = Math.max(60_000, Number(intervalMs) || 6 * 60 * 60_000)
+  let running = false
+  const runNow = async (label = 'scheduled') => {
+    if (running) return { skipped: true, reason: 'backup-in-progress' }
+    running = true
+    try {
+      const result = await createDataBackup({
+        dataDir,
+        stateFile: path.join(dataDir, 'state.json'),
+        autonomyDbFile: path.join(dataDir, 'autonomy.db'),
+        backupRoot: path.join(dataDir, 'backups'),
+        label,
+        db: store.databaseHandle?.() || null,
+        keep
+      })
+      store.put('backup_runs', result.id, { ...result.manifest, directory: result.directory, manifestSha256: result.manifestSha256 })
+      store.audit('backup', 'created', result.id, { files: result.manifest.files.map((file) => file.path), label })
+      return result
+    } catch (error) {
+      logger.error?.('[autonomy] scheduled backup failed:', error?.message || error)
+      return { skipped: true, reason: error?.code || 'backup-failed' }
+    } finally { running = false }
+  }
+  const timer = setInterval(() => void runNow(), effectiveInterval)
+  timer.unref?.()
+  return { stop: () => clearInterval(timer), runNow, intervalMs: effectiveInterval }
 }

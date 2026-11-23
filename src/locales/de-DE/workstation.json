@@ -201,6 +201,7 @@
     "saveInference": "Als Annahme speichern",
     "noMemory": "Noch kein Gedächtnis. Zuerst den Index aktualisieren.",
     "resourceDetail": "Gemessene Last begrenzt neue Aufgaben; aktive Arbeit wird nicht still verworfen.",
+    "cpu": "CPU",
     "freeMemory": "Freier Arbeitsspeicher",
     "diskFree": "Freier Speicherplatz",
     "nodeMemory": "Speicher des Node-Dienstes",

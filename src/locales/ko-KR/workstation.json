@@ -201,6 +201,7 @@
     "saveInference": "추론으로 저장",
     "noMemory": "메모리가 없습니다. 인덱스를 갱신하세요.",
     "resourceDetail": "측정된 부하에 따라 새 작업을 제한하며 실행 중인 작업은 임의로 버리지 않습니다.",
+    "cpu": "CPU",
     "freeMemory": "사용 가능한 물리 메모리",
     "diskFree": "디스크 여유 공간",
     "nodeMemory": "Node 서비스 메모리",

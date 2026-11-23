@@ -9,6 +9,7 @@ import path from 'node:path'
 import fsp from 'node:fs/promises'
 import crypto from 'node:crypto'
 import { makeId } from './model.mjs'
+import { inspectSensitiveFile, looksLikeSecretContent } from '../services/sensitive-files.mjs'
 
 const SAFE_SCRIPT = /^[A-Za-z0-9:_-]{1,60}$/
 const ALLOWED_PROGRAMS = new Set(['npm', 'npx', 'pnpm', 'yarn', 'node', 'python', 'python3', 'pytest', 'dotnet', 'cargo', 'go'])
@@ -153,6 +154,14 @@ export function scanDiffForSecrets(diff = {}) {
   ]
   for (const { regex, code } of patterns) if (regex.test(patch)) findings.push({ code, detail: `Pattern ${code} found in the change set.` })
   for (const file of diff.sensitiveFiles || []) findings.push({ code: 'SENSITIVE_PATH_IN_DIFF', detail: file })
+  for (const file of diff.changedFiles || []) {
+    const inspection = inspectSensitiveFile({ relativePath: file.path, content: file.content || '' })
+    if (inspection.sensitive && !inspection.pathReasons.includes('VCS_DIRECTORY')) {
+      findings.push({ code: 'SENSITIVE_FILE_IN_DIFF', detail: `${file.path}: ${inspection.reasons.join(', ')}` })
+    }
+  }
+  const contentInspection = looksLikeSecretContent(patch)
+  for (const reason of contentInspection.reasons) findings.push({ code: `SECRET_CONTENT_${reason}`, detail: `Credential-like content detected (${reason}).` })
   for (const file of diff.deletedFiles || []) findings.push({ code: 'DELETION_IN_DIFF', detail: file })
   return { pass: findings.length === 0, findings }
 }

@@ -201,6 +201,7 @@
     "saveInference": "保存为推测",
     "noMemory": "尚无记忆，更新项目索引后开始积累。",
     "resourceDetail": "根据实际资源压力限制新任务准入，不会静默丢弃正在运行的任务。",
+    "cpu": "CPU",
     "freeMemory": "可用物理内存",
     "diskFree": "可用磁盘空间",
     "nodeMemory": "Node 服务内存",

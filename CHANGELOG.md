@@ -4,6 +4,7 @@
 
 | 版本 | 日期 | 更新主题 | 分发状态 |
 | --- | --- | --- | --- |
+| v2.1.0 | 2026-11-23 | [安全授权、数据恢复、检查点与 i18n 质量门禁](#v210--2026-11-23) | 开发分支；本地门禁通过，真实 AI/Windows VM/签名发布仍未完成 |
 | v2.0.0 | 2026-11-22 | [9 中心导航重构、重复调度收口与 AI 输出边界](#v200--2026-11-22) | [已正式发布](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v2.0.0)（Windows x64 安装包、blockmap、`latest.yml` 与 SHA256 清单已上传；未签名） |
 | v0.9.5 | 2026-11-21 | [Windows 桌面发布完整性修复](docs/releases/v0.9.5.md) | 候选，尚未公开发布 |
 | v0.9.4 | 2026-11-19 | 修复桌面 loopback 启动白屏 | [源码 Release](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.4)，没有 Windows 资产 |
@@ -32,6 +33,24 @@
 | v0.1.0 | 2026-11-13 | Windows 桌面与本地 Agent | [已发布](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.1.0) |
 
 已发布版本的独立说明均位于 `docs/releases/vX.Y.Z.md`，包含更新内容、下载与校验、验证记录和已知限制。历史安装包与标签保留，不以本地候选摘要替代公开资产摘要。
+
+## v2.1.0 · 2026-11-23
+
+本轮在独立 `codex/2.1.0-upgrade` 分支实施，尚未声称公开发布。所有状态以 [2.1.0 测试报告](docs/PROJECT_NEXUS_2.1.0_TEST_REPORT.md) 为准。
+
+### 已实现并验证
+
+- Action Intent 授权：身份、精确资源范围、风险等级、短期 grant、撤销、使用结果与 append-only 审计；无 grant 时保持 `AUTONOMY_READ_ONLY` 兼容响应并返回内部 intent 原因。
+- 敏感文件策略：统一识别 `.env`、凭据目录、证书/私钥、用户状态数据库和重命名的 token/key 内容；Diff、Agent workspace、日志脱敏共用同一策略。
+- 数据可靠性：SQLite `integrity_check`、WAL checkpoint、state/Autonomy manifest + SHA-256 备份、校验、状态恢复与损坏/篡改拒绝；运行中 SQLite 全量恢复明确要求停服务。
+- 任务可靠性：Autonomy 任务持久化 checkpoint；验证失败修复循环修正为合法 `QUEUED` 状态并保留有界重试记录。
+- 国际化与主题：17 个硬编码 UI 文案全部转入 10 语言资源；CSS 颜色统一为主题 Token；`npm run i18n:audit` 与 coverage 均通过。
+
+### 尚未完成
+
+- 没有真实 AI Provider 凭据和专用测试仓库，真实模型驱动代码修改→Diff→测试→PR→CI→失败恢复仍为 BLOCKED。
+- 未在 disposable Windows VM 完成全新安装、旧版升级、中断、回滚、卸载重装；Authenticode 证书、Trivy/CodeQL/Semgrep 环境仍缺失。
+- `v2.1.0` 尚未创建公开 Tag/Release；不得把本地构建当作公开分发证据。
 
 
 ## v2.0.0 · 2026-11-23

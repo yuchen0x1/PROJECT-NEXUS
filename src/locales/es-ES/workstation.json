@@ -201,6 +201,7 @@
     "saveInference": "Guardar como inferencia",
     "noMemory": "Sin memoria aún. Actualiza el índice.",
     "resourceDetail": "La carga medida limita nuevos trabajos sin descartar los activos.",
+    "cpu": "CPU",
     "freeMemory": "Memoria física libre",
     "diskFree": "Espacio libre en disco",
     "nodeMemory": "Memoria del servicio Node",

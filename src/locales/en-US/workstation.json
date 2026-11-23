@@ -201,6 +201,7 @@
     "saveInference": "Save as an inference",
     "noMemory": "No memory yet. Update the index to start.",
     "resourceDetail": "Measured resource pressure limits admission of new work; active work is not silently discarded.",
+    "cpu": "CPU",
     "freeMemory": "Free physical memory",
     "diskFree": "Free disk space",
     "nodeMemory": "Node service memory",

@@ -210,6 +210,19 @@ describe('bounded local Agent provider operations', () => {
     })).rejects.toMatchObject({ code: 'AI_INVALID_OPERATIONS' })
   })
 
+  it('filters renamed sensitive integration paths before provider disclosure', async () => {
+    const requests = await useProvider(JSON.stringify({ operations: [], rationale: 'no change' }))
+    const result = await generateIntegrationOperations({
+      report: { repository: 'fixture/repo' }, plan: { changes: [] },
+      sourceFiles: [
+        { path: 'config/production.api-key.json', content: '{"apiKey":"not-for-model"}' },
+        { path: 'src/index.mjs', content: 'export const ready = true\n' }
+      ]
+    })
+    expect(result.sentPaths).toEqual(['src/index.mjs'])
+    expect(JSON.stringify(requests[0].body)).not.toContain('production.api-key.json')
+  })
+
   it('rejects prompts, source lists, and serialized requests over their byte limits before making a request', async () => {
     const requests = await useProvider('{"operations":[],"rationale":"none"}')
     await expect(generateLocalAgentOperations({ ...baseInput, prompt: 'x'.repeat(8 * 1024 + 1) })).rejects.toMatchObject({ code: 'AI_INPUT_TOO_LARGE' })

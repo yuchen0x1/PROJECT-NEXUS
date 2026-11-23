@@ -201,6 +201,7 @@
     "saveInference": "推測として保存",
     "noMemory": "記憶はまだありません。索引を更新してください。",
     "resourceDetail": "測定した負荷に応じて新規実行を制限し、実行中の作業は勝手に破棄しません。",
+    "cpu": "CPU",
     "freeMemory": "空き物理メモリ",
     "diskFree": "ディスク空き容量",
     "nodeMemory": "Node サービスのメモリ",
