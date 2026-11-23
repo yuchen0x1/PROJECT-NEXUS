@@ -1,6 +1,15 @@
 # 发布记录
 
-按版本号从新到旧排列，日期统一使用 Asia/Shanghai（UTC+8）。v0.x 安装版均为开发预览；v2.0.0 是九中心架构的正式版本。未配置 Authenticode 证书时，发布资产会明确标注为未签名构建。
+按版本号从新到旧排列，日期统一使用 Asia/Shanghai（UTC+8）。v0.x 安装版均为开发预览；v2.0.0 是九中心架构的正式版本，v2.1.1 是当前最新的正式版本。未配置 Authenticode 证书时，发布资产会明确标注为未签名构建。
+
+## v2.1.1 (2026-11-23)
+
+- 自动运维中心新增**「安全与恢复」**页签：读取真实 Action Intent 授权（范围、到期时间）、一键撤销，并驱动 `state.json` / `autonomy.db` 备份的创建、校验与状态恢复。
+- 修复真实缺陷：`POST /api/autonomy/backups/verify` 曾被归类为写操作，导致备份校验永远返回 `403 AUTONOMY_READ_ONLY`；只读语义的 POST 路由现在只受角色与会话门禁，不再要求写授权。
+- Vitest 与 CI 契约统一为 `maxWorkers: 1` 与 60 秒超时，消除 Windows 上 PowerShell Job 槽位争用导致的假失败。
+- 发布方式：Tag `v2.1.1`（`36d5f02`）经 PR #28 新增的 `publish_unsigned` 显式豁免通道发布，**未削弱 Authenticode 门禁**；默认发布路径仍强制签名，豁免运行要求产物恰为 `NotSigned` 且 Tag 内发布说明含 *unsigned*。发布者身份未验证。
+- 4 个资产已上传：安装包（122,924,812 B，SHA-256 `128604c1…76c2376`）、blockmap、`latest.yml`、`SHA256SUMS.txt`；完整证据见 [2.1.1 发布报告](../PROJECT_NEXUS_2.1.1_RELEASE_REPORT.md)。
+- Windows 全新安装、升级、中断更新、回滚与数据保留仍为 **NOT TESTED**（无一次性 VM）；24 小时浸泡、真实 AI 写回环与深度 Trivy/CodeQL/Semgrep 未验证。
 
 ## v0.9.4 (2026-11-20)
 
@@ -10,6 +19,7 @@
 
 | 版本 | 日期 | 更新主题 | 详细说明 |
 | --- | --- | --- | --- |
+| [v2.1.1](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v2.1.1) | 2026-11-23 | 安全与恢复控制台、只读校验路由修复与确定性测试 | [更新、下载与校验](v2.1.1.md)（未签名） |
 | [v2.0.0](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v2.0.0) | 2026-11-23 | 九中心 AI 仓库研发与运维工作站 | [更新、下载与校验](v2.0.0.md) |
 | [v0.9.3](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.3) | 2026-11-16 | 项目自主演进与 API 稳定性升级 | [更新、下载与校验](v0.9.3.md) |
 | [v0.9.2](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.2) | 2026-11-16 | 验证后草稿 PR 交付与桌面体验修复 | [更新、下载与校验](v0.9.2.md) |

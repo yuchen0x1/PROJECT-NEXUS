@@ -72,4 +72,8 @@ change makes the local and CI contract identical instead of weakening any test.
 - **NOT TESTED:** Authenticode signing and signature validation.
 - **BLOCKED:** real AI Provider write loop against a disposable repository.
 - **NOT TESTED:** 24-hour soak and deep Trivy/CodeQL/Semgrep scans.
-- Local build success is not a public release; the installer remains unsigned.
+- This report covers the build and test evidence only. The subsequent public
+  publication of `v2.1.1` (unsigned, via the explicit `publish_unsigned`
+  waiver) is recorded separately in
+  [`PROJECT_NEXUS_2.1.1_RELEASE_REPORT.md`](PROJECT_NEXUS_2.1.1_RELEASE_REPORT.md).
+  The installer remains unsigned because no Authenticode certificate exists.

@@ -4,7 +4,7 @@
 
 | 版本 | 日期 | 更新主题 | 分发状态 |
 | --- | --- | --- | --- |
-| v2.1.1 | 2026-11-23 | [安全与恢复控制台、只读校验路由修复与确定性的本地测试](#v211--2026-11-23) | 随本轮 PR 合并；Windows 安装包由发布工作流在签名/VM 门禁后生成 |
+| v2.1.1 | 2026-11-23 | [安全与恢复控制台、只读校验路由修复与确定性的本地测试](#v211--2026-11-23) | [已正式发布](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v2.1.1)（Windows x64 安装包、blockmap、`latest.yml` 与 SHA256 清单已上传；**未签名**，按 `publish_unsigned` 豁免发布，发布者身份未验证） |
 | v2.1.0 | 2026-11-23 | [安全授权、数据恢复、检查点与 i18n 质量门禁](#v210--2026-11-23) | 开发分支；本地门禁通过，真实 AI/Windows VM/签名发布仍未完成 |
 | v2.0.0 | 2026-11-22 | [9 中心导航重构、重复调度收口与 AI 输出边界](#v200--2026-11-22) | [已正式发布](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v2.0.0)（Windows x64 安装包、blockmap、`latest.yml` 与 SHA256 清单已上传；未签名） |
 | v0.9.5 | 2026-11-21 | [Windows 桌面发布完整性修复](docs/releases/v0.9.5.md) | 候选，尚未公开发布 |
@@ -44,6 +44,8 @@
 - **测试确定性**：Vitest 配置改为 `maxWorkers: 1` 与 60 秒超时，与 CI 契约一致。Windows 上并发 worker 会争用每个 agent Git 命令所用的 PowerShell Job 槽位，产生 `git clean failed (1073807364)` 与 5 秒超时假失败，而同一套用例串行运行和在 GitHub Actions 中都能通过。
 - **十语言与质量门禁**：新增文案已进入 10 个语言资源；`npm run i18n:audit` 为 0 问题、0 硬编码界面字符串、0 CSS 颜色问题，覆盖率保持 100%。
 - **回归证据**：`tests/unit/autonomy-routing.test.mjs` 新增端到端用例，覆盖授权 → 撤销 → 再授权 → 备份 → 校验 → 恢复 → 审计，且全程无外部请求；`npm run test:desktop:centers` 在真实 Electron 中验证 7 个页签与新面板。
+
+**分发状态**：Tag `v2.1.1`（`36d5f02`）已由发布工作流发布为 GitHub Release，`releases/latest` 指向 v2.1.1（非预发布），含 4 个资产（安装包、blockmap、`latest.yml`、`SHA256SUMS.txt`）。安装包 SHA-256 为 `128604c1f0766f1264934222a0e3b3c0511d0a12f6d402621e125c64576c2376`，与 `SHA256SUMS.txt` 及 GitHub API digest 一致。本次经 PR #28 新增的 `publish_unsigned` 显式豁免通道发布：默认发布路径仍强制 Authenticode 签名，豁免运行要求产物恰为 `NotSigned` 且 Tag 内发布说明必须含 *unsigned*。
 
 已知限制与 2.1.0 相同：Windows 安装/升级/回滚未在一次性 VM 中验证，Authenticode 签名仍未配置（安装包明确标注未签名），真实 AI 写回环与 24 小时浸泡仍未验证。
 
