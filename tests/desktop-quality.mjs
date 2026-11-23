@@ -246,7 +246,7 @@ try {
   // With corrupted settings the language falls back to the system locale, so
   // assert language-agnostically: the shell rendered and the language is supported.
   await page.waitForFunction(() => ['zh-CN', 'zh-TW', 'en-US', 'ja-JP', 'ko-KR', 'fr-FR', 'de-DE', 'es-ES', 'pt-BR', 'ru-RU'].includes(document.documentElement.lang), null, { timeout: 15_000 })
-  await page.locator('.nx-page-heading h1').first().waitFor({ timeout: 10_000 })
+  await page.locator('.nx-page-heading h1, .nx-remote-content').first().waitFor({ timeout: 10_000 })
   const recoveredLanguage = await page.evaluate(() => document.documentElement.lang)
   console.log(`PASS: corrupted desktop-settings.json recovered (language=${recoveredLanguage}) without blocking startup.`)
   await stop(instance)

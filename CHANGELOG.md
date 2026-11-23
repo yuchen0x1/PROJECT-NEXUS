@@ -4,7 +4,7 @@
 
 | 版本 | 日期 | 更新主题 | 分发状态 |
 | --- | --- | --- | --- |
-| v2.0.0 | 2026-11-22 | [9 中心导航重构、重复调度收口与 AI 输出边界](#v200--2026-11-22) | 本地候选，尚未公开发布 |
+| v2.0.0 | 2026-11-22 | [9 中心导航重构、重复调度收口与 AI 输出边界](#v200--2026-11-22) | [已正式发布](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v2.0.0)（Windows x64 安装包、blockmap、`latest.yml` 与 SHA256 清单已上传；未签名） |
 | v0.9.5 | 2026-11-21 | [Windows 桌面发布完整性修复](docs/releases/v0.9.5.md) | 候选，尚未公开发布 |
 | v0.9.4 | 2026-11-19 | 修复桌面 loopback 启动白屏 | [源码 Release](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.4)，没有 Windows 资产 |
 | v0.9.3 | 2026-11-16 | 项目自主演进与 API 稳定性升级 | [已正式发布](https://github.com/yuchen0x1/PROJECT-NEXUS/releases/tag/v0.9.3)（Windows x64 安装包、更新 feed、blockmap 与 SHA256 清单已上传） |
@@ -36,7 +36,7 @@
 
 ## v2.0.0 · 2026-11-23
 
-正式发布候选已合并到 `main`；Windows 安装包由发布工作流生成，并以真实 SHA256 发布。当前仓库未配置 Authenticode 证书，安装包按未签名构建标注。
+正式版本已合并到 `main`，Tag `v2.0.0` 与 GitHub Release 已公开；Windows 安装包由发布工作流生成，并以真实 SHA256 发布。当前仓库未配置 Authenticode 证书，安装包按未签名构建标注。发布后的生产级验收见 [验收报告](docs/POST_RELEASE_ACCEPTANCE_V2.0.0.md)。
 
 ### 导航与界面
 
@@ -66,7 +66,7 @@
 ### 验证
 
 - `npm run check`：78 个测试文件 / 524 项测试通过，typecheck、lint 与构建通过。
-- `npm run i18n:coverage` 十语言 100%；`npm run i18n:audit` 0 problems。
+- `npm run i18n:coverage` 十语言 100%；`npm run i18n:audit` 的资源结构问题为 0，但命令仍因 17 个硬编码 UI 字符串而退出 1，详见 [验收报告](docs/POST_RELEASE_ACCEPTANCE_V2.0.0.md)。
 - `npm run test:desktop:centers`：真实 Electron 45.3.4（经 npmmirror 镜像安装）中，7 项断言全部通过——9 中心顺序、叶子集与默认叶、全部 21 个叶子逐一可达、侧栏收起/展开、命令面板直达叶子、语言与深浅主题真实切换、Settings 读取真实本地 API 数据。
 
 ### 已知限制

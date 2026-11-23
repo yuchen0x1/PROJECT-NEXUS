@@ -36,6 +36,19 @@ const errors = [], samples = [], lifecycle = [], startedAt = new Date().toISOStr
 let service = null
 let servicePort = null
 
+class AcceptanceBlocked extends Error {
+  constructor(detail) {
+    super(detail)
+    this.name = 'AcceptanceBlocked'
+  }
+}
+
+function requireMutationAllowed(result, operation) {
+  if (result.response.status === 403 && result.body?.code === 'AUTONOMY_READ_ONLY') {
+    throw new AcceptanceBlocked(`${operation} is intentionally unavailable while the production autonomy API is read-only.`)
+  }
+}
+
 function startService() {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [path.join(root, 'server', 'index.mjs')], { cwd: root, env: envBase, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
@@ -80,19 +93,24 @@ try {
   let taskId
   {
     const added = await api('/api/autonomy/repositories', { method: 'POST', body: JSON.stringify({ fullName: 'soak/example', localPath: root, monitorItems: ['repository'], pollIntervalMs: 30_000, agentProjectRef: 'soak', enabled: true }) })
+    requireMutationAllowed(added, 'repository registration')
     assert.equal(added.response.status, 201, JSON.stringify(added.body)); repository = added.body
-    const settings = await api('/api/autonomy/control/pause', { method: 'POST', body: JSON.stringify({}) }); assert.equal(settings.response.ok, true, JSON.stringify(settings.body))
+    const settings = await api('/api/autonomy/control/pause', { method: 'POST', body: JSON.stringify({}) }); requireMutationAllowed(settings, 'autonomy pause'); assert.equal(settings.response.ok, true, JSON.stringify(settings.body))
   }
   outage = true
   const failedSync = await api(`/api/autonomy/repositories/${repository.id}/sync`, { method: 'POST', body: JSON.stringify({ force: true }) })
+  requireMutationAllowed(failedSync, 'network-outage sync')
   assert.equal(failedSync.response.ok, true, JSON.stringify(failedSync.body))
   outage = false
   const recoveredSync = await api(`/api/autonomy/repositories/${repository.id}/sync`, { method: 'POST', body: JSON.stringify({ force: true }) })
+  requireMutationAllowed(recoveredSync, 'network-recovery sync')
   assert.equal(recoveredSync.response.ok, true, JSON.stringify(recoveredSync.body))
   lifecycle.push({ event: 'network-recovery', failedVerdict: failedSync.body.verdict || null, recoveredVerdict: recoveredSync.body.verdict || null, at: new Date().toISOString() })
 
   const firstTask = await api('/api/autonomy/tasks', { method: 'POST', body: JSON.stringify({ repoId: repository.id, kind: 'soak-check', priority: 'P4', source: 'autonomy-soak', writeTask: false }) })
   const secondTask = await api('/api/autonomy/tasks', { method: 'POST', body: JSON.stringify({ repoId: repository.id, kind: 'soak-check', priority: 'P4', source: 'autonomy-soak', writeTask: false }) })
+  requireMutationAllowed(firstTask, 'first task admission')
+  requireMutationAllowed(secondTask, 'duplicate task admission')
   assert.equal(firstTask.response.status, 201); assert.equal(secondTask.response.status, 201)
   taskId = firstTask.body.task.id; assert.equal(secondTask.body.task.id, taskId)
   lifecycle.push({ event: 'idempotency-verified', taskId, at: new Date().toISOString() })
@@ -122,11 +140,18 @@ try {
   console.log(JSON.stringify({ status: report.status, report: path.join(outputDir, 'report.json'), elapsedHours: report.elapsedHours, continuous24hVerified: report.continuous24hVerified }, null, 2))
   if (errors.length) process.exitCode = 1
 } catch (error) {
-  errors.push({ kind: 'harness', detail: String(error.message || error), at: new Date().toISOString() })
-  const report = { id, status: 'FAIL', startedAt, endedAt: new Date().toISOString(), requestedHours: hours, continuous24hVerified: false, errors, lifecycle, samples }
-  await fs.writeFile(path.join(outputDir, 'report.json'), JSON.stringify(report, null, 2), 'utf8')
-  console.error(JSON.stringify({ status: report.status, report: path.join(outputDir, 'report.json'), error: error.message }, null, 2))
-  process.exitCode = 1
+  if (error instanceof AcceptanceBlocked) {
+    const report = { id, status: 'BLOCKED', startedAt, endedAt: new Date().toISOString(), requestedHours: hours, continuous24hVerified: false, blockingReason: error.message, securityBoundary: 'AUTONOMY_READ_ONLY', errors: [], lifecycle, samples }
+    await fs.writeFile(path.join(outputDir, 'report.json'), JSON.stringify(report, null, 2), 'utf8')
+    console.error(JSON.stringify({ status: report.status, report: path.join(outputDir, 'report.json'), reason: report.blockingReason }, null, 2))
+    process.exitCode = 2
+  } else {
+    errors.push({ kind: 'harness', detail: String(error.message || error), at: new Date().toISOString() })
+    const report = { id, status: 'FAIL', startedAt, endedAt: new Date().toISOString(), requestedHours: hours, continuous24hVerified: false, errors, lifecycle, samples }
+    await fs.writeFile(path.join(outputDir, 'report.json'), JSON.stringify(report, null, 2), 'utf8')
+    console.error(JSON.stringify({ status: report.status, report: path.join(outputDir, 'report.json'), error: error.message }, null, 2))
+    process.exitCode = 1
+  }
 } finally {
   await stopService()
   await new Promise((resolve) => proxy.close(resolve))
